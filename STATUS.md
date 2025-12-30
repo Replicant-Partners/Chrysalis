@@ -20,4 +20,4 @@
 
 ## Metrics (manual)
 - TypeScript build/tests: passed this session (`npm run build`, `npm run test:unit`).
-- Go tests: not run this session.
+- Go tests: not run this session (snap/apparmor confinement blocked `go test`; rerun in non-confined env).

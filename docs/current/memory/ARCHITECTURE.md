@@ -12,9 +12,9 @@
 
 ### Core Principle (Current vs Target)
 
-**Current**: Request/response sync with streaming/lumped/check-in transports; embedding-based dedupe (optional vector index), cryptographic identity, ingest sanitization, voyeur/metrics hooks.
+**Current**: Request/response sync with streaming/lumped/check-in transports; embedding-based dedupe (optional vector index), cryptographic identity, ingest sanitization/rate-limit, voyeur/metrics hooks.
 
-**Target** (roadmap): Epidemic gossip sync, CRDT state, Byzantine validation, multi-region replication.
+**Target** (roadmap): Epidemic gossip sync, CRDT state, Byzantine validation, multi-region replication (not implemented yet).
 
 ---
 

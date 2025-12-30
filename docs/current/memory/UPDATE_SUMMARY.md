@@ -44,7 +44,7 @@ The new implementation is:
 - Maintain cryptographic identity across transformations
 - Evolve continuously based on accumulated experiences
 
-**→ Memory must support this vision**: distributed, verified, gossip-synchronized, CRDT-merged
+**→ Memory vision**: distributed, verified, gossip-synchronized, CRDT-merged (gossip/CRDT planned)
 
 ---
 
@@ -63,7 +63,7 @@ Chrysalis is NOT ad-hoc design - it's built on **10 validated patterns** from:
 ### 3. V2 Experience Synchronization
 
 Three sync protocols for agent learning:
-- **Streaming** (< 1s): Real-time, gossip-based, for MCP agents
+- **Streaming** (< 1s): Real-time request/response today; future gossip option
 - **Lumped** (1-24h): Batched, push-pull, for multi-agent
 - **Check-In** (6-24h): Periodic, full-state, for autonomous
 
@@ -150,8 +150,7 @@ verified = MemoryIdentity.verify_signature(
 **What it does**:
 - Exponential memory propagation across instances
 - O(log N) rounds to reach all instances
-- Push gossip (send to random peers)
-- Pull gossip (request missing)
+- Push/pull gossip (planned)
 - Push-pull (most efficient)
 - Anti-entropy (repair gaps)
 
@@ -326,7 +325,7 @@ Chrysalis/memory_system/
 **Complete architectural specification** showing:
 - Pattern integration for each memory type
 - Memory operations (create, gossip, validate, merge)
-- Performance characteristics (O(log N) gossip, >2/3 Byzantine)
+- Performance characteristics (current: linear scan dedupe; target: O(log N) gossip + >2/3 Byzantine)
 - API specification
 - Comparison with traditional memory
 
