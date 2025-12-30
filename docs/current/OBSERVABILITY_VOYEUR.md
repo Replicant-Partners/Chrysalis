@@ -9,6 +9,7 @@ Surface what agents are “thinking” during ingest/merge with optional slow-mo
 - **Integration**: `MemoryMerger` now emits events (hash-only by default) on ingest, match, add, dedupe. Slow mode can be enabled via config `slow_mode_ms`.
 - **Privacy**: Emit hashes + metadata; redact content by default. Allow explicit opt-in to include content for local-debug sinks only.
 - **UI hooks**: Tail stream (CLI), WebSocket broadcast for dashboards, OTLP export for traces. Slow-mo can be toggled by setting `slowModeMs` on `VoyeurBus` or config.
+- **Metrics**: Optional Prometheus/OTel sinks (`METRICS_PROMETHEUS=true`, `METRICS_PROM_PORT=9464`, `METRICS_OTEL=true`) via `createMetricsSinkFromEnv()`.
 
 ## UX Ideas
 - Timeline view of merge steps with latency + decisions.

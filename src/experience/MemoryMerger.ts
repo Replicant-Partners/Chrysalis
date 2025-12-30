@@ -14,6 +14,7 @@ import { VoyeurEventKind, VoyeurSink } from '../observability/VoyeurEvents';
 import * as crypto from 'crypto';
 import { BruteForceVectorIndex, type VectorIndex } from '../memory/VectorIndex';
 import { createVectorIndex } from '../memory/VectorIndexFactory';
+import { createMetricsSinkFromEnv, type MetricsSink } from '../observability/Metrics';
 
 /**
  * Memory merger configuration
@@ -24,11 +25,12 @@ export interface MemoryMergerConfig {
   embedding_service?: any;  // EmbeddingService (optional)
   use_vector_index: boolean;  // Default: false (v3.2+)
   vector_index?: VectorIndex;  // VectorIndex (optional, v3.2+)
-  vector_index_type?: 'hnsw' | 'lance' | 'brute'; // Preferred backend
+  vector_index_type?: 'hnsw' | 'lance' | 'qdrant' | 'brute'; // Preferred backend
   vector_index_options?: Record<string, any>; // Backend options (collection, host, etc.)
   voyeur?: VoyeurSink;  // Optional observer for “voyeur” mode
   slow_mode_ms?: number;  // Optional artificial delay for human-speed playback
   metrics?: (event: { kind: 'vector.upsert' | 'vector.query'; backend: string; latencyMs: number; size?: number }) => void;
+  metrics_sink?: MetricsSink;
 }
 
 /**
@@ -72,6 +74,7 @@ export class MemoryMerger {
   private voyeur?: VoyeurSink;
   private slowModeMs: number;
   private vectorIndex?: VectorIndex;
+  private metricsSink?: MetricsSink;
   
   constructor(config?: Partial<MemoryMergerConfig>) {
     // Default: v3.0 behavior (Jaccard)
@@ -83,11 +86,14 @@ export class MemoryMerger {
       vector_index: config?.vector_index,
       vector_index_type: config?.vector_index_type ?? 'hnsw',
       voyeur: config?.voyeur,
-      slow_mode_ms: config?.slow_mode_ms ?? 0
+      slow_mode_ms: config?.slow_mode_ms ?? 0,
+      metrics: config?.metrics,
+      metrics_sink: config?.metrics_sink
     };
     this.voyeur = this.config.voyeur;
     this.slowModeMs = this.config.slow_mode_ms ?? 0;
     this.vectorIndex = this.config.vector_index;
+    this.metricsSink = this.config.metrics_sink || createMetricsSinkFromEnv() || undefined;
   }
   
   /**
@@ -370,12 +376,17 @@ export class MemoryMerger {
   }
 
   private recordMetric(kind: 'vector.upsert' | 'vector.query', latencyMs: number): void {
-    if (!this.config.metrics) return;
-    this.config.metrics({
+    const payload = {
       kind,
       backend: this.config.vector_index_type || 'unknown',
       latencyMs,
       size: this.vectorIndex?.size()
-    });
+    };
+    if (this.config.metrics) {
+      this.config.metrics(payload);
+    }
+    if (this.metricsSink) {
+      this.metricsSink.recordVectorOp(payload);
+    }
   }
 }
