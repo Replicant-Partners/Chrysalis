@@ -39,3 +39,8 @@ flowchart LR
   Bus --> Metrics[Prom/Otel]
   SSE --> Browser[Browser Viewer]
 ```
+
+## References
+- OpenTelemetry metrics API: https://opentelemetry.io/docs/specs/otel/metrics/api/
+- Prometheus exposition format: https://prometheus.io/docs/instrumenting/exposition_formats/
+- SSE pattern: https://html.spec.whatwg.org/multipage/server-sent-events.html

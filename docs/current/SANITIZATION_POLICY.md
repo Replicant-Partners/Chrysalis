@@ -20,3 +20,9 @@
 - Signature verification per source instance (Ed25519) before ingest.
 - Quarantine/approval queue for low-confidence matches.
 - Per-source quotas and exponential backoff on repeated violations.
+- Content classification for safety/PII using lightweight local models.
+
+## References
+- XSS/script filtering basics: OWASP XSS Prevention Cheat Sheet.  
+- Rate limiting patterns: token bucket/leaky bucket (RFC 6585 guidance for 429 Too Many Requests).  
+- PII handling: NIST SP 800-122 (Guide to Protecting the Confidentiality of PII).

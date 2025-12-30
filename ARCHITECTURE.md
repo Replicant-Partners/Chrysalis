@@ -58,7 +58,9 @@ flowchart LR
     end
     Z0 --> Z1 --> Z2 --> Z3 --> Z4
     Z4 -. observability .-> Z5[Voyeur SSE/metrics]
-```
+  ```
+  
+  **References**: HNSW (Malkov & Yashunin 2018) for ANN; Prometheus/OTel for metrics; SSE spec for voyeur stream; Ed25519 (RFC 8032) for signatures.
 
 **Scale 0: Mathematics**  
 Universal patterns with proven properties (hash functions, digital signatures, DAGs, gossip, etc.)
