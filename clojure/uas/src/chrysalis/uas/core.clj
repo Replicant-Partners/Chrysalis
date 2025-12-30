@@ -1,7 +1,8 @@
 (ns chrysalis.uas.core
   (:require [malli.core :as m]
             [malli.transform :as mt]
-            [malli.error :as me]))
+            [malli.error :as me]
+            [clojure.edn :as edn]))
 
 (def uas-schema
   [:map
@@ -101,3 +102,18 @@
       (update-in [:memory :collections :episodic] merge-episodic)
       (update-in [:memory :collections :semantic] merge-semantic)
       (update :skills merge-skills)))
+
+(defn load-uas [path]
+  (edn/read-string (slurp path)))
+
+(defn validate-file [path]
+  (validate-uAS (load-uas path)))
+
+(defn validate-and-converge [path]
+  (let [data (load-uas path)
+        res (validate-uAS data)]
+    (if (:valid res)
+      {:valid true
+       :value (converge-state (:value res))
+       :pattern (resolve-pattern (:pattern-resolution (:value res)))}
+      res)))

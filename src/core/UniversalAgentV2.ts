@@ -51,6 +51,16 @@ export interface ExperienceTransportConfig {
  */
 export type InstanceStatus = 'running' | 'idle' | 'syncing' | 'terminated';
 
+export type OODAStage = 'observe' | 'orient' | 'decide' | 'act';
+export type OODAField = 'who' | 'what' | 'when' | 'where' | 'why' | 'how' | 'huh';
+export type OODAStep = Record<OODAField, string[]>;
+export interface OODAInterrogatives {
+  observe: OODAStep;
+  orient: OODAStep;
+  decide: OODAStep;
+  act: OODAStep;
+}
+
 /**
  * Episode - Specific experience instance
  */
@@ -65,6 +75,7 @@ export interface Episode {
   lessons_learned: string[];
   skills_practiced: string[];
   effectiveness_rating: number;  // 0.0 - 1.0
+  ooda?: OODAInterrogatives;
 }
 
 export interface Interaction {

@@ -11,6 +11,7 @@
  */
 
 import * as EmbeddedPatterns from '../core/patterns';
+import { GoCryptoClient } from '../adapters/goCryptoClient';
 
 /**
  * Pattern types that can be resolved
@@ -27,7 +28,7 @@ export type PatternType =
 /**
  * Resolution sources (in preference order)
  */
-export type ResolutionSource = 'mcp' | 'embedded' | 'library';
+export type ResolutionSource = 'mcp' | 'embedded' | 'library' | 'go';
 
 /**
  * Deployment context for resolution decisions
@@ -95,6 +96,72 @@ export interface ThresholdImplementation {
   median(values: number[]): number;
   hasSupermajority(yes: number, total: number, threshold?: number): boolean;
   byzantineAgreement<T>(values: T[]): T | null;
+}
+
+const goClientShared = new GoCryptoClient();
+
+function encodeDataInput(data: string | Uint8Array): { data: string; encoding: 'utf8' | 'hex' } {
+  if (typeof data === 'string') {
+    return { data, encoding: 'utf8' };
+  }
+  return { data: Buffer.from(data).toString('hex'), encoding: 'hex' };
+}
+
+function hexToBytes(hex: string): Uint8Array {
+  return Buffer.from(hex, 'hex');
+}
+
+function bytesToHex(data: Uint8Array): string {
+  return Buffer.from(data).toString('hex');
+}
+
+class GoHashImpl implements HashImplementation {
+  private client: GoCryptoClient;
+  constructor(client: GoCryptoClient = goClientShared) {
+    this.client = client;
+  }
+
+  async hash(data: string | Uint8Array, algorithm: string = 'SHA-384'): Promise<string> {
+    const encoded = encodeDataInput(data);
+    const res = await this.client.call('Hash', { data: encoded.data, algorithm, encoding: encoded.encoding });
+    return res.hash as string;
+  }
+
+  async verify(data: string | Uint8Array, expectedHash: string): Promise<boolean> {
+    const encoded = encodeDataInput(data);
+    const res = await this.client.call('VerifyHash', { data: encoded.data, expectedHash, algorithm: 'SHA-384', encoding: encoded.encoding });
+    return !!res.valid;
+  }
+
+  async generateFingerprint(identity: any): Promise<string> {
+    const payload = JSON.stringify(identity);
+    const res = await this.client.call('Hash', { data: payload, algorithm: 'SHA-384', encoding: 'utf8' });
+    return res.hash as string;
+  }
+}
+
+class GoSignatureImpl implements SignatureImplementation {
+  private client: GoCryptoClient;
+  constructor(client: GoCryptoClient = goClientShared) {
+    this.client = client;
+  }
+
+  async generateKeypair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
+    const res = await this.client.call('Ed25519Keygen', {});
+    return { privateKey: hexToBytes(res.privateKey as string), publicKey: hexToBytes(res.publicKey as string) };
+  }
+
+  async sign(message: string | Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
+    const encoded = encodeDataInput(message);
+    const res = await this.client.call('Ed25519Sign', { message: encoded.data, privateKey: bytesToHex(privateKey), encoding: encoded.encoding });
+    return hexToBytes(res.signature as string);
+  }
+
+  async verify(message: string | Uint8Array, signature: Uint8Array, publicKey: Uint8Array): Promise<boolean> {
+    const encoded = encodeDataInput(message);
+    const res = await this.client.call('Ed25519Verify', { message: encoded.data, signature: bytesToHex(signature), publicKey: bytesToHex(publicKey), encoding: encoded.encoding });
+    return !!res.valid;
+  }
 }
 
 /**
@@ -198,13 +265,18 @@ export class AdaptivePatternResolver {
    * Resolve hash implementation
    */
   async resolveHash(): Promise<PatternResolution<HashImplementation>> {
-    // Decision logic based on context
     if (this.shouldUseMCP()) {
-      // MCP fabric would go here
-      // For now, fall through to embedded
+      try {
+        return {
+          source: 'go',
+          implementation: new GoHashImpl(),
+          latency_estimate_ms: 5,
+          reason: 'Go gRPC crypto'
+        };
+      } catch (err) {
+        console.error('Go hash resolution failed', err);
+      }
     }
-    
-    // Use embedded (always available, fast)
     return {
       source: 'embedded',
       implementation: new EmbeddedHashImpl(),
@@ -219,10 +291,22 @@ export class AdaptivePatternResolver {
    * Resolve signature implementation
    */
   async resolveSignature(): Promise<PatternResolution<SignatureImplementation>> {
+    if (this.shouldUseMCP()) {
+      try {
+        return {
+          source: 'go',
+          implementation: new GoSignatureImpl(),
+          latency_estimate_ms: 5,
+          reason: 'Go gRPC signatures'
+        };
+      } catch (err) {
+        console.error('Go signature resolution failed', err);
+      }
+    }
     return {
       source: 'embedded',
       implementation: new EmbeddedSignatureImpl(),
-      latency_estimate_ms: 0.5,  // Signature ops are slower
+      latency_estimate_ms: 0.5,
       reason: this.context.distributed
         ? 'MCP not yet integrated, using embedded fallback'
         : 'Embedded patterns optimal for single-node deployment'
@@ -281,7 +365,7 @@ export class AdaptivePatternResolver {
     
     return {
       context: this.context,
-      preferred_source: prefersMCP ? 'mcp' : 'embedded',
+      preferred_source: prefersMCP ? 'go' : 'embedded',
       estimated_latency_ms: prefersMCP ? 5.0 : 0.1
     };
   }
