@@ -22,7 +22,7 @@ Chrysalis enables AI agents to act as independent, evolving entities through a u
 - 📐 **[Architecture Overview](ARCHITECTURE.md)** - System design and patterns
 - 📚 **[Complete Specification](docs/current/UNIFIED_SPEC_V3.1.md)** - Comprehensive technical spec
 - 🔬 **[Research Foundation](docs/research/)** - Universal patterns and deep research
-- 💻 **[Source Code](src/)** - TypeScript implementation
+- 💻 **[Source Code](src/)** - TypeScript core + Go gRPC services + Clojure UAS
 - 📖 **[Documentation Index](docs/README.md)** - Complete documentation map
 
 ## Project Structure
@@ -51,25 +51,32 @@ Chrysalis/
 ### Universal Agent Schema v3.1
 - Three implementation types supported
 - Cryptographic identity (SHA-384 + Ed25519)
-- Dual-coded memory (episodic + semantic)
+- Dual-coded memory (episodic + semantic) with OODA interrogatives per episode
 - Evolution tracking with DAG structure
 - CRDT-ready state management
 
 ### Fractal Architecture
 - **Scale 0**: Mathematical patterns (hash, signatures, gossip, etc.)
 - **Scale 1**: Validated libraries (@noble/*, graphlib)
-- **Scale 2**: MCP fabric services
+- **Scale 2**: Go gRPC fabric (crypto primitives) + MCP services
 - **Scale 3**: Embedded pattern implementations
 - **Scale 4**: Agent operations
+
+### Pattern Resolution
+- Go gRPC crypto (hash, verify, Merkle, Ed25519, BLS)
+- MCP servers for distributed structures
+- Embedded/local for low-latency fallback
+- Adaptive resolver chooses per context
 
 ### Experience Synchronization
 - **Streaming**: Continuous real-time sync
 - **Lumped**: Batch synchronization
 - **Check-in**: Periodic reconciliation
+- OODA recording persisted on episodes
 
-### Layer 1 MCP Fabric
-- **cryptographic-primitives**: Hash, signatures, random, Merkle trees (19 tools)
-- **distributed-structures**: DAG, time, threshold, hashgraph ops (14 tools)
+### Interaction Modes
+- CLI and adapters
+- Emoji command mode (Noto default; Fluent/Open/custom selectable)
 
 ## Getting Started
 

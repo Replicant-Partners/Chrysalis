@@ -11,7 +11,8 @@ docs/
 ├── current/          # Active specifications and guides
 ├── research/         # Research foundation
 ├── archive/          # Historical versions (v1, v2, deprecated)
-└── diagrams/         # Mermaid diagrams
+├── diagrams/         # Mermaid diagrams
+└── index.md          # Master navigation
 ```
 
 ---
@@ -38,6 +39,7 @@ docs/
 - **[Memory System](current/memory/)** - Memory architecture and implementation
 - **[MCP Setup](current/MCP_SETUP.md)** - MCP server configuration
 - **[Implementation Guide](current/IMPLEMENTATION_GUIDE.md)** - How to implement
+- **[Universal Agent Lexicon](current/UNIVERSAL_AGENT_LEXICON.md)** - Core terms, OODA, emoji mode
 
 ### 🔬 Research Foundation
 

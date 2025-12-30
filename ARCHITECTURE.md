@@ -112,25 +112,21 @@ classDiagram
 flowchart TD
     A[Agent Request] --> B{Pattern Resolver}
     B --> C{Deployment Context?}
-    
-    C -->|Distributed| D[Use MCP Fabric]
-    C -->|Single-Node| E[Use Embedded]
-    C -->|Performance-Critical| F[Use Direct Library]
-    
-    D --> G[Network Call ~5ms]
-    E --> H[Function Call ~0.1ms]
-    F --> I[Minimal Overhead ~0.05ms]
-    
-    G --> J[Result]
-    H --> J
-    I --> J
+    C -->|Distributed + MCP| D[Go gRPC Crypto]
+    C -->|Distributed + No MCP| E[MCP Servers]
+    C -->|Single-Node| F[Embedded]
+    C -->|Perf-Critical| G[Direct Library]
+    D --> H[~5ms]
+    E --> H
+    F --> H
+    G --> H
 ```
 
 **Decision Factors**:
-- Is deployment distributed? (multi-region)
-- Are MCP servers available?
-- Is performance critical? (<1ms required)
-- Is reusability preferred?
+- distributed & mcp_available → Go gRPC crypto + MCP structures
+- prefer_reusability, not perf-critical → Go/MCP
+- perf-critical → embedded/local
+- fallback → direct library
 
 ### 3. Memory System
 
@@ -155,31 +151,23 @@ graph LR
 - **v3.1**: Embedding similarity (semantic), O(N²), <5000 memories
 - **v3.2**: Vector indexing (HNSW), O(log N), millions of memories
 
-### 4. Experience Sync
+### 4. Experience Sync + OODA Capture
 
 ```mermaid
 sequenceDiagram
-    participant S as Source Agent
+    participant S as Agent
     participant I1 as Instance 1
     participant I2 as Instance 2
     participant I3 as Instance 3
     
-    Note over I1,I3: Instances Generate Experiences
-    
     I1->>S: Streaming (real-time)
     I2->>S: Lumped (batch)
     I3->>S: Check-in (periodic)
-    
-    S->>S: Merge Experiences
+    S->>S: Merge + OODA record per episode
     S->>S: Update Memory/Skills/Knowledge
-    
-    Note over S: Agent Evolves
 ```
 
-**Three Protocols**:
-- **Streaming**: Continuous real-time sync
-- **Lumped**: Batch synchronization
-- **Check-in**: Periodic reconciliation
+**Protocols**: streaming, lumped, check-in. OODA interrogatives stored on episodes for audit and learning.
 
 ---
 
@@ -241,43 +229,32 @@ graph TD
 ## Deployment Models
 
 ### Model A: Embedded (Monolithic)
-
 ```
 Single Process:
   ├── Agent
   ├── Embedded Patterns
   └── Direct Library Imports
 ```
+Use: CLI, edge, single-user | Latency: ~0.1ms | Complexity: Low
 
-**Use When**: CLI tools, edge devices, single-user apps  
-**Latency**: ~0.1ms (function calls)  
-**Complexity**: Low
-
-### Model B: MCP Fabric (Microservices)
-
+### Model B: Go gRPC + MCP (Distributed)
 ```
 Multiple Processes:
   ├── Agent Process
-  ├── Crypto-Primitives MCP
+  ├── Go Crypto gRPC (hash/verify/merkle/Ed25519/BLS/random)
   └── Distributed-Structures MCP
 ```
-
-**Use When**: Multi-region, shared infrastructure, multiple agents  
-**Latency**: ~5ms (network calls)  
-**Complexity**: Medium
+Use: Multi-region/shared infra | Latency: ~5ms | Complexity: Medium
 
 ### Model C: Adaptive (Hybrid)
-
 ```
 Agent:
   └── Pattern Resolver
-      ├── Try MCP (if available)
-      └── Fallback to Embedded
+      ├── Prefer Go gRPC when distributed & available
+      ├── Else MCP
+      └── Else Embedded
 ```
-
-**Use When**: Uncertain deployment, gradual migration, maximum flexibility  
-**Latency**: Adaptive (~0.1ms embedded, ~5ms MCP)  
-**Complexity**: Medium-High
+Use: Gradual migration | Latency: adaptive | Complexity: Medium-High
 
 ---
 
