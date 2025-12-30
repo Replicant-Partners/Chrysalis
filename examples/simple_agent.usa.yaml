@@ -1,4 +1,4 @@
-apiVersion: uas/v1
+apiVersion: usa/v1
 kind: Agent
 
 metadata:

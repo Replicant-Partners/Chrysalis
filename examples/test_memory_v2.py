@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for UAS v2.0 with Memory System
+Test script for uSA v2.0 with Memory System
 """
 
 import sys
@@ -10,8 +10,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import v2 types and loader
-from uas_implementation.core import types_v2 as uas_v2
-from uas_implementation.loader import UniversalAgentLoader, load_agent, save_agent
+from usa_implementation.core import types_v2 as usa_v2
+from usa_implementation.loader import UniformSemanticAgentLoader, load_agent, save_agent
 
 
 def print_section(title):
@@ -25,10 +25,10 @@ def test_hierarchical_memory():
     """Test hierarchical memory agent"""
     print_section("Test 1: Hierarchical Memory Agent (MemGPT style)")
     
-    spec_path = Path(__file__).parent / "memory_agent_hierarchical.uas.yaml"
+    spec_path = Path(__file__).parent / "memory_agent_hierarchical.usa.yaml"
     print(f"\n📁 Loading: {spec_path.name}")
     
-    spec = load_agent(str(spec_path), type_module=uas_v2)
+    spec = load_agent(str(spec_path), type_module=usa_v2)
     
     print(f"\n✅ Loaded: {spec.metadata.name} v{spec.metadata.version}")
     print(f"   {spec.metadata.description}")
@@ -121,10 +121,10 @@ def test_structured_memory():
     """Test structured memory agent"""
     print_section("Test 2: Structured Memory Agent (MIRIX style)")
     
-    spec_path = Path(__file__).parent / "memory_agent_structured.uas.yaml"
+    spec_path = Path(__file__).parent / "memory_agent_structured.usa.yaml"
     print(f"\n📁 Loading: {spec_path.name}")
     
-    spec = load_agent(str(spec_path), type_module=uas_v2)
+    spec = load_agent(str(spec_path), type_module=usa_v2)
     
     print(f"\n✅ Loaded: {spec.metadata.name} v{spec.metadata.version}")
     
@@ -162,10 +162,10 @@ def test_minimal_memory():
     """Test minimal memory agent"""
     print_section("Test 3: Minimal Memory Agent (Basic RAG)")
     
-    spec_path = Path(__file__).parent / "memory_agent_minimal.uas.yaml"
+    spec_path = Path(__file__).parent / "memory_agent_minimal.usa.yaml"
     print(f"\n📁 Loading: {spec_path.name}")
     
-    spec = load_agent(str(spec_path), type_module=uas_v2)
+    spec = load_agent(str(spec_path), type_module=usa_v2)
     
     print(f"\n✅ Loaded: {spec.metadata.name} v{spec.metadata.version}")
     
@@ -193,8 +193,8 @@ def test_validation():
     print_section("Test 4: Validation")
     
     print("\n🔍 Validating hierarchical agent...")
-    spec_path = Path(__file__).parent / "memory_agent_hierarchical.uas.yaml"
-    spec = load_agent(str(spec_path), type_module=uas_v2)
+    spec_path = Path(__file__).parent / "memory_agent_hierarchical.usa.yaml"
+    spec = load_agent(str(spec_path), type_module=usa_v2)
     
     try:
         spec.validate()
@@ -211,9 +211,9 @@ def test_serialization():
     print_section("Test 5: Serialization (Round-trip)")
     
     # Load agent
-    spec_path = Path(__file__).parent / "memory_agent_hierarchical.uas.yaml"
+    spec_path = Path(__file__).parent / "memory_agent_hierarchical.usa.yaml"
     print(f"\n📁 Loading from YAML...")
-    spec1 = load_agent(str(spec_path), type_module=uas_v2)
+    spec1 = load_agent(str(spec_path), type_module=usa_v2)
     
     # Convert to dict
     print("📄 Converting to dict...")
@@ -221,7 +221,7 @@ def test_serialization():
     
     # Create from dict
     print("🔄 Creating from dict...")
-    spec2 = uas_v2.AgentSpec.from_dict(spec_dict)
+    spec2 = usa_v2.AgentSpec.from_dict(spec_dict)
     
     # Validate both are equivalent
     print("✅ Comparing...")
@@ -229,13 +229,13 @@ def test_serialization():
     assert spec1.capabilities.memory.architecture == spec2.capabilities.memory.architecture
     
     # Save as JSON
-    output_path = Path(__file__).parent / "memory_agent_hierarchical.uas.json"
+    output_path = Path(__file__).parent / "memory_agent_hierarchical.usa.json"
     print(f"\n💾 Saving as JSON: {output_path.name}")
     save_agent(spec2, str(output_path), format='json')
     
     # Reload from JSON
     print("🔄 Reloading from JSON...")
-    spec3 = load_agent(str(output_path), type_module=uas_v2)
+    spec3 = load_agent(str(output_path), type_module=usa_v2)
     
     assert spec3.metadata.name == spec1.metadata.name
     print("\n✅ Round-trip serialization successful!")
@@ -249,18 +249,18 @@ def compare_memory_architectures():
     
     # Load all three agents
     hierarchical = load_agent(
-        str(Path(__file__).parent / "memory_agent_hierarchical.uas.yaml"),
-        type_module=uas_v2
+        str(Path(__file__).parent / "memory_agent_hierarchical.usa.yaml"),
+        type_module=usa_v2
     )
     
     structured = load_agent(
-        str(Path(__file__).parent / "memory_agent_structured.uas.yaml"),
-        type_module=uas_v2
+        str(Path(__file__).parent / "memory_agent_structured.usa.yaml"),
+        type_module=usa_v2
     )
     
     minimal = load_agent(
-        str(Path(__file__).parent / "memory_agent_minimal.uas.yaml"),
-        type_module=uas_v2
+        str(Path(__file__).parent / "memory_agent_minimal.usa.yaml"),
+        type_module=usa_v2
     )
     
     print("\n📊 Memory Architecture Comparison:")
@@ -291,7 +291,7 @@ def compare_memory_architectures():
 def main():
     """Run all tests"""
     print("\n" + "=" * 70)
-    print("  Universal Agent Specification v2.0 - Memory System Tests")
+    print("  Uniform Semantic Agent v2.0 - Memory System Tests")
     print("=" * 70)
     
     try:
@@ -307,13 +307,13 @@ def main():
         print("\n" + "=" * 70)
         print("  ✅ ALL TESTS PASSED!")
         print("=" * 70)
-        print("\n🎉 UAS v2.0 with Memory System is working correctly!")
+        print("\n🎉 uSA v2.0 with Memory System is working correctly!")
         print("\n📚 Example specifications:")
-        print("   • memory_agent_hierarchical.uas.yaml - Full-featured (MemGPT style)")
-        print("   • memory_agent_structured.uas.yaml - Personal assistant (MIRIX style)")
-        print("   • memory_agent_minimal.uas.yaml - Basic RAG")
+        print("   • memory_agent_hierarchical.usa.yaml - Full-featured (MemGPT style)")
+        print("   • memory_agent_structured.usa.yaml - Personal assistant (MIRIX style)")
+        print("   • memory_agent_minimal.usa.yaml - Basic RAG")
         print("\n💾 Output files:")
-        print("   • memory_agent_hierarchical.uas.json - JSON format")
+        print("   • memory_agent_hierarchical.usa.json - JSON format")
         print("\n" + "=" * 70)
         
     except Exception as e:

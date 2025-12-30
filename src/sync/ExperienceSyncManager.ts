@@ -6,7 +6,7 @@
  */
 
 import type {
-  UniversalAgentV2,
+  UniformSemanticAgentV2,
   ExperienceEvent,
   ExperienceBatch,
   SyncResult,
@@ -14,7 +14,7 @@ import type {
   ExperienceSyncConfig,
   ExperienceTransportConfig,
   ExperienceTransportType
-} from '../core/UniversalAgentV2';
+} from '../core/UniformSemanticAgentV2';
 import { StreamingSync } from './StreamingSync';
 import { LumpedSync } from './LumpedSync';
 import { CheckInSync } from './CheckInSync';
@@ -75,7 +75,7 @@ export class ExperienceSyncManager {
   
   private syncStatus: Map<string, SyncStatus> = new Map();
   private transports: Map<string, ExperienceTransport> = new Map();
-  private sourceAgents: Map<string, UniversalAgentV2> = new Map();
+  private sourceAgents: Map<string, UniformSemanticAgentV2> = new Map();
   
   constructor() {
     this.streamingSync = new StreamingSync();
@@ -94,7 +94,7 @@ export class ExperienceSyncManager {
     instanceId: string,
     protocol: SyncProtocol,
     config: ExperienceSyncConfig,
-    sourceAgent?: UniversalAgentV2,
+    sourceAgent?: UniformSemanticAgentV2,
     syncEndpoint?: string,
     overrideTransport?: ExperienceTransportConfig
   ): Promise<void> {
@@ -242,7 +242,7 @@ export class ExperienceSyncManager {
    */
   async receiveSyncEvent(
     instanceId: string,
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     event: ExperienceEvent
   ): Promise<void> {
     switch (event.event_type) {
@@ -268,7 +268,7 @@ export class ExperienceSyncManager {
    * Merge experiences from batch
    */
   async mergeExperienceBatch(
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     batch: ExperienceBatch
   ): Promise<MergeResult> {
     console.log(`Merging experience batch from ${batch.instance_id}...`);
@@ -482,7 +482,7 @@ export class ExperienceSyncManager {
   }
   
   private async updateCharacteristic(
-    agent: UniversalAgentV2,
+    agent: UniformSemanticAgentV2,
     data: any,
     instanceId: string
   ): Promise<void> {

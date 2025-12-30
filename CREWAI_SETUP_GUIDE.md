@@ -152,11 +152,11 @@ task_1_1_1 = Task(
 )
 
 task_1_1_2 = Task(
-    description="""Review and enhance UniversalAgentV2 TypeScript interface...""",
+    description="""Review and enhance UniformSemanticAgentV2 TypeScript interface...""",
     expected_output="""Enhanced schema specification...""",
     agent=platform_architect,
     context=[],
-    output_file="design/UniversalAgentV2-Schema.md"
+    output_file="design/UniformSemanticAgentV2-Schema.md"
 )
 
 # ... define all tasks from TEAM1_CORE_PLATFORM.yaml
@@ -438,7 +438,7 @@ npm run coverage | grep MemoryMerger
 # Bundle artifacts for Team 4
 mkdir -p handoffs/phase1_to_phase2/
 cp src/experience/MemoryMerger.ts handoffs/phase1_to_phase2/
-cp design/UniversalAgentV2-Schema.md handoffs/phase1_to_phase2/
+cp design/UniformSemanticAgentV2-Schema.md handoffs/phase1_to_phase2/
 cp docs/technical/MemoryMerger.md handoffs/phase1_to_phase2/
 
 # Create handoff document

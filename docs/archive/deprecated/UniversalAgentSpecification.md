@@ -1,4 +1,4 @@
-# Universal Agent Specification (UAS)
+# Uniform Semantic Agent (uSA)
 **Version:** 1.0.0  
 **Date:** December 28, 2025  
 **Status:** Design Proposal
@@ -9,7 +9,7 @@
 
 1. [Introduction](#introduction)
 2. [Core Design Principles](#core-design-principles)
-3. [Universal Agent Specification Format](#universal-agent-specification-format)
+3. [Uniform Semantic Agent Format](#universal-agent-specification-format)
 4. [Protocol Buffers Definition](#protocol-buffers-definition)
 5. [Adapter Architecture](#adapter-architecture)
 6. [Implementation Examples](#implementation-examples)
@@ -36,7 +36,7 @@ This fragmentation prevents:
 - ✗ Standardized testing and benchmarking
 - ✗ Easy migration between frameworks
 
-### Solution: Universal Agent Specification
+### Solution: Uniform Semantic Agent
 
 A **three-layer architecture** that separates:
 1. **Core Agent Definition** (framework-agnostic)
@@ -45,7 +45,7 @@ A **three-layer architecture** that separates:
 
 ```
 ┌─────────────────────────────────────────────────┐
-│        Universal Agent Definition               │
+│        Uniform Semantic Agent Definition               │
 │        (YAML/JSON/Protocol Buffers)             │
 └─────────────────────────────────────────────────┘
                       ↓
@@ -112,7 +112,7 @@ capabilities:
 
 ```python
 # Core agent logic independent of framework
-class UniversalAgent:
+class UniformSemanticAgent:
     """Framework-agnostic agent"""
     
     def __init__(self, spec: AgentSpec):
@@ -135,13 +135,13 @@ autogpt_agent = AutoGPTAdapter().adapt(universal_agent)
 
 ---
 
-## Universal Agent Specification Format
+## Uniform Semantic Agent Format
 
 ### Schema Overview
 
 ```yaml
-# Universal Agent Specification v1.0
-apiVersion: uas/v1
+# Uniform Semantic Agent v1.0
+apiVersion: usa/v1
 kind: Agent
 
 metadata:
@@ -219,8 +219,8 @@ deployment:
 ### Complete Example
 
 ```yaml
-# research_agent.uas.yaml
-apiVersion: uas/v1
+# research_agent.usa.yaml
+apiVersion: usa/v1
 kind: Agent
 
 metadata:
@@ -396,7 +396,7 @@ package uas.v1;
 
 // Root agent specification
 message AgentSpec {
-  string api_version = 1;  // "uas/v1"
+  string api_version = 1;  // "usa/v1"
   string kind = 2;         // "Agent"
   Metadata metadata = 3;
   Identity identity = 4;
@@ -878,7 +878,7 @@ class AutoGPTAdapter(FrameworkAdapter[dict]):
 
 ## Implementation Examples
 
-### Universal Agent Loader
+### Uniform Semantic Agent Loader
 
 ```python
 # uas/loader.py
@@ -889,8 +889,8 @@ from typing import Union
 from .core.types import AgentSpec
 from .core.adapter import registry
 
-class UniversalAgentLoader:
-    """Load and deploy universal agent specifications"""
+class UniformSemanticAgentLoader:
+    """Load and deploy Uniform Semantic Agent specifications"""
     
     @staticmethod
     def load_from_file(file_path: Union[str, Path]) -> AgentSpec:
@@ -935,7 +935,7 @@ class UniversalAgentLoader:
         
         for framework in frameworks:
             try:
-                agent = UniversalAgentLoader.deploy(spec, framework)
+                agent = UniformSemanticAgentLoader.deploy(spec, framework)
                 deployed[framework] = agent
             except Exception as e:
                 deployed[framework] = {"error": str(e)}
@@ -946,7 +946,7 @@ class UniversalAgentLoader:
 # Convenience function
 def load_and_deploy(spec_file: str, framework: str):
     """Load spec and deploy in one step"""
-    loader = UniversalAgentLoader()
+    loader = UniformSemanticAgentLoader()
     spec = loader.load_from_file(spec_file)
     return loader.deploy(spec, framework)
 ```
@@ -955,7 +955,7 @@ def load_and_deploy(spec_file: str, framework: str):
 
 ```python
 # example_usage.py
-from uas.loader import UniversalAgentLoader, load_and_deploy
+from uas.loader import UniformSemanticAgentLoader, load_and_deploy
 from uas.adapters import CrewAIAdapter, ClineAdapter, AutoGPTAdapter
 from uas.core.adapter import registry
 
@@ -964,9 +964,9 @@ registry.register("crewai", CrewAIAdapter())
 registry.register("cline", ClineAdapter())
 registry.register("autogpt", AutoGPTAdapter())
 
-# Load universal agent spec
-spec_file = "research_agent.uas.yaml"
-loader = UniversalAgentLoader()
+# Load Uniform Semantic Agent spec
+spec_file = "research_agent.usa.yaml"
+loader = UniformSemanticAgentLoader()
 spec = loader.load_from_file(spec_file)
 
 print(f"Loaded agent: {spec.metadata.name} v{spec.metadata.version}")
@@ -1009,7 +1009,7 @@ for framework, result in deployed.items():
 ```python
 # deploy_to_crewai.py
 from crewai import Crew, Task, Process
-from uas.loader import UniversalAgentLoader
+from uas.loader import UniformSemanticAgentLoader
 from uas.adapters import CrewAIAdapter
 from uas.core.adapter import registry
 
@@ -1017,20 +1017,20 @@ from uas.core.adapter import registry
 registry.register("crewai", CrewAIAdapter())
 
 # Load multiple agents
-loader = UniversalAgentLoader()
+loader = UniformSemanticAgentLoader()
 
 researcher = loader.deploy(
-    loader.load_from_file("agents/researcher.uas.yaml"),
+    loader.load_from_file("agents/researcher.usa.yaml"),
     "crewai"
 )
 
 analyst = loader.deploy(
-    loader.load_from_file("agents/analyst.uas.yaml"),
+    loader.load_from_file("agents/analyst.usa.yaml"),
     "crewai"
 )
 
 writer = loader.deploy(
-    loader.load_from_file("agents/writer.uas.yaml"),
+    loader.load_from_file("agents/writer.usa.yaml"),
     "crewai"
 )
 
@@ -1070,7 +1070,7 @@ print(result)
 
 ```python
 # deploy_to_ide.py
-from uas.loader import UniversalAgentLoader
+from uas.loader import UniformSemanticAgentLoader
 from uas.adapters import ClineAdapter
 from uas.core.adapter import registry
 import json
@@ -1079,8 +1079,8 @@ import json
 registry.register("cline", ClineAdapter())
 
 # Load agent
-loader = UniversalAgentLoader()
-spec = loader.load_from_file("agents/coding_assistant.uas.yaml")
+loader = UniformSemanticAgentLoader()
+spec = loader.load_from_file("agents/coding_assistant.usa.yaml")
 
 # Deploy to Cline
 cline_config = loader.deploy(spec, "cline")
@@ -1111,16 +1111,16 @@ for server_name in cline_config["mcp_servers"].keys():
 # deploy_as_api.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from uas.loader import UniversalAgentLoader
+from uas.loader import UniformSemanticAgentLoader
 from uas.adapters import CrewAIAdapter
 from uas.core.adapter import registry
 
-app = FastAPI(title="Universal Agent API")
+app = FastAPI(title="Uniform Semantic Agent API")
 
 # Load and deploy agent at startup
 registry.register("crewai", CrewAIAdapter())
-loader = UniversalAgentLoader()
-spec = loader.load_from_file("agents/api_agent.uas.yaml")
+loader = UniformSemanticAgentLoader()
+spec = loader.load_from_file("agents/api_agent.usa.yaml")
 agent = loader.deploy(spec, "crewai")
 
 class TaskRequest(BaseModel):
@@ -1165,17 +1165,17 @@ if __name__ == "__main__":
 ```python
 # lambda_handler.py
 import json
-from uas.loader import UniversalAgentLoader
+from uas.loader import UniformSemanticAgentLoader
 from uas.adapters import CrewAIAdapter
 from uas.core.adapter import registry
 
 # Initialize at cold start
 registry.register("crewai", CrewAIAdapter())
-loader = UniversalAgentLoader()
+loader = UniformSemanticAgentLoader()
 
 # Load from environment or S3
 import os
-spec_path = os.environ.get("AGENT_SPEC_PATH", "agent.uas.yaml")
+spec_path = os.environ.get("AGENT_SPEC_PATH", "agent.usa.yaml")
 spec = loader.load_from_file(spec_path)
 agent = loader.deploy(spec, "crewai")
 
@@ -1212,13 +1212,13 @@ def lambda_handler(event, context):
 ```python
 # cli.py
 import click
-from uas.loader import UniversalAgentLoader
+from uas.loader import UniformSemanticAgentLoader
 from uas.adapters import CrewAIAdapter
 from uas.core.adapter import registry
 
 @click.group()
 def cli():
-    """Universal Agent CLI"""
+    """Uniform Semantic Agent CLI"""
     pass
 
 @cli.command()
@@ -1228,7 +1228,7 @@ def deploy(spec_file, framework):
     """Deploy an agent from a spec file"""
     registry.register("crewai", CrewAIAdapter())
     
-    loader = UniversalAgentLoader()
+    loader = UniformSemanticAgentLoader()
     spec = loader.load_from_file(spec_file)
     agent = loader.deploy(spec, framework)
     
@@ -1243,7 +1243,7 @@ def execute(spec_file, task):
     """Execute a task using the agent"""
     registry.register("crewai", CrewAIAdapter())
     
-    loader = UniversalAgentLoader()
+    loader = UniformSemanticAgentLoader()
     spec = loader.load_from_file(spec_file)
     agent = loader.deploy(spec, "crewai")
     
@@ -1257,7 +1257,7 @@ def execute(spec_file, task):
 @click.argument('spec_file')
 def validate(spec_file):
     """Validate an agent spec file"""
-    loader = UniversalAgentLoader()
+    loader = UniformSemanticAgentLoader()
     
     try:
         spec = loader.load_from_file(spec_file)
@@ -1272,13 +1272,13 @@ if __name__ == '__main__':
 Usage:
 ```bash
 # Deploy agent
-python cli.py deploy research_agent.uas.yaml --framework crewai
+python cli.py deploy research_agent.usa.yaml --framework crewai
 
 # Execute task
-python cli.py execute research_agent.uas.yaml "Research AI trends"
+python cli.py execute research_agent.usa.yaml "Research AI trends"
 
 # Validate spec
-python cli.py validate research_agent.uas.yaml
+python cli.py validate research_agent.usa.yaml
 ```
 
 ---
@@ -1418,7 +1418,7 @@ def migrate_crewai_to_uas(crewai_agent: Agent) -> AgentSpec:
     return spec
 
 def save_as_uas_file(spec: AgentSpec, output_path: str):
-    """Save spec as UAS YAML file"""
+    """Save spec as uSA YAML file"""
     with open(output_path, 'w') as f:
         yaml.dump(spec.to_dict(), f, default_flow_style=False)
 
@@ -1433,10 +1433,10 @@ existing_crewai_agent = Agent(
 # Convert to universal spec
 universal_spec = migrate_crewai_to_uas(existing_crewai_agent)
 
-# Save as UAS file
-save_as_uas_file(universal_spec, "migrated_agent.uas.yaml")
+# Save as uSA file
+save_as_uas_file(universal_spec, "migrated_agent.usa.yaml")
 
-print("Migration complete! Agent saved as migrated_agent.uas.yaml")
+print("Migration complete! Agent saved as migrated_agent.usa.yaml")
 ```
 
 ### From Cline Config to Universal Spec
@@ -1472,8 +1472,8 @@ spec = migrate_cline_to_uas(".vscode/cline_settings.json")
 **Step 1: Define Universal Spec**
 
 ```yaml
-# research_agent.uas.yaml
-apiVersion: uas/v1
+# research_agent.usa.yaml
+apiVersion: usa/v1
 kind: Agent
 
 metadata:
@@ -1532,7 +1532,7 @@ registry.register("crewai", CrewAIAdapter())
 registry.register("cline", ClineAdapter())
 
 # Deploy to CrewAI
-agent = load_and_deploy("research_agent.uas.yaml", "crewai")
+agent = load_and_deploy("research_agent.usa.yaml", "crewai")
 
 # Use in CrewAI workflow
 task = Task(
@@ -1549,7 +1549,7 @@ print(result)
 
 ```python
 # Generate Cline config
-cline_config = load_and_deploy("research_agent.uas.yaml", "cline")
+cline_config = load_and_deploy("research_agent.usa.yaml", "cline")
 
 # Save configuration
 import json
@@ -1565,7 +1565,7 @@ from fastapi import FastAPI
 from uas.loader import load_and_deploy
 
 app = FastAPI()
-agent = load_and_deploy("research_agent.uas.yaml", "crewai")
+agent = load_and_deploy("research_agent.usa.yaml", "crewai")
 
 @app.post("/research")
 async def research(query: str):
@@ -1580,7 +1580,7 @@ async def research(query: str):
 ### 1. **Framework Independence**
 ```yaml
 # Write once
-agent_definition: research_agent.uas.yaml
+agent_definition: research_agent.usa.yaml
 
 # Deploy anywhere
 deployments:
@@ -1594,9 +1594,9 @@ deployments:
 ```python
 # Agent marketplace
 marketplace = {
-    "research-agent": "research_agent.uas.yaml",
-    "coding-agent": "coding_agent.uas.yaml",
-    "analysis-agent": "analysis_agent.uas.yaml"
+    "research-agent": "research_agent.usa.yaml",
+    "coding-agent": "coding_agent.usa.yaml",
+    "analysis-agent": "analysis_agent.usa.yaml"
 }
 
 # Use any agent in any framework
@@ -1608,7 +1608,7 @@ agent = load_and_deploy(marketplace["research-agent"], "crewai")
 # Test agent across frameworks
 frameworks = ["crewai", "autogpt", "cline"]
 for framework in frameworks:
-    agent = load_and_deploy("agent.uas.yaml", framework)
+    agent = load_and_deploy("agent.usa.yaml", framework)
     test_result = run_test_suite(agent)
     print(f"{framework}: {test_result}")
 ```
@@ -1616,26 +1616,26 @@ for framework in frameworks:
 ### 4. **Version Control**
 ```bash
 # Track agent evolution
-git log research_agent.uas.yaml
+git log research_agent.usa.yaml
 
 # Compare versions
-git diff v1.0..v2.0 research_agent.uas.yaml
+git diff v1.0..v2.0 research_agent.usa.yaml
 ```
 
 ### 5. **Easy Migration**
 ```python
 # Start with CrewAI
-agent = load_and_deploy("agent.uas.yaml", "crewai")
+agent = load_and_deploy("agent.usa.yaml", "crewai")
 
 # Later, switch to AutoGPT (same spec!)
-agent = load_and_deploy("agent.uas.yaml", "autogpt")
+agent = load_and_deploy("agent.usa.yaml", "autogpt")
 ```
 
 ---
 
 ## Conclusion
 
-The Universal Agent Specification provides:
+The Uniform Semantic Agent provides:
 
 ✅ **Framework independence** - Write once, deploy anywhere  
 ✅ **Protocol support** - MCP, A2A, Agent Protocol built-in  

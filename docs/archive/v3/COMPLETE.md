@@ -1,6 +1,6 @@
 # 🦋 Chrysalis v3.0: COMPLETE DELIVERY REPORT
 
-**Project**: Chrysalis (Universal Agent Morphing System)  
+**Project**: Chrysalis (Uniform Semantic Agent Morphing System)  
 **Version**: 3.0.0  
 **Date**: December 28, 2025  
 **Status**: ✅ SPECIFICATIONS COMPLETE | ✅ BUILD SUCCESS | ✅ PATTERNS INTEGRATED
@@ -161,7 +161,7 @@ Created `src/core/patterns/` with **4 pattern modules**:
 ### Existing Codebase
 
 From v2.0 (still present):
-- Core types: `UniversalAgentV2.ts`, `FrameworkAdapterV2.ts`
+- Core types: `UniformSemanticAgentV2.ts`, `FrameworkAdapterV2.ts`
 - Adapters: `MCPAdapter.ts`, `MultiAgentAdapter.ts`, `OrchestratedAdapter.ts`
 - Sync: `StreamingSync.ts`, `LumpedSync.ts`, `CheckInSync.ts`, `ExperienceSyncManager.ts`
 - Experience: `MemoryMerger.ts`, `SkillAccumulator.ts`, `KnowledgeIntegrator.ts`
@@ -178,7 +178,7 @@ From v2.0 (still present):
 ### V2 Architecture
 
 ```
-Universal Agent
+Uniform Semantic Agent
     ↓
 Morph to 3 types
     ↓
@@ -449,7 +449,7 @@ From `DEEP_RESEARCH_SECURITY_ATTACKS.md` analysis:
 ### The Enhancement Cycle
 
 ```
-Universal Agent (Canonical)
+Uniform Semantic Agent (Canonical)
        ↓ Morph (Pattern #2: Signed)
    Deployed Instance(s)
        ↓ Experience (Pattern #4: Gossip)

@@ -1,5 +1,5 @@
 """
-Universal Agent Specification (UAS) Implementation
+Uniform Semantic Agent (uSA) Implementation
 
 A framework-agnostic agent specification system that enables agents to be
 defined once and deployed to multiple frameworks (CrewAI, Cline, AutoGPT, etc.)
@@ -18,7 +18,7 @@ from .core import (
 )
 
 from .loader import (
-    UniversalAgentLoader,
+    UniformSemanticAgentLoader,
     load_agent,
     save_agent
 )
@@ -31,7 +31,7 @@ __all__ = [
     'Protocols',
     'Execution',
     'Deployment',
-    'UniversalAgentLoader',
+    'UniformSemanticAgentLoader',
     'load_agent',
     'save_agent'
 ]

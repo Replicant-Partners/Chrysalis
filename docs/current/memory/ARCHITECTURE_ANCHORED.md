@@ -603,7 +603,7 @@ query → embed → vector_search → retrieve → augment
 
 ## Part 9: Actionable Conclusions
 
-### For Specification Design (UAS v2.0)
+### For Specification Design (uSA v2.0)
 
 **Safe to Specify:**
 1. Vector embedding support (widely verified)

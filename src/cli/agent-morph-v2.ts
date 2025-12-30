@@ -19,7 +19,7 @@ import { OrchestratedAdapter } from '../adapters/OrchestratedAdapter';
 import { ElizaOSAdapter } from '../adapters/ElizaOSAdapter';
 import { CrewAIAdapter } from '../adapters/CrewAIAdapter';
 import { generateKeyPair } from '../core/Encryption';
-import type { AgentImplementationType, SyncProtocol } from '../core/UniversalAgentV2';
+import type { AgentImplementationType, SyncProtocol } from '../core/UniformSemanticAgentV2';
 
 // Register all adapters
 adapterRegistry.register(new MCPAdapter(), ['mcp', 'cline']);
@@ -36,7 +36,7 @@ program
   .description('Morph agent to target implementation type')
   .requiredOption('--type <type>', 'Target type (mcp, multi_agent, orchestrated)')
   .requiredOption('--to <framework>', 'Target framework adapter')
-  .requiredOption('--input <file>', 'Input universal agent file')
+  .requiredOption('--input <file>', 'Input Uniform Semantic Agent file')
   .requiredOption('--output <file>', 'Output file path')
   .option('--sync <protocol>', 'Sync protocol (streaming, lumped, check_in)')
   .option('--key <file>', 'Private key file for signing')
@@ -304,7 +304,7 @@ program
 // Parse arguments
 program
   .name('agent-morph-v2')
-  .description('Universal Agent Morphing System v2.0 - With Experience Synchronization')
+  .description('Uniform Semantic Agent Morphing System v2.0 - With Experience Synchronization')
   .version('2.0.0');
 
 program.parse();

@@ -1,4 +1,4 @@
-# Universal Agent Morphing System
+# Uniform Semantic Agent Morphing System
 
 **A modular, generalizable system for lossless conversion between agentic AI frameworks**
 
@@ -15,7 +15,7 @@ This system enables AI agents to morph between different frameworks (CrewAI, Eli
 ```
 Agent in Framework A
     ↓
-Universal Agent (canonical representation)
+Uniform Semantic Agent (canonical representation)
     ↓
 Agent in Framework B + Encrypted Shadow (Framework A data)
     ↓
@@ -29,7 +29,7 @@ Restore → Agent in Framework A (100% perfect)
 ```
 src/
 ├── core/
-│   ├── UniversalAgent.ts        # Universal agent types (canonical)
+│   ├── UniformSemanticAgent.ts        # Universal agent types (canonical)
 │   ├── FrameworkAdapter.ts      # Abstract adapter interface
 │   ├── AdapterRegistry.ts       # Adapter management
 │   └── Encryption.ts            # Crypto utilities
@@ -137,12 +137,12 @@ const restored = await converter.restore(
 
 ## Architecture
 
-### The Universal Agent (Reference Entity)
+### The Uniform Semantic Agent (Reference Entity)
 
-The **Universal Agent** is the canonical representation:
+The **Uniform Semantic Agent** is the canonical representation:
 
 ```typescript
-interface UniversalAgent {
+interface UniformSemanticAgent {
   schema_version: string;
   identity: { name, designation, bio, fingerprint, ... };
   personality: { core_traits, values, quirks, ... };
@@ -166,8 +166,8 @@ abstract class FrameworkAdapter {
   readonly version: string;
   readonly supports_shadow: boolean;
   
-  abstract toUniversal(agent: any): Promise<UniversalAgent>;
-  abstract fromUniversal(universal: UniversalAgent): Promise<any>;
+  abstract toUniversal(agent: any): Promise<UniformSemanticAgent>;
+  abstract fromUniversal(universal: UniformSemanticAgent): Promise<any>;
   abstract embedShadow(agent: any, shadow: EncryptedShadow): Promise<any>;
   abstract extractShadow(agent: any): Promise<EncryptedShadow | null>;
   abstract validate(agent: any): Promise<ValidationResult>;
@@ -204,11 +204,11 @@ export class AutoGenAdapter extends FrameworkAdapter {
   readonly version = '1.0.0';
   readonly supports_shadow = true;
   
-  async toUniversal(autoGenAgent: any): Promise<UniversalAgent> {
+  async toUniversal(autoGenAgent: any): Promise<UniformSemanticAgent> {
     // Convert AutoGen → Universal
   }
   
-  async fromUniversal(universal: UniversalAgent): Promise<any> {
+  async fromUniversal(universal: UniformSemanticAgent): Promise<any> {
     // Convert Universal → AutoGen
   }
   

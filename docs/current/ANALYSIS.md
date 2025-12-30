@@ -44,14 +44,14 @@
 ### Evidence Source 2: Chrysalis Agent System (Layer 2)
 
 **Observed Files**:
-- `src/core/UniversalAgentV2.ts` - Agent schema with episodic/semantic memory
+- `src/core/UniformSemanticAgentV2.ts` - Agent schema with episodic/semantic memory
 - `src/experience/MemoryMerger.ts` - Memory deduplication, similarity-based merging
 - `src/experience/SkillAccumulator.ts` - Skill proficiency aggregation, synergy detection
 - `src/experience/KnowledgeIntegrator.ts` - Knowledge verification, confidence tracking
 
 **Single-Step Inference**: Memory system uses **dual-coding architecture** (episodic + semantic) similar to human cognitive models (>80% confidence based on schema structure).
 
-**Evidence**: `UniversalAgentV2` has:
+**Evidence**: `UniformSemanticAgentV2` has:
 ```typescript
 memory: {
   collections: {
@@ -139,7 +139,7 @@ c) Both (hybrid approach)
 
 ### Episodic Memory (Evidence-Based)
 
-**Structure Observed** (`UniversalAgentV2.ts`):
+**Structure Observed** (`UniformSemanticAgentV2.ts`):
 ```typescript
 interface Episode {
   episode_id: string;
@@ -353,7 +353,7 @@ private calculateSimilarity(text1: string, text2: string): number {
 - Evidence: Actual MCP server implementations found
 
 **Layer 2: Chrysalis Agents (Application)**
-- UniversalAgentV2 schema
+- UniformSemanticAgentV2 schema
 - Three agent types (MCP, Multi-Agent, Orchestrated)
 - Experience sync protocols
 - Memory/skill/knowledge merging
@@ -598,7 +598,7 @@ Agent Memory
 **Chrysalis = Multi-Layer Agent Transformation System**
 
 **Components** (observed, not speculated):
-1. **Universal Agent Schema** (v2.0) with episodic/semantic memory
+1. **Uniform Semantic Agent Schema** (v2.0) with episodic/semantic memory
 2. **Three Agent Type Adapters** (MCP, Multi-Agent, Orchestrated)
 3. **Experience Sync Protocols** (Streaming, Lumped, Check-in) - request-response currently
 4. **State Merging Algorithms** (Memory, Skill, Knowledge) - convergent aggregation

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Complete Deployment Example for Universal Agent Specification
+Complete Deployment Example for Uniform Semantic Agent
 """
 
 import sys
@@ -10,16 +10,16 @@ import json
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from uas_implementation import load_agent, save_agent
+from usa_implementation import load_agent, save_agent
 
 
 def main():
     print("=" * 70)
-    print("Universal Agent Specification - Complete Deployment Example")
+    print("Uniform Semantic Agent - Complete Deployment Example")
     print("=" * 70)
 
     # Load the simple agent first
-    spec_file = Path(__file__).parent / "simple_agent.uas.yaml"
+    spec_file = Path(__file__).parent / "simple_agent.usa.yaml"
     
     print(f"\n📁 Loading agent specification...")
     spec = load_agent(str(spec_file))
@@ -160,7 +160,7 @@ def main():
     
     print(f"\n   1. CrewAI Deployment:")
     print(f"      ```python")
-    print(f"      from uas_implementation import load_agent")
+    print(f"      from usa_implementation import load_agent")
     print(f"      from crewai import Agent, Task")
     print(f"      ")
     print(f"      spec = load_agent('{spec_file.name}')")
@@ -175,7 +175,7 @@ def main():
     print(f"\n   2. FastAPI Service:")
     print(f"      ```python")
     print(f"      from fastapi import FastAPI")
-    print(f"      from uas_implementation import load_agent")
+    print(f"      from usa_implementation import load_agent")
     print(f"      ")
     print(f"      app = FastAPI()")
     print(f"      spec = load_agent('{spec_file.name}')")
@@ -188,7 +188,7 @@ def main():
 
     print(f"\n   3. Cline Configuration:")
     print(f"      ```python")
-    print(f"      from uas_implementation import load_agent")
+    print(f"      from usa_implementation import load_agent")
     print(f"      import json")
     print(f"      ")
     print(f"      spec = load_agent('{spec_file.name}')")
@@ -203,8 +203,8 @@ def main():
     print("✨ Agent Specification Summary")
     print("=" * 70)
     print(f"")
-    print(f"This agent specification demonstrates the Universal Agent Specification")
-    print(f"(UAS) format which enables:")
+    print(f"This agent specification demonstrates the Uniform Semantic Agent")
+    print(f"(uSA) format which enables:")
     print(f"")
     print(f"  ✓ Framework-agnostic agent definitions")
     print(f"  ✓ Portable across CrewAI, Cline, AutoGPT, etc.")

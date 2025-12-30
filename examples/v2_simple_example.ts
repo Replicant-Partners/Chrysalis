@@ -7,7 +7,7 @@ import { AdapterRegistry } from '../src/core/AdapterRegistry';
 import { MCPAdapter } from '../src/adapters/MCPAdapter';
 import { MultiAgentAdapter } from '../src/adapters/MultiAgentAdapter';
 import { OrchestratedAdapter } from '../src/adapters/OrchestratedAdapter';
-import type { UniversalAgentV2 } from '../src/core/UniversalAgentV2';
+import type { UniformSemanticAgentV2 } from '../src/core/UniformSemanticAgentV2';
 import * as crypto from 'crypto';
 
 // Create registry and register v2 adapters
@@ -16,8 +16,8 @@ registry.register(new MCPAdapter(), ['mcp']);
 registry.register(new MultiAgentAdapter(), ['multi']);
 registry.register(new OrchestratedAdapter(), ['orchestrated']);
 
-// Simple universal agent
-const simpleAgent: UniversalAgentV2 = {
+// Simple Uniform Semantic Agent
+const simpleAgent: UniformSemanticAgentV2 = {
   schema_version: '2.0.0',
   
   identity: {
@@ -117,7 +117,7 @@ const simpleAgent: UniversalAgentV2 = {
 };
 
 async function main() {
-  console.log('Universal Agent Morphing v2 - Simple Example\n');
+  console.log('Uniform Semantic Agent Morphing v2 - Simple Example\n');
   
   const converter = new ConverterV2();
   const mcpAdapter = registry.get('mcp') as any;

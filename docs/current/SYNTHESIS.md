@@ -637,7 +637,7 @@ class PatternResolver {
 }
 
 // Usage in agent:
-async calculateFingerprint(agent: UniversalAgent) {
+async calculateFingerprint(agent: UniformSemanticAgent) {
   const hashImpl = await this.patterns.resolvePattern('hash');
   return await hashImpl.hash(agent.identity, 'SHA-384');
 }

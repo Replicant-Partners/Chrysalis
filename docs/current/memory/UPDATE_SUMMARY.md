@@ -475,7 +475,7 @@ Scales to thousands of instances in seconds! ✓
 
 ### 2. Agents are Multi-Instance
 
-**Insight**: One universal agent → many deployed instances → all learning
+**Insight**: One Uniform Semantic Agent → many deployed instances → all learning
 
 **Impact**: Memory must:
 - Sync across instances (Pattern #4: Gossip)
@@ -712,6 +712,6 @@ It's **memory engineered from universal patterns** that provides:
 ---
 
 **Chrysalis Memory v1.0** - Distributed, Byzantine-resistant, pattern-based agent memory  
-**Project**: Chrysalis - Universal Agent Transformation System  
+**Project**: Chrysalis - Uniform Semantic Agent Transformation System  
 **Date**: December 28, 2025  
 **Status**: ✅ COMPLETE & PRODUCTION READY

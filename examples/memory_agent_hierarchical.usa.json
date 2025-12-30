@@ -1,11 +1,11 @@
 {
-  "apiVersion": "uas/v2",
+  "apiVersion": "usa/v2",
   "kind": "Agent",
   "metadata": {
     "name": "hierarchical-research-agent",
     "version": "2.0.0",
     "description": "Research agent with hierarchical memory architecture",
-    "author": "UAS Team",
+    "author": "uSA Team",
     "tags": [
       "research",
       "memory-v2",

@@ -1,8 +1,8 @@
-# Universal Agent Bridge - Implementation Guide
+# Uniform Semantic Agent Bridge - Implementation Guide
 
 ## Overview
 
-This guide provides step-by-step instructions for implementing the Universal Agent Bridge system in your project. The bridge allows you to define agents once and deploy them to both CrewAI and ElizaOS frameworks.
+This guide provides step-by-step instructions for implementing the Uniform Semantic Agent Bridge system in your project. The bridge allows you to define agents once and deploy them to both CrewAI and ElizaOS frameworks.
 
 ---
 
@@ -10,7 +10,7 @@ This guide provides step-by-step instructions for implementing the Universal Age
 
 1. [Installation](#installation)
 2. [Quick Start](#quick-start)
-3. [Creating Universal Agents](#creating-universal-agents)
+3. [Creating Uniform Semantic Agents](#creating-universal-agents)
 4. [Converting to CrewAI](#converting-to-crewai)
 5. [Converting to ElizaOS](#converting-to-elizaos)
 6. [Shared Memory Setup](#shared-memory-setup)
@@ -59,13 +59,13 @@ your-project/
 
 ## Quick Start
 
-### 1. Define a Universal Agent
+### 1. Define a Uniform Semantic Agent
 
 ```typescript
 // universal_agents/agents/research_assistant.ts
-import { UniversalAgent } from '../types';
+import { UniformSemanticAgent } from '../types';
 
-export const researchAssistant: UniversalAgent = {
+export const researchAssistant: UniformSemanticAgent = {
   identity: {
     name: "Research Assistant",
     designation: "Senior Research Analyst",
@@ -157,7 +157,7 @@ console.log('Generated CrewAI agent!');
 
 ```python
 # CrewAI Agent: Research Assistant
-# Generated from Universal Agent Configuration
+# Generated from Uniform Semantic Agent Configuration
 
 from crewai import Agent
 from crewai_tools import SerperDevTool, WebScraperTool
@@ -280,11 +280,11 @@ console.log('Generated ElizaOS character!');
 
 ---
 
-## Creating Universal Agents
+## Creating Uniform Semantic Agents
 
 ### Essential Components
 
-Every universal agent needs:
+Every Uniform Semantic Agent needs:
 
 1. **Identity**: Name, designation, bio
 2. **Personality**: Traits, values, quirks
@@ -297,7 +297,7 @@ Every universal agent needs:
 ### Template
 
 ```typescript
-const myAgent: UniversalAgent = {
+const myAgent: UniformSemanticAgent = {
   identity: {
     name: "Agent Name",
     designation: "Role/Title",
@@ -351,7 +351,7 @@ const myAgent: UniversalAgent = {
 You can provide framework-specific overrides:
 
 ```typescript
-const myAgent: UniversalAgent = {
+const myAgent: UniformSemanticAgent = {
   // ... standard fields ...
   
   adapters: {
@@ -608,7 +608,7 @@ export const memoryProvider: Provider = {
 
 ```typescript
 // Version your agents
-const myAgent: UniversalAgent = {
+const myAgent: UniformSemanticAgent = {
   // ... fields ...
   metadata: {
     version: '2.1.0',
@@ -648,7 +648,7 @@ npm install --save-dev @types/node
 
 ```typescript
 // Use relative imports
-import { UniversalAgent } from '../types';
+import { UniformSemanticAgent } from '../types';
 
 // Or configure path aliases in tsconfig.json
 {

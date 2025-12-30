@@ -102,7 +102,7 @@ This directory contains agent memory architecture research in two versions:
 - What changed and why
 - What we actually know
 - What remains unverified
-- Implications for UAS v2.0
+- Implications for uSA v2.0
 - Quick recommendations
 
 **Use This When:**

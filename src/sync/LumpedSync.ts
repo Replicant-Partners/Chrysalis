@@ -5,7 +5,7 @@
  * for cost-effective learning aggregation.
  */
 
-import type { ExperienceBatch } from '../core/UniversalAgentV2';
+import type { ExperienceBatch } from '../core/UniformSemanticAgentV2';
 
 /**
  * Lumped sync configuration

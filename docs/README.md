@@ -39,7 +39,7 @@ docs/
 - **[Memory System](current/memory/)** - Memory architecture and implementation
 - **[MCP Setup](current/MCP_SETUP.md)** - MCP server configuration
 - **[Implementation Guide](current/IMPLEMENTATION_GUIDE.md)** - How to implement
-- **[Universal Agent Lexicon](current/UNIVERSAL_AGENT_LEXICON.md)** - Core terms, OODA, emoji mode
+- **[Uniform Semantic Agent Lexicon](current/UNIVERSAL_AGENT_LEXICON.md)** - Core terms, OODA, emoji mode
 
 ### 🔬 Research Foundation
 
@@ -66,7 +66,7 @@ docs/
 - **[archive/v1/](archive/v1/)** - V1 morphing specifications
 
 **Deprecated**:
-- **[archive/deprecated/](archive/deprecated/)** - UAS and outdated approaches
+- **[archive/deprecated/](archive/deprecated/)** - uSA and outdated approaches
 
 ---
 

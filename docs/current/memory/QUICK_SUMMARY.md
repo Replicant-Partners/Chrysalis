@@ -232,7 +232,7 @@ Vectors (similarity) + Graphs (relationships) = Multi-hop reasoning
 ✅ Implement **5 memory types** for production agents  
 ✅ Use **agentic RAG** (agent controls retrieval, not passive)
 
-### For UAS (Universal Agent Specification)
+### For uSA (Uniform Semantic Agent)
 
 **Add memory configuration:**
 ```yaml

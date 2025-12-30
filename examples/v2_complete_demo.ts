@@ -1,5 +1,5 @@
 /**
- * Universal Agent Morphing v2.0 - Complete Demonstration
+ * Uniform Semantic Agent Morphing v2.0 - Complete Demonstration
  * 
  * Shows morphing between all three agent implementation types
  * with experience synchronization and skill accumulation.
@@ -13,7 +13,7 @@ import { MultiAgentAdapter } from '../src/adapters/MultiAgentAdapter';
 import { OrchestratedAdapter } from '../src/adapters/OrchestratedAdapter';
 import { ElizaOSAdapter } from '../src/adapters/ElizaOSAdapter';
 import { CrewAIAdapter } from '../src/adapters/CrewAIAdapter';
-import type { UniversalAgentV2 } from '../src/core/UniversalAgentV2';
+import type { UniformSemanticAgentV2 } from '../src/core/UniformSemanticAgentV2';
 
 // Register all adapters
 adapterRegistry.register(new MCPAdapter(), ['mcp', 'cline']);
@@ -22,9 +22,9 @@ adapterRegistry.register(new OrchestratedAdapter(), ['orchestrated', 'protocol']
 adapterRegistry.register(new ElizaOSAdapter(), ['elizaos']);
 adapterRegistry.register(new CrewAIAdapter(), ['crewai']);
 
-// ===== Example Universal Agent =====
+// ===== Example Uniform Semantic Agent =====
 
-const researcherAgent: UniversalAgentV2 = {
+const researcherAgent: UniformSemanticAgentV2 = {
   schema_version: '2.0.0',
   
   identity: {
@@ -241,7 +241,7 @@ const researcherAgent: UniversalAgentV2 = {
 
 async function demo1_MorphToAllThreeTypes() {
   console.log('\n' + '='.repeat(80));
-  console.log('DEMO 1: Morph Universal Agent to All Three Implementation Types');
+  console.log('DEMO 1: Morph Uniform Semantic Agent to All Three Implementation Types');
   console.log('='.repeat(80));
   
   const converter = new ConverterV2();

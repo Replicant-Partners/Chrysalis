@@ -1,10 +1,10 @@
-(ns chrysalis.uas.core
+(ns chrysalis.usa.core
   (:require [malli.core :as m]
             [malli.transform :as mt]
             [malli.error :as me]
             [clojure.edn :as edn]))
 
-(def uas-schema
+(def usa-schema
   [:map
    [:agent/id string?]
    [:agent/name string?]
@@ -75,11 +75,11 @@
                          [:performance-critical boolean?]
                          [:prefer-reusability boolean?]]]])
 
-(defn validate-uAS [data]
+(defn validate-uSA [data]
   (let [t (mt/transformer mt/strip-extra-keys-transformer)]
-    (if-let [err (m/explain uas-schema data t)]
+    (if-let [err (m/explain usa-schema data t)]
       {:valid false :error (me/humanize err)}
-      {:valid true :value (m/decode uas-schema data t)})))
+      {:valid true :value (m/decode usa-schema data t)})))
 
 (defn resolve-pattern [ctx]
   (cond
@@ -103,15 +103,15 @@
       (update-in [:memory :collections :semantic] merge-semantic)
       (update :skills merge-skills)))
 
-(defn load-uas [path]
+(defn load-usa [path]
   (edn/read-string (slurp path)))
 
 (defn validate-file [path]
-  (validate-uAS (load-uas path)))
+  (validate-uSA (load-usa path)))
 
 (defn validate-and-converge [path]
-  (let [data (load-uas path)
-        res (validate-uAS data)]
+  (let [data (load-usa path)
+        res (validate-uSA data)]
     (if (:valid res)
       {:valid true
        :value (converge-state (:value res))

@@ -373,7 +373,7 @@ npm run build
 ✅ **Built** successfully (0 errors)  
 ✅ **Documented** comprehensively (10,000+ lines)  
 
-**Chrysalis is now a mathematically sound, security-hardened, pattern-based universal agent morphing system that builds on 60+ years of distributed systems research.** 🚀
+**Chrysalis is now a mathematically sound, security-hardened, pattern-based Uniform Semantic Agent morphing system that builds on 60+ years of distributed systems research.** 🚀
 
 ---
 

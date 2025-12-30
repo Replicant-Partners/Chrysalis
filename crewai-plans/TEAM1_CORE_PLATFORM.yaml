@@ -252,7 +252,7 @@ tasks:
 
   - id: "TASK-1.1.2"
     description: |
-      Review and enhance UniversalAgentV2 TypeScript interface. Ensure all
+      Review and enhance UniformSemanticAgentV2 TypeScript interface. Ensure all
       fields are correctly specified: identity (cryptographic), memory
       (episodic + semantic), capabilities, experiences, instances. Add
       validation requirements, immutability rules, and serialization specs.
@@ -269,8 +269,8 @@ tasks:
       - Cryptographic identity structure
       - Memory system structure (episodic: Episode[], semantic: Concept[])
     
-    output_file: "design/UniversalAgentV2-Schema.md"
-    context: ["src/core/UniversalAgentV2.ts", "docs/current/UNIFIED_SPEC_V3.1.md"]
+    output_file: "design/UniformSemanticAgentV2-Schema.md"
+    context: ["src/core/UniformSemanticAgentV2.ts", "docs/current/UNIFIED_SPEC_V3.1.md"]
     
     acceptance_criteria:
       - "All fields validated"
@@ -392,7 +392,7 @@ tasks:
       - Documentation with examples
     
     output_file: "src/adapters/"
-    context: ["src/core/UniversalAgentV2.ts", "design/UniversalAgentV2-Schema.md"]
+    context: ["src/core/UniformSemanticAgentV2.ts", "design/UniformSemanticAgentV2-Schema.md"]
     
     technology_requirements:
       dependencies:
@@ -812,7 +812,7 @@ tasks:
 execution_plan:
   week_1:
     - "TASK-1.1.1: Architect designs PatternResolver"
-    - "TASK-1.1.2: Architect refines UniversalAgentV2 schema"
+    - "TASK-1.1.2: Architect refines UniformSemanticAgentV2 schema"
     - "TASK-1.5.1: QA sets up testing infrastructure (parallel)"
   
   week_2:

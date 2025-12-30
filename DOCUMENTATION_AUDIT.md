@@ -36,7 +36,7 @@
 
 **Historical/Superseded** (Archive):
 - V2_*.md (superseded by v3.1)
-- UAS_*.md (deprecated Universal Agent Spec)
+- UAS_*.md (deprecated Uniform Semantic Agent Spec)
 - AGENT_MORPHING_SPECIFICATION.md (old version)
 - Multiple SUMMARY/STATUS files
 
@@ -180,7 +180,7 @@ Chrysalis/
 1. **Move superseded versions** to archive:
    - V2 specifications → docs/archive/v2/
    - V1 specifications → docs/archive/v1/
-   - UAS documents → docs/archive/deprecated/
+   - uSA documents → docs/archive/deprecated/
    - Old memory docs → docs/archive/deprecated/old-memory/
 
 2. **Create archive READMEs**:

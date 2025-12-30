@@ -6,12 +6,12 @@
  */
 
 import type { 
-  UniversalAgentV2, 
+  UniformSemanticAgentV2, 
   InstanceMetadata, 
   AgentImplementationType,
   SyncProtocol,
   ExperienceTransportConfig
-} from '../core/UniversalAgentV2';
+} from '../core/UniformSemanticAgentV2';
 import * as crypto from 'crypto';
 
 /**
@@ -65,7 +65,7 @@ export class InstanceManager {
    * Create new instance
    */
   async createInstance(
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     targetType: AgentImplementationType,
     framework: string,
     syncProtocol: SyncProtocol,

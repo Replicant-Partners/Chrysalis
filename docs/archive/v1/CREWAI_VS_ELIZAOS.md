@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document analyzes the structural differences between CrewAI and ElizaOS agent frameworks, identifies conversion requirements, and proposes a universal agent architecture that can operate consistently across both systems.
+This document analyzes the structural differences between CrewAI and ElizaOS agent frameworks, identifies conversion requirements, and proposes a Uniform Semantic Agent architecture that can operate consistently across both systems.
 
 ---
 
@@ -219,7 +219,7 @@ agent = Agent(
 
 ---
 
-## 5. Universal Agent Architecture
+## 5. Uniform Semantic Agent Architecture
 
 ### Design Principles
 
@@ -228,10 +228,10 @@ agent = Agent(
 3. **Memory Abstraction**: Unified memory interface that works with both systems
 4. **Context Adaptation**: Framework-agnostic context building
 
-### Universal Agent Structure
+### Uniform Semantic Agent Structure
 
 ```typescript
-interface UniversalAgent {
+interface UniformSemanticAgent {
   // Core Identity
   identity: {
     name: string;
@@ -341,7 +341,7 @@ interface ElizaOSAdapter {
 
 ```typescript
 class AgentBridge {
-  constructor(private universalAgent: UniversalAgent) {}
+  constructor(private universalAgent: UniformSemanticAgent) {}
   
   // Generate CrewAI configuration
   toCrewAI(): {
@@ -490,7 +490,7 @@ Instead of runtime interoperability, use a **configuration bridge**:
 
 ```
 ┌─────────────────────────────┐
-│   Universal Agent Config    │
+│   Uniform Semantic Agent Config    │
 │  (Rich Character Profile)   │
 └─────────────┬───────────────┘
               │
@@ -564,10 +564,10 @@ class SharedMemorySystem {
 
 ## 8. Practical Implementation
 
-### Universal Agent Definition Example
+### Uniform Semantic Agent Definition Example
 
 ```typescript
-const universalAda: UniversalAgent = {
+const universalAda: UniformSemanticAgent = {
   identity: {
     name: "Ada Lovelace",
     designation: "First Programmer - Analytical Engine Pioneer",
@@ -724,7 +724,7 @@ const elizaOSConfig = bridge.toElizaOS();
 
 ### For New Projects
 
-1. **Start with Universal Agent Definition**: Define rich character profiles independent of framework
+1. **Start with Uniform Semantic Agent Definition**: Define rich character profiles independent of framework
 2. **Choose Framework Based on Use Case**:
    - **CrewAI**: Multi-agent task automation, workflows, business processes
    - **ElizaOS**: Conversational AI, persistent personalities, social media bots
@@ -780,7 +780,7 @@ const elizaOSConfig = bridge.toElizaOS();
 
 ## Conclusion
 
-CrewAI and ElizaOS represent different paradigms in agent design: **task-oriented collaboration** vs **character-driven interaction**. While not directly interoperable at runtime, they can coexist through a **universal agent architecture** that:
+CrewAI and ElizaOS represent different paradigms in agent design: **task-oriented collaboration** vs **character-driven interaction**. While not directly interoperable at runtime, they can coexist through a **Uniform Semantic Agent architecture** that:
 
 1. Defines agents as rich character profiles
 2. Uses adapters to generate framework-specific configurations

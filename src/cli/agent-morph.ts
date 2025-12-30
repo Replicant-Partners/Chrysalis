@@ -295,7 +295,7 @@ program
 // Parse arguments
 program
   .name('agent-morph')
-  .description('Universal Agent Morphing System - Convert agents between frameworks')
+  .description('Uniform Semantic Agent Morphing System - Convert agents between frameworks')
   .version('1.0.0');
 
 program.parse();

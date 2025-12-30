@@ -19,7 +19,7 @@
 
 ## System Overview
 
-Chrysalis is a **universal agent transformation system** that enables AI agents to:
+Chrysalis is a **Uniform Semantic Agent transformation system** that enables AI agents to:
 - Morph between different implementation types
 - Maintain persistent, distributed memory
 - Evolve through synchronized experiences
@@ -71,11 +71,11 @@ Application-level operations using patterns (fingerprinting, signing, syncing)
 
 ## Core Components
 
-### 1. Universal Agent Schema
+### 1. Uniform Semantic Agent Schema
 
 ```mermaid
 classDiagram
-    class UniversalAgentV2 {
+    class UniformSemanticAgentV2 {
         +identity: CryptoIdentity
         +memory: MemorySystem
         +capabilities: Capabilities
@@ -95,8 +95,8 @@ classDiagram
         +type: "vector" | "graph" | "hybrid"
     }
     
-    UniversalAgentV2 --> CryptoIdentity
-    UniversalAgentV2 --> MemorySystem
+    UniformSemanticAgentV2 --> CryptoIdentity
+    UniformSemanticAgentV2 --> MemorySystem
 ```
 
 **Key Features**:
@@ -177,7 +177,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    A[Universal Agent] --> B[Framework Adapter]
+    A[Uniform Semantic Agent] --> B[Framework Adapter]
     B --> C{Target Type?}
     
     C -->|MCP| D[MCPAdapter]

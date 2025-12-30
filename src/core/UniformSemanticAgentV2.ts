@@ -1,5 +1,5 @@
 /**
- * Universal Agent Types v2.0 - Enhanced with Experience Sync
+ * Uniform Semantic Agent Types v2.0 - Enhanced with Experience Sync
  * 
  * Supports three agent implementation types with continuous
  * experience synchronization and skill accumulation.
@@ -286,9 +286,9 @@ export interface AuthConfig {
 }
 
 /**
- * Universal Agent v2.0 - Enhanced
+ * Uniform Semantic Agent v2.0 - Enhanced
  */
-export interface UniversalAgentV2 {
+export interface UniformSemanticAgentV2 {
   schema_version: string;
   
   // Core identity (immutable)
@@ -535,9 +535,9 @@ export interface ValidationResult {
 }
 
 /**
- * Validate v2 universal agent
+ * Validate v2 Uniform Semantic Agent
  */
-export function validateUniversalAgentV2(agent: any): ValidationResult {
+export function validateUniformSemanticAgentV2(agent: any): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   

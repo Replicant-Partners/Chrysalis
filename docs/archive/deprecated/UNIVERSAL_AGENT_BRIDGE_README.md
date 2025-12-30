@@ -1,4 +1,4 @@
-# Universal Agent Bridge
+# Uniform Semantic Agent Bridge
 
 **A framework-agnostic agent definition system that bridges CrewAI and ElizaOS**
 
@@ -6,7 +6,7 @@
 
 ## Overview
 
-The Universal Agent Bridge allows you to define AI agents once and deploy them to both CrewAI (task-oriented collaborative agents) and ElizaOS (character-driven conversational agents) frameworks. This approach treats agents as rich character profiles that transcend any single execution environment.
+The Uniform Semantic Agent Bridge allows you to define AI agents once and deploy them to both CrewAI (task-oriented collaborative agents) and ElizaOS (character-driven conversational agents) frameworks. This approach treats agents as rich character profiles that transcend any single execution environment.
 
 ### The Problem
 
@@ -17,7 +17,7 @@ The Universal Agent Bridge allows you to define AI agents once and deploy them t
 
 ### The Solution
 
-Define agents using a **Universal Agent** format that captures:
+Define agents using a **Uniform Semantic Agent** format that captures:
 - Rich personality and character traits
 - Beliefs and mental models
 - Communication styles
@@ -30,12 +30,12 @@ Then convert to either framework on demand.
 
 ## Key Concepts
 
-### Universal Agent
+### Uniform Semantic Agent
 
 A framework-agnostic agent definition that includes:
 
 ```typescript
-interface UniversalAgent {
+interface UniformSemanticAgent {
   identity: {
     name: string;
     designation: string;
@@ -71,7 +71,7 @@ interface UniversalAgent {
 
 ### Agent Bridge
 
-Converts universal agents to framework-specific configurations:
+Converts Uniform Semantic Agents to framework-specific configurations:
 
 ```typescript
 const bridge = new AgentBridge(universalAgent);
@@ -116,9 +116,9 @@ Both frameworks can access the same knowledge base via vector databases:
 ### 1. Define Your Agent
 
 ```typescript
-import { UniversalAgent } from './universal_agent_types';
+import { UniformSemanticAgent } from './universal_agent_types';
 
-const myAgent: UniversalAgent = {
+const myAgent: UniformSemanticAgent = {
   identity: {
     name: "Research Assistant",
     designation: "Senior Research Analyst",
@@ -247,7 +247,7 @@ const response = await runtime.processMessage(message);
 
 ## Conversion Mapping
 
-### CrewAI ← Universal Agent
+### CrewAI ← Uniform Semantic Agent
 
 ```
 identity.designation → role
@@ -257,7 +257,7 @@ capabilities.tools → tools
 beliefs (public) → system_prompt
 ```
 
-### ElizaOS ← Universal Agent
+### ElizaOS ← Uniform Semantic Agent
 
 ```
 identity.name → name
@@ -286,7 +286,7 @@ CrewAI and ElizaOS **cannot run together** at runtime because:
 Use **configuration bridge**:
 
 ```
-        Universal Agent
+        Uniform Semantic Agent
               ↓
          ┌────┴────┐
          ↓         ↓
@@ -355,7 +355,7 @@ Use **ElizaOS** for:
 Override framework-specific settings:
 
 ```typescript
-const agent: UniversalAgent = {
+const agent: UniformSemanticAgent = {
   // ... standard fields ...
   adapters: {
     crewai: {
@@ -526,7 +526,7 @@ Requires:
 ### Planned Features
 
 1. **CLI Tool**: `agent-bridge convert --from universal --to crewai agent.json`
-2. **Validation**: Schema validation for universal agents
+2. **Validation**: Schema validation for Uniform Semantic Agents
 3. **Templates**: Pre-built agent templates
 4. **Migration**: Convert existing CrewAI/ElizaOS agents to universal format
 5. **Testing**: Automated testing in both frameworks
@@ -562,7 +562,7 @@ To add features:
 
 ## Conclusion
 
-The Universal Agent Bridge treats agents as **something bigger than either framework's stub** - persistent personalities with rich character definitions, deep knowledge, and consistent reasoning that can be instantiated in different execution environments.
+The Uniform Semantic Agent Bridge treats agents as **something bigger than either framework's stub** - persistent personalities with rich character definitions, deep knowledge, and consistent reasoning that can be instantiated in different execution environments.
 
 This approach:
 - ✅ Maintains consistency across frameworks

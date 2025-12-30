@@ -9,7 +9,7 @@
  * Future: Vector indexing for O(log N) search
  */
 
-import type { UniversalAgentV2 } from '../core/UniversalAgentV2';
+import type { UniformSemanticAgentV2 } from '../core/UniformSemanticAgentV2';
 import * as crypto from 'crypto';
 
 /**
@@ -94,7 +94,7 @@ export class MemoryMerger {
    * Add single memory
    */
   async addMemory(
-    agent: UniversalAgentV2,
+    agent: UniformSemanticAgentV2,
     memoryData: any,
     sourceInstance: string
   ): Promise<void> {
@@ -130,7 +130,7 @@ export class MemoryMerger {
    * Merge batch of memories
    */
   async mergeBatch(
-    agent: UniversalAgentV2,
+    agent: UniformSemanticAgentV2,
     memories: any[],
     sourceInstance: string
   ): Promise<MemoryMergeResult> {

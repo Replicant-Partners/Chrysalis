@@ -1,12 +1,12 @@
 /**
- * Universal Agent Morphing System v2.0 - Main Entry Point
+ * Uniform Semantic Agent Morphing System v2.0 - Main Entry Point
  * 
  * Export all core components including experience sync.
  */
 
 // Core v2 types
 export type { 
-  UniversalAgentV2,
+  UniformSemanticAgentV2,
   ValidationResult as ValidationResultV2,
   AgentImplementationType,
   SyncProtocol,
@@ -18,10 +18,10 @@ export type {
   Skill,
   Episode,
   Concept
-} from './core/UniversalAgentV2';
+} from './core/UniformSemanticAgentV2';
 
 // Core v1 (for backward compatibility)
-export type { UniversalAgent, Belief as BeliefV1 } from './core/UniversalAgent';
+export type { UniformSemanticAgent, Belief as BeliefV1 } from './core/UniformSemanticAgent';
 export * from './core/FrameworkAdapter';
 export * from './core/AdapterRegistry';
 export * from './core/Encryption';

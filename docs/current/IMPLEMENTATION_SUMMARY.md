@@ -371,7 +371,7 @@ Based on initial testing:
 
 ## Comparison: Specification vs Implementation
 
-### UAS v2.0 (Specification)
+### uSA v2.0 (Specification)
 
 **What it was:**
 - YAML configuration schema
@@ -538,7 +538,7 @@ pytest test_memory_system.py -v
 
 ### What Changed from Plan
 
-**Original Plan:** Build complete UAS v2.0 spec with all features
+**Original Plan:** Build complete uSA v2.0 spec with all features
 
 **Reality:** Built working implementation with proven patterns only
 

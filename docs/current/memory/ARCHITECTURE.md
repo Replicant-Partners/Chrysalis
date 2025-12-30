@@ -553,7 +553,7 @@ interface StreamingSyncConfig {
 2. If importance > 0.7: gossip immediately
 3. Reaches other instances in O(log N) rounds
 4. Validated by >2/3 threshold
-5. Merged via CRDT into universal agent
+5. Merged via CRDT into Uniform Semantic Agent
 
 ---
 

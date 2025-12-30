@@ -553,9 +553,9 @@ agent = Agent(
 
 ## Comparison to Specification
 
-### What Changed from UAS v2.0 Spec
+### What Changed from uSA v2.0 Spec
 
-**UAS v2.0 (Specification Layer):**
+**uSA v2.0 (Specification Layer):**
 - Defined YAML configuration format
 - Described memory types and architectures
 - Specified interfaces

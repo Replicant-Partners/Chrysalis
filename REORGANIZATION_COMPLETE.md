@@ -93,7 +93,7 @@ Chrysalis/
 ### Deprecated → docs/archive/deprecated/
 
 ✅ UAS_*.md → docs/archive/deprecated/  
-✅ UniversalAgentSpecification.md → docs/archive/deprecated/  
+✅ UniformSemanticAgentSpecification.md → docs/archive/deprecated/  
 ✅ README_MORPHING_SYSTEM.md → docs/archive/deprecated/  
 ✅ README_MEMORY_V1.md → docs/archive/deprecated/old-memory/
 

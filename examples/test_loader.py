@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script to demonstrate Universal Agent Specification loading
+Test script to demonstrate Uniform Semantic Agent loading
 """
 
 import sys
@@ -9,16 +9,16 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from uas_implementation import load_agent, save_agent
+from usa_implementation import load_agent, save_agent
 
 
 def main():
     print("=" * 60)
-    print("Universal Agent Specification - Loader Test")
+    print("Uniform Semantic Agent - Loader Test")
     print("=" * 60)
     
     # Load the example agent
-    spec_file = Path(__file__).parent / "simple_agent.uas.yaml"
+    spec_file = Path(__file__).parent / "simple_agent.usa.yaml"
     
     print(f"\n📁 Loading agent from: {spec_file}")
     spec = load_agent(str(spec_file))
@@ -73,7 +73,7 @@ def main():
     
     # Test saving
     print(f"\n💾 Testing save functionality...")
-    output_json = Path(__file__).parent / "simple_agent.uas.json"
+    output_json = Path(__file__).parent / "simple_agent.usa.json"
     save_agent(spec, str(output_json), format="json")
     print(f"   Saved as JSON: {output_json}")
     

@@ -381,7 +381,7 @@ tasks:
          morph(restore(morph(A, T)), UniversalType) = A"
       
       Specification:
-      - States: UniversalAgent, MCPAgent, MultiAgent, OrchestratedAgent
+      - States: UniformSemanticAgent, MCPAgent, MultiAgent, OrchestratedAgent
       - Operations: morph(agent, target_type), restore(agent)
       - Invariant: Lossless property (information preservation)
       - Temporal property: Eventually consistent after operations
@@ -595,7 +595,7 @@ tasks:
     description: |
       Prepare conference talk proposal and materials:
       
-      Talk: "Chrysalis: Universal Agent Transformation with Fractal Composition"
+      Talk: "Chrysalis: Uniform Semantic Agent Transformation with Fractal Composition"
       
       Target Conferences:
       - AAMAS (if paper accepted)

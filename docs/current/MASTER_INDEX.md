@@ -154,7 +154,7 @@
 - `experience/KnowledgeIntegrator.ts` - Knowledge verification
 
 **Agent Types**:
-- `core/UniversalAgentV2.ts` - Agent schema
+- `core/UniformSemanticAgentV2.ts` - Agent schema
 - `core/FrameworkAdapterV2.ts` - Adapter interface
 
 **Adapters**:
@@ -284,7 +284,7 @@ Adaptive: Pattern Resolver chooses optimal scale
 
 ### Implemented ✅
 
-- [x] Universal agent schema (v2.0)
+- [x] Uniform Semantic Agent schema (v2.0)
 - [x] Three agent type adapters
 - [x] Experience sync (request-response)
 - [x] Memory/skill/knowledge merging (convergent aggregation)

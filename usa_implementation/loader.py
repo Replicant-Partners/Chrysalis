@@ -1,5 +1,5 @@
 """
-Universal Agent Specification Loader
+Uniform Semantic Agent Loader
 Supports both v1 and v2 types
 """
 import yaml
@@ -10,8 +10,8 @@ from .core import types as types_v1
 from .core import types_v2
 
 
-class UniversalAgentLoader:
-    """Load and deploy universal agent specifications"""
+class UniformSemanticAgentLoader:
+    """Load and deploy Uniform Semantic Agent specifications"""
     
     @staticmethod
     def load_from_file(file_path: Union[str, Path], type_module: Any = None) -> Any:
@@ -21,7 +21,7 @@ class UniversalAgentLoader:
         Args:
             file_path: Path to specification file (.yaml, .yml, or .json)
             type_module: Type module to use (types_v1 or types_v2). 
-                        Defaults to v2 if apiVersion is uas/v2, else v1
+                        Defaults to v2 if apiVersion is usa/v2, else v1
         
         Returns:
             AgentSpec object
@@ -36,20 +36,20 @@ class UniversalAgentLoader:
             raise FileNotFoundError(f"Spec file not found: {file_path}")
         
         with open(file_path, 'r') as f:
-            if file_path.suffix in ['.yaml', '.yml', '.uas']:
+            if file_path.suffix in ['.yaml', '.yml', '.usa']:
                 data = yaml.safe_load(f)
             elif file_path.suffix == '.json':
                 data = json.load(f)
             else:
                 raise ValueError(
                     f"Unsupported file format: {file_path.suffix}. "
-                    "Use .yaml, .yml, .uas, or .json"
+                    "Use .yaml, .yml, .usa, or .json"
                 )
         
         # Auto-detect version if type_module not specified
         if type_module is None:
-            api_version = data.get('apiVersion', 'uas/v1')
-            type_module = types_v2 if api_version == 'uas/v2' else types_v1
+            api_version = data.get('apiVersion', 'usa/v1')
+            type_module = types_v2 if api_version == 'usa/v2' else types_v1
         
         return type_module.AgentSpec.from_dict(data)
     
@@ -66,8 +66,8 @@ class UniversalAgentLoader:
             AgentSpec object
         """
         if type_module is None:
-            api_version = data.get('apiVersion', 'uas/v1')
-            type_module = types_v2 if api_version == 'uas/v2' else types_v1
+            api_version = data.get('apiVersion', 'usa/v1')
+            type_module = types_v2 if api_version == 'usa/v2' else types_v1
         
         return type_module.AgentSpec.from_dict(data)
     
@@ -84,7 +84,7 @@ class UniversalAgentLoader:
             AgentSpec object
         """
         data = yaml.safe_load(yaml_string)
-        return UniversalAgentLoader.load_from_dict(data, type_module)
+        return UniformSemanticAgentLoader.load_from_dict(data, type_module)
     
     @staticmethod
     def load_from_json_string(json_string: str, type_module: Any = None) -> Any:
@@ -99,7 +99,7 @@ class UniversalAgentLoader:
             AgentSpec object
         """
         data = json.loads(json_string)
-        return UniversalAgentLoader.load_from_dict(data, type_module)
+        return UniformSemanticAgentLoader.load_from_dict(data, type_module)
     
     @staticmethod
     def save_to_file(spec: Any, file_path: Union[str, Path], format: str = "yaml"):
@@ -134,7 +134,7 @@ def load_agent(file_path: str, type_module: Any = None) -> Any:
     Returns:
         AgentSpec object (v1 or v2)
     """
-    return UniversalAgentLoader.load_from_file(file_path, type_module)
+    return UniformSemanticAgentLoader.load_from_file(file_path, type_module)
 
 
 def save_agent(spec: Any, file_path: str, format: str = "yaml"):
@@ -146,4 +146,4 @@ def save_agent(spec: Any, file_path: str, format: str = "yaml"):
         file_path: Where to save the file
         format: Output format ('yaml' or 'json')
     """
-    UniversalAgentLoader.save_to_file(spec, file_path, format)
+    UniformSemanticAgentLoader.save_to_file(spec, file_path, format)

@@ -1,4 +1,4 @@
-# Universal Agent Morphing System - Technical Specification
+# Uniform Semantic Agent Morphing System - Technical Specification
 
 **Version**: 1.0.0  
 **Date**: December 28, 2025  
@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-The Universal Agent Morphing System enables AI agents to maintain complete identity and configuration across multiple agentic AI frameworks without information loss. The system treats the **Universal Agent Specification** as the canonical reference, with framework-specific adapters handling bidirectional conversion.
+The Uniform Semantic Agent Morphing System enables AI agents to maintain complete identity and configuration across multiple agentic AI frameworks without information loss. The system treats the **Uniform Semantic Agent** as the canonical reference, with framework-specific adapters handling bidirectional conversion.
 
 ### Key Principles
 
@@ -73,12 +73,12 @@ Input: Agent in Framework A
 │ 1. Framework A Adapter                  │
 │    • Extract mappable fields            │
 │    • Identify non-mappable fields       │
-│    • Convert to Universal Agent format  │
+│    • Convert to Uniform Semantic Agent format  │
 └────────────────┬────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────┐
-│ 2. Universal Agent (Canonical)          │
+│ 2. Uniform Semantic Agent (Canonical)          │
 │    • Complete agent specification       │
 │    • Framework-agnostic representation  │
 └────────────────┬────────────────────────┘
@@ -106,12 +106,12 @@ Input: Agent in Framework B + Restoration Key
 │    • Extract shadow field               │
 │    • Verify signature                   │
 │    • Decrypt with restoration key       │
-│    • Extract original universal agent   │
+│    • Extract original Uniform Semantic Agent   │
 └────────────────┬────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────┐
-│ 2. Universal Agent (Restored)           │
+│ 2. Uniform Semantic Agent (Restored)           │
 │    • 100% original specification        │
 └────────────────┬────────────────────────┘
                  │
@@ -128,12 +128,12 @@ Output: Original Agent in Framework A (Perfect Restoration)
 
 ---
 
-## 3. Universal Agent Specification
+## 3. Uniform Semantic Agent
 
 ### 3.1 Core Schema
 
 ```typescript
-interface UniversalAgent {
+interface UniformSemanticAgent {
   // Version and metadata
   schema_version: string;  // e.g., "1.0.0"
   
@@ -282,8 +282,8 @@ interface FrameworkAdapter {
   readonly supports_shadow: boolean;  // Can embed shadow data
   
   // Core conversion methods
-  toUniversal(frameworkAgent: any): Promise<UniversalAgent>;
-  fromUniversal(universalAgent: UniversalAgent): Promise<any>;
+  toUniversal(frameworkAgent: any): Promise<UniformSemanticAgent>;
+  fromUniversal(universalAgent: UniformSemanticAgent): Promise<any>;
   
   // Shadow management
   embedShadow(
@@ -382,7 +382,7 @@ signature = Sign(dataToSign, privateKey)
 ### 5.2 Agent Fingerprint
 
 ```typescript
-function generateFingerprint(agent: UniversalAgent): string {
+function generateFingerprint(agent: UniformSemanticAgent): string {
   const data = {
     name: agent.identity.name,
     designation: agent.identity.designation,
@@ -633,7 +633,7 @@ diff ada_lovelace.json ada_lovelace_restored.json
 ```
 src/
 ├── core/
-│   ├── UniversalAgent.ts         # Universal agent types
+│   ├── UniformSemanticAgent.ts         # Universal agent types
 │   ├── FrameworkAdapter.ts       # Abstract adapter
 │   ├── AdapterRegistry.ts        # Registry pattern
 │   ├── Encryption.ts             # Crypto utilities
@@ -676,18 +676,18 @@ src/
 Developers can add support for new frameworks:
 
 ```typescript
-import { FrameworkAdapter, UniversalAgent } from '@agent-morph/core';
+import { FrameworkAdapter, UniformSemanticAgent } from '@agent-morph/core';
 
 export class MyFrameworkAdapter implements FrameworkAdapter {
   readonly name = 'myframework';
   readonly version = '1.0.0';
   readonly supports_shadow = true;
   
-  async toUniversal(agent: MyFrameworkAgent): Promise<UniversalAgent> {
+  async toUniversal(agent: MyFrameworkAgent): Promise<UniformSemanticAgent> {
     // Implement conversion
   }
   
-  async fromUniversal(universal: UniversalAgent): Promise<MyFrameworkAgent> {
+  async fromUniversal(universal: UniformSemanticAgent): Promise<MyFrameworkAgent> {
     // Implement conversion
   }
   
@@ -735,7 +735,7 @@ interface MorphingPlugin {
 ### 11.2 Test Cases
 
 ```typescript
-describe('Universal Agent Morphing', () => {
+describe('Uniform Semantic Agent Morphing', () => {
   test('ElizaOS → CrewAI → ElizaOS preserves all data', async () => {
     const original = loadElizaOSAgent('ada_lovelace.json');
     const crewai = await convert(original, elizaosAdapter, crewaiAdapter);
@@ -763,7 +763,7 @@ describe('Universal Agent Morphing', () => {
 1. **Multi-framework sync**: Keep agent synced across multiple frameworks
 2. **Version migration**: Upgrade agents to new schema versions
 3. **Diff and merge**: Merge changes from different frameworks
-4. **Cloud storage**: Store universal agents in centralized registry
+4. **Cloud storage**: Store Uniform Semantic Agents in centralized registry
 5. **Blockchain verification**: Immutable audit trail
 6. **AI-assisted mapping**: Auto-generate adapter mappings
 
@@ -798,7 +798,7 @@ describe('Universal Agent Morphing', () => {
 
 ## 14. Glossary
 
-- **Universal Agent**: Canonical agent representation independent of frameworks
+- **Uniform Semantic Agent**: Canonical agent representation independent of frameworks
 - **Framework Adapter**: Bidirectional converter for a specific framework
 - **Shadow Field**: Encrypted storage of non-mappable data
 - **Restoration Key**: Cryptographic key for decrypting shadow data

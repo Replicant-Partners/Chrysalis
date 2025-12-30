@@ -481,7 +481,7 @@ graph TB
 ### Team 1 → Team 4
 **Critical Handoff** (End of Week 6):
 - MemoryMerger implementation (working, tested)
-- UniversalAgentV2 schema (finalized)
+- UniformSemanticAgentV2 schema (finalized)
 - Interfaces for integration
 
 **Quality Criteria**:

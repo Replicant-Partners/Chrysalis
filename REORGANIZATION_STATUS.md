@@ -159,7 +159,7 @@ docs/
 │   ├── v3/                      (v3.0 completion, 4 docs)
 │   ├── v2/                      (v2 specs, 5 docs)
 │   ├── v1/                      (v1 specs, 3 docs)
-│   └── deprecated/              (UAS, old approaches, ~8 docs)
+│   └── deprecated/              (uSA, old approaches, ~8 docs)
 │
 └── diagrams/                   📁 Mermaid diagrams
     └── (Future: extracted diagrams)

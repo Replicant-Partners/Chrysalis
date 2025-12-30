@@ -1,16 +1,16 @@
-# Universal Agent Specification - Examples
+# Uniform Semantic Agent - Examples
 
-This directory contains practical examples showing how to use the Universal Agent Specification (UAS) system.
+This directory contains practical examples showing how to use the Uniform Semantic Agent (uSA) system.
 
 ## Quick Start
 
 ### 1. Define Your Agent Once
 
-Create a `.uas.yaml` file:
+Create a `.usa.yaml` file:
 
 ```yaml
-# my_agent.uas.yaml
-apiVersion: uas/v1
+# my_agent.usa.yaml
+apiVersion: usa/v1
 kind: Agent
 
 metadata:
@@ -50,10 +50,10 @@ deployment:
 ### 2. Deploy Anywhere
 
 ```python
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 
 # Load once
-spec = load_agent("my_agent.uas.yaml")
+spec = load_agent("my_agent.usa.yaml")
 
 # Deploy to CrewAI
 crewai_agent = deploy_to_crewai(spec)
@@ -67,7 +67,7 @@ api_server = deploy_as_api(spec)
 
 ## Examples in This Directory
 
-1. **`simple_agent.uas.yaml`** - Basic research agent
+1. **`simple_agent.usa.yaml`** - Basic research agent
 2. **`test_loader.py`** - Test the loader functionality
 3. **`deploy_to_crewai.py`** - Deploy to CrewAI framework
 4. **`deploy_to_api.py`** - Deploy as FastAPI service
@@ -88,4 +88,4 @@ python deploy_to_api.py
 
 ## Agent Specification Format
 
-See `UniversalAgentSpecification.md` in the parent directory for complete documentation.
+See `UniformSemanticAgentSpecification.md` in the parent directory for complete documentation.

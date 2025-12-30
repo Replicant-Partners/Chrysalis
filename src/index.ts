@@ -1,11 +1,11 @@
 /**
- * Universal Agent Morphing System - Main Entry Point
+ * Uniform Semantic Agent Morphing System - Main Entry Point
  * 
  * Export all core components for programmatic use.
  */
 
 // Core types and utilities
-export * from './core/UniversalAgent';
+export * from './core/UniformSemanticAgent';
 export * from './core/FrameworkAdapter';
 export * from './core/AdapterRegistry';
 export * from './core/Encryption';

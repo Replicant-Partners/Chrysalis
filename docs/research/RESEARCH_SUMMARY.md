@@ -194,7 +194,7 @@ MIRIX 5-memory-type architecture:
 
 ---
 
-## Implications for UAS v2.0
+## Implications for uSA v2.0
 
 ### What's Safe to Specify
 

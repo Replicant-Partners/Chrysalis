@@ -1,5 +1,5 @@
 """
-Universal Agent Specification - Core Types v2.0
+Uniform Semantic Agent - Core Types v2.0
 Enhanced with comprehensive memory architecture support
 """
 from dataclasses import dataclass, field
@@ -1041,7 +1041,7 @@ class Deployment:
 
 @dataclass
 class AgentSpec:
-    """Universal Agent Specification v2.0"""
+    """Uniform Semantic Agent v2.0"""
     api_version: str
     kind: str
     metadata: Metadata
@@ -1055,7 +1055,7 @@ class AgentSpec:
     def from_dict(cls, data: dict) -> 'AgentSpec':
         """Create AgentSpec from dictionary"""
         return cls(
-            api_version=data.get('apiVersion', 'uas/v2'),
+            api_version=data.get('apiVersion', 'usa/v2'),
             kind=data.get('kind', 'Agent'),
             metadata=Metadata.from_dict(data['metadata']),
             identity=Identity.from_dict(data['identity']),

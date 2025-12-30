@@ -85,7 +85,7 @@ chrysalis sync --instance <id> --agent agent.json
 ### Agents Morph
 
 ```
-Universal Agent (Canonical)
+Uniform Semantic Agent (Canonical)
       ↓ morph
 MCP / Multi-Agent / Orchestrated
       ↓ sync

@@ -1075,7 +1075,7 @@ from crewai.mcp import MCPTool
 from agent_protocol import AgentProtocolServer
 import asyncio
 
-class UniversalAgent:
+class UniformSemanticAgent:
     """Agent supporting MCP, A2A, and Agent Protocol"""
     
     def __init__(self, name: str, role: str):
@@ -1147,7 +1147,7 @@ class UniversalAgent:
 # Usage
 if __name__ == "__main__":
     # Create multi-protocol agent
-    agent = UniversalAgent(
+    agent = UniformSemanticAgent(
         name="research-agent",
         role="Senior Researcher"
     )

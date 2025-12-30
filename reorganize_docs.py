@@ -117,7 +117,7 @@ moves = {
     "UAS_QuickStart.md": "docs/archive/deprecated/UAS_QuickStart.md",
     "UAS_V2_MEMORY_GUIDE.md": "docs/archive/deprecated/UAS_V2_MEMORY_GUIDE.md",
     "UAS_V2_RELEASE_SUMMARY.md": "docs/archive/deprecated/UAS_V2_RELEASE_SUMMARY.md",
-    "UniversalAgentSpecification.md": "docs/archive/deprecated/UniversalAgentSpecification.md",
+    "UniformSemanticAgentSpecification.md": "docs/archive/deprecated/UniformSemanticAgentSpecification.md",
     "README_MORPHING_SYSTEM.md": "docs/archive/deprecated/README_MORPHING_SYSTEM.md",
     "README_MEMORY_V1.md": "docs/archive/deprecated/old-memory/README_MEMORY_V1.md",
     "ComprehensiveReviewPrompt.md": "docs/archive/deprecated/ComprehensiveReviewPrompt.md",

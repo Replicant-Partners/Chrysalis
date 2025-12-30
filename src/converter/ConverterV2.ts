@@ -1,11 +1,11 @@
 /**
- * Universal Agent Converter v2 - With Experience Synchronization
+ * Uniform Semantic Agent Converter v2 - With Experience Synchronization
  * 
  * Handles morphing between three agent implementation types with
  * continuous experience sync, memory merge, and skill accumulation.
  */
 
-import type { UniversalAgentV2, AgentImplementationType, SyncProtocol } from '../core/UniversalAgentV2';
+import type { UniformSemanticAgentV2, AgentImplementationType, SyncProtocol } from '../core/UniformSemanticAgentV2';
 import type { ShadowData, EncryptedShadow } from '../core/FrameworkAdapter';
 import { FrameworkAdapterV2 } from '../core/FrameworkAdapterV2';
 import { generateFingerprint, generateChecksum, encrypt } from '../core/Encryption';
@@ -29,7 +29,7 @@ export interface ConversionOptionsV2 {
 export interface ConversionResultV2 {
   instance_id: string;
   agent: any;
-  universal: any;  // UniversalAgentV2 (cast as any for flexibility)
+  universal: any;  // UniformSemanticAgentV2 (cast as any for flexibility)
   restorationKey: string;
   syncChannel: {
     protocol: SyncProtocol;
@@ -46,7 +46,7 @@ export interface ConversionResultV2 {
 }
 
 /**
- * Universal Agent Converter v2
+ * Uniform Semantic Agent Converter v2
  */
 export class ConverterV2 {
   private instanceManager: InstanceManager;
@@ -61,7 +61,7 @@ export class ConverterV2 {
    * Morph agent to target implementation type
    */
   async morph(
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     targetType: AgentImplementationType,
     toAdapter: FrameworkAdapterV2,
     options: ConversionOptionsV2 = {}
@@ -191,7 +191,7 @@ export class ConverterV2 {
   }
   
   /**
-   * Restore and merge experiences back to universal agent
+   * Restore and merge experiences back to Uniform Semantic Agent
    */
   async restoreWithExperiences(
     morphedAgent: any,
@@ -199,7 +199,7 @@ export class ConverterV2 {
     restorationKey: string,
     instanceId: string,
     mergeExperience: boolean = true
-  ): Promise<UniversalAgentV2> {
+  ): Promise<UniformSemanticAgentV2> {
     console.log(`\n🔄 Restoring agent from ${toAdapter.name}...`);
     
     // Extract shadow
@@ -215,7 +215,7 @@ export class ConverterV2 {
     const [salt, authTag] = restorationKey.split(':');
     
     // For now, simplified restoration
-    const restored: UniversalAgentV2 = universal as UniversalAgentV2;
+    const restored: UniformSemanticAgentV2 = universal as UniformSemanticAgentV2;
     
     // Merge experiences if requested
     if (mergeExperience) {
@@ -239,7 +239,7 @@ export class ConverterV2 {
    * Sync experiences from active instance
    */
   async syncExperience(
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     instanceId: string
   ): Promise<MergeResult> {
     console.log(`\n🔄 Syncing experiences from instance ${instanceId}...`);
@@ -285,7 +285,7 @@ export class ConverterV2 {
    * Merge experiences from multiple instances
    */
   async mergeMultipleInstances(
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     instanceIds: string[]
   ): Promise<MergeResult> {
     console.log(`\n🔄 Merging experiences from ${instanceIds.length} instances...`);

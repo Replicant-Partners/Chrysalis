@@ -1,11 +1,11 @@
 /**
- * Universal Agent Bridge
+ * Uniform Semantic Agent Bridge
  * 
- * Converts universal agent definitions to framework-specific configurations.
+ * Converts Uniform Semantic Agent definitions to framework-specific configurations.
  */
 
 import type {
-  UniversalAgent,
+  UniformSemanticAgent,
   CrewAIConfig,
   ElizaOSConfig,
   UniversalMemory,
@@ -17,10 +17,10 @@ import type {
  * Main bridge class for converting between agent formats
  */
 export class AgentBridge {
-  constructor(private agent: UniversalAgent) {}
+  constructor(private agent: UniformSemanticAgent) {}
 
   /**
-   * Convert universal agent to CrewAI configuration
+   * Convert Uniform Semantic Agent to CrewAI configuration
    */
   toCrewAI(): CrewAIConfig {
     const adapter = this.agent.adapters?.crewai;
@@ -42,7 +42,7 @@ export class AgentBridge {
   }
 
   /**
-   * Convert universal agent to ElizaOS character configuration
+   * Convert Uniform Semantic Agent to ElizaOS character configuration
    */
   toElizaOS(): ElizaOSConfig {
     const adapter = this.agent.adapters?.elizaos;
@@ -73,7 +73,7 @@ export class AgentBridge {
     const config = this.toCrewAI();
     
     return `# CrewAI Agent: ${this.agent.identity.name}
-# Generated from Universal Agent Configuration
+# Generated from Uniform Semantic Agent Configuration
 
 from crewai import Agent
 ${config.tools_config.map(t => t.import_statement).join('\n')}
@@ -111,7 +111,7 @@ ${config.system_prompt}
     const config = this.toElizaOS();
     
     return `// ElizaOS Character: ${this.agent.identity.name}
-// Generated from Universal Agent Configuration
+// Generated from Uniform Semantic Agent Configuration
 
 import { Character } from '@elizaos/core';
 
@@ -445,9 +445,9 @@ export class MemoryBridge {
  */
 export class AgentConverter {
   /**
-   * Convert ElizaOS character to Universal Agent
+   * Convert ElizaOS character to Uniform Semantic Agent
    */
-  static fromElizaOS(character: any): UniversalAgent {
+  static fromElizaOS(character: any): UniformSemanticAgent {
     return {
       identity: {
         name: character.name,
@@ -499,9 +499,9 @@ export class AgentConverter {
   }
 
   /**
-   * Convert CrewAI agent definition to Universal Agent
+   * Convert CrewAI agent definition to Uniform Semantic Agent
    */
-  static fromCrewAI(agent: any): UniversalAgent {
+  static fromCrewAI(agent: any): UniformSemanticAgent {
     // Extract traits from backstory
     const traits = agent.backstory?.match(/Known for being ([^.]+)/)?.[1]
       ?.split(',').map((t: string) => t.trim()) || [];

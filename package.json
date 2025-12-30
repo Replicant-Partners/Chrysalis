@@ -1,7 +1,7 @@
 {
   "name": "chrysalis",
   "version": "3.1.0",
-  "description": "Universal Agent Morphing System - Framework-transcendent agents built on universal patterns",
+  "description": "Uniform Semantic Agent Morphing System - Framework-transcendent agents built on universal patterns",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

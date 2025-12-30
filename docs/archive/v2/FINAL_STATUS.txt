@@ -42,7 +42,7 @@ Documentation: 15+ comprehensive guides
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 CORE (2 new files):
-✓ UniversalAgentV2.ts          Enhanced types with sync
+✓ UniformSemanticAgentV2.ts          Enhanced types with sync
 ✓ FrameworkAdapterV2.ts        V2 adapter interface
 
 ADAPTERS (3 new files):
@@ -171,6 +171,6 @@ Agents can now:
 - Evolve characteristics from real-world usage
 - Exist as framework-transcendent entities
 
-The Universal Agent is now a living, learning entity! 🚀
+The Uniform Semantic Agent is now a living, learning entity! 🚀
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

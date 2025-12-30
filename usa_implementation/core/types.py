@@ -1,5 +1,5 @@
 """
-Universal Agent Specification - Core Types
+Uniform Semantic Agent - Core Types
 """
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Any
@@ -479,7 +479,7 @@ class Deployment:
 
 @dataclass
 class AgentSpec:
-    """Universal Agent Specification"""
+    """Uniform Semantic Agent"""
     api_version: str
     kind: str
     metadata: Metadata
@@ -493,7 +493,7 @@ class AgentSpec:
     def from_dict(cls, data: dict) -> 'AgentSpec':
         """Create AgentSpec from dictionary"""
         return cls(
-            api_version=data.get('apiVersion', 'uas/v1'),
+            api_version=data.get('apiVersion', 'usa/v1'),
             kind=data.get('kind', 'Agent'),
             metadata=Metadata.from_dict(data['metadata']),
             identity=Identity.from_dict(data['identity']),

@@ -699,7 +699,7 @@ team1_integration:
   requires:
     - "MemoryMerger base implementation (TASK-1.2.4)"
     - "Memory interfaces (Episode, Concept)"
-    - "UniversalAgentV2 schema"
+    - "UniformSemanticAgentV2 schema"
   
   provides:
     - "Production-grade memory system"

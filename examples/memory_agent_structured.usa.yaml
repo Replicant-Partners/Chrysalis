@@ -1,14 +1,14 @@
-# Universal Agent Specification v2.0
+# Uniform Semantic Agent v2.0
 # Example: Personal Assistant with Structured Memory (MIRIX style)
 
-apiVersion: uas/v2
+apiVersion: usa/v2
 kind: Agent
 
 metadata:
   name: structured-personal-assistant
   version: 2.0.0
   description: Personal assistant with structured multi-type memory
-  author: UAS Team
+  author: uSA Team
   tags:
     - personal-assistant
     - memory-v2
@@ -119,7 +119,7 @@ capabilities:
         provider: chroma
         collection: personal_assistant_memory
         config:
-          path: ${HOME}/.uas/memory/chroma
+          path: ${HOME}/.usa/memory/chroma
       
       cache: null  # No cache for personal use
       backup: null

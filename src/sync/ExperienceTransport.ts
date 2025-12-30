@@ -10,7 +10,7 @@
  * and derivative instances inherit the choice.
  */
 
-import type { ExperienceBatch, ExperienceEvent, ExperienceTransportConfig, ExperienceTransportType } from '../core/UniversalAgentV2';
+import type { ExperienceBatch, ExperienceEvent, ExperienceTransportConfig, ExperienceTransportType } from '../core/UniformSemanticAgentV2';
 
 export type TransportPayload =
   | { kind: 'events'; instanceId: string; events: ExperienceEvent[] }

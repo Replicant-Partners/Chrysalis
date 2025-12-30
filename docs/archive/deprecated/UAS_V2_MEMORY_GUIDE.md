@@ -1,4 +1,4 @@
-# Universal Agent Specification v2.0 - Memory System Guide
+# Uniform Semantic Agent v2.0 - Memory System Guide
 
 **Version:** 2.0.0  
 **Release Date:** December 28, 2025  
@@ -43,7 +43,7 @@
 ### 1. Basic Agent with Memory
 
 ```yaml
-apiVersion: uas/v2  # Use v2!
+apiVersion: usa/v2  # Use v2!
 kind: Agent
 
 metadata:
@@ -85,11 +85,11 @@ capabilities:
 ### 2. Load and Use
 
 ```python
-from uas_implementation.loader import load_agent
-from uas_implementation.core import types_v2
+from usa_implementation.loader import load_agent
+from usa_implementation.core import types_v2
 
 # Load agent (auto-detects v2 from apiVersion)
-agent = load_agent("my_agent.uas.yaml")
+agent = load_agent("my_agent.usa.yaml")
 
 # Access memory configuration
 if agent.capabilities.memory:
@@ -483,7 +483,7 @@ operations:
 
 ### Example 1: Research Agent (Full-Featured)
 
-See: `examples/memory_agent_hierarchical.uas.yaml`
+See: `examples/memory_agent_hierarchical.usa.yaml`
 
 **Features:**
 - Hierarchical architecture (MemGPT style)
@@ -497,7 +497,7 @@ See: `examples/memory_agent_hierarchical.uas.yaml`
 
 ### Example 2: Personal Assistant (Structured)
 
-See: `examples/memory_agent_structured.uas.yaml`
+See: `examples/memory_agent_structured.usa.yaml`
 
 **Features:**
 - Structured architecture (MIRIX style)
@@ -509,7 +509,7 @@ See: `examples/memory_agent_structured.uas.yaml`
 
 ### Example 3: Simple Q&A (Minimal)
 
-See: `examples/memory_agent_minimal.uas.yaml`
+See: `examples/memory_agent_minimal.usa.yaml`
 
 **Features:**
 - Flat architecture (Simple RAG)
@@ -526,7 +526,7 @@ See: `examples/memory_agent_minimal.uas.yaml`
 ### v1 Memory (Old)
 
 ```yaml
-apiVersion: uas/v1
+apiVersion: usa/v1
 
 capabilities:
   memory:
@@ -539,7 +539,7 @@ capabilities:
 ### v2 Memory (New)
 
 ```yaml
-apiVersion: uas/v2
+apiVersion: usa/v2
 
 capabilities:
   memory:
@@ -574,12 +574,12 @@ capabilities:
 The loader automatically detects version:
 
 ```python
-# v1 agent (apiVersion: uas/v1)
-agent_v1 = load_agent("old_agent.uas.yaml")
+# v1 agent (apiVersion: usa/v1)
+agent_v1 = load_agent("old_agent.usa.yaml")
 # → Uses types_v1
 
-# v2 agent (apiVersion: uas/v2)
-agent_v2 = load_agent("new_agent.uas.yaml")
+# v2 agent (apiVersion: usa/v2)
+agent_v2 = load_agent("new_agent.usa.yaml")
 # → Uses types_v2
 ```
 
@@ -599,20 +599,20 @@ python examples/test_memory_v2.py
 ```
 ✅ ALL TESTS PASSED!
 
-🎉 UAS v2.0 with Memory System is working correctly!
+🎉 uSA v2.0 with Memory System is working correctly!
 
 📚 Example specifications:
-   • memory_agent_hierarchical.uas.yaml
-   • memory_agent_structured.uas.yaml  
-   • memory_agent_minimal.uas.yaml
+   • memory_agent_hierarchical.usa.yaml
+   • memory_agent_structured.usa.yaml  
+   • memory_agent_minimal.usa.yaml
 ```
 
 ### Validation
 
 ```python
-from uas_implementation.loader import load_agent
+from usa_implementation.loader import load_agent
 
-agent = load_agent("my_agent.uas.yaml")
+agent = load_agent("my_agent.usa.yaml")
 
 # Validate
 try:
@@ -631,11 +631,11 @@ except ValueError as e:
 #### CrewAI
 
 ```python
-from uas_implementation.loader import load_agent
+from usa_implementation.loader import load_agent
 from crewai import Agent
 
-# Load UAS spec
-spec = load_agent("agent.uas.yaml")
+# Load uSA spec
+spec = load_agent("agent.usa.yaml")
 
 # Create CrewAI agent
 crewai_agent = Agent(
@@ -651,10 +651,10 @@ crewai_agent = Agent(
 #### Letta/MemGPT
 
 ```python
-from uas_implementation.loader import load_agent
+from usa_implementation.loader import load_agent
 from letta import create_agent
 
-spec = load_agent("agent.uas.yaml")
+spec = load_agent("agent.usa.yaml")
 
 # Create Letta agent
 letta_agent = create_agent(
@@ -672,10 +672,10 @@ letta_agent = create_agent(
 #### LangChain
 
 ```python
-from uas_implementation.loader import load_agent
+from usa_implementation.loader import load_agent
 from langchain.memory import VectorStoreMemory
 
-spec = load_agent("agent.uas.yaml")
+spec = load_agent("agent.usa.yaml")
 
 # Create LangChain memory
 memory = VectorStoreMemory(
@@ -763,12 +763,12 @@ export REDIS_URL="redis://..."
 
 ```python
 # Check API version
-agent = load_agent("agent.uas.yaml")
-print(agent.api_version)  # Should be "uas/v2"
+agent = load_agent("agent.usa.yaml")
+print(agent.api_version)  # Should be "usa/v2"
 
 # Force v2 types
-from uas_implementation.core import types_v2
-agent = load_agent("agent.uas.yaml", type_module=types_v2)
+from usa_implementation.core import types_v2
+agent = load_agent("agent.usa.yaml", type_module=types_v2)
 ```
 
 ### Vector DB Connection Issues
@@ -825,16 +825,16 @@ operations:
 
 ### Documentation
 
-- **UAS v2 Types**: `uas_implementation/core/types_v2.py`
-- **Loader**: `uas_implementation/loader.py`
+- **uSA v2 Types**: `usa_implementation/core/types_v2.py`
+- **Loader**: `usa_implementation/loader.py`
 - **Memory Research**: `AgentMemoryArchitectureResearch.md`
 - **Quick Summary**: `AgentMemory_QuickSummary.md`
 
 ### Examples
 
-- **Hierarchical**: `examples/memory_agent_hierarchical.uas.yaml`
-- **Structured**: `examples/memory_agent_structured.uas.yaml`
-- **Minimal**: `examples/memory_agent_minimal.uas.yaml`
+- **Hierarchical**: `examples/memory_agent_hierarchical.usa.yaml`
+- **Structured**: `examples/memory_agent_structured.usa.yaml`
+- **Minimal**: `examples/memory_agent_minimal.usa.yaml`
 - **Test Suite**: `examples/test_memory_v2.py`
 
 ### Research
@@ -868,7 +868,7 @@ Contribute:
 
 ---
 
-**Universal Agent Specification v2.0**  
+**Uniform Semantic Agent v2.0**  
 *Stateful agents with memory that learns and adapts*
 
 🎉 **Memory System Complete!** 🎉

@@ -224,10 +224,10 @@ dependencies: []
 estimated_effort: "1-2 weeks"
 ```
 
-**TASK-1.1.2: Review & Refine UniversalAgentV2 Schema**
+**TASK-1.1.2: Review & Refine UniformSemanticAgentV2 Schema**
 ```yaml
 description: |
-  Review UniversalAgentV2 TypeScript interface for completeness,
+  Review UniformSemanticAgentV2 TypeScript interface for completeness,
   ensure cryptographic identity fields, memory structure, capabilities,
   experiences, and instances are correctly specified. Add validation
   rules and serialization logic.
@@ -246,7 +246,7 @@ technical_requirements:
         purpose: "JSON Schema validation (alternative)"
 
 deliverables:
-  - "src/core/UniversalAgentV2.ts (enhanced)"
+  - "src/core/UniformSemanticAgentV2.ts (enhanced)"
   - "Validation schemas (Zod)"
   - "Serialization/deserialization utilities"
   - "Unit tests"

@@ -1,4 +1,4 @@
-# Universal Agent Morphing System v2.0 - Master Guide
+# Uniform Semantic Agent Morphing System v2.0 - Master Guide
 
 **The Complete Guide to Experience-Syncing Agent Morphing**
 
@@ -39,7 +39,7 @@ A **complete, working system** that:
 | **[UNIFIED_AGENT_MORPHING_SPECIFICATION_V2.md](./UNIFIED_AGENT_MORPHING_SPECIFICATION_V2.md)** | Complete v2 spec | 🔧🔧🔧 High |
 | **[V2_COMPLETE_SPECIFICATION.md](./V2_COMPLETE_SPECIFICATION.md)** | API reference, protocols | 🔧🔧🔧 High |
 | **[AgentSpecResearch.md](./AgentSpecResearch.md)** | Industry research | 📊📊 Research |
-| **[UniversalAgentSpecification.md](./UniversalAgentSpecification.md)** | UAS proposal | 📋📋 Design |
+| **[UniformSemanticAgentSpecification.md](./UniformSemanticAgentSpecification.md)** | uSA proposal | 📋📋 Design |
 
 ### V1 Documentation (Legacy)
 
@@ -109,7 +109,7 @@ A **complete, working system** that:
         └──────────────────┴─────────────────┘
                            ▼
               ┌──────────────────────────┐
-              │  Universal Agent         │
+              │  Uniform Semantic Agent         │
               │  (Enhanced & Evolved)    │
               │                          │
               │  +15 new memories        │
@@ -345,10 +345,10 @@ Final Agent State:
 
 ## 🎓 Key Concepts Explained
 
-### 1. Universal Agent as Reference Entity
+### 1. Uniform Semantic Agent as Reference Entity
 
 ```
-The Universal Agent is THE agent - not a format, but the canonical entity.
+The Uniform Semantic Agent is THE agent - not a format, but the canonical entity.
 
 Traditional View:
   "I have a CrewAI agent" or "I have a Cline agent"
@@ -380,7 +380,7 @@ Result:
 ```
 Not three different agents - THREE WAYS TO RUN THE SAME AGENT:
 
-Universal Agent: "Research Agent Ada"
+Uniform Semantic Agent: "Research Agent Ada"
     │
     ├─→ Run in IDE (MCP type) → Conversational learning
     ├─→ Run as Crew (Multi-Agent type) → Task-based learning
@@ -420,8 +420,8 @@ Check-in: "Report your full state on schedule"
 src/
 │
 ├── core/                         [V1 + V2 Types]
-│   ├── UniversalAgent.ts         V1 types
-│   ├── UniversalAgentV2.ts       V2 types ✨
+│   ├── UniformSemanticAgent.ts         V1 types
+│   ├── UniformSemanticAgentV2.ts       V2 types ✨
 │   ├── FrameworkAdapter.ts       V1 adapter
 │   ├── FrameworkAdapterV2.ts     V2 adapter ✨
 │   ├── AdapterRegistry.ts        V1 + V2 registry
@@ -866,7 +866,7 @@ Status: Expert level reached
 1. Read: `V2_SYSTEM_README.md`
 2. Read: `AgentSpecResearch.md` (research findings)
 3. Read: `UNIFIED_AGENT_MORPHING_SPECIFICATION_V2.md`
-4. Study: `src/core/UniversalAgentV2.ts`
+4. Study: `src/core/UniformSemanticAgentV2.ts`
 5. ✅ You understand the architecture!
 
 ### For Implementation (4 hours)

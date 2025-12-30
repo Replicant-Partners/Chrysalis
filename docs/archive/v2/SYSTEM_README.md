@@ -1,4 +1,4 @@
-# Universal Agent Morphing System v2.0
+# Uniform Semantic Agent Morphing System v2.0
 
 **Experience-Syncing Morphing Across Three Agent Implementation Types**
 
@@ -38,7 +38,7 @@ Based on industry research (see `AgentSpecResearch.md`), v2.0 supports the **thr
 Agents now **continuously learn and evolve** from their deployed instances:
 
 ```
-Universal Agent (Source)
+Uniform Semantic Agent (Source)
         ↓
    Deploy instances
         ↓
@@ -53,7 +53,7 @@ Universal Agent (Source)
                     ↓
         Memory Merge + Skill Accumulation
                     ↓
-    Universal Agent (Enhanced!)
+    Uniform Semantic Agent (Enhanced!)
 ```
 
 ### Three Sync Protocols
@@ -135,7 +135,7 @@ agent-morph-v2 merge \
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  LAYER 5: Universal Agent (Canonical + Experiences)    │
+│  LAYER 5: Uniform Semantic Agent (Canonical + Experiences)    │
 │  • Core identity (immutable)                            │
 │  • Accumulated memories (growing)                       │
 │  • Learned skills (expanding)                           │
@@ -216,8 +216,8 @@ agent-morph-v2 merge \
 ```
 src/
 ├── core/
-│   ├── UniversalAgent.ts          # v1 types
-│   ├── UniversalAgentV2.ts        # v2 types ✨ NEW
+│   ├── UniformSemanticAgent.ts          # v1 types
+│   ├── UniformSemanticAgentV2.ts        # v2 types ✨ NEW
 │   ├── FrameworkAdapter.ts        # v1 adapter
 │   ├── FrameworkAdapterV2.ts      # v2 adapter ✨ NEW
 │   ├── AdapterRegistry.ts         # Updated for v1 + v2
@@ -268,8 +268,8 @@ const registry = new AdapterRegistry();
 registry.register(new MCPAdapter());
 registry.register(new MultiAgentAdapter());
 
-// 1. Start with universal agent
-const agent: UniversalAgentV2 = {
+// 1. Start with Uniform Semantic Agent
+const agent: UniformSemanticAgentV2 = {
   identity: { name: 'Researcher', ... },
   capabilities: { primary: ['research'], ... },
   experience_sync: {
@@ -517,7 +517,7 @@ protocols:
 ### V2 Additions (10 new files)
 
 **Core**:
-- `UniversalAgentV2.ts` - Enhanced types
+- `UniformSemanticAgentV2.ts` - Enhanced types
 - `FrameworkAdapterV2.ts` - V2 adapter interface
 
 **Adapters**:
@@ -560,11 +560,11 @@ protocols:
 ```
 Developer works in IDE (MCP instance)
   ↓ Streams learning
-Universal Agent
+Uniform Semantic Agent
   ↓ Also deployed to
 Background API (Multi-Agent instance)
   ↓ Lumped sync
-Universal Agent gains knowledge from both contexts
+Uniform Semantic Agent gains knowledge from both contexts
 ```
 
 ### Use Case 2: Continuous Learning
@@ -680,7 +680,7 @@ Both v1 and v2 can coexist.
 
 ## Conclusion
 
-**Universal Agent Morphing System v2.0** successfully implements:
+**Uniform Semantic Agent Morphing System v2.0** successfully implements:
 
 🎯 **Three agent implementation types** (MCP, Multi-Agent, Orchestrated)  
 🎯 **Experience synchronization** (Streaming, Lumped, Check-in)  

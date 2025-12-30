@@ -2,8 +2,8 @@ package main
 
 import (
 	context "context"
-	crypto_rand "crypto/rand"
 	"crypto/ed25519"
+	crypto_rand "crypto/rand"
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
@@ -12,7 +12,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/cloudflare/circl/sign/bls12381"
+	"github.com/cloudflare/circl/sign/bls"
 	blake3 "github.com/zeebo/blake3"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -35,6 +35,10 @@ type CryptoPrimitivesServer interface {
 }
 
 type server struct{}
+
+func newStruct(m map[string]interface{}) (*structpb.Struct, error) {
+	return structpb.NewStruct(m)
+}
 
 func decodeInput(in *structpb.Struct, key string, def string) string {
 	if v, ok := in.Fields[key]; ok {
@@ -97,7 +101,7 @@ func (s *server) Hash(ctx context.Context, in *structpb.Struct) (*structpb.Struc
 	if err != nil {
 		return nil, err
 	}
-	return structpb.NewStruct(map[string]*structpb.Value{"hash": structpb.NewStringValue(h)}), nil
+	return newStruct(map[string]interface{}{"hash": h})
 }
 
 func (s *server) VerifyHash(ctx context.Context, in *structpb.Struct) (*structpb.Struct, error) {
@@ -113,7 +117,7 @@ func (s *server) VerifyHash(ctx context.Context, in *structpb.Struct) (*structpb
 	if err != nil {
 		return nil, err
 	}
-	return structpb.NewStruct(map[string]*structpb.Value{"valid": structpb.NewBoolValue(strings.EqualFold(h, expected))}), nil
+	return newStruct(map[string]interface{}{"valid": strings.EqualFold(h, expected)})
 }
 
 func merklePair(a, b []byte, algo string) ([]byte, error) {
@@ -172,7 +176,7 @@ func (s *server) MerkleRoot(ctx context.Context, in *structpb.Struct) (*structpb
 	if err != nil {
 		return nil, err
 	}
-	return structpb.NewStruct(map[string]*structpb.Value{"root": structpb.NewStringValue(root)}), nil
+	return newStruct(map[string]interface{}{"root": root})
 }
 
 type proofStep struct {
@@ -248,12 +252,12 @@ func (s *server) MerkleProof(ctx context.Context, in *structpb.Struct) (*structp
 			"left":    structpb.NewBoolValue(p.Left),
 		}}))
 	}
-	return structpb.NewStruct(map[string]*structpb.Value{
+	return newStruct(map[string]interface{}{
 		"proof": structpb.NewStructValue(&structpb.Struct{Fields: map[string]*structpb.Value{
 			"steps": structpb.NewListValue(&structpb.ListValue{Values: steps}),
 			"root":  structpb.NewStringValue(root),
 		}}),
-	}), nil
+	})
 }
 
 func verifyProof(proof []proofStep, leaf []byte, root string, algo string) (bool, error) {
@@ -312,7 +316,7 @@ func (s *server) VerifyMerkleProof(ctx context.Context, in *structpb.Struct) (*s
 	if err != nil {
 		return nil, err
 	}
-	return structpb.NewStruct(map[string]*structpb.Value{"valid": structpb.NewBoolValue(okRes)}), nil
+	return newStruct(map[string]interface{}{"valid": okRes})
 }
 
 func (s *server) Ed25519Keygen(ctx context.Context, in *structpb.Struct) (*structpb.Struct, error) {
@@ -320,10 +324,10 @@ func (s *server) Ed25519Keygen(ctx context.Context, in *structpb.Struct) (*struc
 	if err != nil {
 		return nil, err
 	}
-	return structpb.NewStruct(map[string]*structpb.Value{
-		"publicKey":  structpb.NewStringValue(hex.EncodeToString(pub)),
-		"privateKey": structpb.NewStringValue(hex.EncodeToString(priv)),
-	}), nil
+	return newStruct(map[string]interface{}{
+		"publicKey":  hex.EncodeToString(pub),
+		"privateKey": hex.EncodeToString(priv),
+	})
 }
 
 func (s *server) Ed25519Sign(ctx context.Context, in *structpb.Struct) (*structpb.Struct, error) {
@@ -339,7 +343,7 @@ func (s *server) Ed25519Sign(ctx context.Context, in *structpb.Struct) (*structp
 		return nil, err
 	}
 	sig := ed25519.Sign(priv, data)
-	return structpb.NewStruct(map[string]*structpb.Value{"signature": structpb.NewStringValue(hex.EncodeToString(sig))}), nil
+	return newStruct(map[string]interface{}{"signature": hex.EncodeToString(sig)})
 }
 
 func (s *server) Ed25519Verify(ctx context.Context, in *structpb.Struct) (*structpb.Struct, error) {
@@ -360,7 +364,7 @@ func (s *server) Ed25519Verify(ctx context.Context, in *structpb.Struct) (*struc
 		return nil, err
 	}
 	valid := ed25519.Verify(pub, data, sig)
-	return structpb.NewStruct(map[string]*structpb.Value{"valid": structpb.NewBoolValue(valid)}), nil
+	return newStruct(map[string]interface{}{"valid": valid})
 }
 
 func (s *server) RandomBytes(ctx context.Context, in *structpb.Struct) (*structpb.Struct, error) {
@@ -369,7 +373,7 @@ func (s *server) RandomBytes(ctx context.Context, in *structpb.Struct) (*structp
 	if _, err := crypto_rand.Read(buf); err != nil {
 		return nil, err
 	}
-	return structpb.NewStruct(map[string]*structpb.Value{"bytes": structpb.NewStringValue(hex.EncodeToString(buf))}), nil
+	return newStruct(map[string]interface{}{"bytes": hex.EncodeToString(buf)})
 }
 
 func (s *server) RandomInt(ctx context.Context, in *structpb.Struct) (*structpb.Struct, error) {
@@ -382,14 +386,19 @@ func (s *server) RandomInt(ctx context.Context, in *structpb.Struct) (*structpb.
 	if err != nil {
 		return nil, err
 	}
-	return structpb.NewStruct(map[string]*structpb.Value{"value": structpb.NewStringValue(n.String())}), nil
+	return newStruct(map[string]interface{}{"value": n.String()})
 }
 
 func (s *server) BLSKeygen(ctx context.Context, in *structpb.Struct) (*structpb.Struct, error) {
-	pk, sk, err := bls12381.GenerateKey(crypto_rand.Reader)
+	ikm := make([]byte, 32)
+	if _, err := crypto_rand.Read(ikm); err != nil {
+		return nil, err
+	}
+	sk, err := bls.KeyGen[bls.G1](ikm, nil, nil)
 	if err != nil {
 		return nil, err
 	}
+	pk := sk.PublicKey()
 	pkBytes, err := pk.MarshalBinary()
 	if err != nil {
 		return nil, err
@@ -398,10 +407,10 @@ func (s *server) BLSKeygen(ctx context.Context, in *structpb.Struct) (*structpb.
 	if err != nil {
 		return nil, err
 	}
-	return structpb.NewStruct(map[string]*structpb.Value{
-		"publicKey":  structpb.NewStringValue(hex.EncodeToString(pkBytes)),
-		"privateKey": structpb.NewStringValue(hex.EncodeToString(skBytes)),
-	}), nil
+	return newStruct(map[string]interface{}{
+		"publicKey":  hex.EncodeToString(pkBytes),
+		"privateKey": hex.EncodeToString(skBytes),
+	})
 }
 
 func (s *server) BLSSign(ctx context.Context, in *structpb.Struct) (*structpb.Struct, error) {
@@ -416,15 +425,12 @@ func (s *server) BLSSign(ctx context.Context, in *structpb.Struct) (*structpb.St
 	if err != nil {
 		return nil, err
 	}
-	var sk bls12381.PrivateKey
+	var sk bls.PrivateKey[bls.G1]
 	if err := sk.UnmarshalBinary(privBytes); err != nil {
 		return nil, err
 	}
-	sig, err := bls12381.Sign(&sk, data)
-	if err != nil {
-		return nil, err
-	}
-	return structpb.NewStruct(map[string]*structpb.Value{"signature": structpb.NewStringValue(hex.EncodeToString(sig))}), nil
+	sig := bls.Sign(&sk, data)
+	return newStruct(map[string]interface{}{"signature": hex.EncodeToString(sig)})
 }
 
 func (s *server) BLSVerify(ctx context.Context, in *structpb.Struct) (*structpb.Struct, error) {
@@ -444,12 +450,12 @@ func (s *server) BLSVerify(ctx context.Context, in *structpb.Struct) (*structpb.
 	if err != nil {
 		return nil, err
 	}
-	var pk bls12381.PublicKey
+	var pk bls.PublicKey[bls.G1]
 	if err := pk.UnmarshalBinary(pubBytes); err != nil {
 		return nil, err
 	}
-	ok := bls12381.Verify(&pk, data, sigBytes)
-	return structpb.NewStruct(map[string]*structpb.Value{"valid": structpb.NewBoolValue(ok)}), nil
+	ok := bls.Verify(&pk, data, sigBytes)
+	return newStruct(map[string]interface{}{"valid": ok})
 }
 
 func _hashHandler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -651,19 +657,19 @@ var cryptoServiceDesc = grpc.ServiceDesc{
 	ServiceName: "cryptoprimitives.CryptoPrimitives",
 	HandlerType: (*CryptoPrimitivesServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{Name: "Hash", Handler: _hashHandler},
-		{Name: "VerifyHash", Handler: _verifyHashHandler},
-		{Name: "MerkleRoot", Handler: _merkleRootHandler},
-		{Name: "MerkleProof", Handler: _merkleProofHandler},
-		{Name: "VerifyMerkleProof", Handler: _verifyMerkleProofHandler},
-		{Name: "Ed25519Keygen", Handler: _ed25519KeygenHandler},
-		{Name: "Ed25519Sign", Handler: _ed25519SignHandler},
-		{Name: "Ed25519Verify", Handler: _ed25519VerifyHandler},
-		{Name: "RandomBytes", Handler: _randomBytesHandler},
-		{Name: "RandomInt", Handler: _randomIntHandler},
-		{Name: "BLSKeygen", Handler: _blsKeygenHandler},
-		{Name: "BLSSign", Handler: _blsSignHandler},
-		{Name: "BLSVerify", Handler: _blsVerifyHandler},
+		{MethodName: "Hash", Handler: _hashHandler},
+		{MethodName: "VerifyHash", Handler: _verifyHashHandler},
+		{MethodName: "MerkleRoot", Handler: _merkleRootHandler},
+		{MethodName: "MerkleProof", Handler: _merkleProofHandler},
+		{MethodName: "VerifyMerkleProof", Handler: _verifyMerkleProofHandler},
+		{MethodName: "Ed25519Keygen", Handler: _ed25519KeygenHandler},
+		{MethodName: "Ed25519Sign", Handler: _ed25519SignHandler},
+		{MethodName: "Ed25519Verify", Handler: _ed25519VerifyHandler},
+		{MethodName: "RandomBytes", Handler: _randomBytesHandler},
+		{MethodName: "RandomInt", Handler: _randomIntHandler},
+		{MethodName: "BLSKeygen", Handler: _blsKeygenHandler},
+		{MethodName: "BLSSign", Handler: _blsSignHandler},
+		{MethodName: "BLSVerify", Handler: _blsVerifyHandler},
 	},
 }
 

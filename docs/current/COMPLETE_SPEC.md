@@ -1,6 +1,6 @@
 # Chrysalis: Complete System Specification v3.0
 
-**Chrysalis** = Universal Agent Transformation System  
+**Chrysalis** = Uniform Semantic Agent Transformation System  
 **Foundation**: 10 Universal Patterns from distributed systems & nature  
 **Version**: 3.0.0  
 **Date**: December 28, 2025
@@ -585,7 +585,7 @@ class ByzantineResistantAggregation {
 // Pattern #7: Redundancy for reliability
 class RedundantInstanceManagement {
   async deployWithRedundancy(
-    agent: UniversalAgent,
+    agent: UniformSemanticAgent,
     targetType: AgentType,
     redundancyFactor: number = 3
   ): Promise<InstanceDeployment[]> {
@@ -641,7 +641,7 @@ chrysalis/
 │   │   └── IdentityVerification.ts  Verify agent identity
 │   │
 │   ├── types/
-│   │   ├── UniversalAgentV3.ts     v3 schema with patterns
+│   │   ├── UniformSemanticAgentV3.ts     v3 schema with patterns
 │   │   ├── EvolutionGraph.ts       DAG types
 │   │   └── CRDTTypes.ts            CRDT interfaces
 │   │
@@ -703,7 +703,7 @@ chrysalis/
 // Morphing API
 interface ChrysalisMorphing {
   morph(
-    agent: UniversalAgentV3,
+    agent: UniformSemanticAgentV3,
     targetType: AgentType,
     options: {
       useRandomPlacement?: boolean;  // Pattern #3
@@ -716,7 +716,7 @@ interface ChrysalisMorphing {
     morphedAgent: any,
     restorationKey: string,
     verifySignature: boolean  // Pattern #2
-  ): Promise<UniversalAgentV3>;
+  ): Promise<UniformSemanticAgentV3>;
 }
 
 // Sync API

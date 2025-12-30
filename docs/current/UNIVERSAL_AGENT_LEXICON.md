@@ -1,7 +1,7 @@
-# Universal Agent Lexicon (OODA + Interrogatives + Emoji Mode)
+# Uniform Semantic Agent Lexicon (OODA + Interrogatives + Emoji Mode)
 
 ## Core Entities
-- Agent: autonomous process with cryptographic identity; implements UniversalAgent schema and participates in experience sync and morphing across MCP/multi_agent/orchestrated modes.
+- Agent: autonomous process with cryptographic identity; implements UniformSemanticAgent schema and participates in experience sync and morphing across MCP/multi_agent/orchestrated modes.
 - Identity: SHA-384 fingerprint + Ed25519 keys; anchors accountability and signing of experience/state transfers.
 - Instance: running agent copy with transport, sync protocol, health, and stats; unit of observation in OODA loops.
 - Experience: episodic records (interactions, outcomes, lessons) with optional OODA interrogatives captured per stage.

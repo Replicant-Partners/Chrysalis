@@ -1,4 +1,4 @@
-# Universal Agent Morphing System - Architecture Diagram
+# Uniform Semantic Agent Morphing System - Architecture Diagram
 
 ## System Architecture
 
@@ -8,7 +8,7 @@
 ┃                  (Framework-Independent)                         ┃
 ┃                                                                  ┃
 ┃  ┌────────────────────────────────────────────────────────┐    ┃
-┃  │             UniversalAgent                             │    ┃
+┃  │             UniformSemanticAgent                             │    ┃
 ┃  │  (The "True" Agent - Reference Entity)                │    ┃
 ┃  │                                                        │    ┃
 ┃  │  • identity: { name, designation, bio, fingerprint }  │    ┃
@@ -67,7 +67,7 @@
              │
              ▼
     ┌──────────────────┐
-    │ Universal Agent  │
+    │ Uniform Semantic Agent  │
     │ (Canonical)      │
     └────────┬─────────┘
              │

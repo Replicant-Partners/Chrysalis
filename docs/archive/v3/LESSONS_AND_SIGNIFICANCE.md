@@ -108,7 +108,7 @@ The standards-mode approach doesn't just make better documentation - it makes **
 
 ### What I Learned
 
-I built "UAS v2.0" - a beautiful memory *specification*. It had:
+I built "uSA v2.0" - a beautiful memory *specification*. It had:
 - Memory types (Core, Working, Episodic, Semantic)
 - Retrieval strategies (Semantic, Temporal, Hybrid)
 - Consolidation mechanisms (Periodic, Threshold)
@@ -249,7 +249,7 @@ By calling it "Chrysalis," the user framed this as:
 
 **How we name things influences what they can become.**
 
-If this were called "Universal Agent Converter," we'd think: tool.
+If this were called "Uniform Semantic Agent Converter," we'd think: tool.
 If this were called "Agent Specification Language," we'd think: standard.
 
 But "Chrysalis" suggests: **metamorphosis, evolution, transcendence**.

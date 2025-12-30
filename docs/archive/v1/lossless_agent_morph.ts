@@ -6,7 +6,7 @@
  */
 
 import * as crypto from 'crypto';
-import type { UniversalAgent, CrewAIConfig, ElizaOSConfig } from './universal_agent_types';
+import type { UniformSemanticAgent, CrewAIConfig, ElizaOSConfig } from './universal_agent_types';
 
 // ===== Type Definitions =====
 
@@ -26,7 +26,7 @@ interface ShadowData {
  */
 interface MorphableAgent {
   // Visible cross-framework data
-  visible: UniversalAgent;
+  visible: UniformSemanticAgent;
   
   // Encrypted shadow containing framework-specific data
   shadow: {
@@ -620,7 +620,7 @@ export class AgentMorphingSystem {
   }
   
   // Placeholder conversions to Universal format
-  private elizaOSToUniversal(elizaOS: ElizaOSConfig): UniversalAgent {
+  private elizaOSToUniversal(elizaOS: ElizaOSConfig): UniformSemanticAgent {
     // Simplified conversion
     return {
       identity: {
@@ -654,10 +654,10 @@ export class AgentMorphingSystem {
         settings: {}
       },
       beliefs: elizaOS.beliefs || { who: [], what: [], why: [], how: [] }
-    } as UniversalAgent;
+    } as UniformSemanticAgent;
   }
   
-  private crewAIToUniversal(crewAI: CrewAIConfig): UniversalAgent {
+  private crewAIToUniversal(crewAI: CrewAIConfig): UniformSemanticAgent {
     // Simplified conversion
     return {
       identity: {
@@ -691,7 +691,7 @@ export class AgentMorphingSystem {
         settings: {}
       },
       beliefs: { who: [], what: [], why: [], how: [] }
-    } as UniversalAgent;
+    } as UniformSemanticAgent;
   }
   
   private extractPublicKey(privateKey: string): string {

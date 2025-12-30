@@ -29,7 +29,7 @@ Based on industry convergence analysis (see AgentSpecResearch.md), the computing
    - **Characteristics**: REST API, task-based, framework-agnostic, monitoring/orchestration
    - **Protocol**: Agent Protocol for universal communication
 
-### Core Innovation: Experience-Syncing Universal Agent
+### Core Innovation: Experience-Syncing Uniform Semantic Agent
 
 This specification extends the basic agent morphing concept with:
 
@@ -66,7 +66,7 @@ This specification extends the basic agent morphing concept with:
 ## Table of Contents
 
 1. [Core Architecture](#core-architecture)
-2. [Universal Agent Schema v2](#universal-agent-schema-v2)
+2. [Uniform Semantic Agent Schema v2](#universal-agent-schema-v2)
 3. [Instance Management](#instance-management)
 4. [Experience Synchronization](#experience-synchronization)
 5. [Memory Merge Protocols](#memory-merge-protocols)
@@ -86,7 +86,7 @@ This specification extends the basic agent morphing concept with:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  LAYER 5: Universal Agent (Canonical Entity)                │
+│  LAYER 5: Uniform Semantic Agent (Canonical Entity)                │
 │  • Core identity (immutable)                                │
 │  • Accumulated experience (growable)                        │
 │  • Learned skills (expandable)                              │
@@ -132,7 +132,7 @@ This specification extends the basic agent morphing concept with:
 │                    MORPHING FLOW                            │
 └─────────────────────────────────────────────────────────────┘
 
-Universal Agent (Source)
+Uniform Semantic Agent (Source)
     ↓
 Extract Core Identity + Current State
     ↓
@@ -150,21 +150,21 @@ Experience Sync (Streaming/Lumped/Check-in)
     ↓
 Extract: Memories, Skills, Characteristics
     ↓
-Merge into Universal Agent (Source)
+Merge into Uniform Semantic Agent (Source)
     ↓
-Universal Agent Now Enhanced!
+Uniform Semantic Agent Now Enhanced!
 ```
 
 ---
 
-## 2. Universal Agent Schema v2
+## 2. Uniform Semantic Agent Schema v2
 
 ### 2.1 Enhanced Schema
 
 ```yaml
-# Universal Agent v2.0 Schema
-apiVersion: uas/v2
-kind: UniversalAgent
+# Uniform Semantic Agent v2.0 Schema
+apiVersion: usa/v2
+kind: UniformSemanticAgent
 
 # Core identity (immutable fingerprint)
 identity:
@@ -450,7 +450,7 @@ SyncEvent:
 └─────────────────────────────────────────────────────────────┘
 
 1. CREATE
-   Universal Agent + Target Framework
+   Uniform Semantic Agent + Target Framework
         ↓
    Morph to target implementation type
         ↓
@@ -477,7 +477,7 @@ SyncEvent:
         ↓
    Send to source agent
         ↓
-   Merge into universal agent
+   Merge into Uniform Semantic Agent
 
 5. TERMINATE
    Instance signals shutdown
@@ -498,7 +498,7 @@ interface InstanceTracker {
   
   // Create new instance
   createInstance(
-    sourceAgent: UniversalAgent,
+    sourceAgent: UniformSemanticAgent,
     targetType: 'mcp' | 'multi_agent' | 'orchestrated',
     framework: string,
     syncProtocol: SyncProtocol
@@ -1120,7 +1120,7 @@ orchestrated_implementation:
 interface EnhancedMorphingSystem {
   // Create instance with sync
   morph(
-    sourceAgent: UniversalAgent,
+    sourceAgent: UniformSemanticAgent,
     targetType: 'mcp' | 'multi_agent' | 'orchestrated',
     framework: string,
     syncConfig: SyncConfig
@@ -1130,7 +1130,7 @@ interface EnhancedMorphingSystem {
   restore(
     instanceId: UUID,
     mergeExperience: boolean
-  ): Promise<UniversalAgent>;
+  ): Promise<UniformSemanticAgent>;
   
   // Sync experience during runtime
   syncExperience(
@@ -1140,7 +1140,7 @@ interface EnhancedMorphingSystem {
   
   // Merge multiple instance experiences
   mergeExperiences(
-    sourceAgent: UniversalAgent,
+    sourceAgent: UniformSemanticAgent,
     instances: UUID[]
   ): Promise<MergeResult>;
 }
@@ -1260,7 +1260,7 @@ interface Experience {
 unified-agent-system/
 │
 ├── core/
-│   ├── UniversalAgent.ts           # v2 schema
+│   ├── UniformSemanticAgent.ts           # v2 schema
 │   ├── FrameworkAdapter.ts         # Base adapter
 │   ├── AdapterRegistry.ts          # Adapter management
 │   └── Encryption.ts               # Shadow encryption
@@ -1351,8 +1351,8 @@ storage_architecture:
 syntax = "proto3";
 package uas.v2;
 
-// Universal Agent v2
-message UniversalAgent {
+// Uniform Semantic Agent v2
+message UniformSemanticAgent {
   Identity identity = 1;
   Personality personality = 2;
   Capabilities capabilities = 3;

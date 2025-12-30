@@ -1,4 +1,4 @@
-# Universal Agent Morphing System v2.0 - Complete Specification
+# Uniform Semantic Agent Morphing System v2.0 - Complete Specification
 
 **Date**: December 28, 2025  
 **Version**: 2.0.0  
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-The Universal Agent Morphing System v2.0 provides a comprehensive architecture for **lossless agent morphing** across three converging agent implementation paradigms with **continuous experience synchronization** and **skill accumulation**.
+The Uniform Semantic Agent Morphing System v2.0 provides a comprehensive architecture for **lossless agent morphing** across three converging agent implementation paradigms with **continuous experience synchronization** and **skill accumulation**.
 
 ### Core Innovation
 
@@ -40,7 +40,7 @@ User ↔ MCP Agent ↔ Tools
           ↓
     Streams experiences
           ↓
-  Universal Agent (learns)
+  Uniform Semantic Agent (learns)
 ```
 
 ### Type 2: Multi-Agent (Collaborative)
@@ -59,7 +59,7 @@ User → Crew of Agents ↔ Other Agents
            ↓
     Batches experiences
            ↓
-  Universal Agent (learns)
+  Uniform Semantic Agent (learns)
 ```
 
 ### Type 3: Orchestrated (Managed)
@@ -78,7 +78,7 @@ System → Orchestrator → Agent → Tasks
               ↓
      Periodic check-ins
               ↓
-   Universal Agent (learns)
+   Uniform Semantic Agent (learns)
 ```
 
 ---
@@ -122,7 +122,7 @@ Aligned with industry convergence:
 
 ```
 ┌──────────────────────────────────────────────┐
-│  Universal Agent (Source/Canonical)          │
+│  Uniform Semantic Agent (Source/Canonical)          │
 │  • Core identity                             │
 │  • Accumulated experiences                   │
 │  • Learned skills                            │
@@ -156,7 +156,7 @@ Aligned with industry convergence:
                  │
                  ▼
       ┌─────────────────────────┐
-      │  Universal Agent         │
+      │  Uniform Semantic Agent         │
       │  (Now Enhanced!)         │
       │  +10 new memories        │
       │  +3 improved skills      │
@@ -364,8 +364,8 @@ If verification_count >= 3: ✅ TRUSTED
 ### ✅ Completed Modules (25 total)
 
 **Core (6 files)**:
-- ✅ UniversalAgent.ts (v1)
-- ✅ UniversalAgentV2.ts (v2) ✨
+- ✅ UniformSemanticAgent.ts (v1)
+- ✅ UniformSemanticAgentV2.ts (v2) ✨
 - ✅ FrameworkAdapter.ts (v1)
 - ✅ FrameworkAdapterV2.ts (v2) ✨
 - ✅ AdapterRegistry.ts (v1 + v2)
@@ -412,7 +412,7 @@ If verification_count >= 3: ✅ TRUSTED
 interface ConverterV2 {
   // Morph to target type
   morph(
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     targetType: 'mcp' | 'multi_agent' | 'orchestrated',
     toAdapter: FrameworkAdapterV2,
     options?: {
@@ -434,17 +434,17 @@ interface ConverterV2 {
     restorationKey: string,
     instanceId: string,
     mergeExperience: boolean
-  ): Promise<UniversalAgentV2>;
+  ): Promise<UniformSemanticAgentV2>;
   
   // Sync from instance
   syncExperience(
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     instanceId: string
   ): Promise<SyncResult>;
   
   // Merge from multiple instances
   mergeMultipleInstances(
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     instanceIds: string[]
   ): Promise<MergeResult>;
 }
@@ -487,7 +487,7 @@ interface ExperienceSyncManager {
 interface InstanceManager {
   // Create instance
   createInstance(
-    sourceAgent: UniversalAgentV2,
+    sourceAgent: UniformSemanticAgentV2,
     targetType: AgentImplementationType,
     framework: string,
     syncProtocol: SyncProtocol
@@ -515,7 +515,7 @@ interface InstanceManager {
 
 ```typescript
 const converter = new ConverterV2();
-const agent: UniversalAgentV2 = { /* ... */ };
+const agent: UniformSemanticAgentV2 = { /* ... */ };
 
 // Deploy to MCP (IDE usage)
 const mcpInstance = await converter.morph(
@@ -638,7 +638,7 @@ agent-morph-v2 adapters
 syntax = "proto3";
 package uas.v2;
 
-message UniversalAgentV2 {
+message UniformSemanticAgentV2 {
   string schema_version = 1;
   Identity identity = 2;
   Personality personality = 3;
@@ -801,7 +801,7 @@ describe('ConverterV2', () => {
 
 **Research**:
 - **[AgentSpecResearch.md](./AgentSpecResearch.md)** - Industry analysis
-- **[UniversalAgentSpecification.md](./UniversalAgentSpecification.md)** - UAS proposal
+- **[UniformSemanticAgentSpecification.md](./UniformSemanticAgentSpecification.md)** - uSA proposal
 
 **V1 Documentation**:
 - **[MASTER_INDEX.md](./MASTER_INDEX.md)** - V1 navigation
@@ -811,7 +811,7 @@ describe('ConverterV2', () => {
 
 ## Conclusion
 
-**Universal Agent Morphing System v2.0 is complete and operational.**
+**Uniform Semantic Agent Morphing System v2.0 is complete and operational.**
 
 It successfully delivers:
 

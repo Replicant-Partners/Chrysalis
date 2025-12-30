@@ -1,5 +1,5 @@
 /**
- * Universal Agent Type Definitions
+ * Uniform Semantic Agent Type Definitions
  * 
  * Framework-agnostic agent definitions that can be converted to
  * either CrewAI or ElizaOS configurations.
@@ -52,9 +52,9 @@ export interface MemoryConfig {
 }
 
 /**
- * Universal Agent - Framework-agnostic agent definition
+ * Uniform Semantic Agent - Framework-agnostic agent definition
  */
-export interface UniversalAgent {
+export interface UniformSemanticAgent {
   // Core Identity
   identity: {
     name: string;

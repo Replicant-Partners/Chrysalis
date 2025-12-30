@@ -1,14 +1,14 @@
 /**
- * Example: Creating a Universal Agent and Converting to Both Frameworks
+ * Example: Creating a Uniform Semantic Agent and Converting to Both Frameworks
  */
 
-import { UniversalAgent } from '../universal_agent_types';
+import { UniformSemanticAgent } from '../universal_agent_types';
 import { AgentBridge } from '../universal_agent_bridge';
 
 /**
- * Define a universal agent - Ada Lovelace as an example
+ * Define a Uniform Semantic Agent - Ada Lovelace as an example
  */
-const adaLovelace: UniversalAgent = {
+const adaLovelace: UniformSemanticAgent = {
   identity: {
     name: "Ada Lovelace",
     designation: "First Programmer - Analytical Engine Pioneer",
@@ -312,7 +312,7 @@ async function exampleDualFramework() {
 
 // Run examples
 if (require.main === module) {
-  console.log('=== Universal Agent Bridge Examples ===\n');
+  console.log('=== Uniform Semantic Agent Bridge Examples ===\n');
   
   console.log('Example 1: CrewAI Conversion');
   console.log('='.repeat(50));

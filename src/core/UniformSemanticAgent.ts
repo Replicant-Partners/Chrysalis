@@ -1,7 +1,7 @@
 /**
- * Universal Agent Types - Canonical Agent Representation
+ * Uniform Semantic Agent Types - Canonical Agent Representation
  * 
- * The Universal Agent is the reference entity that exists
+ * The Uniform Semantic Agent is the reference entity that exists
  * independently of any specific agentic AI framework.
  */
 
@@ -87,9 +87,9 @@ export interface VoiceConfig {
 }
 
 /**
- * Universal Agent - The canonical agent representation
+ * Uniform Semantic Agent - The canonical agent representation
  */
-export interface UniversalAgent {
+export interface UniformSemanticAgent {
   // Schema version
   schema_version: string;
   
@@ -196,9 +196,9 @@ export interface ValidationResult {
 }
 
 /**
- * Validate a universal agent
+ * Validate a Uniform Semantic Agent
  */
-export function validateUniversalAgent(agent: any): ValidationResult {
+export function validateUniformSemanticAgent(agent: any): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   
@@ -240,13 +240,13 @@ export function validateUniversalAgent(agent: any): ValidationResult {
 }
 
 /**
- * Create a default universal agent
+ * Create a default Uniform Semantic Agent
  */
-export function createUniversalAgent(
+export function createUniformSemanticAgent(
   name: string,
   designation: string,
-  overrides?: Partial<UniversalAgent>
-): UniversalAgent {
+  overrides?: Partial<UniformSemanticAgent>
+): UniformSemanticAgent {
   const now = new Date().toISOString();
   
   return {

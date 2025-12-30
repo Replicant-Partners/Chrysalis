@@ -1,4 +1,4 @@
-"""Universal Agent Specification - Core Module"""
+"""Uniform Semantic Agent - Core Module"""
 
 from .types import (
     AgentSpec,

@@ -836,11 +836,11 @@ Considerations:
 
 ---
 
-## Part 9: Recommendations for UAS
+## Part 9: Recommendations for uSA
 
-### How to Integrate Memory into Universal Agent Specification
+### How to Integrate Memory into Uniform Semantic Agent
 
-Based on this research, here's what we should add to UAS:
+Based on this research, here's what we should add to uSA:
 
 #### 1. **Memory Configuration Section**
 
@@ -912,22 +912,22 @@ Different frameworks handle memory differently:
 ```python
 # CrewAI Adapter
 class CrewAIMemoryAdapter:
-    def adapt_memory(self, uas_memory_spec):
+    def adapt_memory(self, usa_memory_spec):
         return CrewAIMemory(
-            embedder=uas_memory_spec.embeddings.model,
-            storage=uas_memory_spec.storage.primary,
+            embedder=usa_memory_spec.embeddings.model,
+            storage=usa_memory_spec.storage.primary,
             # CrewAI uses entity memory
-            entity_memory=create_entity_memory(uas_memory_spec),
-            long_term_memory=create_ltm(uas_memory_spec)
+            entity_memory=create_entity_memory(usa_memory_spec),
+            long_term_memory=create_ltm(usa_memory_spec)
         )
 
 # Letta Adapter
 class LettaMemoryAdapter:
-    def adapt_memory(self, uas_memory_spec):
+    def adapt_memory(self, usa_memory_spec):
         return LettaAgent(
-            core_memory=create_core_memory(uas_memory_spec.types.core),
-            recall_storage=uas_memory_spec.storage.primary,
-            archival_storage=uas_memory_spec.storage.primary,
+            core_memory=create_core_memory(usa_memory_spec.types.core),
+            recall_storage=usa_memory_spec.storage.primary,
+            archival_storage=usa_memory_spec.storage.primary,
             # Letta uses self-editing memory
             memory_edit_enabled=True
         )
@@ -936,8 +936,8 @@ class LettaMemoryAdapter:
 #### 3. **Memory Specification Example**
 
 ```yaml
-# research_agent_with_memory.uas.yaml
-apiVersion: uas/v1
+# research_agent_with_memory.usa.yaml
+apiVersion: usa/v1
 kind: Agent
 
 metadata:
@@ -1028,9 +1028,9 @@ memory:
    - Agentic control (agent manages its own memory)
    - Neurosymbolic (neural + symbolic reasoning)
 
-### For Universal Agent Specification
+### For Uniform Semantic Agent
 
-**Recommendation:** Add comprehensive memory specification section to UAS that:
+**Recommendation:** Add comprehensive memory specification section to uSA that:
 
 1. Declares memory types (5 standard types)
 2. Specifies storage backends (vector DB, graph DB)
@@ -1038,7 +1038,7 @@ memory:
 4. Defines operations (retrieval, consolidation, forgetting)
 5. Enables framework-specific adapters
 
-This makes UAS agents **truly stateful and adaptive** across any deployment context!
+This makes uSA agents **truly stateful and adaptive** across any deployment context!
 
 ---
 

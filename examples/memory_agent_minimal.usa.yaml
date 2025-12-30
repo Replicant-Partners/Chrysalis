@@ -1,7 +1,7 @@
-# Universal Agent Specification v2.0
+# Uniform Semantic Agent v2.0
 # Example: Minimal Agent with Basic Memory
 
-apiVersion: uas/v2
+apiVersion: usa/v2
 kind: Agent
 
 metadata:

@@ -1,13 +1,13 @@
 /**
  * Orchestrated Adapter - Agent Protocol Implementation
  * 
- * Converts Universal Agent to orchestrated REST API agent
+ * Converts Uniform Semantic Agent to orchestrated REST API agent
  * with standardized task/step/artifact interface.
  */
 
 import { FrameworkAdapterV2 } from '../core/FrameworkAdapterV2';
 import { type EncryptedShadow } from '../core/FrameworkAdapter';
-import { UniversalAgentV2, type ValidationResult } from '../core/UniversalAgentV2';
+import { UniformSemanticAgentV2, type ValidationResult } from '../core/UniformSemanticAgentV2';
 import { generateFingerprint } from '../core/Encryption';
 
 /**
@@ -58,9 +58,9 @@ export class OrchestratedAdapter extends FrameworkAdapterV2 {
   readonly supports_experience_sync = true;
   
   /**
-   * Convert Orchestrated config to Universal Agent
+   * Convert Orchestrated config to Uniform Semantic Agent
    */
-  async toUniversal(config: OrchestratedAgentConfig): Promise<UniversalAgentV2> {
+  async toUniversal(config: OrchestratedAgentConfig): Promise<UniformSemanticAgentV2> {
     const now = new Date().toISOString();
     
     const fingerprint = generateFingerprint({
@@ -70,7 +70,7 @@ export class OrchestratedAdapter extends FrameworkAdapterV2 {
       id: crypto.randomUUID()
     });
     
-    const universal: UniversalAgentV2 = {
+    const universal: UniformSemanticAgentV2 = {
       schema_version: '2.0.0',
       
       identity: {
@@ -200,9 +200,9 @@ export class OrchestratedAdapter extends FrameworkAdapterV2 {
   }
   
   /**
-   * Convert Universal Agent to Orchestrated configuration
+   * Convert Uniform Semantic Agent to Orchestrated configuration
    */
-  async fromUniversal(universal: UniversalAgentV2): Promise<OrchestratedAgentConfig> {
+  async fromUniversal(universal: UniformSemanticAgentV2): Promise<OrchestratedAgentConfig> {
     const bio = Array.isArray(universal.identity.bio)
       ? universal.identity.bio.join(' ')
       : universal.identity.bio;

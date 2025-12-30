@@ -2,11 +2,11 @@
  * ElizaOS Framework Adapter
  * 
  * Bidirectional conversion between ElizaOS character format
- * and Universal Agent format.
+ * and Uniform Semantic Agent format.
  */
 
 import { FrameworkAdapter, type EncryptedShadow, type FieldMapping } from '../core/FrameworkAdapter';
-import { UniversalAgent, ValidationResult, SCHEMA_VERSION } from '../core/UniversalAgent';
+import { UniformSemanticAgent, ValidationResult, SCHEMA_VERSION } from '../core/UniformSemanticAgent';
 import { generateFingerprint } from '../core/Encryption';
 
 /**
@@ -70,9 +70,9 @@ export class ElizaOSAdapter extends FrameworkAdapter {
   };
   
   /**
-   * Convert ElizaOS character to Universal Agent
+   * Convert ElizaOS character to Uniform Semantic Agent
    */
-  async toUniversal(character: ElizaOSCharacter): Promise<UniversalAgent> {
+  async toUniversal(character: ElizaOSCharacter): Promise<UniformSemanticAgent> {
     const now = new Date().toISOString();
     
     // Generate fingerprint
@@ -83,7 +83,7 @@ export class ElizaOSAdapter extends FrameworkAdapter {
       id: crypto.randomUUID()
     });
     
-    const universal: UniversalAgent = {
+    const universal: UniformSemanticAgent = {
       schema_version: SCHEMA_VERSION,
       
       identity: {
@@ -160,9 +160,9 @@ export class ElizaOSAdapter extends FrameworkAdapter {
   }
   
   /**
-   * Convert Universal Agent to ElizaOS character
+   * Convert Uniform Semantic Agent to ElizaOS character
    */
-  async fromUniversal(universal: UniversalAgent): Promise<ElizaOSCharacter> {
+  async fromUniversal(universal: UniformSemanticAgent): Promise<ElizaOSCharacter> {
     const character: ElizaOSCharacter = {
       name: universal.identity.name,
       username: universal.identity.username,
@@ -295,7 +295,7 @@ export class ElizaOSAdapter extends FrameworkAdapter {
     );
   }
   
-  private buildSystemPrompt(universal: UniversalAgent): string {
+  private buildSystemPrompt(universal: UniformSemanticAgent): string {
     let prompt = `You are ${universal.identity.name}.\n\n`;
     
     const bio = Array.isArray(universal.identity.bio)
@@ -311,7 +311,7 @@ export class ElizaOSAdapter extends FrameworkAdapter {
     return prompt;
   }
   
-  private inferPlugins(universal: UniversalAgent): string[] {
+  private inferPlugins(universal: UniformSemanticAgent): string[] {
     const plugins = ['@elizaos/plugin-bootstrap', '@elizaos/plugin-sql'];
     
     // Infer plugins from capabilities

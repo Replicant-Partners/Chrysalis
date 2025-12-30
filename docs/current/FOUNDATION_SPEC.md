@@ -1,4 +1,4 @@
-# Chrysalis: Universal Agent Morphing System - Foundation Specification
+# Chrysalis: Uniform Semantic Agent Morphing System - Foundation Specification
 
 **Project**: Chrysalis (Agent Transformation System)  
 **Date**: December 28, 2025  
@@ -32,13 +32,13 @@ interface AgentIdentity {
   fingerprint: string;  // SHA-384 hash of immutable identity attributes
   
   // Verification
-  verifyIdentity(agent: UniversalAgent): boolean;
+  verifyIdentity(agent: UniformSemanticAgent): boolean;
   
   // Tamper detection
   detectTampering(original: Agent, morphed: Agent): boolean;
   
   // Content addressing
-  addressByContent(agent: UniversalAgent): string;  // IPFS-style
+  addressByContent(agent: UniformSemanticAgent): string;  // IPFS-style
 }
 ```
 
@@ -123,7 +123,7 @@ function aggregateInstanceSignatures(signatures: Uint8Array[]) {
 interface InstancePlacement {
   // Select target framework for morphing
   selectOptimalFramework(
-    agent: UniversalAgent,
+    agent: UniformSemanticAgent,
     available: Framework[],
     requirements: Requirements
   ): Framework;
@@ -443,7 +443,7 @@ function aggregateSkillProficiency(skills: Skill[], method: 'max' | 'weighted'):
 interface RedundantInstances {
   // Deploy multiple redundant instances
   deployRedundant(
-    agent: UniversalAgent,
+    agent: UniformSemanticAgent,
     targetType: AgentType,
     redundancy: number
   ): Promise<InstanceDeployment[]>;
@@ -819,7 +819,7 @@ agentDoc = Automerge.merge(agentDoc, remoteAgentDoc);
                          │
                          ▼
             ┌────────────────────────────┐
-            │  Universal Agent           │
+            │  Uniform Semantic Agent           │
             │  (Enhanced & Verified)     │
             │  Pattern #8 (Threshold)    │
             │  Pattern #1 (Hash Verified)│
@@ -944,7 +944,7 @@ agentState = mergeCRDT(instance1.state, instance2.state, instance3.state)
 ## Chrysalis v3.0 Enhanced Schema
 
 ```typescript
-interface UniversalAgentV3 extends UniversalAgentV2 {
+interface UniformSemanticAgentV3 extends UniformSemanticAgentV2 {
   // Pattern #1: Hash-based identity
   identity: {
     id: string;

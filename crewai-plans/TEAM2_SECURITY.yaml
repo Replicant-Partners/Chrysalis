@@ -811,7 +811,7 @@ team1_integration:
     - "KeyRotation for agent key lifecycle"
   
   requires_from_team1:
-    - "UniversalAgentV2 schema (for identity structure)"
+    - "UniformSemanticAgentV2 schema (for identity structure)"
     - "Pattern implementations (for securing)"
     - "Adapters (to add security validation)"
     - "Experience sync (to add audit logging)"

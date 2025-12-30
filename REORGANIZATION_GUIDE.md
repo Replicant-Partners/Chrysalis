@@ -109,7 +109,7 @@ Chrysalis/                              # Clean root
 ├── Replicants/                        📁 Replicant configs (unchanged)
 ├── tests/                             📁 Tests (unchanged)
 ├── memory_system/                     📁 Python memory impl (unchanged)
-└── uas_implementation/                📁 UAS impl (unchanged)
+└── usa_implementation/                📁 uSA impl (unchanged)
 ```
 
 ---
@@ -198,7 +198,7 @@ mv CREWAI_VS_ELIZAOS_ANALYSIS.md docs/archive/v1/CREWAI_VS_ELIZAOS.md
 
 # Deprecated
 mv UAS_*.md docs/archive/deprecated/
-mv UniversalAgentSpecification.md docs/archive/deprecated/
+mv UniformSemanticAgentSpecification.md docs/archive/deprecated/
 mv README_MORPHING_SYSTEM.md docs/archive/deprecated/
 ```
 

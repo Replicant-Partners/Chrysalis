@@ -105,7 +105,7 @@ A multi-layer agent transformation system that enables agents to:
 ### Layer 4: Chrysalis Agents (Application)
 
 **Core Components**:
-- `UniversalAgentV2` schema ✅
+- `UniformSemanticAgentV2` schema ✅
 - Three framework adapters ✅ (MCPAdapter, MultiAgentAdapter, OrchestratedAdapter)
 - Experience sync ✅ (Streaming, Lumped, Check-in)
 - State merging ✅ (Memory, Skill, Knowledge)
@@ -168,7 +168,7 @@ For each pattern operation (hash, sign, dag, etc.):
      Record which implementation was chosen and why
 ```
 
-**Implementation**: New module `src/fabric/PatternResolver.ts` 📋
+**Implementation**: `src/fabric/PatternResolver.ts` ✅ (adaptive: embedded + Go gRPC; MCP client pending)
 
 **Benefit**: One codebase supports all deployment models
 
@@ -629,47 +629,19 @@ class KnowledgeLWW {
 
 ## 8. Code Evolution Specification
 
-### Module 1: Adaptive Pattern Resolver 📋
+### Module 1: Adaptive Pattern Resolver ✅
 
-**New File**: `src/fabric/PatternResolver.ts`
+**File**: `src/fabric/PatternResolver.ts`
 
-**Purpose**: Unified interface for pattern resolution across layers
+**Purpose**: Context-aware selection of pattern implementations across embedded libraries and Go gRPC crypto (used when `mcp_available` + distributed + reusability preferred).
 
-**Interface**:
-```typescript
-export interface PatternImplementation {
-  hash(data: string, algorithm: string): Promise<string>;
-  sign(message: string, privateKey: Uint8Array): Promise<Uint8Array>;
-  verify(message: string, signature: Uint8Array, publicKey: Uint8Array): Promise<boolean>;
-  dagTopologicalSort(graph: any): Promise<string[]>;
-  vectorCompare(vc1: number[], vc2: number[]): Promise<string>;
-  // ... all pattern operations
-}
+**Capabilities**:
+- Hash/sign via Go gRPC or embedded patterns
+- Threshold/time via embedded patterns
+- Context flags: `distributed`, `mcp_available`, `performance_critical`, `prefer_reusability`
+- Factory: `createPatternResolver('embedded' | 'distributed' | 'adaptive')`
 
-export class AdaptivePatternResolver implements PatternImplementation {
-  constructor(
-    private mcpClient?: MCPClient,
-    private context?: DeploymentContext
-  ) {}
-  
-  async hash(data: string, algorithm: string): Promise<string> {
-    if (await this.shouldUseMCP('hash')) {
-      return await this.mcpHash(data, algorithm);
-    } else {
-      return EmbeddedPatterns.hashToHex(data, algorithm);
-    }
-  }
-  
-  private async shouldUseMCP(pattern: string): Promise<boolean> {
-    return this.context?.distributed === true &&
-           this.context?.mcp_available === true &&
-           !this.context?.performance_critical;
-  }
-}
-```
-
-**Timeline**: 1 week  
-**Dependencies**: MCP SDK client (if using MCP path)
+**Gap**: MCP client path not wired; Go gRPC used as networked option until MCP integration lands.
 
 ### Module 2: Enhanced Memory Merger 📋
 

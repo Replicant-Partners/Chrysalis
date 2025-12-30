@@ -450,7 +450,7 @@ Anchored: Clear sections:
 
 ## Practical Implications
 
-### For UAS v2.0 Specification
+### For uSA v2.0 Specification
 
 **Original Approach:** Specify everything found in research  
 **Anchored Approach:** Specify only verified patterns, mark experimental features

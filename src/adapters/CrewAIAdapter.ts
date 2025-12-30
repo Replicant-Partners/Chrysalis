@@ -2,11 +2,11 @@
  * CrewAI Framework Adapter
  * 
  * Bidirectional conversion between CrewAI agent format
- * and Universal Agent format.
+ * and Uniform Semantic Agent format.
  */
 
 import { FrameworkAdapter, type EncryptedShadow, type FieldMapping } from '../core/FrameworkAdapter';
-import { UniversalAgent, ValidationResult, SCHEMA_VERSION } from '../core/UniversalAgent';
+import { UniformSemanticAgent, ValidationResult, SCHEMA_VERSION } from '../core/UniformSemanticAgent';
 import { generateFingerprint } from '../core/Encryption';
 
 /**
@@ -64,9 +64,9 @@ export class CrewAIAdapter extends FrameworkAdapter {
   };
   
   /**
-   * Convert CrewAI agent to Universal Agent
+   * Convert CrewAI agent to Uniform Semantic Agent
    */
-  async toUniversal(crewai: CrewAIAgent): Promise<UniversalAgent> {
+  async toUniversal(crewai: CrewAIAgent): Promise<UniformSemanticAgent> {
     const now = new Date().toISOString();
     
     // Extract traits from backstory
@@ -80,7 +80,7 @@ export class CrewAIAdapter extends FrameworkAdapter {
       id: crypto.randomUUID()
     });
     
-    const universal: UniversalAgent = {
+    const universal: UniformSemanticAgent = {
       schema_version: SCHEMA_VERSION,
       
       identity: {
@@ -144,9 +144,9 @@ export class CrewAIAdapter extends FrameworkAdapter {
   }
   
   /**
-   * Convert Universal Agent to CrewAI agent
+   * Convert Uniform Semantic Agent to CrewAI agent
    */
-  async fromUniversal(universal: UniversalAgent): Promise<CrewAIAgent> {
+  async fromUniversal(universal: UniformSemanticAgent): Promise<CrewAIAgent> {
     const crewai: CrewAIAgent = {
       agent: {
         role: universal.identity.designation,
@@ -223,7 +223,7 @@ export class CrewAIAdapter extends FrameworkAdapter {
     return agent.agent?.goal || '';
   }
   
-  private deriveGoalFromUniversal(universal: UniversalAgent): string {
+  private deriveGoalFromUniversal(universal: UniformSemanticAgent): string {
     const primaryCaps = universal.capabilities.primary.slice(0, 2).join(' and ');
     const values = universal.personality.values.slice(0, 2);
     
@@ -236,7 +236,7 @@ export class CrewAIAdapter extends FrameworkAdapter {
     return goal;
   }
   
-  private buildBackstory(universal: UniversalAgent): string {
+  private buildBackstory(universal: UniformSemanticAgent): string {
     const bio = Array.isArray(universal.identity.bio)
       ? universal.identity.bio.join(' ')
       : universal.identity.bio;
@@ -256,7 +256,7 @@ export class CrewAIAdapter extends FrameworkAdapter {
     return backstory;
   }
   
-  private buildSystemPrompt(universal: UniversalAgent): string {
+  private buildSystemPrompt(universal: UniformSemanticAgent): string {
     let prompt = `You are ${universal.identity.name}, ${universal.identity.designation}.\n\n`;
     
     const communication = universal.communication.style.all.join('\n- ');

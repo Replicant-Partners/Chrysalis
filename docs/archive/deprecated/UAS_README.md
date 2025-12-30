@@ -1,4 +1,4 @@
-# Universal Agent Specification (UAS)
+# Uniform Semantic Agent (uSA)
 
 **Write Once. Deploy Anywhere. Build the Agent Internet.**
 
@@ -24,8 +24,8 @@ AutoGPT:  {"agent": {"role": "...", "goals": [...]}}
 ### The Solution
 
 ```yaml
-# agent.uas.yaml - Universal format!
-apiVersion: uas/v1
+# agent.usa.yaml - Universal format!
+apiVersion: usa/v1
 kind: Agent
 metadata:
   name: research-agent
@@ -40,7 +40,7 @@ capabilities:
 
 ```python
 # Deploy anywhere!
-spec = load_agent("agent.uas.yaml")
+spec = load_agent("agent.usa.yaml")
 
 deploy(spec, "crewai")    # ✅ Works
 deploy(spec, "cline")     # ✅ Works  
@@ -65,7 +65,7 @@ deploy(spec, "lambda")    # ✅ Works
 | Document | Purpose | Read Time |
 |----------|---------|-----------|
 | **[Agent Spec Research](AgentSpecResearch.md)** | Standards landscape analysis | 30 min |
-| **[Universal Agent Specification](UniversalAgentSpecification.md)** | Complete technical spec | 45 min |
+| **[Uniform Semantic Agent](UniformSemanticAgentSpecification.md)** | Complete technical spec | 45 min |
 
 ---
 
@@ -90,8 +90,8 @@ Output:
 ### 2. Create Your Agent (2 minutes)
 
 ```yaml
-# my_agent.uas.yaml
-apiVersion: uas/v1
+# my_agent.usa.yaml
+apiVersion: usa/v1
 kind: Agent
 
 metadata:
@@ -124,10 +124,10 @@ deployment:
 ### 3. Load and Use (1 minute)
 
 ```python
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 
 # Load your agent
-spec = load_agent("my_agent.uas.yaml")
+spec = load_agent("my_agent.usa.yaml")
 
 # Access all properties
 print(spec.metadata.name)        # "my-assistant"
@@ -145,7 +145,7 @@ print(spec.capabilities.tools)   # [Tool(name='web_search', ...)]
 
 ```python
 # Define once
-agent_spec = "research_agent.uas.yaml"
+agent_spec = "research_agent.usa.yaml"
 
 # Deploy everywhere
 crewai_agent = deploy(spec, "crewai")
@@ -170,14 +170,14 @@ Every agent supports modern agent protocols out of the box!
 ### ✅ Version Control Friendly
 
 ```bash
-git log agent.uas.yaml           # Track changes
-git diff v1.0..v2.0 agent.uas.yaml  # See differences
+git log agent.usa.yaml           # Track changes
+git diff v1.0..v2.0 agent.usa.yaml  # See differences
 ```
 
 ### ✅ Validation
 
 ```python
-spec = load_agent("agent.uas.yaml")
+spec = load_agent("agent.usa.yaml")
 # Automatically validated!
 # ValueError raised if invalid
 ```
@@ -197,7 +197,7 @@ spec.capabilities.tools      # List[Tool]
 
 ```
 ┌─────────────────────────────────────────┐
-│   Universal Agent Specification         │
+│   Uniform Semantic Agent         │
 │   (YAML/JSON - Framework Agnostic)      │
 └─────────────────────────────────────────┘
                    ↓
@@ -225,7 +225,7 @@ spec.capabilities.tools      # List[Tool]
 ### Implementation (Working)
 
 ```
-uas_implementation/
+usa_implementation/
 ├── __init__.py                # Package exports
 ├── loader.py                  # Load/save agents ✅
 └── core/
@@ -237,7 +237,7 @@ uas_implementation/
 
 ```
 examples/
-├── simple_agent.uas.yaml      # Basic agent ✅
+├── simple_agent.usa.yaml      # Basic agent ✅
 ├── test_loader.py             # Loader test ✅
 ├── complete_deployment_example.py  # Full demo ✅
 └── agent_metadata.json        # Generated export ✅
@@ -264,9 +264,9 @@ examples/
 my_project/
 ├── src/
 ├── agents/
-│   ├── researcher.uas.yaml
-│   ├── analyst.uas.yaml
-│   └── writer.uas.yaml
+│   ├── researcher.usa.yaml
+│   ├── analyst.usa.yaml
+│   └── writer.usa.yaml
 └── deploy.py
 ```
 
@@ -274,7 +274,7 @@ my_project/
 
 ```python
 # Development: Use in Cline/IDE
-spec = load_agent("agent.uas.yaml")
+spec = load_agent("agent.usa.yaml")
 cline_config = generate_cline_config(spec)
 
 # Production: Use in CrewAI
@@ -288,9 +288,9 @@ crewai_agent = adapt_to_crewai(spec)
 ```python
 # Share reusable agents
 marketplace = {
-    "research": "research_agent.uas.yaml",
-    "coder": "coding_agent.uas.yaml",
-    "analyst": "analyst_agent.uas.yaml"
+    "research": "research_agent.usa.yaml",
+    "coder": "coding_agent.usa.yaml",
+    "analyst": "analyst_agent.usa.yaml"
 }
 
 # Anyone can download and use
@@ -303,8 +303,8 @@ agent = load_agent(marketplace["research"])
 # .github/workflows/validate.yml
 - name: Validate agents
   run: |
-    for agent in agents/*.uas.yaml; do
-      python -c "from uas_implementation import load_agent; load_agent('$agent')"
+    for agent in agents/*.usa.yaml; do
+      python -c "from usa_implementation import load_agent; load_agent('$agent')"
     done
 ```
 
@@ -316,7 +316,7 @@ agent = load_agent(marketplace["research"])
 
 1. Read [Quick Start](UAS_QuickStart.md)
 2. Run `python examples/test_loader.py`
-3. Modify `examples/simple_agent.uas.yaml`
+3. Modify `examples/simple_agent.usa.yaml`
 4. Load your modified agent
 
 ### Intermediate (45 minutes)
@@ -324,11 +324,11 @@ agent = load_agent(marketplace["research"])
 1. Read [Implementation Summary](UAS_IMPLEMENTATION_SUMMARY.md)
 2. Run `python examples/complete_deployment_example.py`
 3. Create your own agent specification
-4. Explore the type system in `uas_implementation/core/types.py`
+4. Explore the type system in `usa_implementation/core/types.py`
 
 ### Advanced (2 hours)
 
-1. Read [Universal Agent Specification](UniversalAgentSpecification.md)
+1. Read [Uniform Semantic Agent](UniformSemanticAgentSpecification.md)
 2. Read [Agent Spec Research](AgentSpecResearch.md)
 3. Build a framework adapter
 4. Contribute to the project
@@ -358,7 +358,7 @@ from pathlib import Path
 
 ### Supported Formats
 
-- **YAML** (`.uas.yaml`, `.yaml`, `.yml`) - Recommended
+- **YAML** (`.usa.yaml`, `.yaml`, `.yml`) - Recommended
 - **JSON** (`.json`) - Also supported
 
 ### Performance
@@ -414,7 +414,7 @@ from pathlib import Path
 
 ### How to Contribute
 
-1. **Framework Adapters** - Adapt UAS to your favorite framework
+1. **Framework Adapters** - Adapt uSA to your favorite framework
 2. **Examples** - Share your agent specifications
 3. **Documentation** - Improve guides and tutorials
 4. **Tools** - Build validators, converters, generators
@@ -422,12 +422,12 @@ from pathlib import Path
 ### Adapter Template
 
 ```python
-from uas_implementation.core.types import AgentSpec
-from uas_implementation.core.adapter import FrameworkAdapter
+from usa_implementation.core.types import AgentSpec
+from usa_implementation.core.adapter import FrameworkAdapter
 
 class MyFrameworkAdapter(FrameworkAdapter):
     def adapt(self, spec: AgentSpec):
-        """Convert UAS to MyFramework"""
+        """Convert uSA to MyFramework"""
         return MyFramework.Agent(
             role=spec.identity.role,
             goal=spec.identity.goal,
@@ -446,7 +446,7 @@ class MyFrameworkAdapter(FrameworkAdapter):
 ### Simple Agent
 
 ```yaml
-apiVersion: uas/v1
+apiVersion: usa/v1
 kind: Agent
 metadata:
   name: helper
@@ -471,7 +471,7 @@ deployment:
 
 ### Research Agent (Full-Featured)
 
-See `examples/simple_agent.uas.yaml` for a complete example with:
+See `examples/simple_agent.usa.yaml` for a complete example with:
 - Multiple tools
 - Reasoning configuration
 - Memory settings
@@ -482,9 +482,9 @@ See `examples/simple_agent.uas.yaml` for a complete example with:
 
 ```python
 # Load multiple agents
-researcher = load_agent("researcher.uas.yaml")
-analyst = load_agent("analyst.uas.yaml")
-writer = load_agent("writer.uas.yaml")
+researcher = load_agent("researcher.usa.yaml")
+analyst = load_agent("analyst.usa.yaml")
+writer = load_agent("writer.usa.yaml")
 
 # Deploy as team (when adapters are ready)
 team = deploy_team([researcher, analyst, writer], "crewai")
@@ -526,7 +526,7 @@ team = deploy_team([researcher, analyst, writer], "crewai")
 
 - [Quick Start Guide](UAS_QuickStart.md)
 - [Implementation Summary](UAS_IMPLEMENTATION_SUMMARY.md)
-- [Technical Specification](UniversalAgentSpecification.md)
+- [Technical Specification](UniformSemanticAgentSpecification.md)
 - [Research Report](AgentSpecResearch.md)
 - [Examples](examples/README.md)
 
@@ -541,10 +541,10 @@ team = deploy_team([researcher, analyst, writer], "crewai")
 ## 💬 FAQ
 
 **Q: Is this a new framework?**  
-A: No! UAS is a *specification format*, not a framework. It works *with* existing frameworks.
+A: No! uSA is a *specification format*, not a framework. It works *with* existing frameworks.
 
 **Q: Do I need to change my existing agents?**  
-A: No, you can keep using CrewAI, Cline, etc. as-is. UAS is for when you want portability.
+A: No, you can keep using CrewAI, Cline, etc. as-is. uSA is for when you want portability.
 
 **Q: What about framework-specific features?**  
 A: Common features are in the spec. Framework-specific features go in `deployment.environment`.
@@ -553,7 +553,7 @@ A: Common features are in the spec. Framework-specific features go in `deploymen
 A: The core spec and loader are solid. Adapters need to be built for full automation.
 
 **Q: Can I use this today?**  
-A: Yes! Define agents in UAS format, load them, and use the properties to configure your framework.
+A: Yes! Define agents in uSA format, load them, and use the properties to configure your framework.
 
 ---
 
@@ -577,16 +577,16 @@ python examples/test_loader.py
 python examples/complete_deployment_example.py
 
 # 4. Create your first agent
-cp examples/simple_agent.uas.yaml my_first_agent.uas.yaml
+cp examples/simple_agent.usa.yaml my_first_agent.usa.yaml
 # Edit and customize
 
 # 5. Load and use it
-python -c "from uas_implementation import load_agent; spec = load_agent('my_first_agent.uas.yaml'); print(f'Loaded: {spec.metadata.name}')"
+python -c "from usa_implementation import load_agent; spec = load_agent('my_first_agent.usa.yaml'); print(f'Loaded: {spec.metadata.name}')"
 ```
 
 ---
 
-**Universal Agent Specification v1.0**  
+**Uniform Semantic Agent v1.0**  
 *Write once. Deploy anywhere. Build the agent internet.*
 
 **Status:** ✅ Working Prototype Complete  

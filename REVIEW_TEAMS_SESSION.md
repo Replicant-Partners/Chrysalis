@@ -329,7 +329,7 @@
 - **Impact**: Practical (enables framework interop)
 - **Validity**: Strong (shadow fields + cryptographic verification prove losslessness)
 
-**3. Universal Agent Specification** ⭐
+**3. Uniform Semantic Agent** ⭐
 - **Insight**: Single schema supports multiple implementation types
 - **Novelty**: Medium (abstraction layers exist, but not for agents specifically)
 - **Impact**: High (could become standard)
@@ -380,7 +380,7 @@
    - Contribution: Security for agent learning
    - Strength: Addresses real problem
 
-3. **"Universal Agent Specification for Framework Interoperability"** (Journal)
+3. **"Uniform Semantic Agent for Framework Interoperability"** (Journal)
    - Target: Journal of Autonomous Agents and Multi-Agent Systems
    - Contribution: Standardization effort
    - Strength: Working implementation
@@ -436,7 +436,7 @@
 
 ### Value Proposition Clarity
 
-**Current Positioning**: "Universal Agent Transformation System"
+**Current Positioning**: "Uniform Semantic Agent Transformation System"
 
 **Questions Raised**:
 1. Why would someone transform agents between frameworks?

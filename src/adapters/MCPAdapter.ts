@@ -1,13 +1,13 @@
 /**
  * MCP Adapter - Cline/Roo Code Style Implementation
  * 
- * Converts Universal Agent to MCP-based single-agent implementation
+ * Converts Uniform Semantic Agent to MCP-based single-agent implementation
  * (IDE-integrated, conversational, system prompt driven).
  */
 
 import { FrameworkAdapterV2 } from '../core/FrameworkAdapterV2';
 import { type EncryptedShadow } from '../core/FrameworkAdapter';
-import { UniversalAgentV2, type ValidationResult } from '../core/UniversalAgentV2';
+import { UniformSemanticAgentV2, type ValidationResult } from '../core/UniformSemanticAgentV2';
 import { generateFingerprint } from '../core/Encryption';
 
 /**
@@ -51,9 +51,9 @@ export class MCPAdapter extends FrameworkAdapterV2 {
   readonly supports_experience_sync = true;
   
   /**
-   * Convert Universal Agent to MCP-based configuration
+   * Convert Uniform Semantic Agent to MCP-based configuration
    */
-  async toUniversal(config: MCPAgentConfig): Promise<UniversalAgentV2> {
+  async toUniversal(config: MCPAgentConfig): Promise<UniformSemanticAgentV2> {
     const now = new Date().toISOString();
     
     const fingerprint = generateFingerprint({
@@ -63,7 +63,7 @@ export class MCPAdapter extends FrameworkAdapterV2 {
       id: crypto.randomUUID()
     });
     
-    const universal: UniversalAgentV2 = {
+    const universal: UniformSemanticAgentV2 = {
       schema_version: '2.0.0',
       
       identity: {
@@ -209,9 +209,9 @@ export class MCPAdapter extends FrameworkAdapterV2 {
   }
   
   /**
-   * Convert Universal Agent to MCP-based configuration
+   * Convert Uniform Semantic Agent to MCP-based configuration
    */
-  async fromUniversal(universal: UniversalAgentV2): Promise<MCPAgentConfig> {
+  async fromUniversal(universal: UniformSemanticAgentV2): Promise<MCPAgentConfig> {
     const config: MCPAgentConfig = {
       agent_config: {
         name: universal.identity.name,
@@ -282,7 +282,7 @@ export class MCPAdapter extends FrameworkAdapterV2 {
   
   // Helper methods
   
-  private buildSystemPrompt(universal: UniversalAgentV2): string {
+  private buildSystemPrompt(universal: UniformSemanticAgentV2): string {
     const bio = Array.isArray(universal.identity.bio)
       ? universal.identity.bio.join('\n')
       : universal.identity.bio;
@@ -313,7 +313,7 @@ export class MCPAdapter extends FrameworkAdapterV2 {
     return prompt;
   }
   
-  private buildMCPServers(universal: UniversalAgentV2): Record<string, any> {
+  private buildMCPServers(universal: UniformSemanticAgentV2): Record<string, any> {
     if (!universal.protocols.mcp?.servers) return {};
     
     const servers: Record<string, any> = {};

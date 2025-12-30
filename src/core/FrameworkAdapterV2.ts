@@ -1,11 +1,11 @@
 /**
  * Framework Adapter V2 - For three-type agent system
  * 
- * Enhanced adapter interface supporting UniversalAgentV2 with
+ * Enhanced adapter interface supporting UniformSemanticAgentV2 with
  * experience sync, instance management, and protocol stack.
  */
 
-import type { UniversalAgentV2, ValidationResult } from './UniversalAgentV2';
+import type { UniformSemanticAgentV2, ValidationResult } from './UniformSemanticAgentV2';
 import type { EncryptedShadow } from './FrameworkAdapter';
 
 /**
@@ -19,14 +19,14 @@ export abstract class FrameworkAdapterV2 {
   abstract readonly supports_experience_sync: boolean;
   
   /**
-   * Convert framework-specific agent to Universal Agent V2
+   * Convert framework-specific agent to Uniform Semantic Agent V2
    */
-  abstract toUniversal(frameworkAgent: any): Promise<UniversalAgentV2>;
+  abstract toUniversal(frameworkAgent: any): Promise<UniformSemanticAgentV2>;
   
   /**
-   * Convert Universal Agent V2 to framework-specific format
+   * Convert Uniform Semantic Agent V2 to framework-specific format
    */
-  abstract fromUniversal(universalAgent: UniversalAgentV2): Promise<any>;
+  abstract fromUniversal(universalAgent: UniformSemanticAgentV2): Promise<any>;
   
   /**
    * Embed encrypted shadow data in framework agent

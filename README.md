@@ -1,4 +1,4 @@
-# Chrysalis: Universal Agent Transformation System
+# Chrysalis: Uniform Semantic Agent Transformation System
 
 **Version**: 3.1.0  
 **Status**: Active Development | Research Phase  
@@ -8,7 +8,7 @@
 
 ## Overview
 
-Chrysalis enables AI agents to act as independent, evolving entities through a universal agent specification that includes distributed memory layers and a computing fabric. The system provides:
+Chrysalis enables AI agents to act as independent, evolving entities through a Uniform Semantic Agent specification that includes distributed memory layers and a computing fabric. The system provides:
 
 - **Lossless agent morphing** between three implementation types (MCP, Multi-Agent, Orchestrated)
 - **Distributed memory architecture** with episodic and semantic layers
@@ -22,7 +22,7 @@ Chrysalis enables AI agents to act as independent, evolving entities through a u
 - 📐 **[Architecture Overview](ARCHITECTURE.md)** - System design and patterns
 - 📚 **[Complete Specification](docs/current/UNIFIED_SPEC_V3.1.md)** - Comprehensive technical spec
 - 🔬 **[Research Foundation](docs/research/)** - Universal patterns and deep research
-- 💻 **[Source Code](src/)** - TypeScript core + Go gRPC services + Clojure UAS
+- 💻 **[Source Code](src/)** - TypeScript core + Go gRPC services + Clojure uSA
 - 📖 **[Documentation Index](docs/README.md)** - Complete documentation map
 
 ## Project Structure
@@ -48,7 +48,7 @@ Chrysalis/
 
 ## Key Features
 
-### Universal Agent Schema v3.1
+### Uniform Semantic Agent Schema v3.1
 - Three implementation types supported
 - Cryptographic identity (SHA-384 + Ed25519)
 - Dual-coded memory (episodic + semantic) with OODA interrogatives per episode
@@ -107,7 +107,7 @@ npm test
 
 ```typescript
 import { AdaptivePatternResolver } from './src/fabric/PatternResolver';
-import { UniversalAgentV2 } from './src/core/UniversalAgentV2';
+import { UniformSemanticAgentV2 } from './src/core/UniformSemanticAgentV2';
 
 // Create pattern resolver
 const resolver = createPatternResolver('adaptive');

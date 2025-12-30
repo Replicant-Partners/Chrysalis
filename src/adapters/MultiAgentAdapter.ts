@@ -1,13 +1,13 @@
 /**
  * Multi-Agent Adapter - CrewAI Style Implementation
  * 
- * Converts Universal Agent to multi-agent system with specialized
+ * Converts Uniform Semantic Agent to multi-agent system with specialized
  * roles, A2A protocol support, and collaborative execution.
  */
 
 import { FrameworkAdapterV2 } from '../core/FrameworkAdapterV2';
 import { type EncryptedShadow } from '../core/FrameworkAdapter';
-import { UniversalAgentV2, type ValidationResult } from '../core/UniversalAgentV2';
+import { UniformSemanticAgentV2, type ValidationResult } from '../core/UniformSemanticAgentV2';
 import { generateFingerprint } from '../core/Encryption';
 
 /**
@@ -54,9 +54,9 @@ export class MultiAgentAdapter extends FrameworkAdapterV2 {
   readonly supports_experience_sync = true;
   
   /**
-   * Convert Multi-Agent config to Universal Agent
+   * Convert Multi-Agent config to Uniform Semantic Agent
    */
-  async toUniversal(config: MultiAgentConfig): Promise<UniversalAgentV2> {
+  async toUniversal(config: MultiAgentConfig): Promise<UniformSemanticAgentV2> {
     const now = new Date().toISOString();
     
     // Use primary agent for identity
@@ -69,7 +69,7 @@ export class MultiAgentAdapter extends FrameworkAdapterV2 {
       id: crypto.randomUUID()
     });
     
-    const universal: UniversalAgentV2 = {
+    const universal: UniformSemanticAgentV2 = {
       schema_version: '2.0.0',
       
       identity: {
@@ -208,9 +208,9 @@ export class MultiAgentAdapter extends FrameworkAdapterV2 {
   }
   
   /**
-   * Convert Universal Agent to Multi-Agent configuration
+   * Convert Uniform Semantic Agent to Multi-Agent configuration
    */
-  async fromUniversal(universal: UniversalAgentV2): Promise<MultiAgentConfig> {
+  async fromUniversal(universal: UniformSemanticAgentV2): Promise<MultiAgentConfig> {
     // Create specialized agents from capabilities
     const agents = this.createSpecializedAgents(universal);
     
@@ -281,7 +281,7 @@ export class MultiAgentAdapter extends FrameworkAdapterV2 {
   
   // Helper methods
   
-  private createSpecializedAgents(universal: UniversalAgentV2): any[] {
+  private createSpecializedAgents(universal: UniformSemanticAgentV2): any[] {
     // Create one specialized agent per primary capability
     return universal.capabilities.primary.map(capability => ({
       role: `${capability} Specialist`,
@@ -294,7 +294,7 @@ export class MultiAgentAdapter extends FrameworkAdapterV2 {
     }));
   }
   
-  private buildBackstory(universal: UniversalAgentV2, capability: string): string {
+  private buildBackstory(universal: UniformSemanticAgentV2, capability: string): string {
     const bio = Array.isArray(universal.identity.bio)
       ? universal.identity.bio.join(' ')
       : universal.identity.bio;
@@ -302,7 +302,7 @@ export class MultiAgentAdapter extends FrameworkAdapterV2 {
     return `${bio}\n\nSpecialized in ${capability}.`;
   }
   
-  private mapTools(universal: UniversalAgentV2): string[] {
+  private mapTools(universal: UniformSemanticAgentV2): string[] {
     return universal.capabilities.tools?.map(t => `${t.name}()`) || [];
   }
   
@@ -327,7 +327,7 @@ export class MultiAgentAdapter extends FrameworkAdapterV2 {
     return ['collaborative', 'systematic', 'autonomous'];
   }
   
-  private buildAgentCard(universal: UniversalAgentV2): any {
+  private buildAgentCard(universal: UniformSemanticAgentV2): any {
     return {
       name: universal.identity.name,
       version: universal.identity.version,

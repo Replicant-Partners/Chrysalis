@@ -1,12 +1,12 @@
 /**
- * Universal Agent Converter - Main conversion logic
+ * Uniform Semantic Agent Converter - Main conversion logic
  * 
  * Handles bidirectional conversion between any two frameworks
  * using framework-specific adapters and encrypted shadow fields.
  */
 
 import * as crypto from 'crypto';
-import type { UniversalAgent } from '../core/UniversalAgent';
+import type { UniformSemanticAgent } from '../core/UniformSemanticAgent';
 import type { FrameworkAdapter, ShadowData, EncryptedShadow } from '../core/FrameworkAdapter';
 import { 
   encryptShadow, 
@@ -32,7 +32,7 @@ export interface ConversionOptions {
  */
 export interface ConversionResult {
   agent: any;                     // Converted agent
-  universal: UniversalAgent;      // Universal representation
+  universal: UniformSemanticAgent;      // Universal representation
   restorationKey: string;         // Key for restoration
   metadata: {
     from: string;                 // Source framework
@@ -51,7 +51,7 @@ export interface RestorationOptions {
 }
 
 /**
- * Universal Agent Converter
+ * Uniform Semantic Agent Converter
  */
 export class Converter {
   /**
@@ -191,7 +191,7 @@ export class Converter {
       );
     }
     
-    // 2. Get universal agent from morphed agent to get fingerprint
+    // 2. Get Uniform Semantic Agent from morphed agent to get fingerprint
     const universal = await toAdapter.toUniversal(morphedAgent);
     const fingerprint = universal.identity.fingerprint;
     

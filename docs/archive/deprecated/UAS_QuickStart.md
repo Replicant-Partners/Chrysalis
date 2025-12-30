@@ -1,8 +1,8 @@
-# Universal Agent Specification - Quick Start Guide
+# Uniform Semantic Agent - Quick Start Guide
 
 ## What Is This?
 
-The Universal Agent Specification (UAS) lets you **define an agent once and deploy it anywhere**:
+The Uniform Semantic Agent (uSA) lets you **define an agent once and deploy it anywhere**:
 
 ```
 One Specification → Multiple Frameworks → Any Deployment Context
@@ -30,8 +30,8 @@ You can't reuse agents across frameworks. 😞
 **Write Once, Deploy Anywhere:**
 
 ```yaml
-# research_agent.uas.yaml (Universal format)
-apiVersion: uas/v1
+# research_agent.usa.yaml (Universal format)
+apiVersion: usa/v1
 kind: Agent
 metadata:
   name: research-agent
@@ -48,7 +48,7 @@ capabilities:
 # Deploy anywhere!
 from uas import load_agent, deploy
 
-spec = load_agent("research_agent.uas.yaml")
+spec = load_agent("research_agent.usa.yaml")
 
 # Deploy to CrewAI
 crewai_agent = deploy(spec, "crewai")
@@ -68,7 +68,7 @@ api_server = deploy(spec, "api")
 # Navigate to the CharactersAgents directory
 cd /home/mdz-axolotl/Documents/GitClones/CharactersAgents
 
-# The implementation is in uas_implementation/
+# The implementation is in usa_implementation/
 # No installation needed - it's pure Python!
 ```
 
@@ -79,8 +79,8 @@ cd /home/mdz-axolotl/Documents/GitClones/CharactersAgents
 ### Step 1: Create Agent Specification
 
 ```yaml
-# my_first_agent.uas.yaml
-apiVersion: uas/v1
+# my_first_agent.usa.yaml
+apiVersion: usa/v1
 kind: Agent
 
 metadata:
@@ -145,10 +145,10 @@ deployment:
 
 ```python
 # test_agent.py
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 
 # Load the agent
-spec = load_agent("my_first_agent.uas.yaml")
+spec = load_agent("my_first_agent.usa.yaml")
 
 # It's validated automatically!
 print(f"✓ Agent loaded: {spec.metadata.name}")
@@ -164,11 +164,11 @@ Choose your deployment target:
 
 ```python
 # deploy_crewai.py
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 from crewai import Agent, Task, Crew
 
 # Load spec
-spec = load_agent("my_first_agent.uas.yaml")
+spec = load_agent("my_first_agent.usa.yaml")
 
 # Create CrewAI agent (manually for now - adapter coming soon!)
 agent = Agent(
@@ -195,10 +195,10 @@ print(result)
 ```python
 # deploy_api.py
 from fastapi import FastAPI
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 
 app = FastAPI()
-spec = load_agent("my_first_agent.uas.yaml")
+spec = load_agent("my_first_agent.usa.yaml")
 
 @app.post("/chat")
 async def chat(message: str):
@@ -219,9 +219,9 @@ Goal: {spec.identity.goal}
 ```python
 # deploy_cline.py
 import json
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 
-spec = load_agent("my_first_agent.uas.yaml")
+spec = load_agent("my_first_agent.usa.yaml")
 
 # Generate Cline configuration
 cline_config = {
@@ -263,8 +263,8 @@ Let's build a complete research agent that works across frameworks:
 ### 1. Define the Agent
 
 ```yaml
-# research_agent_complete.uas.yaml
-apiVersion: uas/v1
+# research_agent_complete.usa.yaml
+apiVersion: usa/v1
 kind: Agent
 
 metadata:
@@ -411,15 +411,15 @@ deployment:
 
 ```python
 # complete_deployment_example.py
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 import json
 
 print("=" * 70)
-print("Universal Agent Specification - Complete Deployment Example")
+print("Uniform Semantic Agent - Complete Deployment Example")
 print("=" * 70)
 
 # Load the agent
-spec = load_agent("research_agent_complete.uas.yaml")
+spec = load_agent("research_agent_complete.usa.yaml")
 
 print(f"\n✅ Loaded: {spec.metadata.name} v{spec.metadata.version}")
 print(f"   {spec.metadata.description}")
@@ -512,7 +512,7 @@ python complete_deployment_example.py
 
 ```yaml
 # Single specification file
-research_agent.uas.yaml
+research_agent.usa.yaml
 ```
 
 ```python
@@ -527,7 +527,7 @@ deploy(spec, "cli")       # Command-line tool
 ### 2. **Version Control Friendly**
 
 ```bash
-git diff v1.0..v2.0 agent.uas.yaml
+git diff v1.0..v2.0 agent.usa.yaml
 ```
 
 See exactly what changed in your agent!
@@ -536,10 +536,10 @@ See exactly what changed in your agent!
 
 ```python
 # Start with CrewAI
-agent = load_and_deploy("agent.uas.yaml", "crewai")
+agent = load_and_deploy("agent.usa.yaml", "crewai")
 
 # Switch to AutoGPT later (same spec!)
-agent = load_and_deploy("agent.uas.yaml", "autogpt")
+agent = load_and_deploy("agent.usa.yaml", "autogpt")
 ```
 
 ### 4. **Protocol Support Built-In**
@@ -554,9 +554,9 @@ Every agent automatically supports:
 ```python
 # Share and reuse agents
 marketplace = {
-    "research": "research_agent.uas.yaml",
-    "coder": "coding_agent.uas.yaml",
-    "analyst": "data_analyst.uas.yaml"
+    "research": "research_agent.usa.yaml",
+    "coder": "coding_agent.usa.yaml",
+    "analyst": "data_analyst.usa.yaml"
 }
 
 # Anyone can use any agent in any framework
@@ -570,13 +570,13 @@ agent = load_and_deploy(marketplace["research"], their_framework)
 ### Pattern 1: Multi-Agent System (CrewAI)
 
 ```python
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 from crewai import Crew, Task
 
 # Load multiple agents from specs
-researcher = adapt_to_crewai(load_agent("researcher.uas.yaml"))
-analyst = adapt_to_crewai(load_agent("analyst.uas.yaml"))
-writer = adapt_to_crewai(load_agent("writer.uas.yaml"))
+researcher = adapt_to_crewai(load_agent("researcher.usa.yaml"))
+analyst = adapt_to_crewai(load_agent("analyst.usa.yaml"))
+writer = adapt_to_crewai(load_agent("writer.usa.yaml"))
 
 # Use in crew
 crew = Crew(
@@ -590,11 +590,11 @@ result = crew.kickoff({"topic": "AI Trends"})
 ### Pattern 2: IDE Integration (Cline)
 
 ```python
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 import json
 
 # Load agent
-spec = load_agent("coding_assistant.uas.yaml")
+spec = load_agent("coding_assistant.usa.yaml")
 
 # Generate IDE config
 config = generate_cline_config(spec)
@@ -608,12 +608,12 @@ with open(".vscode/cline_settings.json", "w") as f:
 
 ```python
 from fastapi import FastAPI
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 
 app = FastAPI()
 specs = {
-    "research": load_agent("research.uas.yaml"),
-    "analyst": load_agent("analyst.uas.yaml")
+    "research": load_agent("research.usa.yaml"),
+    "analyst": load_agent("analyst.usa.yaml")
 }
 
 @app.post("/agent/{agent_name}/execute")
@@ -628,7 +628,7 @@ async def execute_agent(agent_name: str, task: str):
 
 ```python
 import click
-from uas_implementation import load_agent
+from usa_implementation import load_agent
 
 @click.command()
 @click.argument('agent_file')
@@ -645,16 +645,16 @@ if __name__ == '__main__':
 
 Usage:
 ```bash
-python agent_cli.py research_agent.uas.yaml "Research AI trends"
+python agent_cli.py research_agent.usa.yaml "Research AI trends"
 ```
 
 ---
 
 ## Next Steps
 
-1. **Read the Full Spec**: See `UniversalAgentSpecification.md`
+1. **Read the Full Spec**: See `UniformSemanticAgentSpecification.md`
 2. **Try the Examples**: Run `python examples/test_loader.py`
-3. **Create Your Agent**: Start with `examples/simple_agent.uas.yaml`
+3. **Create Your Agent**: Start with `examples/simple_agent.usa.yaml`
 4. **Build Adapters**: Contribute framework adapters
 5. **Share Agents**: Create reusable agent specifications
 
@@ -664,11 +664,11 @@ python agent_cli.py research_agent.uas.yaml "Research AI trends"
 
 ### Q: How is this different from existing frameworks?
 
-**A:** UAS is **not a framework**. It's a specification format that works **with** existing frameworks. Think of it like JSON or YAML - it's a standard way to describe agents that any framework can understand.
+**A:** uSA is **not a framework**. It's a specification format that works **with** existing frameworks. Think of it like JSON or YAML - it's a standard way to describe agents that any framework can understand.
 
 ### Q: Do I need to change my existing agents?
 
-**A:** No! You can continue using CrewAI, Cline, etc. as normal. UAS is for when you want **portability** across frameworks.
+**A:** No! You can continue using CrewAI, Cline, etc. as normal. uSA is for when you want **portability** across frameworks.
 
 ### Q: What about framework-specific features?
 
@@ -696,12 +696,12 @@ python agent_cli.py research_agent.uas.yaml "Research AI trends"
 
 ## Resources
 
-- **Full Specification**: `UniversalAgentSpecification.md`
+- **Full Specification**: `UniformSemanticAgentSpecification.md`
 - **Research Report**: `AgentSpecResearch.md`
 - **Examples**: `examples/` directory
-- **Implementation**: `uas_implementation/` directory
+- **Implementation**: `usa_implementation/` directory
 
 ---
 
-**Universal Agent Specification v1.0**  
+**Uniform Semantic Agent v1.0**  
 *Write once. Deploy anywhere. Build the agent internet.*

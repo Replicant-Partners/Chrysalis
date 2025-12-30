@@ -2,10 +2,10 @@
  * Framework Adapter - Abstract interface for framework-specific adapters
  * 
  * All framework adapters must implement this interface to enable
- * bidirectional conversion between the framework and Universal Agent format.
+ * bidirectional conversion between the framework and Uniform Semantic Agent format.
  */
 
-import type { UniversalAgent, ValidationResult } from './UniversalAgent';
+import type { UniformSemanticAgent, ValidationResult } from './UniformSemanticAgent';
 
 /**
  * Encrypted shadow data structure
@@ -37,7 +37,7 @@ export interface ShadowData {
     
     // Always include complete original and universal
     _original: any;
-    _universal: UniversalAgent;
+    _universal: UniformSemanticAgent;
   };
   checksum: string;
 }
@@ -74,14 +74,14 @@ export abstract class FrameworkAdapter {
   protected fieldMapping?: FieldMapping;
   
   /**
-   * Convert framework-specific agent to Universal Agent
+   * Convert framework-specific agent to Uniform Semantic Agent
    */
-  abstract toUniversal(frameworkAgent: any): Promise<UniversalAgent>;
+  abstract toUniversal(frameworkAgent: any): Promise<UniformSemanticAgent>;
   
   /**
-   * Convert Universal Agent to framework-specific format
+   * Convert Uniform Semantic Agent to framework-specific format
    */
-  abstract fromUniversal(universalAgent: UniversalAgent): Promise<any>;
+  abstract fromUniversal(universalAgent: UniformSemanticAgent): Promise<any>;
   
   /**
    * Embed encrypted shadow data in framework agent
