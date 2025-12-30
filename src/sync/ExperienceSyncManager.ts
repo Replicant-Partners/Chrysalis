@@ -22,6 +22,7 @@ import { MemoryMerger } from '../experience/MemoryMerger';
 import { SkillAccumulator } from '../experience/SkillAccumulator';
 import { KnowledgeIntegrator } from '../experience/KnowledgeIntegrator';
 import { createExperienceTransport, ExperienceTransport, TransportPayload } from './ExperienceTransport';
+import { VoyeurBus, VoyeurEvent } from '../observability/VoyeurEvents';
 
 /**
  * Sync status
@@ -76,13 +77,16 @@ export class ExperienceSyncManager {
   private syncStatus: Map<string, SyncStatus> = new Map();
   private transports: Map<string, ExperienceTransport> = new Map();
   private sourceAgents: Map<string, UniformSemanticAgentV2> = new Map();
+  private voyeur?: VoyeurBus;
   
-  constructor() {
+  constructor(opts?: { voyeur?: VoyeurBus }) {
     this.streamingSync = new StreamingSync();
     this.lumpedSync = new LumpedSync();
     this.checkInSync = new CheckInSync();
     
-    this.memoryMerger = new MemoryMerger();
+    this.voyeur = opts?.voyeur;
+    
+    this.memoryMerger = new MemoryMerger({ voyeur: this.voyeur });
     this.skillAccumulator = new SkillAccumulator();
     this.knowledgeIntegrator = new KnowledgeIntegrator();
   }
@@ -132,6 +136,14 @@ export class ExperienceSyncManager {
     
     this.syncStatus.set(instanceId, status);
     
+    await this.emitVoyeur({
+      kind: 'sync.init',
+      timestamp: new Date().toISOString(),
+      sourceInstance: instanceId,
+      decision: protocol,
+      details: { transport: transportConfig.type }
+    });
+    
     // Initialize protocol-specific sync
     switch (protocol) {
       case 'streaming':
@@ -175,6 +187,13 @@ export class ExperienceSyncManager {
     await this.streamingSync.streamEvent(instanceId, event);
     
     status.backlog_size++;
+    await this.emitVoyeur({
+      kind: 'sync.event',
+      timestamp: new Date().toISOString(),
+      sourceInstance: instanceId,
+      decision: 'stream',
+      details: { event_type: event.event_type }
+    });
   }
   
   /**
@@ -202,6 +221,14 @@ export class ExperienceSyncManager {
     status.last_sync = new Date().toISOString();
     status.backlog_size = 0;
     status.next_sync = this.calculateNextSync(status.protocol, {} as any);
+    
+    await this.emitVoyeur({
+      kind: 'sync.batch',
+      timestamp: new Date().toISOString(),
+      sourceInstance: instanceId,
+      decision: 'lumped',
+      details: { events: batch.event_count }
+    });
     
     return {
       batch_id: batch.batch_id,
@@ -233,6 +260,13 @@ export class ExperienceSyncManager {
     status.last_sync = new Date().toISOString();
     status.backlog_size = 0;
     status.next_sync = this.calculateNextSync(status.protocol, {} as any);
+    
+    await this.emitVoyeur({
+      kind: 'sync.check_in',
+      timestamp: new Date().toISOString(),
+      sourceInstance: instanceId,
+      decision: 'check_in'
+    });
     
     return result;
   }
@@ -300,6 +334,16 @@ export class ExperienceSyncManager {
       result.memories_added = memoryResult.added;
       result.memories_updated = memoryResult.updated;
       result.memories_deduplicated = memoryResult.deduplicated;
+      await this.emitVoyeur({
+        kind: 'merge.memories',
+        timestamp: new Date().toISOString(),
+        sourceInstance: batch.instance_id,
+        decision: 'merge',
+        details: {
+          added: memoryResult.added,
+          deduped: memoryResult.deduplicated
+        }
+      });
     }
     
     // Accumulate skills
@@ -311,6 +355,16 @@ export class ExperienceSyncManager {
       );
       result.skills_added = skillResult.added;
       result.skills_updated = skillResult.updated;
+      await this.emitVoyeur({
+        kind: 'merge.skills',
+        timestamp: new Date().toISOString(),
+        sourceInstance: batch.instance_id,
+        decision: 'merge',
+        details: {
+          added: skillResult.added,
+          updated: skillResult.updated
+        }
+      });
     }
     
     // Integrate knowledge
@@ -322,6 +376,16 @@ export class ExperienceSyncManager {
       );
       result.knowledge_added = knowledgeResult.added;
       result.knowledge_verified = knowledgeResult.verified;
+      await this.emitVoyeur({
+        kind: 'merge.knowledge',
+        timestamp: new Date().toISOString(),
+        sourceInstance: batch.instance_id,
+        decision: 'merge',
+        details: {
+          added: knowledgeResult.added,
+          verified: knowledgeResult.verified
+        }
+      });
     }
     
     // Update metadata
@@ -479,6 +543,11 @@ export class ExperienceSyncManager {
       case 'd': return num * 24 * 60 * 60 * 1000;
       default: return 3600000;
     }
+  }
+
+  private async emitVoyeur(event: VoyeurEvent): Promise<void> {
+    if (!this.voyeur) return;
+    await this.voyeur.emit(event);
   }
   
   private async updateCharacteristic(

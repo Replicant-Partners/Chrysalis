@@ -10,7 +10,10 @@
  */
 
 import type { UniformSemanticAgentV2 } from '../core/UniformSemanticAgentV2';
+import { VoyeurEventKind, VoyeurSink } from '../observability/VoyeurEvents';
 import * as crypto from 'crypto';
+import { BruteForceVectorIndex, type VectorIndex } from '../memory/VectorIndex';
+import { createVectorIndex } from '../memory/VectorIndexFactory';
 
 /**
  * Memory merger configuration
@@ -20,7 +23,10 @@ export interface MemoryMergerConfig {
   similarity_threshold: number;  // Default: 0.9
   embedding_service?: any;  // EmbeddingService (optional)
   use_vector_index: boolean;  // Default: false (v3.2+)
-  vector_index?: any;  // VectorIndex (optional, v3.2+)
+  vector_index?: VectorIndex;  // VectorIndex (optional, v3.2+)
+  vector_index_type?: 'hnsw' | 'lance' | 'brute'; // Preferred backend
+  voyeur?: VoyeurSink;  // Optional observer for “voyeur” mode
+  slow_mode_ms?: number;  // Optional artificial delay for human-speed playback
 }
 
 /**
@@ -50,12 +56,20 @@ export interface MemoryMergeResult {
   conflicts: number;
 }
 
+interface DuplicateMatch {
+  memory: Memory;
+  similarity: number;
+}
+
 /**
  * Memory Merger v3.1
  */
 export class MemoryMerger {
   private memoryIndex: Map<string, Memory> = new Map();
   private config: MemoryMergerConfig;
+  private voyeur?: VoyeurSink;
+  private slowModeMs: number;
+  private vectorIndex?: VectorIndex;
   
   constructor(config?: Partial<MemoryMergerConfig>) {
     // Default: v3.0 behavior (Jaccard)
@@ -64,8 +78,14 @@ export class MemoryMerger {
       similarity_threshold: config?.similarity_threshold ?? 0.9,
       embedding_service: config?.embedding_service,
       use_vector_index: config?.use_vector_index ?? false,
-      vector_index: config?.vector_index
+      vector_index: config?.vector_index,
+      vector_index_type: config?.vector_index_type ?? 'hnsw',
+      voyeur: config?.voyeur,
+      slow_mode_ms: config?.slow_mode_ms ?? 0
     };
+    this.voyeur = this.config.voyeur;
+    this.slowModeMs = this.config.slow_mode_ms ?? 0;
+    this.vectorIndex = this.config.vector_index;
   }
   
   /**
@@ -84,9 +104,9 @@ export class MemoryMerger {
         await this.config.embedding_service.initialize();
       }
     }
-    
-    if (this.config.use_vector_index && !this.config.vector_index) {
-      throw new Error('Vector index required when use_vector_index is true');
+
+    if (this.config.use_vector_index && !this.vectorIndex) {
+      this.vectorIndex = await createVectorIndex(this.config.vector_index_type, this.config.embedding_service?.config?.dimensions);
     }
   }
   
@@ -111,6 +131,10 @@ export class MemoryMerger {
       related_memories: [],
       importance: memoryData.importance || 0.5
     };
+
+    if (this.config.similarity_method === 'embedding' && this.config.embedding_service) {
+      memory.embedding = memory.embedding || await this.config.embedding_service.embed(memory.content);
+    }
     
     // Initialize episodic memory if not exists
     if (!agent.memory.collections) {
@@ -122,6 +146,10 @@ export class MemoryMerger {
     
     // Store memory (simplified - would use vector DB in production)
     this.memoryIndex.set(memory.memory_id, memory);
+
+    if (this.config.use_vector_index && this.vectorIndex && memory.embedding) {
+      await this.vectorIndex.upsert(memory.memory_id, memory.embedding);
+    }
     
     console.log(`  → Memory added: "${memory.content.substring(0, 50)}..."`);
   }
@@ -142,17 +170,43 @@ export class MemoryMerger {
     };
     
     for (const memoryData of memories) {
+      const content = memoryData.content || memoryData.text || '';
+      await this.emitVoyeur('ingest.start', {
+        sourceInstance,
+        memoryHash: this.hashContent(content),
+        decision: 'pending'
+      });
+      
       // Check for duplicates
       const duplicate = await this.findDuplicate(memoryData);
       
       if (duplicate) {
+        await this.emitVoyeur('match.candidate', {
+          sourceInstance,
+          memoryHash: this.hashContent(content),
+          similarity: duplicate.similarity,
+          threshold: this.config.similarity_threshold,
+          decision: 'merge'
+        });
         // Merge with existing
-        await this.mergeWithExisting(duplicate, memoryData, sourceInstance);
+        await this.mergeWithExisting(duplicate.memory, memoryData, sourceInstance);
         result.deduplicated++;
+        await this.emitVoyeur('merge.applied', {
+          sourceInstance,
+          memoryHash: this.hashContent(content),
+          similarity: duplicate.similarity,
+          decision: 'deduplicated'
+        });
       } else {
         // Add as new
         await this.addMemory(agent, memoryData, sourceInstance);
         result.added++;
+        await this.emitVoyeur('match.none', {
+          sourceInstance,
+          memoryHash: this.hashContent(content),
+          threshold: this.config.similarity_threshold,
+          decision: 'added'
+        });
       }
     }
     
@@ -166,24 +220,37 @@ export class MemoryMerger {
    * v3.1: Linear scan with embeddings (O(N))
    * v3.2: Vector index search (O(log N))
    */
-  private async findDuplicate(memoryData: any): Promise<Memory | null> {
+  private async findDuplicate(memoryData: any): Promise<DuplicateMatch | null> {
     // Future v3.2: Vector index path
-    if (this.config.use_vector_index && this.config.vector_index) {
+    if (this.config.use_vector_index && this.vectorIndex) {
       // Fast ANN search O(log N)
-      const embedding = await this.config.embedding_service.embed(memoryData.content);
-      const similar = await this.config.vector_index.findSimilar(
+      const embedding = memoryData.embedding
+        || (this.config.embedding_service
+          ? await this.config.embedding_service.embed(memoryData.content)
+          : undefined);
+      if (!embedding) {
+        throw new Error('Vector index requested but embedding missing');
+      }
+      const similar = await this.vectorIndex.findSimilar(
         embedding,
         1,  // Top 1
         this.config.similarity_threshold
       );
-      return similar[0] || null;
+      const match = similar[0];
+      if (match) {
+        const memory = this.memoryIndex.get(match.id);
+        if (memory) {
+          return { memory, similarity: match.score };
+        }
+      }
+      return null;
     }
     
     // Current: Linear scan O(N)
     for (const [, memory] of this.memoryIndex) {
       const similarity = await this.calculateSimilarity(memory.content, memoryData.content);
       if (similarity > this.config.similarity_threshold) {
-        return memory;
+        return { memory, similarity };
       }
     }
     
@@ -274,5 +341,21 @@ export class MemoryMerger {
    */
   getConfig(): MemoryMergerConfig {
     return { ...this.config };
+  }
+
+  private async emitVoyeur(kind: VoyeurEventKind | string, details?: Record<string, any>): Promise<void> {
+    if (!this.voyeur) return;
+    await this.voyeur.emit({
+      kind,
+      timestamp: new Date().toISOString(),
+      ...details
+    });
+    if (this.slowModeMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, this.slowModeMs));
+    }
+  }
+
+  private hashContent(content: string): string {
+    return crypto.createHash('sha384').update(content || '').digest('hex');
   }
 }
