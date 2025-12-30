@@ -32,6 +32,7 @@ export interface MemoryMergerConfig {
   metrics?: (event: { kind: 'vector.upsert' | 'vector.query'; backend: string; latencyMs: number; size?: number }) => void;
   metrics_sink?: MetricsSink;
   sanitize?: (content: string, sourceInstance: string) => { ok: boolean; content: string; reason?: string };
+  rate_limit?: { windowMs: number; max: number };
 }
 
 /**
@@ -76,6 +77,7 @@ export class MemoryMerger {
   private slowModeMs: number;
   private vectorIndex?: VectorIndex;
   private metricsSink?: MetricsSink;
+  private rateBuckets: Map<string, { count: number; windowStart: number }> = new Map();
   
   constructor(config?: Partial<MemoryMergerConfig>) {
     // Default: v3.0 behavior (Jaccard)
@@ -131,6 +133,24 @@ export class MemoryMerger {
     memoryData: any,
     sourceInstance: string
   ): Promise<void> {
+    if (this.config.rate_limit) {
+      const now = Date.now();
+      const bucket = this.rateBuckets.get(sourceInstance) || { count: 0, windowStart: now };
+      if (now - bucket.windowStart > this.config.rate_limit.windowMs) {
+        bucket.count = 0;
+        bucket.windowStart = now;
+      }
+      bucket.count += 1;
+      this.rateBuckets.set(sourceInstance, bucket);
+      if (bucket.count > this.config.rate_limit.max) {
+        await this.emitVoyeur('ingest.blocked', {
+          sourceInstance,
+          decision: 'rate_limited'
+        });
+        return;
+      }
+    }
+
     const rawContent = memoryData.content || memoryData.text || '';
     const sanitized = this.config.sanitize
       ? this.config.sanitize(rawContent, sourceInstance)
