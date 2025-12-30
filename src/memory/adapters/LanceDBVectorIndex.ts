@@ -9,17 +9,19 @@ export class LanceDBVectorIndex implements VectorIndex {
   private db: any;
   private table: any;
   private dim?: number;
+  private collection: string;
 
-  constructor(dim?: number) {
+  constructor(dim?: number, collection: string = 'memories') {
     this.dim = dim;
+    this.collection = collection;
   }
 
   private async ensureTable(): Promise<void> {
     if (this.table) return;
     const lance = await import('lancedb');
     this.db = await (lance as any).connect(process.env.LANCEDB_PATH || '.lancedb');
-    this.table = await this.db.openTable('memories').catch(async () => {
-      return this.db.createTable('memories', [{ id: '', vector: new Array(this.dim || 0) }]);
+    this.table = await this.db.openTable(this.collection).catch(async () => {
+      return this.db.createTable(this.collection, [{ id: '', vector: new Array(this.dim || 0) }]);
     });
   }
 

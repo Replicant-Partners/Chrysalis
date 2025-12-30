@@ -5,7 +5,7 @@
 - Rationale: on-device semantic embeddings without Python deps; aligns with HF-supported JS stack.
 
 ## Memory Merge
-- Pipeline: normalize+hash → embed/Jaccard → ANN (HNSW preferred, Lance optional, brute fallback) → merge with provenance-aware weighting.  
+- Pipeline: normalize+hash → embed/Jaccard → ANN (HNSW preferred, Lance optional, Qdrant cloud optional, brute fallback) → merge with provenance-aware weighting.  
 - Thresholds vary by source trust; conflicts routed to review queue.  
 - Reference: HNSW ANN (Malkov & Yashunin 2018), cosine similarity norms.
 

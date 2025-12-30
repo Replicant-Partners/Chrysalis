@@ -25,8 +25,10 @@ export interface MemoryMergerConfig {
   use_vector_index: boolean;  // Default: false (v3.2+)
   vector_index?: VectorIndex;  // VectorIndex (optional, v3.2+)
   vector_index_type?: 'hnsw' | 'lance' | 'brute'; // Preferred backend
+  vector_index_options?: Record<string, any>; // Backend options (collection, host, etc.)
   voyeur?: VoyeurSink;  // Optional observer for “voyeur” mode
   slow_mode_ms?: number;  // Optional artificial delay for human-speed playback
+  metrics?: (event: { kind: 'vector.upsert' | 'vector.query'; backend: string; latencyMs: number; size?: number }) => void;
 }
 
 /**
@@ -106,7 +108,11 @@ export class MemoryMerger {
     }
 
     if (this.config.use_vector_index && !this.vectorIndex) {
-      this.vectorIndex = await createVectorIndex(this.config.vector_index_type, this.config.embedding_service?.config?.dimensions);
+      this.vectorIndex = await createVectorIndex(
+        this.config.vector_index_type,
+        this.config.embedding_service?.config?.dimensions,
+        this.config.vector_index_options
+      );
     }
   }
   
@@ -148,7 +154,9 @@ export class MemoryMerger {
     this.memoryIndex.set(memory.memory_id, memory);
 
     if (this.config.use_vector_index && this.vectorIndex && memory.embedding) {
+      const start = Date.now();
       await this.vectorIndex.upsert(memory.memory_id, memory.embedding);
+      this.recordMetric('vector.upsert', Date.now() - start);
     }
     
     console.log(`  → Memory added: "${memory.content.substring(0, 50)}..."`);
@@ -231,11 +239,13 @@ export class MemoryMerger {
       if (!embedding) {
         throw new Error('Vector index requested but embedding missing');
       }
+      const start = Date.now();
       const similar = await this.vectorIndex.findSimilar(
         embedding,
         1,  // Top 1
         this.config.similarity_threshold
       );
+      this.recordMetric('vector.query', Date.now() - start);
       const match = similar[0];
       if (match) {
         const memory = this.memoryIndex.get(match.id);
@@ -357,5 +367,15 @@ export class MemoryMerger {
 
   private hashContent(content: string): string {
     return crypto.createHash('sha384').update(content || '').digest('hex');
+  }
+
+  private recordMetric(kind: 'vector.upsert' | 'vector.query', latencyMs: number): void {
+    if (!this.config.metrics) return;
+    this.config.metrics({
+      kind,
+      backend: this.config.vector_index_type || 'unknown',
+      latencyMs,
+      size: this.vectorIndex?.size()
+    });
   }
 }
