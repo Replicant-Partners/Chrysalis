@@ -23,6 +23,9 @@ import { SkillAccumulator } from '../experience/SkillAccumulator';
 import { KnowledgeIntegrator } from '../experience/KnowledgeIntegrator';
 import { createExperienceTransport, ExperienceTransport, TransportPayload } from './ExperienceTransport';
 import { VoyeurBus, VoyeurEvent } from '../observability/VoyeurEvents';
+import { vectorIndexFromEnv } from '../memory/VectorIndexFactory';
+import { createMetricsSinkFromEnv } from '../observability/Metrics';
+import { defaultMemorySanitizer } from '../experience/MemorySanitizer';
 
 /**
  * Sync status
@@ -86,7 +89,14 @@ export class ExperienceSyncManager {
     
     this.voyeur = opts?.voyeur;
     
-    this.memoryMerger = new MemoryMerger({ voyeur: this.voyeur });
+    const indexEnv = vectorIndexFromEnv();
+    this.memoryMerger = new MemoryMerger({
+      voyeur: this.voyeur,
+      vector_index_type: indexEnv.kind,
+      vector_index_options: indexEnv.options,
+      metrics_sink: createMetricsSinkFromEnv(),
+      sanitize: (content, source) => defaultMemorySanitizer(content, source)
+    });
     this.skillAccumulator = new SkillAccumulator();
     this.knowledgeIntegrator = new KnowledgeIntegrator();
   }

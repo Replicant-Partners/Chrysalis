@@ -62,7 +62,8 @@ describe('MemoryMerger with vector index', () => {
       similarity_method: 'embedding',
       similarity_threshold: 0.8,
       embedding_service: embeddingService,
-      use_vector_index: true
+      use_vector_index: true,
+      vector_index_type: (global as any).HAS_HNSW ? 'hnsw' : 'brute'
     });
     await merger.initialize();
 

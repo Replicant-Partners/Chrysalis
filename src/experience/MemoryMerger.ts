@@ -140,7 +140,7 @@ export class MemoryMerger {
         sourceInstance,
         memoryHash: this.hashContent(rawContent),
         decision: 'blocked',
-        reason: sanitized.reason
+        reason: (sanitized as any).reason
       });
       return;
     }

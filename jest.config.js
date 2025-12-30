@@ -6,5 +6,6 @@ module.exports = {
     '/node_modules/',
     '/dist/',
     '/mcp-servers/' // run these with node --test via npm run test:mcp
-  ]
+  ],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.optional.js']
 };
