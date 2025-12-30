@@ -12,6 +12,7 @@
 - HNSW tuning: `HNSW_MAX_ELEMENTS`, `HNSW_EF_SEARCH`, `HNSW_M`.  
 - LanceDB: `LANCEDB_PATH` (default `.lancedb`).  
 - Qdrant: `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`.
+- Metrics: `METRICS_PROMETHEUS=true` (`METRICS_PROM_PORT`), `METRICS_OTEL=true`.
 
 ## Wiring
 - `vectorIndexFromEnv()` in `src/memory/VectorIndexFactory.ts` builds config from env.  

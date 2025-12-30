@@ -10,6 +10,7 @@ Surface what agents are “thinking” during ingest/merge with optional slow-mo
 - **Privacy**: Emit hashes + metadata; redact content by default. Allow explicit opt-in to include content for local-debug sinks only.
 - **UI hooks**: Tail stream (CLI), WebSocket broadcast for dashboards, OTLP export for traces. Slow-mo can be toggled by setting `slowModeMs` on `VoyeurBus` or config.
 - **Metrics**: Optional Prometheus/OTel sinks (`METRICS_PROMETHEUS=true`, `METRICS_PROM_PORT=9464`, `METRICS_OTEL=true`) via `createMetricsSinkFromEnv()`.
+- **CLI tail**: `src/cli/voyeurTail.ts` can attach a console sink; combine with metrics server (`src/cli/metrics-server.ts`) for quick dashboards.
 
 ## UX Ideas
 - Timeline view of merge steps with latency + decisions.

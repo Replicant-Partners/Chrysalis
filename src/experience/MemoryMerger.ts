@@ -31,6 +31,7 @@ export interface MemoryMergerConfig {
   slow_mode_ms?: number;  // Optional artificial delay for human-speed playback
   metrics?: (event: { kind: 'vector.upsert' | 'vector.query'; backend: string; latencyMs: number; size?: number }) => void;
   metrics_sink?: MetricsSink;
+  sanitize?: (content: string, sourceInstance: string) => { ok: boolean; content: string; reason?: string };
 }
 
 /**
@@ -130,9 +131,23 @@ export class MemoryMerger {
     memoryData: any,
     sourceInstance: string
   ): Promise<void> {
+    const rawContent = memoryData.content || memoryData.text || '';
+    const sanitized = this.config.sanitize
+      ? this.config.sanitize(rawContent, sourceInstance)
+      : { ok: true, content: rawContent };
+    if (!sanitized.ok) {
+      await this.emitVoyeur('ingest.blocked', {
+        sourceInstance,
+        memoryHash: this.hashContent(rawContent),
+        decision: 'blocked',
+        reason: sanitized.reason
+      });
+      return;
+    }
+
     const memory: Memory = {
       memory_id: crypto.randomUUID(),
-      content: memoryData.content || memoryData.text || '',
+      content: sanitized.content,
       embedding: memoryData.embedding,
       confidence: memoryData.confidence || 0.8,
       source_instance: sourceInstance,
