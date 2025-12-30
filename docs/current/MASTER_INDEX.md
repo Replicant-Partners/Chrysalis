@@ -1,7 +1,7 @@
-# Chrysalis v3.1: Master Documentation Index
+# [ARCHIVE] Chrysalis v3.1: Master Documentation Index
 
-**Purpose**: Navigate the complete Chrysalis documentation ecosystem  
-**Status**: All documents current as of December 28, 2025
+**Purpose**: Historical index (superseded by docs/README.md)  
+**Status**: Archived; use docs/README.md for current navigation
 
 ---
 

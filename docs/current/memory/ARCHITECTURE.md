@@ -1,8 +1,8 @@
 # Chrysalis Memory Architecture v1.0
 
-**Date**: December 28, 2025  
-**Status**: Design Specification  
-**Integration**: Chrysalis v3.0 Universal Patterns + V2 Experience Sync
+**Date**: Updated April 2026  
+**Status**: Mixed (current implementation + future design)  
+**Integration**: Chrysalis v3.1 (TypeScript core, optional Go crypto, optional vector index)
 
 ---
 
@@ -10,9 +10,11 @@
 
 **Chrysalis Memory is not a standalone component** - it's the manifestation of **universal patterns applied to agent recall and learning**.
 
-### Core Principle
+### Core Principle (Current vs Target)
 
-> Memory in Chrysalis is a **distributed, Byzantine-resistant, cryptographically-verified, gossip-synchronized, CRDT-based** system that enables agents to learn and evolve across multiple instances and contexts.
+**Current**: Request/response sync with streaming/lumped/check-in transports; embedding-based dedupe (optional vector index), cryptographic identity, ingest sanitization, voyeur/metrics hooks.
+
+**Target** (roadmap): Epidemic gossip sync, CRDT state, Byzantine validation, multi-region replication.
 
 ---
 
@@ -20,16 +22,16 @@
 
 Chrysalis Memory integrates **7 of the 10 universal patterns**:
 
-| Pattern | Memory Application | Benefit |
-|---------|-------------------|---------|
-| **#1 Hash** | Memory Fingerprinting | Each memory has unique SHA-384 ID, tamper detection |
-| **#2 Signature** | Memory Authentication | Memories signed by source instance, provable origin |
-| **#4 Gossip** | Memory Propagation | Memories spread O(log N) across agent instances |
-| **#5 DAG** | Memory Evolution | Track memory relationships and causality |
-| **#6 Convergence** | Memory Consolidation | Deduplication converges to canonical set |
-| **#8 Threshold** | Memory Validation | Byzantine-resistant: requires >2/3 agreement |
-| **#9 Time** | Memory Ordering | Lamport/Vector clocks for happens-before |
-| **#10 CRDT** | Memory Merging | G-Set semantics: add-only, conflict-free |
+| Pattern | Memory Application | Status | Benefit |
+|---------|-------------------|--------|---------|
+| **#1 Hash** | Memory fingerprinting (SHA-384) | ✅ Implemented | Tamper detection |
+| **#2 Signature** | Identity/auth (Ed25519) | ✅ Implemented | Provable origin |
+| **#4 Gossip** | Epidemic propagation | 📋 Planned | O(log N) spread |
+| **#5 DAG** | Memory relationships/causality | 📋 Planned | Trace evolution |
+| **#6 Convergence** | Deduplication to canonical set | ✅ Implemented (similarity merge) | Avoid duplicates |
+| **#8 Threshold** | Byzantine validation | 📋 Planned | Resist <1/3 faults |
+| **#9 Time** | Logical time ordering | 📋 Planned | Consistent ordering |
+| **#10 CRDT** | Conflict-free merge | 📋 Planned | Partition tolerance |
 
 ---
 

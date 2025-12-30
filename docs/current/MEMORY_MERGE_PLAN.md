@@ -15,6 +15,26 @@
 6) **Conflict handling**: if similarity in “gray zone” or confidence gap too small, enqueue for review; emit voyeur event.  
 7) **Persist/index**: write to store and update vector index (if enabled); maintain related_memories edges.
 
+```mermaid
+flowchart TD
+    A[Ingest memory] --> B[Sanitize & hash]
+    B --> C{Embedding ready?}
+    C -->|Yes| D[Embed]
+    C -->|No| E[Jaccard fallback]
+    D --> F{ANN index?}
+    E --> F
+    F -->|Yes| G[ANN search (top1)]
+    F -->|No| H[Linear scan]
+    G --> I{similarity > threshold?}
+    H --> I
+    I -->|Yes| J[Merge existing]
+    I -->|No| K[Add new memory]
+    J --> L[Update provenance/confidence]
+    K --> M[Persist + index]
+    L --> M
+    M --> N[Emit voyeur/metrics]
+```
+
 ## Tuning Defaults
 - Similarity thresholds: human-origin 0.80, agent 0.85, auto/ingested 0.90 (cosine).  
 - Timeout budget: embedding call < 150 ms; ANN query < 25 ms; linear scan only when collections are small or ANN unavailable.  
