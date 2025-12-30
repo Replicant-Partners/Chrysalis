@@ -30,6 +30,13 @@ export type PatternType =
  */
 export type ResolutionSource = 'mcp' | 'embedded' | 'library' | 'go';
 
+export interface MCPPatternClient {
+  hash(data: string | Uint8Array, algorithm: string): Promise<string>;
+  generateKeypair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }>;
+  sign(message: string | Uint8Array, privateKey: Uint8Array): Promise<Uint8Array>;
+  verify(message: string | Uint8Array, signature: Uint8Array, publicKey: Uint8Array): Promise<boolean>;
+}
+
 /**
  * Deployment context for resolution decisions
  */
@@ -115,6 +122,31 @@ function bytesToHex(data: Uint8Array): string {
   return Buffer.from(data).toString('hex');
 }
 
+class MCPHashImpl implements HashImplementation {
+  private client: MCPPatternClient;
+  constructor(client: MCPPatternClient) {
+    this.client = client;
+  }
+  async hash(data: string | Uint8Array, algorithm: string): Promise<string> {
+    return this.client.hash(data, algorithm);
+  }
+  async verify(data: string | Uint8Array, expectedHash: string): Promise<boolean> {
+    const actual = await this.client.hash(data, algorithmForVerify(expectedHash));
+    return actual === expectedHash;
+  }
+  async generateFingerprint(identity: any): Promise<string> {
+    const payload = typeof identity === 'string' ? identity : JSON.stringify(identity);
+    return this.client.hash(payload, 'sha-384');
+  }
+}
+
+function algorithmForVerify(expectedHash: string): string {
+  if (expectedHash.length === 128) return 'sha-512';
+  if (expectedHash.length === 96) return 'sha-384';
+  if (expectedHash.length === 64) return 'sha-256';
+  return 'sha-384';
+}
+
 class GoHashImpl implements HashImplementation {
   private client: GoCryptoClient;
   constructor(client: GoCryptoClient = goClientShared) {
@@ -137,6 +169,22 @@ class GoHashImpl implements HashImplementation {
     const payload = JSON.stringify(identity);
     const res = await this.client.call('Hash', { data: payload, algorithm: 'SHA-384', encoding: 'utf8' });
     return res.hash as string;
+  }
+}
+
+class MCPSignatureImpl implements SignatureImplementation {
+  private client: MCPPatternClient;
+  constructor(client: MCPPatternClient) {
+    this.client = client;
+  }
+  async generateKeypair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
+    return this.client.generateKeypair();
+  }
+  async sign(message: string | Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
+    return this.client.sign(message, privateKey);
+  }
+  async verify(message: string | Uint8Array, signature: Uint8Array, publicKey: Uint8Array): Promise<boolean> {
+    return this.client.verify(message, signature, publicKey);
   }
 }
 
@@ -243,9 +291,10 @@ class EmbeddedTimeImpl implements TimeImplementation {
  */
 export class AdaptivePatternResolver {
   private context: DeploymentContext;
+  private mcpClient?: MCPPatternClient;
   
-  constructor(context?: Partial<DeploymentContext>) {
-    // Default context: Single-node embedded
+  constructor(context?: Partial<DeploymentContext>, mcpClient?: MCPPatternClient) {
+    this.mcpClient = mcpClient;
     this.context = {
       distributed: context?.distributed ?? false,
       mcp_available: context?.mcp_available ?? false,
@@ -267,6 +316,14 @@ export class AdaptivePatternResolver {
   async resolveHash(): Promise<PatternResolution<HashImplementation>> {
     if (this.shouldUseMCP()) {
       try {
+        if (this.mcpClient) {
+          return {
+            source: 'mcp',
+            implementation: new MCPHashImpl(this.mcpClient),
+            latency_estimate_ms: 5,
+            reason: 'MCP client'
+          };
+        }
         return {
           source: 'go',
           implementation: new GoHashImpl(),
@@ -274,7 +331,7 @@ export class AdaptivePatternResolver {
           reason: 'Go gRPC crypto'
         };
       } catch (err) {
-        console.error('Go hash resolution failed', err);
+        console.error('MCP/Go hash resolution failed', err);
       }
     }
     return {
@@ -293,6 +350,14 @@ export class AdaptivePatternResolver {
   async resolveSignature(): Promise<PatternResolution<SignatureImplementation>> {
     if (this.shouldUseMCP()) {
       try {
+        if (this.mcpClient) {
+          return {
+            source: 'mcp',
+            implementation: new MCPSignatureImpl(this.mcpClient),
+            latency_estimate_ms: 5,
+            reason: 'MCP client'
+          };
+        }
         return {
           source: 'go',
           implementation: new GoSignatureImpl(),
@@ -300,7 +365,7 @@ export class AdaptivePatternResolver {
           reason: 'Go gRPC signatures'
         };
       } catch (err) {
-        console.error('Go signature resolution failed', err);
+        console.error('MCP/Go signature resolution failed', err);
       }
     }
     return {
@@ -375,7 +440,8 @@ export class AdaptivePatternResolver {
  * Factory: Create resolver for context
  */
 export function createPatternResolver(
-  deploymentModel: 'embedded' | 'distributed' | 'adaptive'
+  deploymentModel: 'embedded' | 'distributed' | 'adaptive',
+  mcpClient?: MCPPatternClient
 ): AdaptivePatternResolver {
   switch (deploymentModel) {
     case 'embedded':
@@ -384,7 +450,7 @@ export function createPatternResolver(
         mcp_available: false,
         performance_critical: true,
         prefer_reusability: false
-      });
+      }, mcpClient);
     
     case 'distributed':
       return new AdaptivePatternResolver({
@@ -392,17 +458,17 @@ export function createPatternResolver(
         mcp_available: true,
         performance_critical: false,
         prefer_reusability: true
-      });
+      }, mcpClient);
     
     case 'adaptive':
       return new AdaptivePatternResolver({
-        distributed: false,  // Start embedded
+        distributed: false,
         mcp_available: false,
         performance_critical: false,
         prefer_reusability: false
-      });
+      }, mcpClient);
     
     default:
-      return new AdaptivePatternResolver();
+      return new AdaptivePatternResolver(undefined, mcpClient);
   }
 }
