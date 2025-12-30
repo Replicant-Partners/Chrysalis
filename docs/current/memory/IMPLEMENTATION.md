@@ -2,7 +2,7 @@
 
 **Date**: December 28, 2025  
 **Version**: 1.0.0  
-**Status**: ✅ PRODUCTION READY
+**Status**: ✅ Implemented (Python `memory_system/`, TS merging/sync) | 📋 Gossip/CRDT/BFT planned
 
 ---
 

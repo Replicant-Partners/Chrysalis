@@ -44,6 +44,8 @@ docs/
 - **[Uniform Semantic Agent Lexicon](current/UNIVERSAL_AGENT_LEXICON.md)** - Core terms, OODA, emoji mode
 - **[OBSERVABILITY_VOYEUR.md](current/OBSERVABILITY_VOYEUR.md)** - Voyeur mode + metrics hooks
 - **[DOCUMENTATION_STANDARDS.md](current/DOCUMENTATION_STANDARDS.md)** - How to keep docs consistent
+- **[OBSERVABILITY_GUIDE.md](current/OBSERVABILITY_GUIDE.md)** - SSE viewer + metrics how-to
+- **[SANITIZATION_POLICY.md](current/SANITIZATION_POLICY.md)** - Trust tiers, sanitization, rate limits
 
 ### 🔬 Research Foundation
 

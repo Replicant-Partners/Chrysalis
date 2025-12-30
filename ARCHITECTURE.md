@@ -39,17 +39,25 @@ Chrysalis is a **Uniform Semantic Agent transformation system** that enables AI 
 ### The Five Scales
 
 ```mermaid
-graph TD
-    S0[Scale 0: Mathematics] --> S1[Scale 1: Libraries]
-    S1 --> S2[Scale 2: MCP Fabric]
-    S2 --> S3[Scale 3: Embedded Patterns]
-    S3 --> S4[Scale 4: Agent Operations]
-    
-    S0 -.->|"h(x) → y"| S1
-    S1 -.->|"@noble/hashes"| S2
-    S2 -.->|"hash tool"| S3
-    S3 -.->|"Hashing.ts"| S4
-    S4 -.->|"fingerprinting"| A[Agents]
+flowchart LR
+    subgraph Scale0[Math]
+      Z0[Patterns: hash, signature, gossip, DAG, time, CRDT]
+    end
+    subgraph Scale1[Libs]
+      Z1[@noble/hashes, @noble/ed25519, graphlib]
+    end
+    subgraph Scale2[MCP Fabric]
+      Z2[Go gRPC crypto]
+      Z2a[MCP servers (crypto, structures)]
+    end
+    subgraph Scale3[Embedded]
+      Z3[TS patterns]
+    end
+    subgraph Scale4[Agent Ops]
+      Z4[Agent morphing, sync, memory]
+    end
+    Z0 --> Z1 --> Z2 --> Z3 --> Z4
+    Z4 -. observability .-> Z5[Voyeur SSE/metrics]
 ```
 
 **Scale 0: Mathematics**  
@@ -131,19 +139,22 @@ flowchart TD
 ### 3. Memory System
 
 ```mermaid
-graph LR
-    A[Memory Input] --> B{Similarity Check}
-    B -->|Jaccard v3.0| C[Lexical Overlap]
-    B -->|Embedding v3.1| D[Semantic Similarity]
-    
-    C --> E{> 0.9?}
-    D --> E
-    
-    E -->|Yes| F[Merge with Existing]
-    E -->|No| G[Add as New]
-    
-    F --> H[Memory Store]
-    G --> H
+flowchart TD
+    In[Memory Input] --> San[Sanitize & hash]
+    San --> Sel{Embedding ready?}
+    Sel -->|Yes| Emb[Embed]
+    Sel -->|No| Jac[Jaccard]
+    Emb --> ANN{Vector index?}
+    Jac --> ANN
+    ANN -->|Yes| Search[ANN search]
+    ANN -->|No| Scan[Linear scan]
+    Search --> Sim{similarity > threshold?}
+    Scan --> Sim
+    Sim -->|Yes| Merge[Merge existing]
+    Sim -->|No| Add[Add new memory]
+    Merge --> Store[Persist + update index]
+    Add --> Store
+    Store --> Obs[Voyeur events + metrics]
 ```
 
 **Evolution Path**:

@@ -140,16 +140,25 @@ See [examples/](examples/) for more usage patterns.
 ## Architecture
 
 ```mermaid
-graph TD
-    A[Agents] --> B[Pattern Resolver]
-    B --> C{Deployment Context}
-    C -->|Distributed| D[MCP Fabric]
-    C -->|Single-Node| E[Embedded Patterns]
-    D --> F[Crypto Primitives]
-    D --> G[Distributed Structures]
-    E --> H[@noble/hashes]
-    E --> I[@noble/curves]
-    E --> J[graphlib]
+flowchart LR
+    subgraph AgentLayer
+      A[Uniform Semantic Agent]
+      M[MemoryMerger]
+      S[ExperienceSyncManager]
+    end
+
+    A -->|pattern request| B{Pattern Resolver}
+    B -->|distributed + mcp| C[Go gRPC crypto]
+    B -->|embedded| D[TS embedded patterns]
+    B -->|fallback| E[@noble libs]
+
+    S -->|stream/lump/check-in| T[ExperienceTransport]
+    T -->|https/ws/mcp| U[Target Instances]
+    U -->|events| S
+
+    M -->|embed + ANN| V[VectorIndex (HNSW/Lance/Qdrant)]
+    M -->|observability| W[Voyeur SSE / Metrics]
+    M -->|sanitize| X[Ingest Guard]
 ```
 
 ### Core Concepts

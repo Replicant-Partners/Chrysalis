@@ -1,30 +1,26 @@
-# Documentation Index
+# Chrysalis Documentation Index (Current)
 
-## Current
-- README.md (project overview)
-- ARCHITECTURE.md (system design)
-- docs/README.md (navigation hub)
-- docs/current/UNIFIED_SPEC_V3.1.md (complete spec)
-- docs/current/FOUNDATION_SPEC.md (patterns)
-- docs/current/ANALYSIS.md (analysis)
-- docs/current/SYNTHESIS.md (synthesis)
-- docs/current/memory/ (memory arch/impl)
-- docs/current/MCP_SETUP.md (MCP config)
-- docs/current/IMPLEMENTATION_GUIDE.md (how to implement)
-- docs/current/UNIVERSAL_AGENT_LEXICON.md (terms, OODA, emoji)
+## Current (canonical)
+- `README.md` — overview, quick start, feature map, diagrams.
+- `ARCHITECTURE.md` — system architecture (scales, sync, memory pipeline).
+- `STATUS.md` — verified state, metrics, pending items.
+- `docs/README.md` — navigation hub (current/research/archive).
+- `docs/current/UNIFIED_SPEC_V3.1.md` — full spec.
+- `docs/current/TECH_DECISIONS_MEMORY_OBSERVABILITY.md` — recent choices.
+- `docs/current/VECTOR_INDEX_SETUP.md` — HNSW/Lance/Qdrant config.
+- `docs/current/OBSERVABILITY_VOYEUR.md` — observability/voyeur/matrics.
+- `docs/current/OBSERVABILITY_GUIDE.md` — SSE viewer + metrics quick start.
+- `docs/current/SANITIZATION_POLICY.md` — trust tiers, sanitization, rate limits.
+- `docs/current/MEMORY_MERGE_PLAN.md` — merge pipeline (current vs target).
+- `docs/current/DOCUMENTATION_STANDARDS.md` — how to maintain docs.
 
-## Research
-- docs/research/universal-patterns/*
-- docs/research/deep-research/*
-- docs/research/agent-spec/*
+## Research (non-normative)
+- `docs/research/` — foundations, universal patterns, deep research.
 
 ## Archive
-- docs/archive/v2/
-- docs/archive/v1/
-- docs/archive/deprecated/
+- `docs/archive/` — v1/v2 and deprecated docs.
+- `docs/current/MASTER_INDEX.md` — archived index (superseded).
 
-## Standards
-- Status tags: ✅ current, 🔄 in-progress, 📋 planned, 🗄️ archived, ⚠️ deprecated
-- Diagrams: Mermaid blocks where flows help clarity
-- Citations: footnotes/links on major design choices
-- Updates: when code changes behavior, API, data model, or deployment path
+## Conventions
+- Current docs must reflect shipped code; future work is labeled and linked to roadmap.
+- Mermaid diagrams required for flows; status icons: ✅ implemented, 🔄 in progress, 📋 planned, 🗄️ archived.
