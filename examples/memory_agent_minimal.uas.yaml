@@ -1,0 +1,95 @@
+# Universal Agent Specification v2.0
+# Example: Minimal Agent with Basic Memory
+
+apiVersion: uas/v2
+kind: Agent
+
+metadata:
+  name: minimal-memory-agent
+  version: 2.0.0
+  description: Minimal agent demonstrating basic memory features
+  tags:
+    - minimal
+    - memory-v2
+    - basic
+
+identity:
+  role: Simple Assistant
+  goal: Answer questions with basic memory
+
+capabilities:
+  tools:
+    - name: search
+      protocol: mcp
+      config:
+        server: brave-search
+  
+  # Minimal Memory Configuration
+  memory:
+    architecture: flat  # Simple RAG
+    
+    # Just working memory and semantic memory
+    working:
+      enabled: true
+      max_tokens: 4096
+    
+    semantic:
+      enabled: true
+      storage: vector_db
+      rag:
+        enabled: true
+        top_k: 3
+        min_relevance: 0.7
+    
+    # Basic embeddings
+    embeddings:
+      model: openai/text-embedding-3-small
+      dimensions: 1536
+    
+    # Simple storage
+    storage:
+      primary: faiss
+      vector_db:
+        provider: faiss
+        collection: simple_memory
+    
+    # Basic operations
+    operations:
+      retrieval:
+        strategy: passive_rag  # Traditional RAG
+        hybrid_search: false
+        max_results: 3
+      
+      consolidation:
+        strategy: none
+      
+      forgetting:
+        enabled: false
+
+protocols:
+  mcp:
+    enabled: true
+    role: client
+    servers:
+      - name: brave-search
+        command: npx
+        args: ["-y", "@modelcontextprotocol/server-brave-search"]
+  
+  a2a: false
+  agent_protocol: false
+
+execution:
+  llm:
+    provider: openai
+    model: gpt-4-turbo-preview
+    temperature: 0.7
+    max_tokens: 2048
+  
+  runtime:
+    timeout: 60
+    max_iterations: 10
+
+deployment:
+  context: api
+  environment:
+    port: 8000

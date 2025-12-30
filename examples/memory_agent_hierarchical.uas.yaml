@@ -1,0 +1,224 @@
+# Universal Agent Specification v2.0
+# Example: Research Agent with Hierarchical Memory (MemGPT style)
+
+apiVersion: uas/v2
+kind: Agent
+
+metadata:
+  name: hierarchical-research-agent
+  version: 2.0.0
+  description: Research agent with hierarchical memory architecture
+  author: UAS Team
+  tags:
+    - research
+    - memory-v2
+    - hierarchical
+    - long-term-learning
+
+identity:
+  role: Senior Research Analyst
+  goal: Conduct comprehensive research with persistent memory across sessions
+  backstory: |
+    I am an experienced research analyst with deep memory capabilities.
+    I remember all our past conversations, research findings, and user preferences.
+    My hierarchical memory allows me to maintain context over unlimited conversations.
+  
+  personality_traits:
+    analytical: high
+    thorough: high
+    persistent_memory: true
+  
+  constraints:
+    - Always cite sources with URLs
+    - Remember user preferences across sessions
+    - Build on previous research findings
+    - Never forget important user instructions
+
+capabilities:
+  tools:
+    - name: web_search
+      protocol: mcp
+      config:
+        server: brave-search
+        tool: brave_web_search
+    
+    - name: file_operations
+      protocol: mcp
+      config:
+        server: filesystem
+  
+  reasoning:
+    strategy: chain_of_thought
+    max_iterations: 20
+    allow_backtracking: true
+  
+  # NEW in v2.0: Comprehensive Memory System
+  memory:
+    architecture: hierarchical  # MemGPT/Letta style
+    
+    # Working Memory (Short-term)
+    working:
+      enabled: true
+      max_tokens: 16384
+      buffer_type: rolling
+    
+    # Episodic Memory (Past experiences)
+    episodic:
+      enabled: true
+      storage: vector_db
+      retention_days: null  # Unlimited retention
+      temporal_indexing: true
+      metadata_fields:
+        - timestamp
+        - actor
+        - event_type
+        - research_topic
+    
+    # Semantic Memory (Knowledge base)
+    semantic:
+      enabled: true
+      storage: hybrid  # Vector + Graph
+      rag:
+        enabled: true
+        top_k: 5
+        min_relevance: 0.75
+        reranking: true
+      knowledge_graph: true
+    
+    # Procedural Memory (Research skills)
+    procedural:
+      enabled: true
+      storage: structured
+      format: pydantic
+      versioning: true
+    
+    # Core Memory (Persistent identity)
+    core:
+      enabled: true
+      self_editing: true
+      blocks:
+        - name: persona
+          content: |
+            I am a senior research analyst.
+            I specialize in academic literature and fact-checking.
+            I maintain detailed memory of all research conducted.
+          editable: true
+        
+        - name: user_preferences
+          content: |
+            User prefers recent sources (last 2 years).
+            User values peer-reviewed content.
+            User needs APA citation format.
+          editable: true
+        
+        - name: research_context
+          content: |
+            Current research topics being tracked.
+          editable: true
+    
+    # Embeddings Configuration
+    embeddings:
+      model: openai/text-embedding-3-large
+      dimensions: 3072
+      batch_size: 100
+      provider: openai
+    
+    # Storage Configuration
+    storage:
+      primary: weaviate
+      vector_db:
+        provider: weaviate
+        collection: research_memories
+        config:
+          url: ${WEAVIATE_URL}
+          api_key: ${WEAVIATE_API_KEY}
+      
+      graph_db:
+        provider: neo4j
+        database: research_graph
+        config:
+          uri: ${NEO4J_URI}
+          user: ${NEO4J_USER}
+          password: ${NEO4J_PASSWORD}
+      
+      cache: redis
+      backup: postgresql
+    
+    # Memory Operations
+    operations:
+      retrieval:
+        strategy: agentic_rag  # Agent controls retrieval
+        hybrid_search: true    # Vector + keyword
+        reranking: true
+        max_results: 10
+      
+      consolidation:
+        strategy: sleep_time  # Async during idle
+        frequency: daily
+        async_processing: true
+      
+      forgetting:
+        enabled: true
+        strategy: utility_based  # RIF scoring
+        threshold: 0.3
+        parameters:
+          recency_weight: 0.3
+          relevance_weight: 0.5
+          frequency_weight: 0.2
+
+protocols:
+  mcp:
+    enabled: true
+    role: client
+    servers:
+      - name: brave-search
+        command: npx
+        args:
+          - "-y"
+          - "@modelcontextprotocol/server-brave-search"
+        env:
+          BRAVE_API_KEY: ${BRAVE_API_KEY}
+      
+      - name: filesystem
+        command: npx
+        args:
+          - "-y"
+          - "@modelcontextprotocol/server-filesystem"
+          - "${WORKSPACE_DIR}"
+  
+  a2a:
+    enabled: false
+  
+  agent_protocol:
+    enabled: true
+    endpoint: /ap/v1
+
+execution:
+  llm:
+    provider: openai
+    model: gpt-4-turbo-preview
+    temperature: 0.3
+    max_tokens: 4096
+    parameters:
+      top_p: 0.9
+  
+  runtime:
+    timeout: 300
+    max_iterations: 20
+    retry_policy:
+      max_attempts: 3
+      backoff: exponential
+      initial_delay: 1
+    error_handling: graceful_degradation
+
+deployment:
+  context: api
+  environment:
+    port: 8000
+    workers: 4
+    log_level: info
+  
+  scaling:
+    min_instances: 1
+    max_instances: 10
+    target_cpu: 70

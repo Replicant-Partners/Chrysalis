@@ -1,0 +1,37 @@
+{
+  "specification_version": "uas/v1",
+  "agent": {
+    "name": "simple-research-agent",
+    "version": "1.0.0",
+    "description": "A simple research agent that can search the web",
+    "tags": [
+      "research",
+      "web-search",
+      "simple"
+    ]
+  },
+  "identity": {
+    "role": "Research Assistant",
+    "goal": "Help users find information by searching the web and summarizing results"
+  },
+  "capabilities": {
+    "tools": [
+      {
+        "name": "web_search",
+        "protocol": "mcp",
+        "config": {
+          "server": "brave-search",
+          "tool": "brave_web_search"
+        }
+      }
+    ],
+    "reasoning": "chain_of_thought",
+    "memory": "short_term"
+  },
+  "protocols": {
+    "mcp": true,
+    "a2a": false,
+    "agent_protocol": true
+  },
+  "deployment_ready": true
+}

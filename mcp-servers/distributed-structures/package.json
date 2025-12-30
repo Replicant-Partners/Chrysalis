@@ -1,0 +1,43 @@
+{
+  "name": "@layer1/distributed-structures-mcp",
+  "version": "0.1.0",
+  "description": "MCP Server providing distributed system primitives: DAG operations, logical time, and threshold voting",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "distributed-structures-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "node --test tests/*.test.js",
+    "test:watch": "node --test --watch tests/*.test.js",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "distributed-systems",
+    "dag",
+    "logical-time",
+    "vector-clocks",
+    "lamport-clocks",
+    "consensus",
+    "voting",
+    "hashgraph"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "graphlib": "^2.1.8"
+  },
+  "devDependencies": {
+    "@types/graphlib": "^2.1.12",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

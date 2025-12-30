@@ -1,0 +1,370 @@
+# Chrysalis Architecture Overview
+
+**Version**: 3.1.0  
+**Status**: Current  
+**Last Updated**: December 28, 2025
+
+---
+
+## Table of Contents
+
+1. [System Overview](#system-overview)
+2. [Fractal Architecture](#fractal-architecture)
+3. [Core Components](#core-components)
+4. [Data Flow](#data-flow)
+5. [Deployment Models](#deployment-models)
+6. [Security Architecture](#security-architecture)
+
+---
+
+## System Overview
+
+Chrysalis is a **universal agent transformation system** that enables AI agents to:
+- Morph between different implementation types
+- Maintain persistent, distributed memory
+- Evolve through synchronized experiences
+- Preserve cryptographic identity across transformations
+
+### Design Philosophy
+
+**Evidence-Based**: All design decisions rooted in distributed systems research  
+**Fractal Composition**: Patterns recur at multiple architectural scales  
+**Adaptive Integration**: Context-aware selection of implementation strategies  
+**Byzantine Resistant**: Tolerates <1/3 malicious or faulty nodes
+
+---
+
+## Fractal Architecture
+
+### The Five Scales
+
+```mermaid
+graph TD
+    S0[Scale 0: Mathematics] --> S1[Scale 1: Libraries]
+    S1 --> S2[Scale 2: MCP Fabric]
+    S2 --> S3[Scale 3: Embedded Patterns]
+    S3 --> S4[Scale 4: Agent Operations]
+    
+    S0 -.->|"h(x) → y"| S1
+    S1 -.->|"@noble/hashes"| S2
+    S2 -.->|"hash tool"| S3
+    S3 -.->|"Hashing.ts"| S4
+    S4 -.->|"fingerprinting"| A[Agents]
+```
+
+**Scale 0: Mathematics**  
+Universal patterns with proven properties (hash functions, digital signatures, DAGs, gossip, etc.)
+
+**Scale 1: Validated Libraries**  
+Audited implementations (@noble/hashes, @noble/curves, graphlib)
+
+**Scale 2: MCP Fabric**  
+Network-accessible services exposing primitives via MCP protocol
+
+**Scale 3: Embedded Patterns**  
+Agent-specific implementations wrapping libraries with domain logic
+
+**Scale 4: Agent Operations**  
+Application-level operations using patterns (fingerprinting, signing, syncing)
+
+---
+
+## Core Components
+
+### 1. Universal Agent Schema
+
+```mermaid
+classDiagram
+    class UniversalAgentV2 {
+        +identity: CryptoIdentity
+        +memory: MemorySystem
+        +capabilities: Capabilities
+        +experiences: Experience[]
+        +instances: InstanceMetadata[]
+    }
+    
+    class CryptoIdentity {
+        +fingerprint: string
+        +publicKey: Uint8Array
+        +signatureAlgorithm: string
+    }
+    
+    class MemorySystem {
+        +episodic: Episode[]
+        +semantic: Concept[]
+        +type: "vector" | "graph" | "hybrid"
+    }
+    
+    UniversalAgentV2 --> CryptoIdentity
+    UniversalAgentV2 --> MemorySystem
+```
+
+**Key Features**:
+- SHA-384 fingerprint for tamper-evident identity
+- Ed25519 signatures for authentication
+- Dual-coded memory (episodic + semantic)
+- Experience accumulation from instances
+- Evolution tracking via DAG
+
+### 2. Pattern Resolver (Adaptive)
+
+```mermaid
+flowchart TD
+    A[Agent Request] --> B{Pattern Resolver}
+    B --> C{Deployment Context?}
+    
+    C -->|Distributed| D[Use MCP Fabric]
+    C -->|Single-Node| E[Use Embedded]
+    C -->|Performance-Critical| F[Use Direct Library]
+    
+    D --> G[Network Call ~5ms]
+    E --> H[Function Call ~0.1ms]
+    F --> I[Minimal Overhead ~0.05ms]
+    
+    G --> J[Result]
+    H --> J
+    I --> J
+```
+
+**Decision Factors**:
+- Is deployment distributed? (multi-region)
+- Are MCP servers available?
+- Is performance critical? (<1ms required)
+- Is reusability preferred?
+
+### 3. Memory System
+
+```mermaid
+graph LR
+    A[Memory Input] --> B{Similarity Check}
+    B -->|Jaccard v3.0| C[Lexical Overlap]
+    B -->|Embedding v3.1| D[Semantic Similarity]
+    
+    C --> E{> 0.9?}
+    D --> E
+    
+    E -->|Yes| F[Merge with Existing]
+    E -->|No| G[Add as New]
+    
+    F --> H[Memory Store]
+    G --> H
+```
+
+**Evolution Path**:
+- **v3.0**: Jaccard similarity (lexical), O(N²), <1000 memories
+- **v3.1**: Embedding similarity (semantic), O(N²), <5000 memories
+- **v3.2**: Vector indexing (HNSW), O(log N), millions of memories
+
+### 4. Experience Sync
+
+```mermaid
+sequenceDiagram
+    participant S as Source Agent
+    participant I1 as Instance 1
+    participant I2 as Instance 2
+    participant I3 as Instance 3
+    
+    Note over I1,I3: Instances Generate Experiences
+    
+    I1->>S: Streaming (real-time)
+    I2->>S: Lumped (batch)
+    I3->>S: Check-in (periodic)
+    
+    S->>S: Merge Experiences
+    S->>S: Update Memory/Skills/Knowledge
+    
+    Note over S: Agent Evolves
+```
+
+**Three Protocols**:
+- **Streaming**: Continuous real-time sync
+- **Lumped**: Batch synchronization
+- **Check-in**: Periodic reconciliation
+
+---
+
+## Data Flow
+
+### Agent Morphing Flow
+
+```mermaid
+flowchart LR
+    A[Universal Agent] --> B[Framework Adapter]
+    B --> C{Target Type?}
+    
+    C -->|MCP| D[MCPAdapter]
+    C -->|Multi-Agent| E[MultiAgentAdapter]
+    C -->|Orchestrated| F[OrchestratedAdapter]
+    
+    D --> G[MCP Agent + Shadow]
+    E --> H[Multi-Agent + Shadow]
+    F --> I[Orchestrated Agent + Shadow]
+    
+    G --> J[Lossless Restoration]
+    H --> J
+    I --> J
+    
+    J --> A
+```
+
+**Key Property**: **Lossless** - No information lost in transformation
+
+**Shadow Fields**: Encrypted metadata enables perfect restoration
+
+### Experience Accumulation
+
+```mermaid
+graph TD
+    A[Instance Experiences] --> B[Experience Sync]
+    B --> C[MemoryMerger]
+    B --> D[SkillAccumulator]
+    B --> E[KnowledgeIntegrator]
+    
+    C --> F[Deduplication]
+    F --> G[Similarity Check]
+    G --> H[Merge or Add]
+    
+    D --> I[Proficiency Aggregation]
+    I --> J[Learning Curve Update]
+    
+    E --> K[Confidence Threshold]
+    K --> L[Verification Count]
+    L --> M[Accept or Reject]
+    
+    H --> N[Updated Agent State]
+    J --> N
+    M --> N
+```
+
+---
+
+## Deployment Models
+
+### Model A: Embedded (Monolithic)
+
+```
+Single Process:
+  ├── Agent
+  ├── Embedded Patterns
+  └── Direct Library Imports
+```
+
+**Use When**: CLI tools, edge devices, single-user apps  
+**Latency**: ~0.1ms (function calls)  
+**Complexity**: Low
+
+### Model B: MCP Fabric (Microservices)
+
+```
+Multiple Processes:
+  ├── Agent Process
+  ├── Crypto-Primitives MCP
+  └── Distributed-Structures MCP
+```
+
+**Use When**: Multi-region, shared infrastructure, multiple agents  
+**Latency**: ~5ms (network calls)  
+**Complexity**: Medium
+
+### Model C: Adaptive (Hybrid)
+
+```
+Agent:
+  └── Pattern Resolver
+      ├── Try MCP (if available)
+      └── Fallback to Embedded
+```
+
+**Use When**: Uncertain deployment, gradual migration, maximum flexibility  
+**Latency**: Adaptive (~0.1ms embedded, ~5ms MCP)  
+**Complexity**: Medium-High
+
+---
+
+## Security Architecture
+
+### Multi-Layer Defense
+
+```mermaid
+graph TB
+    subgraph Layer_1[Layer 1: Cryptographic Identity]
+        A1[SHA-384 Fingerprint]
+        A2[Ed25519 Signatures]
+    end
+    
+    subgraph Layer_2[Layer 2: Byzantine Resistance]
+        B1[Threshold Voting >2/3]
+        B2[Median Aggregation]
+        B3[Trimmed Mean]
+    end
+    
+    subgraph Layer_3[Layer 3: Redundancy]
+        C1[Multi-Instance]
+        C2[Quorum Operations]
+    end
+    
+    subgraph Layer_4[Layer 4: Causal Consistency]
+        D1[Lamport Clocks]
+        D2[Vector Clocks]
+    end
+    
+    Layer_1 --> Layer_2
+    Layer_2 --> Layer_3
+    Layer_3 --> Layer_4
+```
+
+**Defends Against**:
+- Impersonation (cryptographic identity)
+- Malicious instances (<1/3 Byzantine tolerance)
+- Single point of failure (redundancy)
+- Timing attacks (logical time)
+
+---
+
+## Performance Characteristics
+
+| Operation | Complexity | Latency | Scale |
+|-----------|-----------|---------|-------|
+| **Hash (embedded)** | O(N) | ~0.1ms | Any |
+| **Hash (MCP)** | O(N) | ~5ms | Any |
+| **Memory search (Jaccard)** | O(N²) | ~10ms | <1K |
+| **Memory search (embedding)** | O(N²) | ~50ms | <5K |
+| **Memory search (HNSW)** | O(log N) | ~5ms | Millions |
+| **Experience sync (RPC)** | O(N) | ~100ms | <100 instances |
+| **Experience sync (gossip)** | O(log N) | ~500ms | Thousands |
+
+---
+
+## Technology Stack
+
+**Language**: TypeScript 5.0+  
+**Runtime**: Node.js 18+
+
+**Cryptography**:
+- @noble/hashes (hash functions)
+- @noble/ed25519 (signatures)
+- @noble/curves (BLS)
+
+**Distributed Systems**:
+- graphlib (DAG operations)
+- simple-statistics (aggregation)
+
+**Future**:
+- @xenova/transformers (embeddings)
+- hnswlib-node (vector indexing)
+- @automerge/automerge (CRDTs)
+
+---
+
+## Related Documentation
+
+- **[Complete Specification](docs/current/UNIFIED_SPEC_V3.1.md)** - Comprehensive technical spec
+- **[Implementation Guide](docs/current/IMPLEMENTATION_GUIDE.md)** - How to implement
+- **[Research Foundation](docs/research/)** - Deep research and patterns
+- **[API Reference](docs/current/API_REFERENCE.md)** - API documentation
+
+---
+
+**Version**: 3.1.0 | **Last Updated**: December 28, 2025
+
+🦋 **Rigorous architecture through evidence-based design** 🦋

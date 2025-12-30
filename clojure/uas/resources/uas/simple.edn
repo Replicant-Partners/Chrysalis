@@ -1,0 +1,11 @@
+{:agent/id "agent-1"
+ :agent/name "Simple Agent"
+ :agent/type :mcp
+ :identity {:fingerprint "" :public-key ""}
+ :memory {:type :vector :provider "local" :collections {:episodic [] :semantic []}}
+ :skills []
+ :knowledge []
+ :transport {:type :https :config {}}
+ :sync {:default :streaming :merge {:conflict :latest :dedupe true :skill :max :knowledge-threshold 0.6}}
+ :tools []
+ :pattern-resolution {:distributed false :mcp-available false :performance-critical true :prefer-reusability false}}

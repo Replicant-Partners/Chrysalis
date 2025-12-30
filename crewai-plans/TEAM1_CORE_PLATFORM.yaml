@@ -1,0 +1,970 @@
+# Chrysalis Team 1: Core Platform Engineering - CrewAI Configuration
+# Mission: Implement agent morphing, framework adapters, experience sync, state merging, pattern resolution
+# Timeline: Phase 1 (Weeks 1-6)
+# Dependencies: None (starts immediately)
+
+crew_configuration:
+  name: "Core Platform Engineering"
+  process: "sequential"  # Architect → Engineers → QA
+  verbose: true
+  memory: true
+  cache: true
+  planning: true
+  
+  manager_llm: "gpt-4"  # For hierarchical coordination if needed
+  
+  success_metrics:
+    - "All 3 framework adapters functional (100% lossless)"
+    - "PatternResolver operational (MCP + embedded modes)"
+    - "Experience sync protocols working (all 3)"
+    - "State merging functional (memory, skills, knowledge)"
+    - "Test coverage >85%"
+    - "CLI operational with all commands"
+
+# =============================================================================
+# AGENTS
+# =============================================================================
+
+agents:
+  - id: "platform_architect"
+    role: "Lead Platform Architect"
+    goal: |
+      Design and oversee implementation of Chrysalis core platform ensuring
+      fractal composition principles, adaptive pattern resolution, and lossless
+      agent morphing using open source distributed systems patterns. Create
+      comprehensive technical specifications for engineering team.
+    
+    backstory: |
+      Senior architect with 15+ years in distributed systems, specializing in
+      agent architectures and framework interoperability. Deep expertise in
+      design patterns (GoF, POSA), SOLID principles, and open source ecosystems.
+      Champions evidence-based design and fractal composition. Previously
+      architected large-scale multi-agent systems at DARPA-funded research labs.
+      Strong advocate for TypeScript, validated cryptographic libraries (@noble/*),
+      and mathematical rigor in system design. Published 20+ papers on distributed
+      AI systems. Contributed to multiple OSS agent frameworks.
+    
+    verbose: true
+    allow_delegation: true
+    
+    tools:
+      - name: "architecture_documenter"
+        description: "Generate architecture diagrams and specifications"
+      
+      - name: "design_pattern_validator"
+        description: "Validate adherence to design patterns"
+      
+      - name: "mermaid_diagram_generator"
+        description: "Create Mermaid diagrams for documentation"
+      
+      - name: "code_structure_analyzer"
+        description: "Analyze codebase structure and dependencies"
+    
+    memory_enabled: true
+    max_iterations: 15
+
+  - id: "backend_engineer"
+    role: "Senior Backend Engineer"
+    goal: |
+      Implement Chrysalis core modules (PatternResolver, framework adapters,
+      experience sync, state merging) with production-grade code quality,
+      comprehensive testing, and performance optimization. Write clean,
+      maintainable, well-documented TypeScript code.
+    
+    backstory: |
+      Expert TypeScript engineer with 10+ years building distributed systems.
+      Specialist in async/await patterns, event-driven architectures, and
+      high-performance Node.js applications. Strong advocate for test-driven
+      development (TDD), clean code principles, and open source best practices.
+      Previously built microservices platforms handling millions of requests
+      per day. Core contributor to graphlib, commander.js, and other Node.js
+      libraries. Expert in @noble/* cryptographic libraries, promises/async-await,
+      and functional programming patterns. Believes code should be self-documenting
+      with minimal but precise comments.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "file_operations"
+        description: "Read, write, analyze code files"
+      
+      - name: "typescript_compiler"
+        description: "Compile and check TypeScript code"
+      
+      - name: "test_runner"
+        description: "Run Jest tests and check coverage"
+      
+      - name: "lint_checker"
+        description: "Run ESLint and Prettier"
+      
+      - name: "type_checker"
+        description: "Run TypeScript type checking"
+    
+    memory_enabled: true
+    max_iterations: 25
+
+  - id: "devex_engineer"
+    role: "Developer Experience Engineer"
+    goal: |
+      Create exceptional developer experience through intuitive CLI,
+      comprehensive documentation, type-safe APIs, and helpful error
+      messages. Make Chrysalis easy to use and understand.
+    
+    backstory: |
+      DX-focused engineer passionate about making complex systems accessible.
+      Expert in CLI design (commander.js, inquirer.js), API ergonomics, and
+      documentation as code. Strong TypeScript user focused on type inference,
+      IntelliSense, and DX. Contributor to CLI tools, documentation generators,
+      and developer tooling. Believes great DX accelerates adoption, reduces
+      errors, and increases developer happiness. Previously improved DX for
+      5+ major open source projects, resulting in 3x adoption increase.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "cli_generator"
+        description: "Generate CLI commands and help text"
+      
+      - name: "documentation_generator"
+        description: "Generate API docs from TypeScript"
+      
+      - name: "type_definition_validator"
+        description: "Validate TypeScript definitions"
+      
+      - name: "example_code_generator"
+        description: "Generate code examples"
+    
+    memory_enabled: true
+    max_iterations: 15
+
+  - id: "integration_engineer"
+    role: "Systems Integration Engineer"
+    goal: |
+      Integrate Chrysalis with MCP servers, implement MCP client, handle
+      connection management, health checking, circuit breakers, and fallback
+      logic. Ensure reliable communication with external systems.
+    
+    backstory: |
+      Integration specialist with expertise in MCP protocol, gRPC, REST APIs,
+      and event-driven architectures. Previously integrated 50+ systems in
+      complex microservices environments. Expert in circuit breakers
+      (Resilience4j patterns), retry logic, and distributed tracing. Strong
+      advocate for OpenTelemetry and observable integrations. Contributor to
+      @modelcontextprotocol/sdk. Believes integration code needs exceptional
+      error handling and monitoring.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "mcp_client"
+        description: "Test MCP protocol connections"
+      
+      - name: "api_tester"
+        description: "Test API contracts"
+      
+      - name: "integration_test_runner"
+        description: "Run integration tests"
+    
+    memory_enabled: true
+    max_iterations: 15
+
+  - id: "qa_engineer"
+    role: "Quality Assurance Engineer"
+    goal: |
+      Ensure production-grade quality through comprehensive testing (unit,
+      integration, performance, property-based), test automation, and quality
+      metrics. Achieve >85% test coverage with meaningful tests.
+    
+    backstory: |
+      QA engineer with strong coding skills and passion for quality. Expert
+      in test-driven development, property-based testing (fast-check), and
+      test automation. Specialist in Jest, Testcontainers, and k6. Previously
+      built testing infrastructure for distributed systems achieving 95%
+      coverage. Strong believer in test pyramid (70% unit, 20% integration,
+      10% E2E) and mutation testing for quality validation.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "jest_runner"
+        description: "Run Jest test suites"
+      
+      - name: "coverage_analyzer"
+        description: "Analyze test coverage"
+      
+      - name: "performance_profiler"
+        description: "Profile performance"
+      
+      - name: "mutation_tester"
+        description: "Run mutation testing"
+    
+    memory_enabled: true
+    max_iterations: 20
+
+# =============================================================================
+# TASKS (Sequential Execution)
+# =============================================================================
+
+tasks:
+  # ===== Architect Tasks =====
+  
+  - id: "TASK-1.1.1"
+    description: |
+      Design the AdaptivePatternResolver architecture. Create comprehensive
+      specification covering:
+      - Interface design (PatternResolution<T>, DeploymentContext)
+      - Strategy pattern implementation
+      - Context evaluation logic (distributed, performance-critical, MCP available)
+      - Graceful degradation strategy
+      - Performance monitoring approach
+      - Mermaid diagrams showing data flow
+      
+      Output: Complete design document with interfaces, class diagrams, and
+      sequence diagrams ready for implementation.
+    
+    agent: "platform_architect"
+    expected_output: |
+      Comprehensive design document (20+ pages) including:
+      - PatternResolver.ts interface specifications
+      - 5 pattern implementation interfaces (Hash, Signature, DAG, Time, Threshold)
+      - Context evaluation decision tree
+      - Mermaid sequence diagrams (3+)
+      - Performance requirements (<0.5ms overhead)
+      - Error handling strategy
+      - Integration points with MCP and embedded patterns
+    
+    output_file: "design/PatternResolver-Design.md"
+    context: ["CHRYSALIS_UNIFIED_SPEC_V3.1.md", "SYNTHESIS_REPORT_FINAL.md"]
+    
+    acceptance_criteria:
+      - "All 5 pattern types specified"
+      - "Context-based selection logic clear"
+      - "Graceful fallback strategy defined"
+      - "Performance targets set"
+      - "Reviewed by backend engineer"
+    
+    priority: "CRITICAL"
+    estimated_hours: 16
+
+  - id: "TASK-1.1.2"
+    description: |
+      Review and enhance UniversalAgentV2 TypeScript interface. Ensure all
+      fields are correctly specified: identity (cryptographic), memory
+      (episodic + semantic), capabilities, experiences, instances. Add
+      validation requirements, immutability rules, and serialization specs.
+      
+      Output: Enhanced schema with Zod validation specifications.
+    
+    agent: "platform_architect"
+    expected_output: |
+      Enhanced schema specification including:
+      - Complete TypeScript interface definition
+      - Zod validation schemas for runtime checking
+      - Immutability rules (which fields can/cannot change)
+      - Serialization/deserialization requirements
+      - Cryptographic identity structure
+      - Memory system structure (episodic: Episode[], semantic: Concept[])
+    
+    output_file: "design/UniversalAgentV2-Schema.md"
+    context: ["src/core/UniversalAgentV2.ts", "docs/current/UNIFIED_SPEC_V3.1.md"]
+    
+    acceptance_criteria:
+      - "All fields validated"
+      - "Zod schemas specified"
+      - "Serialization preserves types"
+      - "Cryptographic identity fields immutable"
+    
+    priority: "CRITICAL"
+    estimated_hours: 12
+    dependencies: []
+
+  - id: "TASK-1.1.3"
+    description: |
+      Design API contracts between all teams. Create OpenAPI 3.1 specifications,
+      JSON Schema for data models, versioning strategy (semantic versioning),
+      and backwards compatibility guidelines. Document contract testing approach.
+      
+      Output: Complete contract specifications ready for implementation.
+    
+    agent: "platform_architect"
+    expected_output: |
+      API contract documentation including:
+      - OpenAPI 3.1 spec for all APIs
+      - JSON Schema for all data models
+      - Versioning strategy (SemVer)
+      - Breaking change policy
+      - Deprecation process
+      - Contract testing framework recommendation
+    
+    output_file: "contracts/API-Contracts.yaml"
+    context: ["REVIEW_TEAMS_SESSION.md", "docs/current/UNIFIED_SPEC_V3.1.md"]
+    
+    acceptance_criteria:
+      - "All interfaces documented"
+      - "Versioning strategy clear"
+      - "Contract testing approach defined"
+    
+    priority: "HIGH"
+    estimated_hours: 16
+    dependencies: ["TASK-1.1.2"]
+
+  # ===== Backend Engineer Tasks =====
+  
+  - id: "TASK-1.2.1"
+    description: |
+      Implement AdaptivePatternResolver class in TypeScript. Create:
+      - PatternResolver.ts with all interfaces
+      - Embedded implementations for all 5 patterns
+      - MCP client integration (conditional)
+      - Context evaluation logic
+      - Graceful fallback mechanism
+      - Performance monitoring
+      - Comprehensive unit tests (>95% coverage)
+      
+      Use Strategy pattern, dependency injection, and clean architecture.
+      Follow TDD approach.
+    
+    agent: "backend_engineer"
+    expected_output: |
+      Complete implementation including:
+      - src/fabric/PatternResolver.ts (~500-700 lines)
+      - src/fabric/types.ts (interfaces)
+      - src/fabric/embedded/*.ts (5 embedded implementations)
+      - src/fabric/PatternResolver.test.ts (~300-400 lines)
+      - API documentation
+      - Performance benchmarks (context selection <0.5ms)
+    
+    output_file: "src/fabric/PatternResolver.ts"
+    context: ["design/PatternResolver-Design.md", "src/core/patterns/*.ts"]
+    
+    technology_requirements:
+      language: "TypeScript 5.0+"
+      dependencies:
+        - "@noble/hashes (MIT) - for embedded hash implementation"
+        - "@noble/ed25519 (MIT) - for embedded signature"
+        - "graphlib (MIT) - for embedded DAG operations"
+        - "@modelcontextprotocol/sdk (MIT) - for MCP client (optional)"
+      testing:
+        framework: "Jest (MIT)"
+        coverage_target: "95%"
+        property_testing: "fast-check (MIT)"
+    
+    acceptance_criteria:
+      - "All 5 pattern interfaces implemented"
+      - "Context-aware selection functional"
+      - "MCP mode works when available"
+      - "Embedded mode works always"
+      - "Graceful fallback tested"
+      - "Performance: <0.5ms overhead"
+      - "95%+ test coverage"
+      - "ESLint passes (0 errors)"
+      - "TypeScript strict mode passes"
+    
+    priority: "CRITICAL"
+    estimated_hours: 40
+    dependencies: ["TASK-1.1.1", "TASK-1.1.2"]
+
+  - id: "TASK-1.2.2"
+    description: |
+      Implement and enhance all three framework adapters: MCPAdapter,
+      MultiAgentAdapter, OrchestratedAdapter. Each must support:
+      - Lossless bidirectional conversion (Universal ↔ Framework)
+      - Shadow field encryption for hidden metadata
+      - Validation rules (catch invalid states)
+      - Roundtrip testing (A → B → A' where A === A')
+      
+      Implement comprehensive test suite including property-based tests
+      for lossless property verification.
+    
+    agent: "backend_engineer"
+    expected_output: |
+      Complete adapter implementations:
+      - src/adapters/MCPAdapter.ts (~300-400 lines)
+      - src/adapters/MultiAgentAdapter.ts (~300-400 lines)
+      - src/adapters/OrchestratedAdapter.ts (~300-400 lines)
+      - src/adapters/AdapterBase.ts (shared functionality)
+      - src/adapters/*.test.ts (3 test files, ~200 lines each)
+      - Property tests for lossless invariant
+      - Documentation with examples
+    
+    output_file: "src/adapters/"
+    context: ["src/core/UniversalAgentV2.ts", "design/UniversalAgentV2-Schema.md"]
+    
+    technology_requirements:
+      dependencies:
+        - "zod (MIT) - Runtime validation"
+        - "crypto-js (MIT) or @noble/hashes (MIT) - Shadow field encryption"
+      
+      testing:
+        unit_tests: "Jest (MIT)"
+        property_tests: "fast-check (MIT) for lossless property"
+        scenarios:
+          - "Roundtrip test: Universal → MCP → Universal (exact match)"
+          - "Roundtrip test: Universal → Multi-Agent → Universal"
+          - "Roundtrip test: Universal → Orchestrated → Universal"
+          - "Shadow field encryption/decryption"
+          - "Validation prevents invalid states"
+    
+    acceptance_criteria:
+      - "100% information preservation (property test passes)"
+      - "All 3 adapters functional"
+      - "Shadow fields encrypted with key"
+      - "Validation rules enforced"
+      - "100% test coverage for adapters"
+      - "Performance: <10ms per conversion"
+    
+    priority: "CRITICAL"
+    estimated_hours: 80
+    dependencies: ["TASK-1.1.2"]
+
+  - id: "TASK-1.2.3"
+    description: |
+      Implement experience synchronization protocols: StreamingSync,
+      LumpedSync, CheckInSync. Current version uses request-response
+      (NOT epidemic gossip - that's Phase 2). Each protocol must:
+      - Contact all instances (O(N) complexity)
+      - Aggregate experiences reliably
+      - Handle network failures gracefully
+      - Support configurable retry logic
+      
+      Document clearly that O(log N) gossip is future work.
+    
+    agent: "backend_engineer"
+    expected_output: |
+      Complete sync protocol implementations:
+      - src/sync/SyncProtocol.ts (interface)
+      - src/sync/StreamingSync.ts (~200-300 lines)
+      - src/sync/LumpedSync.ts (~200-300 lines)
+      - src/sync/CheckInSync.ts (~200-300 lines)
+      - src/sync/*.test.ts (comprehensive tests)
+      - Documentation explaining O(N) complexity clearly
+    
+    output_file: "src/sync/"
+    context: ["docs/current/UNIFIED_SPEC_V3.1.md", "SYNTHESIS_REPORT_FINAL.md"]
+    
+    technology_requirements:
+      dependencies:
+        - "axios (MIT) or node-fetch (MIT) - HTTP client"
+        - "p-map (MIT) - Parallel iteration with concurrency control"
+        - "p-retry (MIT) - Retry with exponential backoff"
+      
+      testing:
+        scenarios:
+          - "Single instance sync"
+          - "Multiple instance sync (parallel)"
+          - "Network failure handling"
+          - "Partial success (some instances fail)"
+          - "Experience aggregation correctness"
+    
+    acceptance_criteria:
+      - "All 3 protocols functional"
+      - "Reliable aggregation (tested)"
+      - "Network failures handled gracefully"
+      - "Documentation clear about O(N) complexity"
+      - "Performance: <100ms per instance"
+      - "Tests include multi-instance scenarios"
+    
+    priority: "HIGH"
+    estimated_hours: 40
+    dependencies: ["TASK-1.1.2"]
+
+  - id: "TASK-1.2.4"
+    description: |
+      Implement state merging components: MemoryMerger (with configurable
+      similarity), SkillAccumulator, KnowledgeIntegrator. Current version:
+      - MemoryMerger: Jaccard (default) or embedding (configured)
+      - SkillAccumulator: Max proficiency, sum invocations
+      - KnowledgeIntegrator: Threshold-based (>2/3 confidence, >3 verifications)
+      
+      Document limitations (O(N²) for Jaccard, <1000 memories) and evolution path.
+    
+    agent: "backend_engineer"
+    expected_output: |
+      Complete state merging implementation:
+      - src/experience/MemoryMerger.ts (enhanced, ~400-500 lines)
+      - src/experience/SkillAccumulator.ts (~200-300 lines)
+      - src/experience/KnowledgeIntegrator.ts (~200-300 lines)
+      - src/experience/*.test.ts (comprehensive tests)
+      - Benchmarks for performance at various scales
+      - Clear documentation of limitations
+    
+    output_file: "src/experience/"
+    context: [
+      "src/experience/MemoryMerger.ts (current)",
+      "src/memory/EmbeddingService.ts",
+      "docs/current/memory/IMPLEMENTATION.md"
+    ]
+    
+    technology_requirements:
+      dependencies:
+        - "simple-statistics (Apache 2.0) - for aggregation"
+        - "lodash (MIT) - for utility functions"
+      
+      algorithms:
+        - name: "Jaccard Similarity"
+          complexity: "O(N²)"
+          limitation: "Lexical only, misses paraphrases"
+        
+        - name: "Embedding Similarity"
+          complexity: "O(N²)"
+          improvement: "+40% accuracy for semantic similarity"
+        
+        - name: "Skill Aggregation"
+          complexity: "O(N)"
+          approach: "Max proficiency across instances"
+        
+        - name: "Knowledge Verification"
+          complexity: "O(N)"
+          approach: "Byzantine threshold (>2/3 confidence)"
+    
+    acceptance_criteria:
+      - "Configurable similarity (Jaccard or embedding)"
+      - "Byzantine threshold enforced for knowledge"
+      - "Clear documentation of O(N²) limitation"
+      - "Tested with 100, 1000 memories"
+      - "Performance baseline established"
+    
+    priority: "CRITICAL"
+    estimated_hours: 40
+    dependencies: ["TASK-1.1.2"]
+
+  # ===== DevEx Engineer Tasks =====
+  
+  - id: "TASK-1.3.1"
+    description: |
+      Build Chrysalis CLI using commander.js with commands:
+      - chrysalis morph --agent <file> --type <mcp|multi_agent|orchestrated>
+      - chrysalis sync --instance <id> --agent <file> --protocol <streaming|lumped|checkin>
+      - chrysalis verify --agent <file>
+      - chrysalis evolution --agent <file> [--visualize]
+      - chrysalis configure [--embedded|--mcp]
+      
+      Add interactive prompts (inquirer), progress bars (ora), colored output
+      (chalk), and comprehensive help text.
+    
+    agent: "devex_engineer"
+    expected_output: |
+      Complete CLI implementation:
+      - src/cli/index.ts (main entry point)
+      - src/cli/commands/morph.ts
+      - src/cli/commands/sync.ts
+      - src/cli/commands/verify.ts
+      - src/cli/commands/evolution.ts
+      - src/cli/commands/configure.ts
+      - package.json with "bin" entry
+      - README.md CLI section
+      - man page or help documentation
+    
+    output_file: "src/cli/"
+    context: ["QUICK_START.md", "REVIEW_TEAMS_SESSION.md (Product feedback)"]
+    
+    technology_requirements:
+      dependencies:
+        - "commander (MIT) - CLI framework"
+        - "inquirer (MIT) - Interactive prompts"
+        - "chalk (MIT) - Terminal colors"
+        - "ora (MIT) - Spinners and progress"
+        - "cli-table3 (MIT) - Tables in terminal"
+    
+    acceptance_criteria:
+      - "All 5 commands functional"
+      - "Interactive prompts for complex operations"
+      - "Progress indicators for long operations"
+      - "Colored output (success=green, error=red)"
+      - "Comprehensive help (--help for all)"
+      - "Global options (--verbose, --config)"
+    
+    priority: "MEDIUM"
+    estimated_hours: 32
+    dependencies: ["TASK-1.2.1", "TASK-1.2.2", "TASK-1.2.4"]
+
+  - id: "TASK-1.3.2"
+    description: |
+      Generate comprehensive documentation from code:
+      - API reference from TypeScript (typedoc)
+      - 3 tutorials (beginner, intermediate, advanced)
+      - 10 code examples covering major use cases
+      - Troubleshooting guide
+      - FAQ
+      
+      Set up documentation site (vitepress or similar).
+    
+    agent: "devex_engineer"
+    expected_output: |
+      Complete documentation set:
+      - docs/api-reference/ (generated from TypeScript)
+      - docs/tutorials/01-getting-started.md
+      - docs/tutorials/02-agent-morphing.md
+      - docs/tutorials/03-multi-instance.md
+      - docs/examples/*.ts (10 working examples)
+      - docs/troubleshooting.md
+      - docs/faq.md
+      - Documentation site deployed
+    
+    output_file: "docs/"
+    
+    technology_requirements:
+      dependencies:
+        - "typedoc (Apache 2.0) - API doc generator"
+        - "vitepress (MIT) - Documentation site"
+        - "@vueuse/core (MIT) - Vue utilities for docs"
+    
+    acceptance_criteria:
+      - "API reference complete (all public APIs)"
+      - "3 tutorials tested and working"
+      - "10 examples functional"
+      - "Troubleshooting covers 10+ common issues"
+      - "Documentation site deployed"
+    
+    priority: "MEDIUM"
+    estimated_hours: 32
+    dependencies: ["TASK-1.2.1", "TASK-1.2.2", "TASK-1.2.3", "TASK-1.2.4"]
+
+  # ===== Integration Engineer Tasks =====
+  
+  - id: "TASK-1.4.1"
+    description: |
+      Implement MCP client integration for PatternResolver. Create
+      MCPClient class that:
+      - Connects to both MCP servers (cryptographic-primitives, distributed-structures)
+      - Implements health checking (ping/status)
+      - Implements circuit breaker pattern
+      - Handles connection failures gracefully
+      - Falls back to embedded patterns on failure
+      - Logs all MCP operations for observability
+      
+      Use @modelcontextprotocol/sdk for MCP protocol.
+    
+    agent: "integration_engineer"
+    expected_output: |
+      Complete MCP client implementation:
+      - src/fabric/MCPClient.ts (~400-500 lines)
+      - src/fabric/CircuitBreaker.ts (~200 lines)
+      - src/fabric/MCPClient.test.ts (~300 lines)
+      - Integration tests with actual MCP servers
+      - docs/technical/MCP-Integration.md
+    
+    output_file: "src/fabric/MCPClient.ts"
+    context: [
+      "mcp-servers/cryptographic-primitives/",
+      "mcp-servers/distributed-structures/",
+      "design/PatternResolver-Design.md"
+    ]
+    
+    technology_requirements:
+      dependencies:
+        - "@modelcontextprotocol/sdk (MIT) - MCP client library"
+        - "p-retry (MIT) - Retry logic"
+        - "opossum (Apache 2.0) - Circuit breaker"
+      
+      integration_points:
+        - service: "cryptographic-primitives MCP"
+          protocol: "MCP (stdio or HTTP)"
+          tools_used: ["hash", "verify_hash", "ed25519_sign", "ed25519_verify", "merkle_root"]
+          health_check: "ping tool or health endpoint"
+        
+        - service: "distributed-structures MCP"
+          protocol: "MCP (stdio or HTTP)"
+          tools_used: ["dag_topological_sort", "lamport_tick", "vote_supermajority"]
+          health_check: "ping tool or health endpoint"
+    
+    acceptance_criteria:
+      - "Connects to both MCP servers"
+      - "All MCP tools callable"
+      - "Health checking functional"
+      - "Circuit breaker prevents cascade failures"
+      - "Fallback to embedded works"
+      - "Integration tests pass with servers running"
+    
+    priority: "HIGH"
+    estimated_hours: 40
+    dependencies: ["TASK-1.2.1"]
+
+  # ===== QA Engineer Tasks =====
+  
+  - id: "TASK-1.5.1"
+    description: |
+      Set up comprehensive testing infrastructure:
+      - Jest configuration for unit and integration tests
+      - Coverage reporting (Istanbul)
+      - Test data factories
+      - Testcontainers for integration tests
+      - k6 for performance tests
+      - CI integration (GitHub Actions)
+      
+      Create testing documentation and guidelines.
+    
+    agent: "qa_engineer"
+    expected_output: |
+      Complete testing infrastructure:
+      - jest.config.js (configured for TypeScript)
+      - tests/setup.ts (test environment setup)
+      - tests/factories/ (test data factories)
+      - tests/helpers/ (test utilities)
+      - .github/workflows/test.yml (CI configuration)
+      - docs/testing/TESTING_GUIDE.md
+    
+    output_file: "tests/"
+    
+    technology_requirements:
+      testing_stack:
+        unit_integration:
+          - "jest (MIT) - Test runner"
+          - "ts-jest (MIT) - TypeScript support"
+          - "@testing-library/jest-dom (MIT) - Assertions"
+          - "testcontainers (MIT) - Docker containers in tests"
+        
+        performance:
+          - "k6 (AGPL) - Load testing"
+          - "autocannon (MIT) - HTTP benchmarking (alternative)"
+        
+        property_based:
+          - "fast-check (MIT) - Property-based testing"
+        
+        coverage:
+          - "istanbul / nyc (ISC) - Coverage reporting"
+    
+    acceptance_criteria:
+      - "Jest configured and working"
+      - "Coverage reports generated"
+      - "Test factories for common objects"
+      - "Testcontainers setup for MCP servers"
+      - "k6 scripts ready"
+      - "CI pipeline runs tests"
+    
+    priority: "CRITICAL"
+    estimated_hours: 16
+    dependencies: []
+
+  - id: "TASK-1.5.2"
+    description: |
+      Write comprehensive test suites covering:
+      - Unit tests for all core modules (>85% coverage)
+      - Integration tests for end-to-end flows
+      - Property tests for key invariants (lossless, idempotent, commutative)
+      - Performance tests for scalability validation
+      
+      Focus on critical paths: agent morphing, experience sync, state merging.
+    
+    agent: "qa_engineer"
+    expected_output: |
+      Comprehensive test coverage:
+      - tests/unit/**/*.test.ts (50+ test files)
+      - tests/integration/**/*.test.ts (10+ flows)
+      - tests/property/**/*.test.ts (5+ properties)
+      - tests/performance/**/*.k6.js (5+ scenarios)
+      - Coverage report showing >85%
+      - docs/testing/TEST_RESULTS.md
+    
+    output_file: "tests/"
+    
+    testing_scenarios:
+      unit_tests:
+        - "PatternResolver: context evaluation logic"
+        - "PatternResolver: graceful fallback"
+        - "Adapters: conversion correctness"
+        - "Adapters: validation rules"
+        - "MemoryMerger: Jaccard similarity"
+        - "MemoryMerger: embedding similarity"
+        - "MemoryMerger: deduplication logic"
+        - "SkillAccumulator: proficiency aggregation"
+        - "KnowledgeIntegrator: threshold verification"
+        - "All pattern modules"
+      
+      integration_tests:
+        - "E2E: Create Universal agent → Morph to MCP → Deploy → Restore → Verify"
+        - "E2E: Morph to Multi-Agent → Execute tasks → Sync → Restore"
+        - "E2E: Deploy 3 instances → Sync experiences → Merge state → Verify"
+        - "E2E: PatternResolver with MCP available"
+        - "E2E: PatternResolver with MCP unavailable (fallback)"
+      
+      property_tests:
+        - "Property: Lossless morphing (∀ agent: roundtrip(agent) === agent)"
+        - "Property: Idempotent merging (∀ state: merge(S, S) === S)"
+        - "Property: Commutative merging (merge(A,B) === merge(B,A))"
+        - "Property: Associative merging (merge(merge(A,B),C) === merge(A,merge(B,C)))"
+      
+      performance_tests:
+        - "Load: Morph 1000 agents, measure p50/p95/p99"
+        - "Load: Merge 100 experiences, measure time and memory"
+        - "Load: Sync 50 instances, measure convergence time"
+        - "Stress: Memory system with 1000 memories (Jaccard limit)"
+    
+    acceptance_criteria:
+      - "Unit test coverage >85%"
+      - "All integration tests pass"
+      - "Property tests validate key invariants"
+      - "Performance baselines documented"
+      - "No flaky tests"
+    
+    priority: "CRITICAL"
+    estimated_hours: 80
+    dependencies: ["TASK-1.5.1", "TASK-1.2.1", "TASK-1.2.2", "TASK-1.2.3", "TASK-1.2.4"]
+
+# =============================================================================
+# EXECUTION PLAN
+# =============================================================================
+
+execution_plan:
+  week_1:
+    - "TASK-1.1.1: Architect designs PatternResolver"
+    - "TASK-1.1.2: Architect refines UniversalAgentV2 schema"
+    - "TASK-1.5.1: QA sets up testing infrastructure (parallel)"
+  
+  week_2:
+    - "TASK-1.1.3: Architect designs API contracts"
+    - "TASK-1.2.1: Backend implements PatternResolver (starts)"
+  
+  week_3:
+    - "TASK-1.2.1: Backend completes PatternResolver"
+    - "TASK-1.2.2: Backend implements adapters (starts)"
+  
+  week_4:
+    - "TASK-1.2.2: Backend completes adapters"
+    - "TASK-1.2.3: Backend implements sync protocols (starts)"
+    - "TASK-1.4.1: Integration implements MCP client (starts, parallel)"
+  
+  week_5:
+    - "TASK-1.2.3: Backend completes sync protocols"
+    - "TASK-1.2.4: Backend implements state merging"
+    - "TASK-1.4.1: Integration completes MCP client"
+  
+  week_6:
+    - "TASK-1.3.1: DevEx builds CLI"
+    - "TASK-1.5.2: QA writes comprehensive tests"
+    - "TASK-1.3.2: DevEx generates documentation (starts)"
+  
+  week_7:
+    - "TASK-1.3.2: DevEx completes documentation"
+    - "TASK-1.5.2: QA completes testing (if needed)"
+    - "Final integration and validation"
+
+# =============================================================================
+# DELIVERABLES SUMMARY
+# =============================================================================
+
+deliverables_summary:
+  code_modules:
+    - "src/fabric/PatternResolver.ts + tests (~800 lines total)"
+    - "src/adapters/*.ts (3 adapters + base, ~1200 lines total)"
+    - "src/sync/*.ts (3 protocols, ~800 lines total)"
+    - "src/experience/*.ts (3 mergers enhanced, ~1000 lines total)"
+    - "src/fabric/MCPClient.ts + tests (~700 lines total)"
+    - "src/cli/*.ts (CLI interface, ~600 lines total)"
+  
+  documentation:
+    - "design/ (3 architecture docs)"
+    - "contracts/ (API specs)"
+    - "docs/api-reference/ (generated)"
+    - "docs/tutorials/ (3 tutorials)"
+    - "docs/examples/ (10 examples)"
+    - "docs/technical/ (5 technical docs)"
+  
+  tests:
+    - "tests/unit/**/*.test.ts (50+ files)"
+    - "tests/integration/**/*.test.ts (10+ files)"
+    - "tests/property/**/*.test.ts (5 files)"
+    - "tests/performance/**/*.k6.js (5 files)"
+  
+  total_lines_of_code: "~10,000 lines (code + tests + docs)"
+
+# =============================================================================
+# SUCCESS CRITERIA
+# =============================================================================
+
+success_criteria:
+  technical:
+    - "Build passes with 0 TypeScript errors"
+    - "All adapters achieve 100% lossless conversion"
+    - "PatternResolver supports both modes (embedded + MCP)"
+    - "Experience sync protocols functional"
+    - "State merging handles 1000 memories"
+    - "Test coverage >85%"
+  
+  quality:
+    - "ESLint: 0 errors"
+    - "Prettier: All files formatted"
+    - "TypeScript strict mode: passes"
+    - "No TODO/FIXME in production code"
+  
+  documentation:
+    - "API reference complete"
+    - "3 tutorials working"
+    - "10 examples functional"
+    - "CLI help comprehensive"
+  
+  performance:
+    - "PatternResolver overhead <0.5ms"
+    - "Adapter conversion <10ms"
+    - "Sync per instance <100ms"
+    - "Memory merge <100ms for 100 memories"
+
+# =============================================================================
+# OPEN SOURCE COMPLIANCE
+# =============================================================================
+
+open_source_compliance:
+  dependencies:
+    all_licenses: ["MIT", "Apache 2.0", "ISC", "BSD", "AGPL v3"]
+    license_compatibility: "All compatible with Apache 2.0 project"
+    attribution_file: "THIRD_PARTY_LICENSES.md"
+  
+  contribution_opportunities:
+    - "@noble/hashes - Report issues, contribute performance improvements"
+    - "graphlib - Report bugs, contribute DAG features"
+    - "@modelcontextprotocol/sdk - Contribute examples, bug fixes"
+    - "Jest - Contribute test utilities"
+  
+  community_engagement:
+    - "Blog post: 'Building Chrysalis with Open Source'"
+    - "Conference talk: 'Fractal Composition in Agent Architectures'"
+    - "Tutorial series: Open source agent infrastructure"
+
+# =============================================================================
+# RISK MITIGATION
+# =============================================================================
+
+risks:
+  - risk: "MCP SDK limitations"
+    probability: "LOW"
+    impact: "HIGH"
+    mitigation: "Test early, have fallback to embedded-only"
+    owner: "integration_engineer"
+  
+  - risk: "Test coverage target missed"
+    probability: "MEDIUM"
+    impact: "MEDIUM"
+    mitigation: "Start testing early, allocate extra time"
+    owner: "qa_engineer"
+  
+  - risk: "Performance targets not met"
+    probability: "LOW"
+    impact: "MEDIUM"
+    mitigation: "Benchmark continuously, optimize hot paths"
+    owner: "backend_engineer"
+
+# =============================================================================
+# DEFINITION OF DONE
+# =============================================================================
+
+definition_of_done:
+  - "All code committed to Git"
+  - "All tests passing in CI"
+  - "Test coverage >85% measured"
+  - "Documentation complete and reviewed"
+  - "CLI functional with all commands"
+  - "Performance benchmarks run and documented"
+  - "Code review completed (if team available)"
+  - "Security scan passed (Trivy, ESLint security rules)"
+  - "Demo recorded showing major features"
+
+---
+
+# Team 1 Status: READY FOR EXECUTION
+# Total Estimated Effort: ~450 hours (5 agents * 6 weeks)
+# Critical Path: Architect → Backend Engineer → QA
+# Parallel Work: DevEx, Integration can work in parallel after week 3

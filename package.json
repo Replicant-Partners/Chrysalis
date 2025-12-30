@@ -1,0 +1,67 @@
+{
+  "name": "chrysalis",
+  "version": "3.1.0",
+  "description": "Universal Agent Morphing System - Framework-transcendent agents built on universal patterns",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run test:unit && npm run test:mcp",
+    "test:unit": "jest --passWithNoTests",
+    "test:mcp": "npm run build:mcp && node --test mcp-servers/cryptographic-primitives/tests/*.js mcp-servers/distributed-structures/tests/*.js",
+    "build:mcp": "tsc -p mcp-servers/cryptographic-primitives/tsconfig.json && tsc -p mcp-servers/distributed-structures/tsconfig.json",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": [
+    "agent",
+    "morphing",
+    "crewai",
+    "elizaos",
+    "mcp",
+    "distributed-systems",
+    "crdt",
+    "gossip-protocol",
+    "byzantine-tolerance",
+    "universal-patterns"
+  ],
+  "author": "Chrysalis Project",
+  "license": "MIT",
+  "bin": {
+    "chrysalis": "dist/cli/chrysalis-cli.js",
+    "agent-morph": "dist/cli/agent-morph.js",
+    "agent-morph-v2": "dist/cli/agent-morph-v2.js"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.10.8",
+    "@grpc/proto-loader": "^0.7.10",
+    "@noble/curves": "^1.9.7",
+    "@noble/ed25519": "^2.3.0",
+    "@noble/hashes": "^1.8.0",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@xenova/transformers": "^2.15.0",
+    "commander": "^11.1.0",
+    "graphlib": "^2.1.8",
+    "simple-statistics": "^7.8.8"
+  },
+  "devDependencies": {
+    "@types/graphlib": "^2.1.12",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^25.0.3",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "type": "commonjs"
+}

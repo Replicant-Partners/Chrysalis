@@ -1,0 +1,20 @@
+syntax = "proto3";
+package cryptoprimitives;
+
+import "google/protobuf/struct.proto";
+
+service CryptoPrimitives {
+  rpc Hash(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc VerifyHash(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc MerkleRoot(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc MerkleProof(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc VerifyMerkleProof(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc Ed25519Keygen(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc Ed25519Sign(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc Ed25519Verify(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc RandomBytes(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc RandomInt(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc BLSKeygen(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc BLSSign(google.protobuf.Struct) returns (google.protobuf.Struct);
+  rpc BLSVerify(google.protobuf.Struct) returns (google.protobuf.Struct);
+}

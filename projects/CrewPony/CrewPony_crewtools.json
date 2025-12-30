@@ -1,0 +1,65 @@
+[
+  {
+    "name": "make_forecast",
+    "description": "Make a calibrated forecast with confidence level and reasoning.",
+    "arguments": [
+      {
+        "name": "prediction",
+        "type": "str",
+        "description": "What you're predicting"
+      },
+      {
+        "name": "confidence",
+        "type": "float",
+        "description": "Confidence level (0.0 to 1.0)"
+      },
+      {
+        "name": "category",
+        "type": "str",
+        "description": "Category of prediction (e.g., 'timeline', 'complexity', 'risk')"
+      },
+      {
+        "name": "reasoning",
+        "type": "str",
+        "description": "Your reasoning, including base rates and decomposition"
+      }
+    ]
+  },
+  {
+    "name": "assess_my_expertise",
+    "description": "Assess your own expertise level for a domain/task. Returns confidence level, known gaps, and recommendations.",
+    "arguments": [
+      {
+        "name": "domain",
+        "type": "str",
+        "description": "Domain of expertise (e.g., 'security', 'frontend_ui')"
+      },
+      {
+        "name": "task_description",
+        "type": "str",
+        "description": "Description of the task"
+      }
+    ]
+  },
+  {
+    "name": "improvement_kata_cycle",
+    "description": "Run an improvement kata cycle (target condition → current condition → obstacle → experiment).",
+    "arguments": [
+      {
+        "name": "target_condition",
+        "type": "str",
+        "description": "Desired future state"
+      },
+      {
+        "name": "current_observations",
+        "type": "dict",
+        "description": "Current state observations/data"
+      },
+      {
+        "name": "obstacle",
+        "type": "str",
+        "description": "Specific obstacle to address (optional)"
+      }
+    ]
+  }
+]

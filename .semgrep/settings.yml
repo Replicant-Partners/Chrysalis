@@ -1,0 +1,17 @@
+# Semgrep settings to prevent remote config download timeouts
+# This file configures Semgrep to work offline or with cached configs
+
+# Disable automatic config updates
+auto_update: false
+
+# Use local rules by default
+rules:
+  - .semgrep.yml
+
+# Disable telemetry and metrics that require network access
+anonymous_user_id: false
+send_metrics: false
+
+# Network timeout settings (in seconds)
+timeout: 30
+timeout_threshold: 10

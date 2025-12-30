@@ -1,0 +1,180 @@
+{
+  "team_id": "team_9",
+  "team_name": "Coordination & Project Management",
+  "description": "Orchestrate cross-team coordination, validate integrations, enforce quality gates",
+  "phase": "Continuous (Week 1-13)",
+  "agents": [
+    {
+      "id": "coordination_agent_1",
+      "name": "Sarah Rodriguez",
+      "role": "Project Orchestrator",
+      "expertise": ["Agile", "Sprint planning", "Dependency management", "Risk forecasting"],
+      "assignments": ["T9-001"],
+      "personality": {
+        "origin": "Project orchestrator who learned coordination is enablement, not control",
+        "mantra": "Orchestration is enablement. Coordination is collaboration. I trust teams.",
+        "obsession": "Dependency tracking database with visual maps - reduces handoff confusion by 50%"
+      }
+    },
+    {
+      "id": "coordination_agent_2",
+      "name": "Marcus Chen",
+      "role": "Integration Specialist",
+      "expertise": ["API integration testing", "Contract validation", "Integration patterns"],
+      "assignments": ["T9-002"],
+      "personality": {
+        "origin": "Integration specialist who prevents failure by testing every handoff proactively",
+        "mantra": "Integration isn't afterthought - it's design principle. Test every handoff.",
+        "obsession": "Integration test suite - validates 4 gates throughout MVP"
+      }
+    },
+    {
+      "id": "coordination_agent_3",
+      "name": "Elena Foster",
+      "role": "Quality Gatekeeper",
+      "expertise": ["CI/CD", "Quality metrics", "Test coverage", "Security scanning"],
+      "assignments": ["T9-003"],
+      "personality": {
+        "origin": "Quality engineer who measures everything and blocks releases until criteria met",
+        "mantra": "Quality is measurable. Gates are non-negotiable. Coverage increases or we don't ship.",
+        "obsession": "Quality metrics dashboard - tracks coverage progression: 80% → 85% → 90% → 90%"
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T9-001",
+      "title": "Sprint Planning & Daily Coordination",
+      "week": "1-13",
+      "frequency": "Continuous",
+      "priority": "P0_CRITICAL",
+      "agent": "coordination_agent_1",
+      "description": "Facilitate sprint planning (every Monday 9am) and daily standups (every day 10am)",
+      "deliverables": [
+        "docs/coordination/sprint_plans/ (13 weekly sprint plans)",
+        "docs/coordination/standup_logs/ (60+ daily standup notes)",
+        "docs/coordination/week_reviews/ (13 Friday demo summaries)",
+        "GitHub Projects board (37 tasks tracked)",
+        "docs/coordination/risk_register.md (Top 5 risks updated weekly)",
+        "docs/coordination/progress_dashboard.md (Burn-down charts, velocity)"
+      ],
+      "success_criteria": [
+        "13 Monday sprint plannings conducted",
+        "60+ daily standups (Mon-Fri, 12 weeks)",
+        "13 Friday reviews completed",
+        "All 37 tasks tracked and updated",
+        "<3 major blockers lasting >2 days"
+      ],
+      "confidence": 95,
+      "dependencies": []
+    },
+    {
+      "id": "T9-002",
+      "title": "Integration Gate Validation",
+      "week": "2, 5, 10, 13",
+      "frequency": "4 Gates",
+      "priority": "P0_CRITICAL",
+      "agent": "coordination_agent_2",
+      "description": "Validate integration points at 4 critical gates: Foundation (Week 2), API (Week 5), Creative Loop (Week 10), MVP (Week 13)",
+      "deliverables": [
+        "docs/coordination/gate_1_week2.md (Foundation validation)",
+        "docs/coordination/gate_2_week5.md (API layer validation)",
+        "docs/coordination/gate_3_week10.md (Creative loop validation)",
+        "docs/coordination/gate_4_week13.md (MVP validation)",
+        "tests/integration/gate_tests/ (Integration test suites)",
+        "docs/coordination/integration_issues.md (Issues found, resolutions)"
+      ],
+      "success_criteria": [
+        "All 4 gates completed on schedule (±1 week acceptable)",
+        "Go decision made at each gate",
+        "Integration issues found <5 per gate",
+        "All gate validations documented"
+      ],
+      "confidence": 85,
+      "dependencies": [],
+      "gates": [
+        {
+          "gate": 1,
+          "week": 2,
+          "name": "Foundation Complete",
+          "validates": ["SQLite3 fix", "DI refactor", "Type hints", "Model versioning", "HW cache"]
+        },
+        {
+          "gate": 2,
+          "week": 5,
+          "name": "API Layer Complete",
+          "validates": ["FastAPI 15+ endpoints", "JWT auth", "Search fix", "Saga pattern", "Frontend integration"]
+        },
+        {
+          "gate": 3,
+          "week": 10,
+          "name": "Creative Loop Complete",
+          "validates": ["Stable Diffusion", "Creative loop engine", "Async processing", "WebSocket", "E2E loop test"]
+        },
+        {
+          "gate": 4,
+          "week": 13,
+          "name": "MVP Complete",
+          "validates": ["All 37 tasks", "E2E tests", "Performance tests", "Accessibility", "User testing"]
+        }
+      ]
+    },
+    {
+      "id": "T9-003",
+      "title": "Quality Gate Enforcement",
+      "week": "2, 5, 10, 13",
+      "frequency": "4 Gates",
+      "priority": "P0_CRITICAL",
+      "agent": "coordination_agent_3",
+      "description": "Enforce quality criteria at each gate: type coverage, test coverage, performance, security",
+      "deliverables": [
+        ".github/workflows/quality_gate.yml (Automated CI/CD checks)",
+        "docs/quality/gate_1_week2_report.md (Foundation quality)",
+        "docs/quality/gate_2_week5_report.md (API quality)",
+        "docs/quality/gate_3_week10_report.md (Creative loop quality)",
+        "docs/quality/gate_4_week13_report.md (MVP quality)",
+        "docs/quality/metrics_dashboard.md (Coverage, bugs, performance trends)",
+        "docs/quality/quality_criteria.md (Detailed criteria)"
+      ],
+      "success_criteria": [
+        "All 4 quality gates pass",
+        "No P0 bugs at any gate",
+        "Code coverage increases (80% → 85% → 90% → 90%)",
+        "Zero critical security vulnerabilities"
+      ],
+      "confidence": 90,
+      "dependencies": [],
+      "quality_criteria": [
+        {
+          "gate": 1,
+          "week": 2,
+          "criteria": ["mypy --strict: 0 errors", "pytest: >80% coverage", "All critical tests pass", "No P0 bugs", "All PRs reviewed"]
+        },
+        {
+          "gate": 2,
+          "week": 5,
+          "criteria": ["OpenAPI docs complete", "Postman: 100% pass", "API response <200ms (p95)", "pytest: >85% coverage", "JWT working, no vulnerabilities"]
+        },
+        {
+          "gate": 3,
+          "week": 10,
+          "criteria": ["Creative loop: 90% success", "Loop <120s", "Accessibility score >85", "pytest: >90% coverage", "No P0/P1 bugs"]
+        },
+        {
+          "gate": 4,
+          "week": 13,
+          "criteria": ["E2E tests: 100% pass", "Performance tests pass", "WCAG 2.1 AA", "User satisfaction >80%", "Documentation complete", "pytest: >90% coverage", "No P0 bugs, <5 P1 bugs"]
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_tasks": 3,
+    "total_agents": 3,
+    "weeks": "1-13",
+    "continuous_task": "T9-001 (Sprint planning, daily standups)",
+    "gate_tasks": "T9-002 (Integration), T9-003 (Quality)",
+    "gates": 4,
+    "estimated_completion": "Continuous through Week 13"
+  }
+}

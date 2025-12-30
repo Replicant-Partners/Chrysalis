@@ -1,0 +1,498 @@
+/**
+ * Experience Sync Manager - Coordinate experience synchronization
+ * 
+ * Manages streaming, lumped, and check-in sync protocols for
+ * continuous learning from deployed instances.
+ */
+
+import type {
+  UniversalAgentV2,
+  ExperienceEvent,
+  ExperienceBatch,
+  SyncResult,
+  SyncProtocol,
+  ExperienceSyncConfig,
+  ExperienceTransportConfig,
+  ExperienceTransportType
+} from '../core/UniversalAgentV2';
+import { StreamingSync } from './StreamingSync';
+import { LumpedSync } from './LumpedSync';
+import { CheckInSync } from './CheckInSync';
+import { MemoryMerger } from '../experience/MemoryMerger';
+import { SkillAccumulator } from '../experience/SkillAccumulator';
+import { KnowledgeIntegrator } from '../experience/KnowledgeIntegrator';
+import { createExperienceTransport, ExperienceTransport, TransportPayload } from './ExperienceTransport';
+
+/**
+ * Sync status
+ */
+export interface SyncStatus {
+  instance_id: string;
+  protocol: SyncProtocol;
+  transport_type: ExperienceTransportType;
+  transport_endpoint?: string;
+  last_sync: string;
+  next_sync: string;
+  backlog_size: number;
+  is_syncing: boolean;
+  error: string | null;
+}
+
+/**
+ * Merge result
+ */
+export interface MergeResult {
+  merged_at: string;
+  memories_added: number;
+  memories_updated: number;
+  memories_deduplicated: number;
+  
+  skills_added: number;
+  skills_updated: number;
+  skills_removed: number;
+  
+  knowledge_added: number;
+  knowledge_verified: number;
+  
+  conflicts: {
+    total: number;
+    resolved: number;
+    queued: number;
+  };
+}
+
+/**
+ * Experience Sync Manager
+ */
+export class ExperienceSyncManager {
+  private streamingSync: StreamingSync;
+  private lumpedSync: LumpedSync;
+  private checkInSync: CheckInSync;
+  
+  private memoryMerger: MemoryMerger;
+  private skillAccumulator: SkillAccumulator;
+  private knowledgeIntegrator: KnowledgeIntegrator;
+  
+  private syncStatus: Map<string, SyncStatus> = new Map();
+  private transports: Map<string, ExperienceTransport> = new Map();
+  private sourceAgents: Map<string, UniversalAgentV2> = new Map();
+  
+  constructor() {
+    this.streamingSync = new StreamingSync();
+    this.lumpedSync = new LumpedSync();
+    this.checkInSync = new CheckInSync();
+    
+    this.memoryMerger = new MemoryMerger();
+    this.skillAccumulator = new SkillAccumulator();
+    this.knowledgeIntegrator = new KnowledgeIntegrator();
+  }
+  
+  /**
+   * Initialize sync for instance
+   */
+  async initializeSync(
+    instanceId: string,
+    protocol: SyncProtocol,
+    config: ExperienceSyncConfig,
+    sourceAgent?: UniversalAgentV2,
+    syncEndpoint?: string,
+    overrideTransport?: ExperienceTransportConfig
+  ): Promise<void> {
+    console.log(`Initializing ${protocol} sync for instance ${instanceId}...`);
+    
+    if (sourceAgent) {
+      this.sourceAgents.set(instanceId, sourceAgent);
+    }
+    
+    const transportConfig = this.resolveTransportConfig(
+      config,
+      syncEndpoint,
+      overrideTransport
+    );
+    
+    const transport = createExperienceTransport(
+      instanceId,
+      transportConfig,
+      async (payload: TransportPayload) => this.handleTransportDelivery(payload)
+    );
+    
+    this.transports.set(instanceId, transport);
+    
+    const status: SyncStatus = {
+      instance_id: instanceId,
+      protocol,
+      transport_type: transportConfig.type,
+      transport_endpoint: this.getTransportEndpoint(transportConfig),
+      last_sync: new Date().toISOString(),
+      next_sync: this.calculateNextSync(protocol, config),
+      backlog_size: 0,
+      is_syncing: false,
+      error: null
+    };
+    
+    this.syncStatus.set(instanceId, status);
+    
+    // Initialize protocol-specific sync
+    switch (protocol) {
+      case 'streaming':
+        if (config.streaming?.enabled) {
+          await this.streamingSync.initialize(
+            instanceId,
+            config.streaming,
+            async (events) => this.sendStreamingEvents(instanceId, events)
+          );
+        }
+        break;
+      
+      case 'lumped':
+        if (config.lumped?.enabled) {
+          await this.lumpedSync.initialize(instanceId, config.lumped);
+        }
+        break;
+      
+      case 'check_in':
+        if (config.check_in?.enabled) {
+          await this.checkInSync.initialize(instanceId, config.check_in);
+        }
+        break;
+    }
+    
+    console.log(`✓ Sync initialized`);
+  }
+  
+  /**
+   * Stream single event (real-time)
+   */
+  async streamEvent(
+    instanceId: string,
+    event: ExperienceEvent
+  ): Promise<void> {
+    const status = this.syncStatus.get(instanceId);
+    if (!status || status.protocol !== 'streaming') {
+      throw new Error(`Instance ${instanceId} not configured for streaming`);
+    }
+    
+    await this.streamingSync.streamEvent(instanceId, event);
+    
+    status.backlog_size++;
+  }
+  
+  /**
+   * Send batch (lumped sync)
+   */
+  async sendBatch(
+    instanceId: string,
+    batch: ExperienceBatch
+  ): Promise<{ batch_id: string; processed: boolean }> {
+    const status = this.syncStatus.get(instanceId);
+    if (!status || status.protocol !== 'lumped') {
+      throw new Error(`Instance ${instanceId} not configured for lumped sync`);
+    }
+    
+    console.log(`Processing batch from instance ${instanceId}...`);
+    console.log(`  Events: ${batch.event_count}`);
+    console.log(`  Time range: ${batch.timestamp_start} → ${batch.timestamp_end}`);
+    
+    const result = await this.lumpedSync.processBatch(instanceId, batch);
+    const transport = this.transports.get(instanceId);
+    if (transport) {
+      await transport.sendBatch(instanceId, batch);
+    }
+    
+    status.last_sync = new Date().toISOString();
+    status.backlog_size = 0;
+    status.next_sync = this.calculateNextSync(status.protocol, {} as any);
+    
+    return {
+      batch_id: batch.batch_id,
+      processed: true
+    };
+  }
+  
+  /**
+   * Handle check-in
+   */
+  async checkIn(
+    instanceId: string,
+    state: any
+  ): Promise<MergeResult> {
+    const status = this.syncStatus.get(instanceId);
+    if (!status || status.protocol !== 'check_in') {
+      throw new Error(`Instance ${instanceId} not configured for check-in sync`);
+    }
+    
+    const transport = this.transports.get(instanceId);
+    if (transport) {
+      await transport.sendCheckIn(instanceId, state);
+    }
+    
+    console.log(`Processing check-in from instance ${instanceId}...`);
+    
+    const result = await this.checkInSync.processCheckIn(instanceId, state);
+    
+    status.last_sync = new Date().toISOString();
+    status.backlog_size = 0;
+    status.next_sync = this.calculateNextSync(status.protocol, {} as any);
+    
+    return result;
+  }
+  
+  /**
+   * Process sync event and merge into source agent
+   */
+  async receiveSyncEvent(
+    instanceId: string,
+    sourceAgent: UniversalAgentV2,
+    event: ExperienceEvent
+  ): Promise<void> {
+    switch (event.event_type) {
+      case 'memory':
+        await this.memoryMerger.addMemory(sourceAgent, event.data, instanceId);
+        break;
+      
+      case 'skill':
+        await this.skillAccumulator.updateSkill(sourceAgent, event.data, instanceId);
+        break;
+      
+      case 'knowledge':
+        await this.knowledgeIntegrator.addKnowledge(sourceAgent, event.data, instanceId);
+        break;
+      
+      case 'characteristic':
+        await this.updateCharacteristic(sourceAgent, event.data, instanceId);
+        break;
+    }
+  }
+  
+  /**
+   * Merge experiences from batch
+   */
+  async mergeExperienceBatch(
+    sourceAgent: UniversalAgentV2,
+    batch: ExperienceBatch
+  ): Promise<MergeResult> {
+    console.log(`Merging experience batch from ${batch.instance_id}...`);
+    
+    const result: MergeResult = {
+      merged_at: new Date().toISOString(),
+      memories_added: 0,
+      memories_updated: 0,
+      memories_deduplicated: 0,
+      skills_added: 0,
+      skills_updated: 0,
+      skills_removed: 0,
+      knowledge_added: 0,
+      knowledge_verified: 0,
+      conflicts: {
+        total: 0,
+        resolved: 0,
+        queued: 0
+      }
+    };
+    
+    // Merge memories
+    if (batch.events.memories.length > 0) {
+      const memoryResult = await this.memoryMerger.mergeBatch(
+        sourceAgent,
+        batch.events.memories,
+        batch.instance_id
+      );
+      result.memories_added = memoryResult.added;
+      result.memories_updated = memoryResult.updated;
+      result.memories_deduplicated = memoryResult.deduplicated;
+    }
+    
+    // Accumulate skills
+    if (batch.events.skills.length > 0) {
+      const skillResult = await this.skillAccumulator.accumulateSkills(
+        sourceAgent,
+        batch.events.skills,
+        batch.instance_id
+      );
+      result.skills_added = skillResult.added;
+      result.skills_updated = skillResult.updated;
+    }
+    
+    // Integrate knowledge
+    if (batch.events.knowledge.length > 0) {
+      const knowledgeResult = await this.knowledgeIntegrator.integrate(
+        sourceAgent,
+        batch.events.knowledge,
+        batch.instance_id
+      );
+      result.knowledge_added = knowledgeResult.added;
+      result.knowledge_verified = knowledgeResult.verified;
+    }
+    
+    // Update metadata
+    if (!sourceAgent.metadata.evolution) {
+      sourceAgent.metadata.evolution = {
+        total_deployments: 0,
+        total_syncs: 0,
+        total_skills_learned: 0,
+        total_knowledge_acquired: 0,
+        total_conversations: 0,
+        last_evolution: new Date().toISOString(),
+        evolution_rate: 0
+      };
+    }
+    
+    sourceAgent.metadata.evolution.total_syncs++;
+    sourceAgent.metadata.evolution.total_skills_learned += result.skills_added;
+    sourceAgent.metadata.evolution.total_knowledge_acquired += result.knowledge_added;
+    sourceAgent.metadata.evolution.last_evolution = new Date().toISOString();
+    
+    console.log(`✓ Merge complete`);
+    console.log(`  Memories: +${result.memories_added}`);
+    console.log(`  Skills: +${result.skills_added}`);
+    console.log(`  Knowledge: +${result.knowledge_added}`);
+    
+    return result;
+  }
+  
+  /**
+   * Get sync status
+   */
+  getSyncStatus(instanceId: string): SyncStatus | null {
+    return this.syncStatus.get(instanceId) || null;
+  }
+  
+  /**
+   * Get sync backlog size
+   */
+  getSyncBacklog(instanceId: string): number {
+    return this.syncStatus.get(instanceId)?.backlog_size || 0;
+  }
+  
+  // Helper methods
+  private async sendStreamingEvents(
+    instanceId: string,
+    events: ExperienceEvent[]
+  ): Promise<void> {
+    const transport = this.transports.get(instanceId);
+    if (!transport) {
+      console.warn(`No transport configured for ${instanceId}, dropping streaming events`);
+      return;
+    }
+    await transport.sendEvents(instanceId, events);
+  }
+  
+  private async handleTransportDelivery(payload: TransportPayload): Promise<void> {
+    const sourceAgent = this.sourceAgents.get(payload.instanceId);
+    if (!sourceAgent) {
+      return;
+    }
+    
+    switch (payload.kind) {
+      case 'events':
+        for (const event of payload.events) {
+          await this.receiveSyncEvent(payload.instanceId, sourceAgent, event);
+        }
+        break;
+      case 'batch':
+        await this.mergeExperienceBatch(sourceAgent, payload.batch);
+        break;
+      case 'check_in':
+        await this.checkInSync.processCheckIn(payload.instanceId, payload.state);
+        break;
+    }
+  }
+  
+  private resolveTransportConfig(
+    config: ExperienceSyncConfig,
+    syncEndpoint?: string,
+    overrideTransport?: ExperienceTransportConfig
+  ): ExperienceTransportConfig {
+    if (overrideTransport) return overrideTransport;
+    
+    if (config.transport) {
+      // Ensure https endpoint uses sync endpoint if provided
+      if (config.transport.type === 'https' && syncEndpoint) {
+        return {
+          ...config.transport,
+          https: {
+            endpoint: config.transport.https?.endpoint || syncEndpoint,
+            auth_token: config.transport.https?.auth_token,
+            headers: config.transport.https?.headers,
+            verify_tls: config.transport.https?.verify_tls
+          }
+        };
+      }
+      return config.transport;
+    }
+    
+    // Default: HTTPS using provided sync endpoint
+    return {
+      type: 'https',
+      https: {
+        endpoint: syncEndpoint || 'https://localhost:8443/sync'
+      }
+    };
+  }
+  
+  private getTransportEndpoint(config: ExperienceTransportConfig): string | undefined {
+    switch (config.type) {
+      case 'https':
+        return config.https?.endpoint;
+      case 'websocket':
+        return config.websocket?.url;
+      case 'mcp':
+        return config.mcp?.server;
+      default:
+        return undefined;
+    }
+  }
+  
+  private calculateNextSync(protocol: SyncProtocol, config: ExperienceSyncConfig): string {
+    switch (protocol) {
+      case 'streaming':
+        // Streaming is continuous, next sync is immediate
+        return new Date(Date.now() + (config.streaming?.interval_ms || 500)).toISOString();
+      
+      case 'lumped':
+        // Parse interval (e.g., "1h" → 3600000ms)
+        const interval = this.parseDuration(config.lumped?.batch_interval || '1h');
+        return new Date(Date.now() + interval).toISOString();
+      
+      case 'check_in':
+        // Parse cron schedule to next occurrence
+        // Simplified: assume hourly for now
+        return new Date(Date.now() + 60 * 60 * 1000).toISOString();
+      
+      default:
+        return new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    }
+  }
+  
+  private parseDuration(duration: string): number {
+    const match = duration.match(/^(\d+)(ms|s|m|h|d)$/);
+    if (!match) return 3600000; // Default 1 hour
+    
+    const [, value, unit] = match;
+    const num = parseInt(value, 10);
+    
+    switch (unit) {
+      case 'ms': return num;
+      case 's': return num * 1000;
+      case 'm': return num * 60 * 1000;
+      case 'h': return num * 60 * 60 * 1000;
+      case 'd': return num * 24 * 60 * 60 * 1000;
+      default: return 3600000;
+    }
+  }
+  
+  private async updateCharacteristic(
+    agent: UniversalAgentV2,
+    data: any,
+    instanceId: string
+  ): Promise<void> {
+    // Update personality traits based on accumulated evidence
+    console.log(`Updating characteristic from instance ${instanceId}`);
+    
+    if (data.trait && data.new_value !== undefined) {
+      // This would update personality traits
+      // For now, just log
+      console.log(`  Trait ${data.trait}: ${data.old_value} → ${data.new_value}`);
+    }
+  }
+}

@@ -1,0 +1,190 @@
+# Elder-Relevant Photo Analysis Prompts
+# Optimized for family photo understanding and memory preservation
+# Based on elder user research and photo analysis requirements
+
+# Primary Analysis Prompts
+family_photo_description:
+  prompt: |
+    Describe this family photo in detail, focusing on people and relationships. 
+    Pay special attention to:
+    - Number of people and their approximate ages
+    - Relationships between people (family members, friends)
+    - Clothing styles and time period indicators
+    - Setting and location (indoor/outdoor, home/event)
+    - Emotional context and interactions
+    - Any special occasions or celebrations visible
+    
+    Format your response to help someone remember and organize their family photos.
+  
+  context: "family_analysis"
+  priority: "high"
+  elder_optimized: true
+
+event_identification:
+  prompt: |
+    What event is happening in this photo? Consider:
+    - Birthday celebrations (cakes, candles, party decorations)
+    - Holidays (Christmas trees, Halloween costumes, Easter eggs)
+    - Weddings (formal wear, bouquets, ceremonies)
+    - Graduations (caps and gowns, diplomas)
+    - Vacations (travel destinations, tourist locations)
+    - Family gatherings (large groups, multiple generations)
+    - Everyday moments (meals, playing, working)
+    
+    If you can't identify a specific event, describe the general activity or occasion.
+  
+  context: "event_detection"
+  priority: "high"
+  elder_optimized: true
+
+time_period_analysis:
+  prompt: |
+    What time period does this photo appear to be from? Look for clues like:
+    - Photography style (black and white, color quality, digital vs film)
+    - Clothing fashions and hairstyles
+    - Technology visible (cars, phones, appliances)
+    - Background elements (architecture, furniture, decorations)
+    - Photo quality and format
+    
+    Provide an estimated decade or era, and explain your reasoning.
+  
+  context: "temporal_analysis"
+  priority: "medium"
+  elder_optimized: true
+
+people_relationships:
+  prompt: |
+    Who are the people in this photo and how might they be related? Consider:
+    - Age differences suggesting parent-child relationships
+    - Similar facial features indicating family members
+    - Body language and positioning showing closeness
+    - Formal vs casual interactions
+    - Group dynamics and who's positioned centrally
+    
+    Describe the likely relationships without making assumptions about specific identities.
+  
+  context: "relationship_analysis"
+  priority: "high"
+  elder_optimized: true
+
+# Secondary Analysis Prompts
+location_setting:
+  prompt: |
+    Describe the location and setting of this photo:
+    - Indoor or outdoor setting
+    - Type of location (home, restaurant, park, church, etc.)
+    - Architectural or environmental details
+    - Regional or cultural indicators
+    - Season or weather conditions visible
+  
+  context: "location_analysis"
+  priority: "medium"
+  elder_optimized: true
+
+emotion_mood:
+  prompt: |
+    What is the emotional tone and mood of this photo?
+    - Are people smiling, laughing, serious, or contemplative?
+    - Does this appear to be a happy, sad, or neutral occasion?
+    - What emotions are conveyed through body language and expressions?
+    - Is this a formal or casual moment?
+  
+  context: "emotion_analysis"
+  priority: "medium"
+  elder_optimized: true
+
+special_details:
+  prompt: |
+    What special or unique details make this photo memorable?
+    - Unusual objects or decorations
+    - Pets or animals present
+    - Handwritten text or signs visible
+    - Interesting backgrounds or scenery
+    - Cultural or religious elements
+    - Anything that makes this photo stand out
+  
+  context: "detail_analysis"
+  priority: "low"
+  elder_optimized: true
+
+# Search and Organization Prompts
+search_keywords:
+  prompt: |
+    Generate search keywords that would help someone find this photo later:
+    - People categories (family, children, adults, elderly)
+    - Events (birthday, wedding, vacation, holiday)
+    - Locations (home, outdoors, travel, workplace)
+    - Time periods (1950s, 1980s, recent)
+    - Emotions (happy, celebration, formal, casual)
+    
+    Provide 5-10 relevant keywords.
+  
+  context: "search_optimization"
+  priority: "high"
+  elder_optimized: true
+
+organization_tags:
+  prompt: |
+    Suggest organizational tags for this photo that would help with album creation:
+    - Decade tags (1950s, 1960s, etc.)
+    - Event tags (birthdays, holidays, vacations)
+    - People tags (family, friends, children, adults)
+    - Location tags (home, travel, outdoors, special places)
+    - Quality tags (favorite, important, everyday)
+  
+  context: "organization"
+  priority: "medium"
+  elder_optimized: true
+
+# Historical Photo Specific Prompts
+historical_photo_analysis:
+  prompt: |
+    This appears to be an older photograph. Please analyze:
+    - Estimated time period based on visual clues
+    - Photography techniques used (studio portrait, candid, etc.)
+    - Clothing and fashion indicators of the era
+    - Historical context that might be relevant
+    - Condition and preservation notes
+    - Cultural or social elements of the time period
+  
+  context: "historical_analysis"
+  priority: "high"
+  elder_optimized: true
+  historical_focus: true
+
+# Quality and Technical Analysis
+photo_quality_assessment:
+  prompt: |
+    Assess the technical quality and condition of this photo:
+    - Overall image clarity and sharpness
+    - Color quality (if color photo) or contrast (if black and white)
+    - Any damage, fading, or deterioration visible
+    - Lighting and exposure quality
+    - Composition and framing
+    - Recommendations for preservation or restoration
+  
+  context: "quality_analysis"
+  priority: "low"
+  elder_optimized: true
+
+# Configuration Settings
+settings:
+  max_response_length: 500
+  confidence_threshold: 0.7
+  elder_language_style: "clear_and_descriptive"
+  avoid_technical_jargon: true
+  focus_on_memories: true
+  cultural_sensitivity: true
+  
+# Model-Specific Parameters
+model_parameters:
+  llava:
+    temperature: 0.3              # Lower temperature for consistent descriptions
+    max_tokens: 400               # Adequate length for detailed descriptions
+    top_p: 0.9                    # Focused but not overly restrictive
+    elder_context_weight: 1.2     # Boost elder-relevant content
+  
+  clip:
+    similarity_threshold: 0.75    # High threshold for accurate matching
+    embedding_normalization: true # Normalize embeddings for consistency
+    elder_query_boost: 1.1        # Slight boost for elder-relevant queries

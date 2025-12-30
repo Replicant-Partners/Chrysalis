@@ -1,0 +1,17 @@
+# Chrysalis Memory System - Dependencies
+# Pattern-based agent memory built on universal distributed systems principles
+
+# Core Cryptography (Pattern #1 + #2)
+cryptography>=41.0.0  # Ed25519 signatures, SHA-384 hashing
+
+# Optional: For production deployments
+# aiohttp>=3.9.0  # Async HTTP for gossip protocol
+# pydantic>=2.0.0  # Data validation
+# pytest>=7.0.0  # Testing
+
+# Note: All patterns (#1-#10) implemented with minimal dependencies
+# Additional libraries can be added for:
+# - Vector embeddings (openai, sentence-transformers)
+# - Vector storage (chromadb, faiss-cpu)
+# - Graph operations (networkx) for DAG visualization
+# - CRDT libraries (pycrdt) if needed beyond our implementations

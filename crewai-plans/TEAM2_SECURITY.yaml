@@ -1,0 +1,868 @@
+# Chrysalis Team 2: Security & Cryptography - CrewAI Configuration
+# Mission: Harden security, implement threat mitigations, key management, Byzantine resistance
+# Timeline: Phase 1 (Weeks 1-6, parallel with Team 1)
+# Dependencies: Requires Team 1 components for integration
+
+crew_configuration:
+  name: "Security & Cryptography"
+  process: "sequential"  # Architect → Implementation → Testing → Compliance
+  verbose: true
+  memory: true
+  cache: true
+  planning: true
+  
+  success_metrics:
+    - "Threat model documented (7+ threats)"
+    - "Sybil resistance implemented and tested"
+    - "Key rotation functional"
+    - "100+ security test scenarios passing"
+    - "Audit logging operational"
+    - "0 critical security vulnerabilities"
+
+# =============================================================================
+# AGENTS
+# =============================================================================
+
+agents:
+  - id: "security_architect"
+    role: "Principal Security Architect"
+    goal: |
+      Design comprehensive security architecture for Chrysalis including
+      threat model, attack surface analysis, defense-in-depth strategy,
+      cryptographic identity verification, Byzantine resistance, key
+      management lifecycle, and security monitoring using open source tools.
+    
+    backstory: |
+      Security architect with 12+ years in cryptographic systems and distributed
+      security. Expert in threat modeling (STRIDE, PASTA), attack surface
+      analysis, and defense-in-depth. Deep knowledge of @noble/* cryptographic
+      libraries (audited implementations), Byzantine fault tolerance, and
+      zero-trust architectures. CISSP, OSCP, and CEH certified. Previously
+      designed security for blockchain systems (Ethereum, Hedera) and multi-tenant
+      SaaS platforms. Published research on Byzantine-resistant systems.
+      Strong advocate for "security by design" not "security as afterthought."
+      Expert in OWASP Top 10, CWE/SANS Top 25, and NIST frameworks.
+    
+    verbose: true
+    allow_delegation: true
+    
+    tools:
+      - name: "threat_modeling_tool"
+        description: "Create threat models (STRIDE analysis)"
+      
+      - name: "attack_tree_generator"
+        description: "Generate attack trees"
+      
+      - name: "security_control_mapper"
+        description: "Map controls to threats"
+      
+      - name: "compliance_checker"
+        description: "Check compliance requirements"
+    
+    memory_enabled: true
+    max_iterations: 15
+
+  - id: "crypto_engineer"
+    role: "Applied Cryptography Engineer"
+    goal: |
+      Implement all cryptographic operations (identity, signatures, key
+      derivation, encryption) using audited open source libraries (@noble/*).
+      Implement Sybil resistance, key rotation, and ensure cryptographic
+      correctness through comprehensive testing.
+    
+    backstory: |
+      Cryptographic engineer with deep expertise in @noble/* libraries,
+      elliptic curve cryptography (Ed25519, BLS), and secure implementation
+      practices. Specialist in side-channel resistance, constant-time operations,
+      and cryptographic testing. Previously audited cryptographic code for
+      security firms (Trail of Bits, NCC Group). Strong advocate for minimal
+      dependencies and audited implementations. Expert in timing-safe comparison,
+      secure random generation, and key derivation functions. Contributed to
+      @noble/curves and @noble/hashes. Believes cryptography is hard and
+      should only use proven, audited libraries.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "crypto_test_runner"
+        description: "Run cryptographic test vectors"
+      
+      - name: "side_channel_analyzer"
+        description: "Detect timing vulnerabilities"
+      
+      - name: "crypto_validator"
+        description: "Validate crypto implementations"
+    
+    memory_enabled: true
+    max_iterations: 20
+
+  - id: "security_tester"
+    role: "Offensive Security Engineer"
+    goal: |
+      Test Chrysalis security through penetration testing, fuzzing, and
+      adversarial scenarios. Validate Byzantine resistance, attempt to
+      break cryptographic implementations, and ensure exploit mitigations
+      work using open source security testing tools.
+    
+    backstory: |
+      Offensive security engineer (ethical hacker) with expertise in penetration
+      testing, fuzzing, and red team operations. Expert in security testing
+      tools (AFL, libFuzzer, Burp Suite, OWASP ZAP). Previously found
+      vulnerabilities in major open source projects (responsibly disclosed).
+      Strong knowledge of cryptographic vulnerabilities (timing attacks,
+      padding oracle, etc.) and distributed system attacks (eclipse, Sybil,
+      Byzantine). Holds OSCP and GPEN certifications. Believes the best
+      security is tested security—must try to break it.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "fuzzing_tool"
+        description: "Fuzz inputs to find crashes"
+      
+      - name: "penetration_test_suite"
+        description: "Run penetration tests"
+      
+      - name: "vulnerability_scanner"
+        description: "Scan for known vulnerabilities"
+      
+      - name: "attack_simulator"
+        description: "Simulate attack scenarios"
+    
+    memory_enabled: true
+    max_iterations: 25
+
+  - id: "compliance_engineer"
+    role: "Security Compliance Specialist"
+    goal: |
+      Ensure Chrysalis meets security compliance requirements (SOC2, ISO 27001
+      considerations), implement comprehensive audit logging for all security
+      operations, and establish security monitoring using open source tools.
+    
+    backstory: |
+      Compliance engineer with security background, expert in audit logging,
+      security monitoring, and regulatory compliance. Specialist in
+      OpenTelemetry for security events, SIEM integration, and forensic
+      analysis. Previously built compliance infrastructure for fintech
+      (PCI-DSS) and healthcare (HIPAA) systems. Strong knowledge of audit
+      requirements, log retention, and incident response. Expert in structured
+      logging (JSON), log analysis, and correlation.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "audit_log_analyzer"
+        description: "Analyze audit logs for patterns"
+      
+      - name: "compliance_framework_checker"
+        description: "Check against compliance frameworks"
+      
+      - name: "siem_integrator"
+        description: "Integrate with SIEM systems"
+    
+    memory_enabled: true
+    max_iterations: 15
+
+# =============================================================================
+# TASKS (Sequential Execution)
+# =============================================================================
+
+tasks:
+  # ===== Security Architect Tasks =====
+  
+  - id: "TASK-2.1.1"
+    description: |
+      Create comprehensive threat model for Chrysalis. Document:
+      
+      1. Attacker Capabilities:
+         - Computational power (up to 2^64 operations)
+         - Network access (can intercept/modify traffic)
+         - Insider threat (can compromise <1/3 instances)
+         - Social engineering attempts
+      
+      2. Trust Assumptions:
+         - @noble/* libraries are cryptographically secure
+         - Majority (>2/3) of instances are honest
+         - TLS protects network communication (if used)
+         - Key storage is adequately secured
+      
+      3. Attack Vectors (minimum 7):
+         - Impersonation (forge agent identity)
+         - Byzantine instances (malicious <1/3)
+         - Sybil attack (unlimited fake identities)
+         - Eclipse attack (network isolation)
+         - Replay attack (reuse valid messages)
+         - Man-in-the-middle (intercept and modify)
+         - Key compromise (stolen private keys)
+      
+      4. Mitigations:
+         - Cryptographic defenses (SHA-384, Ed25519)
+         - Byzantine resistance (threshold voting, median aggregation)
+         - Sybil resistance (instance registry + rate limiting)
+         - Replay prevention (Lamport/Vector clocks)
+         - Transport security (TLS requirement)
+         - Key rotation protocol
+      
+      Use STRIDE methodology and create attack trees.
+    
+    agent: "security_architect"
+    expected_output: |
+      Comprehensive threat model documentation:
+      - docs/security/THREAT_MODEL.md (30+ pages)
+      - docs/security/ATTACK_VECTORS.md (detailed attack descriptions)
+      - docs/security/MITIGATIONS.md (defense strategies)
+      - docs/security/RESIDUAL_RISKS.md (honest assessment)
+      - Mermaid diagrams (attack trees, defense layers)
+      - STRIDE analysis table
+      - Security controls matrix
+    
+    output_file: "docs/security/THREAT_MODEL.md"
+    context: ["REVIEW_TEAMS_SESSION.md (Security Review)", "SYNTHESIS_REPORT_FINAL.md"]
+    
+    acceptance_criteria:
+      - "All 7+ threats documented with attack scenarios"
+      - "Mitigations specified for each threat"
+      - "Residual risks honestly assessed"
+      - "Attack trees visualized (Mermaid)"
+      - "STRIDE analysis complete"
+      - "Reviewed by crypto engineer and security tester"
+    
+    priority: "CRITICAL"
+    estimated_hours: 24
+
+  - id: "TASK-2.1.2"
+    description: |
+      Design Sybil resistance mechanism to prevent attacker from creating
+      unlimited fake identities. Evaluate options:
+      
+      Options Analysis:
+      1. Proof-of-Work (Bitcoin-style)
+         - Pros: Decentralized, proven
+         - Cons: Energy intensive, slow, unsuitable for agents
+         - Verdict: NOT RECOMMENDED
+      
+      2. Trusted Instance Registry
+         - Pros: Simple, effective, fast
+         - Cons: Centralization, requires trust
+         - Verdict: RECOMMENDED for v3.1
+      
+      3. Hardware Attestation (TPM/SGX)
+         - Pros: Strong proof of uniqueness
+         - Cons: Complex, hardware dependency
+         - Verdict: Consider for v3.2+
+      
+      4. Rate Limiting + Identity Cost
+         - Pros: Simple, effective for most scenarios
+         - Cons: Can be bypassed with resources
+         - Verdict: RECOMMENDED as secondary defense
+      
+      Design the instance registry system with registration API,
+      verification logic, and rate limiting.
+    
+    agent: "security_architect"
+    expected_output: |
+      Sybil resistance design specification:
+      - docs/security/SYBIL_RESISTANCE.md (detailed design)
+      - API specification for instance registry
+      - Rate limiting algorithm specification
+      - Security analysis (attack scenarios and defenses)
+      - Integration points with agent creation
+      - Database schema for registry
+    
+    output_file: "docs/security/SYBIL_RESISTANCE.md"
+    context: ["TASK-2.1.1 output (threat model)"]
+    
+    acceptance_criteria:
+      - "Option analysis complete with clear rationale"
+      - "Recommended approach (trusted registry) fully specified"
+      - "Registration API designed"
+      - "Rate limiting algorithm specified"
+      - "Security analysis conducted"
+      - "Attack scenarios and mitigations documented"
+    
+    priority: "CRITICAL"
+    estimated_hours: 20
+    dependencies: ["TASK-2.1.1"]
+
+  - id: "TASK-2.1.3"
+    description: |
+      Design complete key management protocol covering full lifecycle:
+      
+      1. Generation: When, how, who (Ed25519 keypair via @noble/ed25519)
+      2. Storage: Where, encryption at rest (Vault recommended)
+      3. Rotation: Frequency (90 days), process, dual-key transition period
+      4. Revocation: Trigger conditions, revocation list, propagation
+      5. Backup: Encrypted backups, recovery procedures
+      6. Access Control: Who can access keys, audit logging
+      
+      Select and justify open source secrets management tool
+      (recommend HashiCorp Vault).
+    
+    agent: "security_architect"
+    expected_output: |
+      Key management protocol specification:
+      - docs/security/KEY_MANAGEMENT.md (comprehensive protocol)
+      - Key lifecycle diagram (Mermaid)
+      - Rotation procedure (step-by-step)
+      - Revocation procedure (step-by-step)
+      - Backup/recovery procedure
+      - Vault configuration (HCL)
+      - Integration architecture
+    
+    output_file: "docs/security/KEY_MANAGEMENT.md"
+    
+    technology_requirements:
+      secrets_management:
+        primary:
+          name: "HashiCorp Vault"
+          license: "MPL 2.0"
+          why: "Industry standard, rich features, good security model"
+          deployment: "Kubernetes via Helm chart"
+        
+        alternatives:
+          - name: "SOPS (Mozilla)"
+            license: "MPL 2.0"
+            why: "Encrypted secrets in Git, simpler"
+          
+          - name: "External Secrets Operator"
+            license: "Apache 2.0"
+            why: "K8s-native, multi-provider"
+    
+    acceptance_criteria:
+      - "Complete key lifecycle documented"
+      - "Vault integration specified"
+      - "Rotation automated (scripted)"
+      - "Revocation propagation designed"
+      - "Backup/recovery procedures clear"
+      - "Access control defined"
+    
+    priority: "CRITICAL"
+    estimated_hours: 20
+    dependencies: ["TASK-2.1.1"]
+
+  # ===== Crypto Engineer Tasks =====
+  
+  - id: "TASK-2.2.1"
+    description: |
+      Implement Sybil resistance system including:
+      
+      Components:
+      1. InstanceRegistry class
+         - register(instance, proof): RegistrationToken
+         - verify(instance_id, token): boolean
+         - revoke(instance_id): void
+         - list(): Instance[]
+         - Database: SQLite or PostgreSQL
+      
+      2. IdentityProof class
+         - generateProof(instance): Proof
+         - verifyProof(proof): boolean
+         - Proof format: {instance_id, timestamp, signature, metadata}
+      
+      3. RateLimiter class
+         - checkLimit(identifier): boolean
+         - Token bucket algorithm
+         - 1 registration per hour per IP/identity
+      
+      Use @noble/ed25519 for proof signatures.
+      Store registry in database (SQLite for embedded, PostgreSQL for production).
+    
+    agent: "crypto_engineer"
+    expected_output: |
+      Complete Sybil resistance implementation:
+      - src/security/InstanceRegistry.ts (~300-400 lines)
+      - src/security/IdentityProof.ts (~200 lines)
+      - src/security/RateLimiter.ts (~150 lines)
+      - src/security/database/schema.sql
+      - tests/security/SybilResistance.test.ts (~400 lines)
+      - Attack simulation tests
+      - docs/security/SYBIL_IMPLEMENTATION.md
+    
+    output_file: "src/security/"
+    context: ["docs/security/SYBIL_RESISTANCE.md", "TASK-2.1.2 output"]
+    
+    technology_requirements:
+      dependencies:
+        - "@noble/ed25519 (MIT) - for proof signatures"
+        - "better-sqlite3 (MIT) - embedded DB for registry"
+        - "pg (MIT) - PostgreSQL client (production)"
+        - "node-rate-limiter (MIT) - rate limiting"
+      
+      algorithms:
+        - name: "Token Bucket Rate Limiting"
+          purpose: "Prevent rapid identity creation"
+          approach: "Refill 1 token per hour, max 1 token"
+          complexity: "O(1)"
+        
+        - name: "Proof Verification"
+          purpose: "Verify instance identity proof"
+          approach: "Verify Ed25519 signature on instance metadata"
+          complexity: "O(1)"
+    
+    acceptance_criteria:
+      - "Registration functional (create, verify, list)"
+      - "Rate limiting enforced (1/hour tested)"
+      - "Proof generation and verification work"
+      - "Database persistence functional"
+      - "Attack tests show Sybil prevention"
+      - "Performance: <10ms per operation"
+    
+    priority: "CRITICAL"
+    estimated_hours: 40
+    dependencies: ["TASK-2.1.2"]
+
+  - id: "TASK-2.2.2"
+    description: |
+      Implement key rotation system allowing agents to safely rotate
+      Ed25519 keys:
+      
+      Components:
+      1. KeyRotationManager class
+         - initiateRotation(agent_id): NewKeyPair
+         - signRotation(old_private_key, new_public_key): RotationCert
+         - completeRotation(agent_id, rotation_cert): void
+         - verifyDuringTransition(agent_id, key): boolean
+      
+      2. RotationCertificate
+         - Format: {old_public_key, new_public_key, timestamp, signature_by_old_key}
+         - Verification: Signature proves old key approves new key
+      
+      3. TransitionPeriod
+         - Duration: 7 days (configurable)
+         - Both keys valid during period
+         - After period: old key invalid
+      
+      Store rotation history in registry. Use @noble/ed25519 for all operations.
+    
+    agent: "crypto_engineer"
+    expected_output: |
+      Complete key rotation implementation:
+      - src/security/KeyRotation.ts (~300-400 lines)
+      - src/security/RotationCertificate.ts (~150 lines)
+      - src/security/database/rotation-schema.sql
+      - tests/security/KeyRotation.test.ts (~300 lines)
+      - Multi-rotation test (rotate 5 times in sequence)
+      - docs/security/KEY_ROTATION_IMPLEMENTATION.md
+    
+    output_file: "src/security/KeyRotation.ts"
+    context: ["docs/security/KEY_MANAGEMENT.md", "TASK-2.1.3 output"]
+    
+    technology_requirements:
+      dependencies:
+        - "@noble/ed25519 (MIT) - keypair generation and signing"
+        - "better-sqlite3 (MIT) or pg (MIT) - rotation history storage"
+      
+      cryptographic_operations:
+        - "Ed25519 keypair generation (crypto_sign_keypair)"
+        - "Sign rotation cert with old key"
+        - "Verify rotation cert"
+        - "Dual-key verification during transition"
+    
+    acceptance_criteria:
+      - "Rotation process functional"
+      - "Rotation certificate verified correctly"
+      - "Dual-key transition works (7 days)"
+      - "Old key invalidated after period"
+      - "Multiple rotations tested (5+ in sequence)"
+      - "Performance: <20ms per operation"
+    
+    priority: "HIGH"
+    estimated_hours: 40
+    dependencies: ["TASK-2.1.3", "TASK-2.2.1"]
+
+  # ===== Security Tester Tasks =====
+  
+  - id: "TASK-2.3.1"
+    description: |
+      Create comprehensive security test suite covering:
+      
+      1. Cryptographic Tests:
+         - SHA-384 collision resistance (statistical, 10K hashes)
+         - Ed25519 signature forgery attempts (100+ attempts)
+         - Key derivation randomness (NIST test suite)
+         - Replay attack prevention (timestamp checking)
+      
+      2. Byzantine Tests:
+         - Single malicious instance (verify median correct)
+         - <1/3 instances Byzantine (system should work)
+         - =1/3 instances Byzantine (boundary condition)
+         - >1/3 instances Byzantine (system should detect and fail safely)
+         - Coordinated Byzantine attack (multiple colluding)
+      
+      3. Attack Simulations:
+         - Sybil attack (try to register 1000 identities rapidly)
+         - Eclipse attack (isolate instance from network)
+         - Man-in-the-middle (intercept and modify, should fail)
+         - Replay attack (reuse valid message, should be detected)
+         - Key compromise (use stolen key, rotation should mitigate)
+      
+      4. Fuzzing:
+         - Fuzz adapter serialization (malformed input)
+         - Fuzz signature verification (invalid signatures)
+         - Fuzz memory merging (adversarial data)
+      
+      Use Jazzer.js or jsfuzz for fuzzing.
+    
+    agent: "security_tester"
+    expected_output: |
+      Comprehensive security test suite:
+      - tests/security/crypto/*.test.ts (cryptographic tests)
+      - tests/security/byzantine/*.test.ts (Byzantine scenarios, 20+ tests)
+      - tests/security/attacks/*.test.ts (attack simulations, 10+ scenarios)
+      - tests/security/fuzzing/*.js (fuzzing harnesses)
+      - tests/security/integration/e2e-security.test.ts
+      - docs/security/TEST_RESULTS.md (results and analysis)
+      - docs/security/ATTACK_SIMULATIONS.md (documented attempts)
+    
+    output_file: "tests/security/"
+    context: ["docs/security/THREAT_MODEL.md", "TASK-2.1.1 output"]
+    
+    technology_requirements:
+      testing_tools:
+        - name: "Jest"
+          license: "MIT"
+          purpose: "Test runner"
+        
+        - name: "Jazzer.js"
+          license: "Apache 2.0"
+          purpose: "Coverage-guided fuzzing"
+          alternatives: ["jsfuzz (MIT)"]
+        
+        - name: "crypto-test-vectors"
+          license: "MIT"
+          purpose: "Standard cryptographic test vectors"
+      
+      attack_simulation_framework:
+        - "Simulate malicious instances"
+        - "Network interception simulation"
+        - "Byzantine coordination"
+    
+    acceptance_criteria:
+      - "100+ security test scenarios"
+      - "All identified threats tested"
+      - "Byzantine resistance validated (<1/3 tolerance)"
+      - "Sybil resistance validated (rate limit works)"
+      - "Fuzzing runs for 1 hour minimum (no crashes)"
+      - "All tests pass"
+      - "0 critical vulnerabilities found"
+    
+    priority: "CRITICAL"
+    estimated_hours: 80
+    dependencies: ["TASK-2.2.1", "TASK-2.2.2"]
+
+  # ===== Compliance Engineer Tasks =====
+  
+  - id: "TASK-2.4.1"
+    description: |
+      Implement comprehensive security audit logging for all security-relevant
+      operations:
+      
+      Events to Log:
+      1. Identity Operations:
+         - Agent created (new identity)
+         - Identity verified
+         - Fingerprint generated
+      
+      2. Cryptographic Operations:
+         - Signature generated
+         - Signature verified (success/failure)
+         - Hash computed
+      
+      3. Instance Operations:
+         - Instance registered
+         - Instance verified
+         - Instance revoked
+         - Rate limit exceeded (security event)
+      
+      4. Key Management:
+         - Key rotation initiated
+         - Key rotation completed
+         - Old key invalidated
+         - Key verification during transition
+      
+      5. Byzantine Detection:
+         - Malicious instance detected
+         - Threshold verification failed
+         - Outlier data rejected
+      
+      6. State Merging:
+         - Memories merged (count, similarity scores)
+         - Skills aggregated
+         - Knowledge verified/rejected
+      
+      Use structured JSON logging with required fields: timestamp, event_type,
+      agent_id, instance_id, operation, result, metadata. Integrate with
+      OpenTelemetry for centralized logging.
+    
+    agent: "compliance_engineer"
+    expected_output: |
+      Complete audit logging implementation:
+      - src/logging/AuditLogger.ts (~400 lines)
+      - src/logging/SecurityEvents.ts (event type definitions)
+      - src/logging/LogFormatter.ts (JSON formatting)
+      - Configuration for winston or pino
+      - Integration with OpenTelemetry
+      - tests/logging/AuditLogger.test.ts
+      - docs/security/AUDIT_LOGGING.md
+      - Example log queries and analysis
+    
+    output_file: "src/logging/AuditLogger.ts"
+    context: ["docs/security/THREAT_MODEL.md"]
+    
+    technology_requirements:
+      dependencies:
+        - name: "winston"
+          license: "MIT"
+          purpose: "Structured logging framework"
+          why: "Popular, feature-rich, JSON output"
+          alternatives: ["pino (MIT) - faster"]
+        
+        - name: "@opentelemetry/instrumentation-winston"
+          license: "Apache 2.0"
+          purpose: "OpenTelemetry integration"
+      
+      log_structure:
+        required_fields:
+          - "timestamp: ISO 8601 format"
+          - "level: INFO | WARN | ERROR | SECURITY"
+          - "event_type: identity | signature | registration | etc."
+          - "agent_id: UUID"
+          - "instance_id: UUID (optional)"
+          - "operation: string (specific operation)"
+          - "result: success | failure"
+          - "metadata: object (operation-specific)"
+          - "correlation_id: UUID (for tracing)"
+        
+        destinations:
+          - "stdout (JSON, captured by log aggregator)"
+          - "File rotation (optional, daily)"
+          - "OpenTelemetry Collector (for centralized logging)"
+    
+    acceptance_criteria:
+      - "All security operations logged"
+      - "JSON structured format with all required fields"
+      - "Integration with OpenTelemetry"
+      - "Performance: <1ms logging overhead"
+      - "Log analysis examples documented"
+      - "Searchable and queryable"
+    
+    priority: "HIGH"
+    estimated_hours: 40
+    dependencies: []
+
+  - id: "TASK-2.4.2"
+    description: |
+      Create security monitoring dashboards and alert rules:
+      
+      Dashboards (Grafana):
+      1. Security Overview:
+         - Identity operations per minute
+         - Signature verifications (success/failure rate)
+         - Instance registrations per hour
+         - Rate limit violations
+      
+      2. Byzantine Detection:
+         - Outliers detected per hour
+         - Threshold verification failures
+         - Malicious instance reports
+         - Byzantine instance map (if applicable)
+      
+      3. Key Management:
+         - Active keys count
+         - Upcoming rotations (next 7 days)
+         - Rotation success rate
+         - Key age distribution
+      
+      Alert Rules (Prometheus Alertmanager):
+      - CRITICAL: Byzantine instance detected
+      - HIGH: Signature verification failure rate >1%
+      - HIGH: Rate limit violations >100/hour
+      - MEDIUM: Key rotation overdue
+      - LOW: Identity operation latency >100ms p99
+    
+    agent: "compliance_engineer"
+    expected_output: |
+      Security monitoring configuration:
+      - grafana/dashboards/security-overview.json
+      - grafana/dashboards/byzantine-detection.json
+      - grafana/dashboards/key-management.json
+      - prometheus/rules/security-alerts.yaml
+      - docs/security/SECURITY_MONITORING.md
+      - Incident response integration (PagerDuty/Slack)
+    
+    output_file: "grafana/dashboards/"
+    
+    technology_requirements:
+      monitoring_stack:
+        - "Prometheus (Apache 2.0) - Metrics"
+        - "Grafana (AGPL v3) - Dashboards"
+        - "Alertmanager (Apache 2.0) - Alerts"
+    
+    acceptance_criteria:
+      - "3 security dashboards functional"
+      - "5+ alert rules configured"
+      - "Alerts route to appropriate channels"
+      - "Dashboards show real-time security metrics"
+    
+    priority: "MEDIUM"
+    estimated_hours: 24
+    dependencies: ["TASK-2.4.1"]
+
+# =============================================================================
+# EXECUTION PLAN
+# =============================================================================
+
+execution_plan:
+  week_1:
+    - "TASK-2.1.1: Architect creates threat model (24h)"
+  
+  week_2:
+    - "TASK-2.1.2: Architect designs Sybil resistance (20h)"
+    - "TASK-2.1.3: Architect designs key management (20h)"
+    - "TASK-2.4.1: Compliance implements audit logging (starts, parallel)"
+  
+  week_3:
+    - "TASK-2.2.1: Crypto engineer implements Sybil resistance (40h)"
+    - "TASK-2.4.1: Compliance completes audit logging (40h total)"
+  
+  week_4:
+    - "TASK-2.2.2: Crypto engineer implements key rotation (40h)"
+  
+  week_5:
+    - "TASK-2.3.1: Security tester creates test suite (starts, 80h total)"
+  
+  week_6:
+    - "TASK-2.3.1: Security tester completes testing"
+    - "TASK-2.4.2: Compliance creates dashboards (24h)"
+    - "Final security validation and sign-off"
+
+# =============================================================================
+# DELIVERABLES SUMMARY
+# =============================================================================
+
+deliverables_summary:
+  security_documentation:
+    - "docs/security/THREAT_MODEL.md (~30 pages)"
+    - "docs/security/ATTACK_VECTORS.md"
+    - "docs/security/MITIGATIONS.md"
+    - "docs/security/SYBIL_RESISTANCE.md"
+    - "docs/security/KEY_MANAGEMENT.md"
+    - "docs/security/AUDIT_LOGGING.md"
+    - "docs/security/SECURITY_MONITORING.md"
+  
+  code_modules:
+    - "src/security/InstanceRegistry.ts (~350 lines)"
+    - "src/security/IdentityProof.ts (~200 lines)"
+    - "src/security/RateLimiter.ts (~150 lines)"
+    - "src/security/KeyRotation.ts (~400 lines)"
+    - "src/logging/AuditLogger.ts (~400 lines)"
+  
+  test_suites:
+    - "tests/security/ (15+ files, 100+ scenarios)"
+    - "Security fuzzing harnesses"
+    - "Attack simulation tests"
+  
+  monitoring:
+    - "grafana/dashboards/ (3 security dashboards)"
+    - "prometheus/rules/security-alerts.yaml"
+  
+  total_lines_of_code: "~5,000 lines (code + tests + docs)"
+
+# =============================================================================
+# SUCCESS CRITERIA
+# =============================================================================
+
+success_criteria:
+  documentation:
+    - "Threat model comprehensive (7+ threats)"
+    - "All designs peer-reviewed"
+    - "Clear implementation specifications"
+  
+  implementation:
+    - "Sybil resistance prevents rapid identity creation"
+    - "Key rotation functional with 7-day transition"
+    - "Audit logging captures all security events"
+    - "Performance acceptable (<20ms overhead)"
+  
+  testing:
+    - "100+ security scenarios tested"
+    - "Byzantine resistance validated (<1/3 tolerance)"
+    - "Attack simulations show mitigations work"
+    - "Fuzzing: 0 crashes in 1 hour"
+    - "0 critical vulnerabilities"
+  
+  monitoring:
+    - "Security dashboards operational"
+    - "Alert rules firing correctly"
+    - "Incident response procedures documented"
+
+# =============================================================================
+# INTEGRATION WITH TEAM 1
+# =============================================================================
+
+team1_integration:
+  provides_to_team1:
+    - "Security requirements and constraints"
+    - "AuditLogger for integration"
+    - "InstanceRegistry for instance management"
+    - "KeyRotation for agent key lifecycle"
+  
+  requires_from_team1:
+    - "UniversalAgentV2 schema (for identity structure)"
+    - "Pattern implementations (for securing)"
+    - "Adapters (to add security validation)"
+    - "Experience sync (to add audit logging)"
+
+  integration_points:
+    - point: "Adapters call AuditLogger on morph operations"
+    - point: "Instance creation calls InstanceRegistry.register()"
+    - point: "Signature operations trigger audit logging"
+    - point: "Byzantine detection logged to security events"
+
+# =============================================================================
+# RISK MITIGATION
+# =============================================================================
+
+risks:
+  - risk: "Sybil resistance insufficient for sophisticated attacker"
+    probability: "MEDIUM"
+    impact: "CRITICAL"
+    mitigation: "Security review, red team testing, iterate on design"
+    owner: "security_architect"
+  
+  - risk: "Key rotation introduces bugs or downtime"
+    probability: "MEDIUM"
+    impact: "HIGH"
+    mitigation: "Comprehensive testing, phased rollout, rollback plan"
+    owner: "crypto_engineer"
+  
+  - risk: "Performance overhead from audit logging"
+    probability: "LOW"
+    impact: "MEDIUM"
+    mitigation: "Async logging, sampling for high-volume events"
+    owner: "compliance_engineer"
+
+# =============================================================================
+# DEFINITION OF DONE
+# =============================================================================
+
+definition_of_done:
+  - "All threat model documentation complete and reviewed"
+  - "All security code implemented and tested"
+  - "Security test suite passes (100+ scenarios)"
+  - "0 critical vulnerabilities in Trivy scan"
+  - "Audit logging functional and tested"
+  - "Security dashboards deployed"
+  - "Alert rules configured"
+  - "Security architecture reviewed by external expert (if available)"
+  - "Penetration test report documenting findings"
+
+---
+
+# Team 2 Status: READY FOR EXECUTION
+# Total Estimated Effort: ~288 hours (4 agents * 6 weeks)
+# Critical Path: Architect → Crypto Engineer → Security Tester
+# Parallel Work: Compliance can work parallel to crypto implementation

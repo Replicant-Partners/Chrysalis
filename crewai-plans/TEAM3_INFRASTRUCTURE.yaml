@@ -1,0 +1,1073 @@
+# Chrysalis Team 3: Infrastructure & Operations - CrewAI Configuration
+# Mission: Build observability, deployment automation, monitoring, and operational infrastructure
+# Timeline: Phase 1 (Weeks 1-6, parallel with Teams 1 & 2)
+# Dependencies: Minimal (infrastructure supports other teams)
+
+crew_configuration:
+  name: "Infrastructure & Operations"
+  process: "hierarchical"  # DevOps Lead manages team
+  manager_llm: "gpt-4"
+  verbose: true
+  memory: true
+  cache: true
+  planning: true
+  
+  success_metrics:
+    - "OpenTelemetry instrumentation complete"
+    - "Prometheus metrics exposed (20+ metrics)"
+    - "Grafana dashboards deployed (4+ dashboards)"
+    - "Docker images published and scanned"
+    - "Kubernetes deployment functional"
+    - "CI/CD pipeline operational"
+    - "SLOs defined and measured"
+
+# =============================================================================
+# AGENTS
+# =============================================================================
+
+agents:
+  - id: "devops_lead"
+    role: "Principal DevOps Architect"
+    goal: |
+      Design and implement cloud-native deployment architecture for Chrysalis
+      using Kubernetes, Docker, Helm, and open source observability stack
+      (OpenTelemetry, Prometheus, Grafana, Jaeger, Loki). Lead infrastructure
+      team and coordinate with development teams.
+    
+    backstory: |
+      DevOps architect with 10+ years building cloud-native infrastructure.
+      Expert in Kubernetes (CKAD, CKA, CKS certified), Docker, Helm, and
+      GitOps (Argo CD). Deep knowledge of OpenTelemetry, Prometheus, Grafana,
+      Jaeger, and Loki. Previously built observability infrastructure for
+      100+ microservices at scale-up companies. Strong advocate for
+      infrastructure as code (Terraform/OpenTofu), policy as code (OPA),
+      and GitOps workflows. Contributor to Kubernetes, Helm, and CNCF
+      projects. Believes observability is not optional—it's foundational.
+    
+    verbose: true
+    allow_delegation: true
+    
+    tools:
+      - name: "kubectl"
+        description: "Kubernetes CLI operations"
+      
+      - name: "helm"
+        description: "Helm chart management"
+      
+      - name: "docker"
+        description: "Docker operations"
+      
+      - name: "terraform"
+        description: "Infrastructure as code"
+      
+      - name: "architecture_validator"
+        description: "Validate infrastructure architecture"
+    
+    memory_enabled: true
+    max_iterations: 20
+
+  - id: "observability_engineer"
+    role: "SRE - Observability Specialist"
+    goal: |
+      Implement complete observability stack: OpenTelemetry instrumentation,
+      Prometheus metrics, Grafana dashboards, Jaeger tracing, and Loki
+      logging. Ensure 100% visibility into Chrysalis operations.
+    
+    backstory: |
+      SRE with 8+ years in observability engineering. Expert in OpenTelemetry
+      (metrics, logs, traces), Prometheus (PromQL, recording rules, alerting),
+      Grafana (dashboard design, plugins), Jaeger (distributed tracing), and
+      Loki (log aggregation, LogQL). Previously built observability for 200+
+      microservices. Specialist in high-cardinality metrics, structured logging,
+      and trace analysis. Strong believer in "observability-driven development"
+      and SLO-based alerting. Contributor to OpenTelemetry and Prometheus projects.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "otel_instrumenter"
+        description: "Add OpenTelemetry instrumentation"
+      
+      - name: "prometheus_query"
+        description: "Test PromQL queries"
+      
+      - name: "grafana_dashboard_builder"
+        description: "Build Grafana dashboards"
+      
+      - name: "trace_analyzer"
+        description: "Analyze distributed traces"
+    
+    memory_enabled: true
+    max_iterations: 20
+
+  - id: "container_engineer"
+    role: "Container & Kubernetes Engineer"
+    goal: |
+      Create production-grade Docker images, Kubernetes manifests, Helm charts,
+      and deployment automation for Chrysalis. Ensure security, performance,
+      and operational excellence using cloud-native open source tools.
+    
+    backstory: |
+      Kubernetes engineer with 8+ years in container orchestration. Expert
+      in Dockerfile optimization (multi-stage builds, layer caching), K8s
+      networking (Services, Ingress, NetworkPolicies), and Helm charts
+      (templates, values, hooks). Specialist in Pod Security Standards,
+      resource optimization, and auto-scaling (HPA, VPA, KEDA). CKA and
+      CKS certified. Previously built container platforms for 500+ services.
+      Contributor to Kubernetes and Helm. Believes containers should be
+      minimal, secure, and reproducible.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "dockerfile_optimizer"
+        description: "Optimize Dockerfiles"
+      
+      - name: "trivy_scanner"
+        description: "Security vulnerability scanning"
+      
+      - name: "kubernetes_validator"
+        description: "Validate K8s manifests"
+      
+      - name: "helm_linter"
+        description: "Lint Helm charts"
+    
+    memory_enabled: true
+    max_iterations: 15
+
+  - id: "cicd_engineer"
+    role: "CI/CD Pipeline Architect"
+    goal: |
+      Build comprehensive CI/CD pipelines using GitHub Actions and Argo CD
+      for automated testing, building, security scanning, artifact publishing,
+      and GitOps deployment.
+    
+    backstory: |
+      CI/CD engineer with 8+ years building deployment pipelines. Expert
+      in GitHub Actions, GitLab CI, and Argo CD. Specialist in GitOps
+      principles, automated testing, progressive delivery (blue/green,
+      canary), and pipeline optimization. Previously built pipelines for
+      100+ repositories with sub-5-minute build times. Strong advocate
+      for shift-left security (scan in pipeline) and automated quality
+      gates. Contributor to Argo CD and GitHub Actions ecosystem.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "github_actions_builder"
+        description: "Create GitHub Actions workflows"
+      
+      - name: "argocd_configurator"
+        description: "Configure Argo CD applications"
+      
+      - name: "pipeline_optimizer"
+        description: "Optimize pipeline performance"
+    
+    memory_enabled: true
+    max_iterations: 15
+
+  - id: "sre_specialist"
+    role: "Site Reliability Engineer"
+    goal: |
+      Define SLIs, SLOs, error budgets, incident response procedures, and
+      operational runbooks for Chrysalis production operations. Ensure
+      99.9% uptime and rapid incident response.
+    
+    backstory: |
+      SRE with 7+ years in production operations. Expert in SLI/SLO definition
+      (Google SRE book principles), error budget policy, incident management
+      (PagerDuty, Opsgenie), and chaos engineering (Chaos Mesh, Litmus).
+      Previously maintained 99.95% uptime for critical services. Specialist
+      in Prometheus alerting, on-call rotation, and post-mortem analysis.
+      Strong believer in "hope is not a strategy"—must measure, monitor,
+      and prepare for failures.
+    
+    verbose: true
+    allow_delegation: false
+    
+    tools:
+      - name: "slo_calculator"
+        description: "Calculate SLO compliance"
+      
+      - name: "incident_analyzer"
+        description: "Analyze incident patterns"
+      
+      - name: "runbook_generator"
+        description: "Generate operational runbooks"
+    
+    memory_enabled: true
+    max_iterations: 15
+
+# =============================================================================
+# TASKS
+# =============================================================================
+
+tasks:
+  # ===== DevOps Lead Tasks =====
+  
+  - id: "TASK-3.1.1"
+    description: |
+      Design complete observability architecture using OpenTelemetry,
+      Prometheus, Grafana, Jaeger, and Loki. Specify:
+      
+      1. Metrics Strategy:
+         - Business metrics (agents created, morphs per day)
+         - Technical metrics (latency, error rate, throughput)
+         - Resource metrics (CPU, memory, disk)
+         - Cardinality management (avoid metric explosion)
+      
+      2. Logging Strategy:
+         - Structured JSON logging
+         - Log levels (DEBUG, INFO, WARN, ERROR)
+         - Log retention (30 days hot, 1 year cold)
+         - Log aggregation (Loki)
+      
+      3. Tracing Strategy:
+         - Distributed tracing with Jaeger
+         - Sampling (100% errors, 10% success)
+         - Trace context propagation
+         - Performance overhead management
+      
+      4. Integration:
+         - OpenTelemetry Collector (hub)
+         - Prometheus for metrics storage
+         - Grafana for visualization
+         - Alertmanager for notifications
+      
+      Create deployment manifests and architecture diagrams.
+    
+    agent: "devops_lead"
+    expected_output: |
+      Comprehensive observability architecture:
+      - docs/operations/OBSERVABILITY_ARCHITECTURE.md (30+ pages)
+      - Mermaid architecture diagrams
+      - k8s/observability/*.yaml (deployment manifests)
+      - prometheus/config/*.yaml
+      - grafana/config/*.yaml
+      - otel-collector/config.yaml
+      - docs/operations/METRICS_CATALOG.md (all metrics documented)
+    
+    output_file: "docs/operations/OBSERVABILITY_ARCHITECTURE.md"
+    context: ["SYNTHESIS_REPORT_FINAL.md (Observability requirements)"]
+    
+    open_source_stack:
+      - component: "OpenTelemetry Collector"
+        license: "Apache 2.0"
+        version: "0.91+"
+        deployment: "Daemonset in K8s"
+        purpose: "Collect metrics, logs, traces"
+      
+      - component: "Prometheus"
+        license: "Apache 2.0"
+        version: "2.48+"
+        deployment: "StatefulSet with persistent storage"
+        purpose: "Metrics storage, PromQL queries, alerting"
+      
+      - component: "Grafana"
+        license: "AGPL v3"
+        version: "10.2+"
+        deployment: "Deployment with ingress"
+        purpose: "Dashboards, visualization, analytics"
+      
+      - component: "Jaeger"
+        license: "Apache 2.0"
+        version: "1.52+"
+        deployment: "Operator-managed"
+        purpose: "Distributed tracing storage and UI"
+      
+      - component: "Loki"
+        license: "AGPL v3"
+        version: "2.9+"
+        deployment: "StatefulSet with object storage"
+        purpose: "Log aggregation, LogQL queries"
+    
+    acceptance_criteria:
+      - "Complete architecture documented"
+      - "All components integrated"
+      - "Deployment manifests valid"
+      - "Configuration tested locally"
+    
+    priority: "CRITICAL"
+    estimated_hours: 32
+    dependencies: []
+
+  - id: "TASK-3.1.2"
+    description: |
+      Design Kubernetes deployment architecture for Chrysalis supporting
+      both models:
+      
+      1. Embedded Model (Single Pod):
+         - Deployment with Chrysalis agent
+         - Resources: 100m CPU request, 500m limit, 256Mi memory
+         - Replicas: HPA (min 2, max 10, target CPU 70%)
+         - Health checks: liveness and readiness
+      
+      2. MCP Fabric Model (Multi-Pod):
+         - Chrysalis agent deployment
+         - cryptographic-primitives MCP deployment
+         - distributed-structures MCP deployment
+         - Service mesh for mTLS (Linkerd or Istio)
+         - Services for internal communication
+         - Ingress for external access
+      
+      Include ConfigMaps, Secrets, NetworkPolicies, PodSecurityPolicies,
+      and auto-scaling configurations. Use Kustomize for environment overlays.
+    
+    agent: "devops_lead"
+    expected_output: |
+      Complete K8s deployment architecture:
+      - docs/operations/DEPLOYMENT_ARCHITECTURE.md
+      - k8s/base/*.yaml (base manifests)
+      - k8s/overlays/dev/*.yaml
+      - k8s/overlays/staging/*.yaml
+      - k8s/overlays/prod/*.yaml
+      - Architecture diagrams (both models)
+    
+    output_file: "k8s/"
+    
+    kubernetes_resources:
+      embedded_model:
+        - "Deployment (chrysalis-agent)"
+        - "Service (ClusterIP)"
+        - "Ingress (Nginx)"
+        - "HorizontalPodAutoscaler"
+        - "PodDisruptionBudget"
+        - "NetworkPolicy"
+      
+      mcp_fabric_model:
+        - "Deployment (chrysalis-agent)"
+        - "Deployment (mcp-crypto)"
+        - "Deployment (mcp-distributed)"
+        - "Services (3 ClusterIP)"
+        - "Ingress"
+        - "HPAs (3)"
+        - "PodDisruptionBudgets (3)"
+        - "NetworkPolicies (inter-pod communication)"
+        - "ServiceMesh configuration (Linkerd or Istio)"
+    
+    acceptance_criteria:
+      - "Both models fully specified"
+      - "Kustomize overlays for 3 environments"
+      - "Auto-scaling configured"
+      - "Security policies enforced"
+      - "Resource limits appropriate"
+    
+    priority: "CRITICAL"
+    estimated_hours: 32
+    dependencies: ["TASK-3.1.1"]
+
+  # ===== Observability Engineer Tasks =====
+  
+  - id: "TASK-3.2.1"
+    description: |
+      Implement OpenTelemetry instrumentation for Chrysalis. Add:
+      
+      Metrics to Instrument:
+      - Counters: chrysalis_morph_total, chrysalis_sync_total, chrysalis_merge_total
+      - Histograms: chrysalis_morph_duration_seconds, chrysalis_sync_duration_seconds
+      - Gauges: chrysalis_active_agents, chrysalis_memory_count
+      
+      Traces to Capture:
+      - Agent morphing (start to finish)
+      - Experience sync (source to instances to merge)
+      - Pattern resolution (context eval to execution)
+      
+      Configure exporters for Prometheus (metrics) and Jaeger (traces).
+      Ensure <2% performance overhead.
+    
+    agent: "observability_engineer"
+    expected_output: |
+      Complete OpenTelemetry implementation:
+      - src/observability/Telemetry.ts (~400 lines)
+      - src/observability/Metrics.ts (metric definitions)
+      - src/observability/Tracing.ts (tracing utilities)
+      - otel-collector/config.yaml
+      - Integration with all core modules
+      - docs/operations/INSTRUMENTATION.md
+      - Performance overhead measurement (<2%)
+    
+    output_file: "src/observability/"
+    
+    technology_requirements:
+      dependencies:
+        - "@opentelemetry/sdk-node (Apache 2.0)"
+        - "@opentelemetry/exporter-prometheus (Apache 2.0)"
+        - "@opentelemetry/exporter-jaeger (Apache 2.0)"
+        - "@opentelemetry/instrumentation-http (Apache 2.0)"
+        - "@opentelemetry/api (Apache 2.0)"
+      
+      metrics_to_add:
+        counters:
+          - "chrysalis_morph_total{type, status}"
+          - "chrysalis_sync_total{protocol, status}"
+          - "chrysalis_merge_total{component, status}"
+          - "chrysalis_errors_total{module, type}"
+        
+        histograms:
+          - "chrysalis_morph_duration_seconds{type}"
+          - "chrysalis_sync_duration_seconds{protocol}"
+          - "chrysalis_merge_duration_seconds{component}"
+          - "chrysalis_pattern_resolution_duration_seconds{pattern, mode}"
+        
+        gauges:
+          - "chrysalis_active_agents"
+          - "chrysalis_active_instances"
+          - "chrysalis_memory_count{type}"  # episodic, semantic
+          - "chrysalis_memory_bytes"
+    
+    acceptance_criteria:
+      - "20+ metrics instrumented"
+      - "All major operations traced"
+      - "Metrics exported to Prometheus"
+      - "Traces exported to Jaeger"
+      - "Performance overhead <2% (measured)"
+      - "Documentation complete"
+    
+    priority: "CRITICAL"
+    estimated_hours: 40
+    dependencies: []
+
+  - id: "TASK-3.2.2"
+    description: |
+      Build comprehensive Grafana dashboards:
+      
+      Dashboard 1: System Overview
+      - Request rate, error rate, latency (RED metrics)
+      - Active agents and instances
+      - Resource utilization (CPU, memory)
+      - Top operations by volume and latency
+      
+      Dashboard 2: Agent Operations
+      - Morph operations (by type, success rate, latency)
+      - Sync operations (by protocol, convergence time)
+      - Merge operations (memory, skills, knowledge)
+      - Pattern resolver decisions (embedded vs MCP ratio)
+      
+      Dashboard 3: Performance Analysis
+      - Latency percentiles (p50, p95, p99)
+      - Throughput over time
+      - Memory system performance (similarity computations, search)
+      - Resource efficiency (ops per CPU/memory unit)
+      
+      Dashboard 4: SLO Dashboard
+      - Availability (uptime %)
+      - Latency SLO compliance
+      - Error rate SLO compliance
+      - Error budget remaining
+      
+      Use Grafana best practices: drill-downs, annotations, templating.
+    
+    agent: "observability_engineer"
+    expected_output: |
+      Complete Grafana dashboard set:
+      - grafana/dashboards/system-overview.json
+      - grafana/dashboards/agent-operations.json
+      - grafana/dashboards/performance-analysis.json
+      - grafana/dashboards/slo-compliance.json
+      - grafana/provisioning/ (auto-provision configs)
+      - docs/operations/DASHBOARDS.md (user guide)
+      - Screenshots of each dashboard
+    
+    output_file: "grafana/dashboards/"
+    
+    technology_requirements:
+      tools:
+        - "Grafana (AGPL v3)"
+        - "PromQL for queries"
+        - "Grafana Templating for parameterized dashboards"
+    
+    acceptance_criteria:
+      - "4 comprehensive dashboards"
+      - "All SLIs visualized"
+      - "Drill-down capabilities"
+      - "Alert annotations visible"
+      - "Templates for agent_id, instance_id filtering"
+    
+    priority: "HIGH"
+    estimated_hours: 32
+    dependencies: ["TASK-3.2.1"]
+
+  # ===== Container Engineer Tasks =====
+  
+  - id: "TASK-3.3.1"
+    description: |
+      Create production-grade Docker images for:
+      1. Chrysalis agent (main application)
+      2. cryptographic-primitives MCP server
+      3. distributed-structures MCP server
+      
+      Requirements:
+      - Multi-stage builds (build stage + runtime stage)
+      - Minimal base images (node:18-alpine → distroless/nodejs)
+      - Non-root user
+      - Read-only root filesystem
+      - No secrets in images
+      - Security scanning (Trivy: 0 critical/high vulns)
+      - Image signing (Cosign)
+      - Size optimized (<200MB per image)
+      
+      Publish to GitHub Container Registry (ghcr.io).
+    
+    agent: "container_engineer"
+    expected_output: |
+      Complete Docker image set:
+      - Dockerfile (Chrysalis agent, multi-stage)
+      - mcp-servers/cryptographic-primitives/Dockerfile
+      - mcp-servers/distributed-structures/Dockerfile
+      - .dockerignore
+      - docker-compose.yml (local development)
+      - .github/workflows/docker-build.yml
+      - docs/operations/DOCKER.md
+      - Image scan reports (Trivy)
+    
+    output_file: "Dockerfile"
+    
+    technology_requirements:
+      base_images:
+        build_stage: "node:18-alpine"
+        runtime_stage: "gcr.io/distroless/nodejs18-debian11"
+      
+      security_tools:
+        - name: "Trivy"
+          license: "Apache 2.0"
+          purpose: "Vulnerability scanning"
+          integration: "GitHub Actions"
+        
+        - name: "Cosign"
+          license: "Apache 2.0"
+          purpose: "Image signing and verification"
+          integration: "GitHub Actions"
+      
+      best_practices:
+        - "Multi-stage builds (separate build and runtime)"
+        - "Non-root USER directive"
+        - "Read-only root filesystem (securityContext)"
+        - "Minimal dependencies in runtime"
+        - "Layer caching optimization"
+        - "Health check support (HEALTHCHECK)"
+    
+    acceptance_criteria:
+      - "All 3 images build successfully"
+      - "Trivy scan: 0 critical/high vulnerabilities"
+      - "Images signed with Cosign"
+      - "Size <200MB per image"
+      - "Non-root user enforced"
+      - "Images published to ghcr.io"
+    
+    priority: "CRITICAL"
+    estimated_hours: 24
+    dependencies: []
+
+  - id: "TASK-3.3.2"
+    description: |
+      Create production-grade Kubernetes manifests using Kustomize:
+      
+      Base Manifests (k8s/base/):
+      - Deployment (with pod spec, probes, resources)
+      - Service (ClusterIP for internal, LoadBalancer for external)
+      - ConfigMap (application configuration)
+      - Secret (encrypted credentials)
+      - HorizontalPodAutoscaler (CPU-based)
+      - PodDisruptionBudget (ensure availability during disruptions)
+      - NetworkPolicy (restrict pod-to-pod communication)
+      - ServiceAccount (RBAC)
+      
+      Environment Overlays (k8s/overlays/):
+      - dev/ (1 replica, relaxed limits, debug logging)
+      - staging/ (2 replicas, production-like, info logging)
+      - prod/ (3+ replicas, strict limits, error logging)
+      
+      Validate with kubectl, kustomize, and kubeval.
+    
+    agent: "container_engineer"
+    expected_output: |
+      Complete K8s manifest set:
+      - k8s/base/*.yaml (8+ manifests)
+      - k8s/overlays/dev/*.yaml (kustomization + patches)
+      - k8s/overlays/staging/*.yaml
+      - k8s/overlays/prod/*.yaml
+      - docs/operations/KUBERNETES.md
+      - Validation results (kubectl dry-run, kubeval)
+    
+    output_file: "k8s/"
+    
+    technology_requirements:
+      tools:
+        - "kubectl (Apache 2.0) - Kubernetes CLI"
+        - "kustomize (Apache 2.0) - Manifest management"
+        - "kubeval (Apache 2.0) - Manifest validation"
+        - "kube-score (MIT) - Manifest scoring"
+    
+    acceptance_criteria:
+      - "All manifests valid (kubectl validate passes)"
+      - "Both deployment models supported"
+      - "Kustomize overlays functional"
+      - "Security policies enforced"
+      - "Health checks configured"
+      - "Resource limits appropriate"
+    
+    priority: "CRITICAL"
+    estimated_hours: 40
+    dependencies: ["TASK-3.3.1", "TASK-3.1.2"]
+
+  - id: "TASK-3.3.3"
+    description: |
+      Build Helm chart for Chrysalis with:
+      
+      Chart Structure:
+      - Chart.yaml (metadata, version)
+      - values.yaml (default values)
+      - values-dev.yaml, values-staging.yaml, values-prod.yaml
+      - templates/*.yaml (Kubernetes resources)
+      - templates/NOTES.txt (post-install instructions)
+      - templates/_helpers.tpl (template functions)
+      
+      Features:
+      - Parameterized deployment (replica count, resources, image)
+      - Conditional MCP servers (enabled/disabled)
+      - Observability integration (Prometheus, Jaeger)
+      - Secrets management (external-secrets or sealed-secrets)
+      - Ingress configuration (multiple providers)
+      
+      Publish to Helm repository (ArtifactHub).
+    
+    agent: "container_engineer"
+    expected_output: |
+      Complete Helm chart:
+      - helm/chrysalis/Chart.yaml
+      - helm/chrysalis/values.yaml (~200 lines)
+      - helm/chrysalis/values-prod.yaml
+      - helm/chrysalis/templates/*.yaml (15+ templates)
+      - helm/chrysalis/templates/NOTES.txt
+      - helm/chrysalis/README.md
+      - helm/chrysalis/tests/ (helm test suite)
+      - docs/operations/HELM.md
+    
+    output_file: "helm/chrysalis/"
+    
+    technology_requirements:
+      tool: "Helm v3 (Apache 2.0)"
+      
+      chart_features:
+        - "Parameterized replicas, resources, images"
+        - "Conditional rendering (embedded vs MCP)"
+        - "Init containers for setup"
+        - "Lifecycle hooks (pre/post install/upgrade)"
+        - "RBAC resources (ServiceAccount, Role, RoleBinding)"
+        - "PodSecurityPolicy enforcement"
+    
+    acceptance_criteria:
+      - "Chart installs successfully (helm install)"
+      - "All parameters functional"
+      - "Helm test suite passes"
+      - "Chart linted (helm lint: 0 errors)"
+      - "Published to Helm repo"
+      - "Documentation comprehensive"
+    
+    priority: "HIGH"
+    estimated_hours: 32
+    dependencies: ["TASK-3.3.2"]
+
+  # ===== CI/CD Engineer Tasks =====
+  
+  - id: "TASK-3.4.1"
+    description: |
+      Build comprehensive CI pipeline using GitHub Actions:
+      
+      Workflows:
+      1. ci.yml (main CI):
+         - Lint (ESLint, Prettier)
+         - Type check (TypeScript strict)
+         - Test (Jest with coverage)
+         - Build (TypeScript compilation)
+         - Security scan (Trivy, ESLint security)
+         - Publish coverage (Codecov or similar)
+         - Matrix testing (Node 18, 20)
+      
+      2. docker-build.yml:
+         - Build Docker images
+         - Scan with Trivy
+         - Sign with Cosign
+         - Push to ghcr.io
+      
+      3. release.yml:
+         - Create GitHub release
+         - Generate changelog
+         - Publish npm package (if library)
+         - Deploy documentation
+      
+      Optimize for speed (<5 minutes for CI), use caching aggressively.
+    
+    agent: "cicd_engineer"
+    expected_output: |
+      Complete CI pipeline:
+      - .github/workflows/ci.yml (~150 lines)
+      - .github/workflows/docker-build.yml (~100 lines)
+      - .github/workflows/release.yml (~80 lines)
+      - .github/workflows/security-scan.yml (~60 lines)
+      - docs/operations/CI_CD.md
+      - Badge README updates (build status, coverage)
+    
+    output_file: ".github/workflows/"
+    
+    technology_requirements:
+      github_actions:
+        standard_actions:
+          - "actions/checkout@v4"
+          - "actions/setup-node@v4"
+          - "actions/cache@v4"
+          - "aquasecurity/trivy-action@0.16.0"
+          - "codecov/codecov-action@v3"
+        
+        optimization:
+          - "Cache node_modules (actions/cache)"
+          - "Parallel job execution"
+          - "Fail fast on critical errors"
+          - "Conditional steps (skip if not needed)"
+    
+    acceptance_criteria:
+      - "CI runs on every PR"
+      - "All checks pass (lint, test, build, scan)"
+      - "Build time <5 minutes"
+      - "Coverage published"
+      - "Security scan integrated"
+    
+    priority: "HIGH"
+    estimated_hours: 24
+    dependencies: []
+
+  - id: "TASK-3.4.2"
+    description: |
+      Configure Argo CD for GitOps deployment:
+      
+      Setup:
+      1. Argo CD Installation:
+         - Install via Helm chart
+         - Configure with Git repository
+         - Set up RBAC and SSO (optional)
+      
+      2. Application Definitions:
+         - Chrysalis application (embedded model)
+         - Chrysalis MCP application (fabric model)
+         - Observability stack application
+      
+      3. Sync Policies:
+         - Auto-sync enabled (sync on Git push)
+         - Self-heal enabled (fix drift)
+         - Prune resources (remove deleted resources)
+      
+      4. Notifications:
+         - Slack on deployment success/failure
+         - Email on sync errors
+         - Webhook for custom integrations
+      
+      Document GitOps workflow: change → commit → push → auto-deploy.
+    
+    agent: "cicd_engineer"
+    expected_output: |
+      Complete Argo CD configuration:
+      - argocd/install/ (installation manifests)
+      - argocd/applications/chrysalis-embedded.yaml
+      - argocd/applications/chrysalis-mcp.yaml
+      - argocd/applications/observability.yaml
+      - argocd/notifications/*.yaml
+      - docs/operations/GITOPS.md
+      - GitOps workflow diagram
+    
+    output_file: "argocd/"
+    
+    technology_requirements:
+      tool:
+        name: "Argo CD"
+        license: "Apache 2.0"
+        version: "2.9+"
+      
+      features:
+        - "Git as source of truth"
+        - "Automated sync on commit"
+        - "Health assessment"
+        - "Rollback capability"
+        - "Diff visualization"
+    
+    acceptance_criteria:
+      - "Argo CD installed and operational"
+      - "Applications sync automatically"
+      - "Health checks work"
+      - "Notifications configured"
+      - "Rollback tested"
+    
+    priority: "MEDIUM"
+    estimated_hours: 16
+    dependencies: ["TASK-3.3.3"]
+
+  # ===== SRE Specialist Tasks =====
+  
+  - id: "TASK-3.5.1"
+    description: |
+      Define Service Level Indicators (SLIs) and Service Level Objectives (SLOs):
+      
+      SLIs to Define:
+      1. Availability:
+         - Measurement: Successful requests / Total requests
+         - Time window: 30-day rolling
+      
+      2. Latency:
+         - Morph operation: p99 latency
+         - Sync operation: p99 latency
+         - Merge operation: p99 latency
+      
+      3. Error Rate:
+         - Measurement: Error responses / Total responses
+         - Threshold: <0.1%
+      
+      SLOs to Set:
+      - Availability: 99.9% (3 nines) = 43.2 min downtime/month
+      - Morph latency: p99 <100ms
+      - Sync latency: p99 <200ms
+      - Merge latency: p99 <150ms
+      - Error rate: <0.1%
+      
+      Calculate error budgets, create SLO dashboard, document error budget policy.
+    
+    agent: "sre_specialist"
+    expected_output: |
+      Complete SLO definition:
+      - docs/operations/SLO_DEFINITIONS.md
+      - prometheus/recording-rules/sli.yaml (recording rules)
+      - prometheus/recording-rules/slo.yaml (SLO calculations)
+      - grafana/dashboards/slo-dashboard.json (already created, verify)
+      - docs/operations/ERROR_BUDGET_POLICY.md
+      - SLO compliance calculator script
+    
+    output_file: "docs/operations/SLO_DEFINITIONS.md"
+    
+    slo_framework:
+      methodology: "Google SRE Book principles"
+      
+      sli_definitions:
+        - sli: "Availability"
+          formula: "sum(rate(chrysalis_requests_total{status='success'})) / sum(rate(chrysalis_requests_total))"
+        
+        - sli: "Latency"
+          formula: "histogram_quantile(0.99, chrysalis_operation_duration_seconds)"
+        
+        - sli: "Error Rate"
+          formula: "sum(rate(chrysalis_requests_total{status='error'})) / sum(rate(chrysalis_requests_total))"
+      
+      error_budget:
+        calculation: "100% - SLO = error budget"
+        tracking: "Prometheus recording rules"
+        policy: "Freeze deployments if budget exhausted"
+    
+    acceptance_criteria:
+      - "All SLIs measurable from metrics"
+      - "SLOs defined with clear targets"
+      - "Error budget calculated"
+      - "Dashboard shows compliance"
+      - "Error budget policy documented"
+    
+    priority: "HIGH"
+    estimated_hours: 16
+    dependencies: ["TASK-3.2.1"]
+
+  - id: "TASK-3.5.2"
+    description: |
+      Create operational runbooks for common incidents:
+      
+      Runbooks to Create:
+      1. Agent Morph Failure
+         - Symptoms, Investigation, Resolution, Verification
+      
+      2. Experience Sync Failure
+         - Network issues, Instance unavailable, Data corruption
+      
+      3. Memory Exhaustion
+         - Causes, Investigation (heap dump), Resolution
+      
+      4. MCP Server Unavailable
+         - Detection, Verification (health check), Fallback activation
+      
+      5. Byzantine Instance Detected
+         - Investigation, Isolation, Remediation
+      
+      6. Security Incident
+         - Key compromise, Unauthorized access, Data breach
+      
+      Each runbook: Detect → Diagnose → Resolve → Verify → Prevent
+    
+    agent: "sre_specialist"
+    expected_output: |
+      Complete runbook set:
+      - docs/operations/runbooks/MORPH_FAILURE.md
+      - docs/operations/runbooks/SYNC_FAILURE.md
+      - docs/operations/runbooks/MEMORY_EXHAUSTION.md
+      - docs/operations/runbooks/MCP_UNAVAILABLE.md
+      - docs/operations/runbooks/BYZANTINE_DETECTED.md
+      - docs/operations/runbooks/SECURITY_INCIDENT.md
+      - docs/operations/runbooks/README.md (index)
+      - Runbook template for future incidents
+    
+    output_file: "docs/operations/runbooks/"
+    
+    runbook_structure:
+      sections:
+        - "Symptoms (how to detect)"
+        - "Impact (severity, user experience)"
+        - "Investigation (kubectl commands, log queries, dashboards)"
+        - "Resolution (step-by-step fix)"
+        - "Verification (how to confirm fixed)"
+        - "Prevention (how to avoid in future)"
+        - "Escalation (when to escalate, to whom)"
+    
+    acceptance_criteria:
+      - "6+ runbooks comprehensive"
+      - "Clear step-by-step procedures"
+      - "Includes kubectl/curl/grep commands"
+      - "Links to dashboards and logs"
+      - "Tested by simulating incidents"
+    
+    priority: "MEDIUM"
+    estimated_hours: 24
+    dependencies: ["TASK-3.2.2"]
+
+# =============================================================================
+# EXECUTION PLAN
+# =============================================================================
+
+execution_plan:
+  week_1:
+    - "TASK-3.1.1: DevOps lead designs observability (32h)"
+    - "TASK-3.2.1: Observability engineer starts instrumentation (parallel)"
+    - "TASK-3.3.1: Container engineer creates Docker images (parallel)"
+  
+  week_2:
+    - "TASK-3.1.2: DevOps lead designs K8s deployment (32h)"
+    - "TASK-3.2.1: Observability engineer completes instrumentation (40h total)"
+    - "TASK-3.3.1: Container engineer completes images (24h total)"
+  
+  week_3:
+    - "TASK-3.2.2: Observability engineer builds dashboards (32h)"
+    - "TASK-3.3.2: Container engineer creates K8s manifests (40h)"
+    - "TASK-3.4.1: CI/CD engineer builds pipelines (parallel, 24h)"
+  
+  week_4:
+    - "TASK-3.3.3: Container engineer creates Helm chart (32h)"
+    - "TASK-3.4.2: CI/CD engineer configures Argo CD (16h)"
+    - "TASK-3.5.1: SRE defines SLOs (parallel, 16h)"
+  
+  week_5:
+    - "TASK-3.5.2: SRE creates runbooks (24h)"
+    - "Integration testing of full stack"
+  
+  week_6:
+    - "End-to-end testing"
+    - "Documentation finalization"
+    - "Production readiness review"
+
+# =============================================================================
+# DELIVERABLES SUMMARY
+# =============================================================================
+
+deliverables_summary:
+  infrastructure_code:
+    - "Dockerfiles (3 images)"
+    - "k8s/ (40+ manifests)"
+    - "helm/chrysalis/ (chart with 15+ templates)"
+    - ".github/workflows/ (4 pipelines)"
+    - "argocd/ (GitOps configuration)"
+  
+  observability:
+    - "src/observability/ (~600 lines)"
+    - "grafana/dashboards/ (4 dashboards)"
+    - "prometheus/ (rules, alerts)"
+    - "otel-collector/ (configuration)"
+  
+  documentation:
+    - "docs/operations/ (10+ operational docs)"
+    - "docs/operations/runbooks/ (6+ runbooks)"
+  
+  total_infrastructure_code: "~3,000 lines (manifests + config + observability)"
+
+# =============================================================================
+# SUCCESS CRITERIA
+# =============================================================================
+
+success_criteria:
+  observability:
+    - "OpenTelemetry instrumented (20+ metrics)"
+    - "Prometheus metrics endpoint (/metrics)"
+    - "Grafana dashboards deployed (4+)"
+    - "Jaeger tracing functional"
+    - "Loki log aggregation working"
+    - "Performance overhead <2%"
+  
+  deployment:
+    - "Docker images published"
+    - "Kubernetes deployment successful (both models)"
+    - "Helm chart installs cleanly"
+    - "Auto-scaling functional"
+    - "Health checks passing"
+  
+  cicd:
+    - "CI pipeline runs on every PR (<5 min)"
+    - "All checks pass"
+    - "Argo CD auto-deploys on merge"
+    - "Rollback functional"
+  
+  operations:
+    - "SLOs defined and measurable"
+    - "Runbooks complete (6+)"
+    - "Incident response tested"
+
+# =============================================================================
+# INTEGRATION WITH OTHER TEAMS
+# =============================================================================
+
+team_integration:
+  provides_to_all_teams:
+    - "CI/CD pipeline (all teams push code)"
+    - "Docker images (all teams' code packaged)"
+    - "K8s deployment (all teams' services deployed)"
+    - "Observability (all teams instrument code)"
+    - "Monitoring dashboards (all teams' metrics)"
+    - "Runbooks (all teams respond to incidents)"
+  
+  requires_from_team1:
+    - "Core code to containerize"
+    - "Metrics to instrument"
+    - "APIs to deploy"
+  
+  requires_from_team2:
+    - "Security requirements for containers"
+    - "Audit logging to aggregate"
+    - "Security metrics to monitor"
+
+# =============================================================================
+# OPEN SOURCE COMPLIANCE
+# =============================================================================
+
+open_source_compliance:
+  infrastructure_licenses:
+    - "Kubernetes (Apache 2.0)"
+    - "Docker (Apache 2.0)"
+    - "Helm (Apache 2.0)"
+    - "OpenTelemetry (Apache 2.0)"
+    - "Prometheus (Apache 2.0)"
+    - "Grafana (AGPL v3) - OK for infrastructure use"
+    - "Jaeger (Apache 2.0)"
+    - "Loki (AGPL v3) - OK for infrastructure use"
+  
+  compliance_notes:
+    - "All licenses compatible with Apache 2.0 project"
+    - "AGPL components (Grafana, Loki) used as services, not embedded"
+    - "Attribution in THIRD_PARTY_LICENSES.md"
+
+---
+
+# Team 3 Status: READY FOR EXECUTION
+# Total Estimated Effort: ~368 hours (5 agents * 6 weeks)
+# Critical Path: DevOps Lead → Observability → Container → CI/CD → SRE
+# Parallel Work: Many tasks can run in parallel (instrumentation + Docker + CI)
