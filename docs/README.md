@@ -34,12 +34,16 @@ docs/
 - **[FOUNDATION_SPEC.md](current/FOUNDATION_SPEC.md)** - Pattern foundations
 - **[ANALYSIS.md](current/ANALYSIS.md)** - Rigorous system analysis
 - **[SYNTHESIS.md](current/SYNTHESIS.md)** - Design insights
+- **[TECH_DECISIONS_MEMORY_OBSERVABILITY.md](current/TECH_DECISIONS_MEMORY_OBSERVABILITY.md)** - Latest memory/observability choices
+- **[VECTOR_INDEX_SETUP.md](current/VECTOR_INDEX_SETUP.md)** - Configure HNSW/Lance/Qdrant backends
 
 **Subsystem Docs**:
 - **[Memory System](current/memory/)** - Memory architecture and implementation
 - **[MCP Setup](current/MCP_SETUP.md)** - MCP server configuration
 - **[Implementation Guide](current/IMPLEMENTATION_GUIDE.md)** - How to implement
 - **[Uniform Semantic Agent Lexicon](current/UNIVERSAL_AGENT_LEXICON.md)** - Core terms, OODA, emoji mode
+- **[OBSERVABILITY_VOYEUR.md](current/OBSERVABILITY_VOYEUR.md)** - Voyeur mode + metrics hooks
+- **[DOCUMENTATION_STANDARDS.md](current/DOCUMENTATION_STANDARDS.md)** - How to keep docs consistent
 
 ### 🔬 Research Foundation
 
