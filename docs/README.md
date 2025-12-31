@@ -46,6 +46,7 @@ docs/
 - **[DOCUMENTATION_STANDARDS.md](current/DOCUMENTATION_STANDARDS.md)** - How to keep docs consistent
 - **[OBSERVABILITY_GUIDE.md](current/OBSERVABILITY_GUIDE.md)** - SSE viewer + metrics how-to
 - **[SANITIZATION_POLICY.md](current/SANITIZATION_POLICY.md)** - Trust tiers, sanitization, rate limits
+- **[DUAL_SYNC_PLAN.md](current/DUAL_SYNC_PLAN.md)** - Public CRDT + private ledger sync design
 
 ### 🔬 Research Foundation
 

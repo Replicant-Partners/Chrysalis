@@ -11,6 +11,7 @@
 - `docs/current/OBSERVABILITY_VOYEUR.md` — observability/voyeur/matrics.
 - `docs/current/OBSERVABILITY_GUIDE.md` — SSE viewer + metrics quick start.
 - `docs/current/SANITIZATION_POLICY.md` — trust tiers, sanitization, rate limits.
+- `docs/current/DUAL_SYNC_PLAN.md` — public CRDT + private ledger sync design.
 - `docs/current/MEMORY_MERGE_PLAN.md` — merge pipeline (current vs target).
 - `docs/current/DOCUMENTATION_STANDARDS.md` — how to maintain docs.
 
