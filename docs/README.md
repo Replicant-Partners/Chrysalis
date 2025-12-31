@@ -47,6 +47,7 @@ docs/
 - **[OBSERVABILITY_GUIDE.md](current/OBSERVABILITY_GUIDE.md)** - SSE viewer + metrics how-to
 - **[SANITIZATION_POLICY.md](current/SANITIZATION_POLICY.md)** - Trust tiers, sanitization, rate limits
 - **[DUAL_SYNC_PLAN.md](current/DUAL_SYNC_PLAN.md)** - Public CRDT + private ledger sync design
+- **[SYNC_PRIMITIVES.md](current/SYNC_PRIMITIVES.md)** - Nouns/verbs and CLI/emoji mapping for sync/ledger
 
 ### 🔬 Research Foundation
 
