@@ -11,7 +11,7 @@ Present this short menu and ask for a number/name (and any constraints):
 4) CrewAI (multi-agent)
 5) ElizaOS (persona + tools)
 6) Generic multi-agent
-7) Uniform Semantic Agent (uSA) for portability across frameworks
+7) Universal Agent Specification (UAS) for portability across frameworks
 
 If ambiguous, ask a brief clarification. Do not proceed until the user picks.
 
@@ -25,7 +25,7 @@ Ask only what is needed for the chosen model. Examples:
 - Deployment/logging: need LangSmith or local logging? workspace boundaries?
 - If CrewAI: how many agents, their roles/ownership boundaries, and handoff expectations.
 - If ElizaOS: persona depth, alignment rules, disallowed topics/domains.
-- If uSA: required MCP servers/tools, memory architecture preferences (working/episodic/semantic/procedural/core), embeddings/store defaults, protocols.
+- If UAS: required MCP servers/tools, memory architecture preferences (working/episodic/semantic/procedural/core), embeddings/store defaults, protocols.
 Keep it brief and skip what the user already provided.
 
 ## Step 2 — Apply the Selected Template
@@ -35,14 +35,14 @@ Keep it brief and skip what the user already provided.
 - For (4): use the CrewAI section in `s2l-other-agents.md`.
 - For (5): use the ElizaOS section in `s2l-other-agents.md`.
 - For (6): use the generic multi-agent section in `s2l-other-agents.md`.
-- For (7): build a uSA v2-compatible spec:
+- For (7): build a UAS v2-compatible spec:
   - Metadata: name, version, description, tags.
   - Identity: role, goal, backstory/persona.
   - Capabilities: tools (protocols such as MCP), reasoning strategy, iteration limits.
   - Memory: working/episodic/semantic/procedural/core; storage (vector DB), embeddings, operations (retrieval, consolidation, forgetting).
   - Protocols: MCP servers, auth/config.
   - Policies: safety, privacy, alignment, constraints.
-  - Deliverable: YAML/JSON fragment aligned with uSA examples (apiVersion, kind, metadata, identity, capabilities, memory, protocols).
+  - Deliverable: YAML/JSON fragment aligned with UAS examples (apiVersion, kind, metadata, identity, capabilities, memory, protocols).
 
 When responding, inline the chosen template’s output structure and produce the blueprint for the user’s doc/constraints. Keep it concise.
 
