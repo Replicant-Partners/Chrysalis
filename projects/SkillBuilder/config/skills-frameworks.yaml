@@ -1,0 +1,15 @@
+capability-framework:
+  description: "Cross-domain capability framework for durable skill cards."
+  categories:
+    - name: Discovery
+      description: "Find, scope, and frame problems and evidence."
+    - name: Synthesis
+      description: "Integrate sources into coherent mental models and plans."
+    - name: Execution
+      description: "Implement, iterate, and deliver high-quality artifacts."
+    - name: Verification
+      description: "Validate claims, test assumptions, and ensure correctness."
+    - name: Communication
+      description: "Explain decisions, tradeoffs, and next steps clearly."
+    - name: Safety
+      description: "Handle prompt injection, secrets, and risk responsibly."

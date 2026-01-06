@@ -1,0 +1,12 @@
+kilocode_custom_modes:
+  customModes:
+    - slug: string
+      name: string
+      roleDefinition: string
+      whenToUse: string
+      description: string
+      customInstructions: string
+      groups: [string]
+      source: string
+      iconName: string
+      rulesFiles: [string]

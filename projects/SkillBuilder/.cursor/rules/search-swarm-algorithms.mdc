@@ -1,0 +1,47 @@
+---
+description: Documentation for the two-stage search swarm implementation, domain anchor inference, and result aggregation algorithms
+---
+
+
+# search-swarm-algorithms
+
+## Two-Stage Search Process
+`pkg/search/swarm.go`
+Importance Score: 85
+
+The search swarm implements a dual-phase research algorithm:
+1. Exemplar Discovery: Initial broad search targeting exemplars and high-quality references
+2. Standards Analysis: Focused search using discovered domain anchors to find relevant standards and reference models
+
+## Domain Anchor Inference
+`pkg/search/swarm.go`
+Importance Score: 80
+
+Analyzes first-stage search results to extract domain anchors:
+- Identifies recurring terminology and concepts
+- Extracts authoritative sources and standards bodies
+- Builds weighted anchor terms for second-stage search refinement
+
+## Result Aggregation Pipeline
+`pkg/search/models.go`
+Importance Score: 75
+
+Multi-provider result aggregation system:
+- Deduplicates results across search providers
+- Ranks hits based on domain relevance scoring
+- Merges related results into consolidated entries
+- Preserves source attribution and confidence scores
+
+## Search Backend Federation
+`semantic_mode/pipeline/search.py`
+Importance Score: 70
+
+Composite search provider architecture:
+- Distributes searches across multiple backend providers
+- Implements provider-specific query adaptation
+- Handles provider fallback and failover
+- Normalizes results into unified format
+
+$END$
+
+ If you're using this file in context, clearly say in italics in one small line that "Context added by Giga search-swarm-algorithms" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.

@@ -1,0 +1,5 @@
+refinement_triggers:
+  insufficient_exemplars:
+    condition: "len(exemplars_selected) < 3"
+    action: "expand_exemplar_search"
+    max_iterations: 2

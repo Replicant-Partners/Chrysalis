@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "keys": [
+    {
+      "id": "k_155902e091b3fb6163",
+      "name": "admin",
+      "createdAt": "2026-01-06T05:28:32.166Z",
+      "hashHex": "aed1b6a272d301876d4dde31cb84d0898fb73b7ad4caefaec107a2614be140e20c71c1c99c2ba65542ba240dc8eddb2e",
+      "role": "admin"
+    },
+    {
+      "id": "k_user2",
+      "name": "user2",
+      "createdAt": "now",
+      "hashHex": "15a86948b528d41560cd552ac9691752307e1c4eba82972a509c19c9640cf4a20421501fc5e10775365d6193ed293841",
+      "role": "user"
+    },
+    {
+      "id": "k_user3",
+      "name": "user3",
+      "createdAt": "now",
+      "hashHex": "ca61e74619cff3701a2052ad68742639043597102440ff3b2ae0393bc5696978a19f21c1e1a47dba00b543b4ef4e31ba",
+      "role": "user"
+    }
+  ]
+}

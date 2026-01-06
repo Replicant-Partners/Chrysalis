@@ -1,0 +1,29 @@
+levels:
+  intern:
+    years: "0"
+    weight: 0.25
+    synonyms: [intern, trainee]
+  junior:
+    years: "0-3"
+    weight: 0.5
+    synonyms: [junior, entry, entry-level, associate]
+  mid:
+    years: "3-7"
+    weight: 1.0
+    synonyms: [mid, mid-level, intermediate]
+  senior:
+    years: "7-10"
+    weight: 1.75
+    synonyms: [senior, sr]
+  staff:
+    years: "10-15"
+    weight: 2.25
+    synonyms: [staff]
+  principal:
+    years: "15+"
+    weight: 3.0
+    synonyms: [principal]
+  lead:
+    years: "10+"
+    weight: 2.5
+    synonyms: [lead, tech lead]

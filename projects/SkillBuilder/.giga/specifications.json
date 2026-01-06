@@ -1,0 +1,22 @@
+[
+  {
+    "fileName": "main-overview.mdc",
+    "description": "Complete system overview documenting the three-part architecture (Python pipeline, Go-based search swarm, and Clojure-based synthesis) with component interactions and high-level data flow"
+  },
+  {
+    "fileName": "pipeline-architecture.mdc",
+    "description": "Detailed documentation of the semantic mode pipeline, including the runner's orchestration logic, stage sequencing, and artifact generation process"
+  },
+  {
+    "fileName": "search-swarm-algorithms.mdc",
+    "description": "Technical documentation of the two-stage search process, domain anchor inference, and result aggregation algorithms implemented in the Go search swarm"
+  },
+  {
+    "fileName": "synthesis-algorithms.mdc",
+    "description": "Comprehensive documentation of the semantic synthesis algorithms, including skill inference, skill card generation, and mode merging logic implemented in Clojure"
+  },
+  {
+    "fileName": "data-models.mdc",
+    "description": "Detailed documentation of core data structures including ParsedMode, skill cards, semantic maps, and the relationships between these models across all three language implementations"
+  }
+]

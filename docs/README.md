@@ -42,6 +42,7 @@ docs/
 - **[MCP Setup](current/MCP_SETUP.md)** - MCP server configuration
 - **[Implementation Guide](current/IMPLEMENTATION_GUIDE.md)** - How to implement
 - **[Uniform Semantic Agent Lexicon](current/UNIVERSAL_AGENT_LEXICON.md)** - Core terms, OODA, emoji mode
+- **[uSA Profile v0.1](current/USA_PROFILE_V0.1.md)** - Authorable profile vs operational envelope (belief deprecated for calibration)
 - **[OBSERVABILITY_VOYEUR.md](current/OBSERVABILITY_VOYEUR.md)** - Voyeur mode + metrics hooks
 - **[DOCUMENTATION_STANDARDS.md](current/DOCUMENTATION_STANDARDS.md)** - How to keep docs consistent
 - **[OBSERVABILITY_GUIDE.md](current/OBSERVABILITY_GUIDE.md)** - SSE viewer + metrics how-to

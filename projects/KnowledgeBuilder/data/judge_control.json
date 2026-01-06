@@ -1,0 +1,20 @@
+[
+  {
+    "question": "Who discovered radium?",
+    "contexts": [
+      "Marie Curie was a physicist and chemist who discovered polonium and radium.",
+      "Radium is a chemical element with symbol Ra and atomic number 88."
+    ],
+    "answer": "Marie Curie discovered radium.",
+    "ground_truth": ["Marie Curie discovered radium"]
+  },
+  {
+    "question": "What is LanceDB used for here?",
+    "contexts": [
+      "LanceDB stores entity embeddings for similarity search.",
+      "SQLite stores metadata."
+    ],
+    "answer": "It stores embeddings for similarity search.",
+    "ground_truth": ["LanceDB stores entity embeddings for similarity search"]
+  }
+]

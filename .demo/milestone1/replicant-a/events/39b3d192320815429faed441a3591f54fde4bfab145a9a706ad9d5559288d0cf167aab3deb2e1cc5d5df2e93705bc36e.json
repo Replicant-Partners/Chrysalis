@@ -1,0 +1,16 @@
+{
+  "agentId": "replicant-demo-agent",
+  "eventId": "replicant-a_1767661681139",
+  "type": "SemanticClaimUpserted",
+  "primitive": "semantic_memory",
+  "createdAt": "2026-01-06T01:08:01.139Z",
+  "payload": {
+    "key": "ceo_of_microsoft",
+    "value": "Satya Nadella",
+    "confidence": 0.6,
+    "provenance": {
+      "source": "replicant-a-experience",
+      "collectedAt": "2026-01-06T01:08:01.139Z"
+    }
+  }
+}

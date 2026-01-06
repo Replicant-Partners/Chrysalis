@@ -114,6 +114,44 @@ A multi-layer agent transformation system that enables agents to:
 
 **Status**: ✅ Functional, 🔄 Evolving toward true gossip + CRDTs
 
+### uSA Profile vs Envelope (GaryVision Conventions)
+
+Chrysalis formally supports a **two-layer representation** of an agent:
+
+- **Profile (authorable)**: identity + persona + memory + capabilities (human-editable, low surface area)
+- **Envelope (operational)**: instances + sync + execution + protocols + crypto + evolution metadata (deployment/runtime)
+
+This split reflects the implementation plan used by GaryVision and captured in `JSON-Schema-Update.md`.
+
+#### Beliefs: Deprecated as calibration substrate
+
+Chrysalis previously supported belief buckets (`who/what/why/how/...`) as a calibration mechanism. This is now **deprecated**:
+
+- Calibration is anchored in **external empirical reality** via grounding services (e.g., KnowledgeBuilder claim generation and verification) and verifiable network commitments (e.g., Hedera-backed ledger semantics and/or equivalent deterministic services).
+- Beliefs MAY remain as a backward-compatible field in `UniformSemanticAgentV2`, but MUST NOT be treated as the primary mechanism for truth calibration, convergence, or reconciliation.
+- When generating an operational envelope that requires beliefs, implementations SHOULD emit a minimal empty structure and record the policy in metadata (e.g., `metadata.x_<project>.beliefs_deprecated = true`).
+
+#### Communication: Derived from personality
+
+“Communication style” is treated as a subset/derivation of personality:
+
+- Profile uses `personality.style` (tone, principles, optional modes)
+- Envelope MAY materialize a `communication` block for compatibility, but it is derived from personality and is not an independent calibration mechanism.
+
+#### Semantic memory is the canonical substrate (skills/knowledge collapse)
+
+The profile treats semantic memory as the canonical store for durable items:
+
+- `semantic_memory.items[]` is authoritative and may contain typed items such as `knowledge|skill|concept|procedure|policy|note`.
+- Any partitions such as “knowledge facts/topics/expertise” are derived views and must be reproducible from the canonical semantic memory items and/or their provenance.
+
+#### Rights: Capability-first language
+
+The profile uses capabilities-first language:
+
+- `capabilities.primary[]` (+ optional `capabilities.tools[]`) describe what the agent can do.
+- Enforcement remains possible via runtime policy, ledger commitments, and trust tiers, but the portable profile avoids rights/belief coupling.
+
 ### Integration: The Missing Link
 
 **Current State**: Layers exist independently

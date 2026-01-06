@@ -1,0 +1,19 @@
+software-engineering:
+  role_nouns: [engineer, developer, programmer, architect, sre, devops]
+  keywords: [software, engineering, development, programming, coding, systems, distributed, backend, frontend, devops]
+
+data-science:
+  role_nouns: [scientist, analyst, researcher]
+  keywords: [data, analytics, statistics, machine learning, modeling, experimentation, inference]
+
+security:
+  role_nouns: [engineer, analyst, researcher, specialist]
+  keywords: [security, cybersecurity, infosec, threat, vulnerability, pen-testing, incident, cryptography]
+
+product-management:
+  role_nouns: [manager, pm, product]
+  keywords: [product, roadmap, discovery, prioritization, customer, requirements, strategy]
+
+research:
+  role_nouns: [researcher, scientist, scholar]
+  keywords: [research, methodology, evidence, evaluation, replication, peer review, literature]

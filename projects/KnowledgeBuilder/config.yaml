@@ -1,0 +1,67 @@
+# KnowledgeBuilder Configuration
+project:
+  name: "KnowledgeBuilder"
+  version: "0.1.0"
+  data_directory: "./data"
+
+llm:
+  provider: "anthropic"  # or "openai"
+  model: "claude-3-5-sonnet-20241022"
+  temperature: 0.1
+  max_tokens: 4096
+
+vector_database:
+  provider: "lancedb"
+  uri: "db://peripheral-json1d"  # From .env LANCEDB_DATABASE_URI
+  embedding_model: "text-embedding-3-large"
+  embedding_dimensions: 3072
+
+search:
+  primary: "brave"  # Brave Search
+  fallback: "exa"   # Exa AI via MCP
+  max_results_per_source: 10
+
+collection:
+  max_iterations: 5
+  completeness_threshold: 0.65
+  quality_threshold: 0.65
+  cost_per_entity_limit: 2.00  # USD
+
+logging:
+  level: "INFO"
+  format: "json"
+  file: "./logs/knowledgebuilder.log"
+
+# Entity Type Configuration
+entity_types:
+  enabled:
+    - Person
+    - Organization
+    - Place
+    - Product
+  
+  Person:
+    priority_sources:
+      - wikipedia
+      - linkedin
+      - official_websites
+    
+  Organization:
+    priority_sources:
+      - official_website
+      - crunchbase
+      - wikipedia
+      - financial_databases
+    
+  Place:
+    priority_sources:
+      - wikipedia
+      - government_sources
+      - travel_sites
+  
+  Product:
+    priority_sources:
+      - official_website
+      - github
+      - product_hunt
+      - reviews

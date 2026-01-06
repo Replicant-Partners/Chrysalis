@@ -1,0 +1,4 @@
+$494aff66-f2a8-4894-9c4c-9116e35c567e²¶id ÿÿÿÿÿÿÿÿÿ*string08&entity_name ÿÿÿÿÿÿÿÿÿ*string08&entity_type ÿÿÿÿÿÿÿÿÿ*string08text ÿÿÿÿÿÿÿÿÿ*string085vector ÿÿÿÿÿÿÿÿÿ*fixed_size_list:float:307208'quality_score ÿÿÿÿÿÿÿÿÿ*float08%trust_score ÿÿÿÿÿÿÿÿÿ*float08,completeness_score ÿÿÿÿÿÿÿÿÿ*float08%
+created_at ÿÿÿÿÿÿÿÿÿ*string08"!
+lance.auto_cleanup.interval20"'
+lance.auto_cleanup.older_than14days

@@ -1,0 +1,7 @@
+{
+  "allowlist": [],
+  "blocklist": [
+    "malware.test",
+    "phishing.test"
+  ]
+}

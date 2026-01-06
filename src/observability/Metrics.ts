@@ -122,7 +122,7 @@ export class CombinedMetricsSink implements MetricsSink {
   }
 }
 
-export function createMetricsSinkFromEnv(): MetricsSink | null {
+export function createMetricsSinkFromEnv(): MetricsSink | undefined {
   const sinks: MetricsSink[] = [];
   const enableProm = (process.env.METRICS_PROMETHEUS || '').toLowerCase() === 'true';
   const enableOtel = (process.env.METRICS_OTEL || '').toLowerCase() === 'true';
@@ -141,7 +141,7 @@ export function createMetricsSinkFromEnv(): MetricsSink | null {
     sinks.push(otelSink);
   }
 
-  if (!sinks.length) return null;
+  if (!sinks.length) return undefined;
   if (sinks.length === 1) return sinks[0];
   return new CombinedMetricsSink(sinks);
 }

@@ -1,0 +1,16 @@
+{
+  "agentId": "replicant-demo-agent",
+  "eventId": "replicant-b_1767661775249",
+  "type": "SemanticClaimUpserted",
+  "primitive": "semantic_memory",
+  "createdAt": "2026-01-06T01:09:35.249Z",
+  "payload": {
+    "key": "ceo_of_microsoft",
+    "value": "Steve Ballmer",
+    "confidence": 0.6,
+    "provenance": {
+      "source": "replicant-b-experience",
+      "collectedAt": "2026-01-06T01:09:35.249Z"
+    }
+  }
+}

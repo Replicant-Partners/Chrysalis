@@ -1,0 +1,12 @@
+.env
+__pycache__/
+ontology_cache/
+telemetry.jsonl
+reports/
+reports/testcase_*/
+reports/**/telemetry.jsonl
+.kilocode/
+.kilocodemodes
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md

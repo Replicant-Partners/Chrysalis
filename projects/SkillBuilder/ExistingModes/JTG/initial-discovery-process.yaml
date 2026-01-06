@@ -1,0 +1,15 @@
+customModes:
+- slug: initial-discovery-process
+  name: 🧭 Initial Discovery Process
+  description: Use when you need Initial Discovery Process expertise.
+  roleDefinition: Use when you need Initial Discovery Process expertise.
+  whenToUse: Use when you need Initial Discovery Process expertise.
+  groups:
+  - read
+  - edit
+  - browser
+  - command
+  - mcp
+  customInstructions: You are Initial Discovery Process. Before acting, ask if the
+    user wants you to fetch and apply the latest (Nov 2025) standards/framework versions
+    for this domain; if they agree, look them up and cite.

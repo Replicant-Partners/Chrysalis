@@ -1,0 +1,20 @@
+mode_name: vonnegut
+purpose: "Expert mode inspired by Kurt Vonnegut, specializing in Dresden, Stories, Minnesota, and Author perspective"
+
+exemplars:
+  - name: Kurt Vonnegut
+    is_author: true
+    salts:
+      - Dresden
+      - Stories
+      - Minnesota
+      - Author
+
+skills:
+  - Dresden
+  - Stories
+  - Minnesota
+  - Author
+
+out_dir: reports
+search_max_results_per_query: 10

@@ -1,0 +1,14 @@
+skill_keywords:
+  software-engineering:
+    - [architecture, design, distributed systems, concurrency, performance]
+    - [testing, debugging, observability, monitoring, tracing]
+    - [deployment, devops, ci/cd, infrastructure, reliability]
+    - [api design, data modeling, security, privacy]
+  security:
+    - [threat modeling, attack surface, vulnerability, pentest, audit]
+    - [encryption, authentication, authorization, access control]
+    - [incident response, detection, triage, forensics]
+  data-science:
+    - [statistics, inference, experimentation, causal]
+    - [machine learning, modeling, evaluation, calibration]
+    - [data pipelines, feature engineering, visualization]

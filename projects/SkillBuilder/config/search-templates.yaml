@@ -1,0 +1,15 @@
+exemplar_discovery:
+  queries:
+    - "{identity} notable professionals"
+    - "{identity} thought leaders"
+    - "{identity} key figures"
+    - "best books by {identity}"
+    - "{domain} {identity} experts"
+    - "{expertise} {identity} decision making"
+
+stage2_anchors:
+  queries:
+    - "{field} standards body"
+    - "{field} professional society standards"
+    - "{field} reference model framework taxonomy"
+    - "{keywords} best practices guide"

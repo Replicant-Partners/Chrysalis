@@ -1,0 +1,11 @@
+slug: merged-cluster
+name: Merged Cluster
+description: ''
+roleDefinition: ''
+whenToUse: ''
+customInstructions: ''
+groups: []
+autoGovernance: false
+executionPolicy: false
+sourceFiles:
+- dependabot.yml
