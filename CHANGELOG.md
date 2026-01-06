@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.0] - 2026-01-06
+
+### Added
+- **Memory System Package**: Consolidated semantic services into standalone Python package
+  - **Semantic Module**: Triple extraction, intent detection, semantic frames
+    - HeuristicStrategy (pattern-based, no API required)
+    - AnthropicStrategy (Claude Sonnet 4.5: `claude-sonnet-4-5-20250514`)
+  - **Graph Module**: NetworkX and SQLite graph backends with path finding
+  - **Converters Module**: Document, code, and chunk conversion utilities
+  - **Analysis Module**: Shannon entropy and redundancy detection
+  - **Embedding Module**: Voyage AI (primary) + OpenAI (fallback) with deterministic mode
+  - **MCP Module**: Model Context Protocol integration utilities
+  - **Resolvers Module**: Entity and schema resolution services
+- **Test Suite**: 84 comprehensive tests for memory_system (100% passing)
+- **API Documentation**: Complete module documentation with examples
+
+### Changed
+- **KnowledgeBuilder**: Added `pyarrow>=15.0.0` dependency for LanceDB compatibility
+- **Test Infrastructure**: Converted async tests from pytest-asyncio to asyncio.run()
+- **Embedding Strategy**: Voyage AI configured as primary provider (Anthropic recommended)
+
+### Fixed
+- **Async Tests**: Resolved pytest-asyncio dependency issues
+- **Graph Tests**: Added NetworkX availability checks with skip decorators
+- **Converter Tests**: Fixed Chunk field validation tests
+
+### Architecture
+- **Integration Ready**: Both KnowledgeBuilder (43/43 tests) and SkillBuilder operational
+- **Semantic Services**: Modular design allows gradual adoption
+- **Provider Fallback**: Voyage AI → OpenAI → Deterministic (no API required)
+
+### Notes
+- Created comprehensive semantic services foundation
+- All 127 tests passing (84 memory_system + 43 KnowledgeBuilder)
+- Voyage AI API key configured for production embeddings
+- Integration documentation for builder adoption paths
+
+---
+
 ## [3.2.0] - 2026-01-06
 
 ### Removed
@@ -123,6 +162,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Key Features |
 |---------|------|--------------|
+| **3.3.0** | 2026-01-06 | Memory system package, semantic services, Claude Sonnet 4.5, Voyage AI embeddings |
 | **3.2.0** | 2026-01-06 | Qdrant removal, LanceDB consolidation, pipeline fixes |
 | **3.1.0** | 2025-12-28 | Fractal architecture, adaptive patterns, enhanced memory |
 | **3.0.0** | 2025-12-27 | Universal patterns, MCP fabric, deep research |
