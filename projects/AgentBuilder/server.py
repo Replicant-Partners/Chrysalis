@@ -24,17 +24,7 @@ def build_agent():
         return jsonify({'error': 'roleModel must include name and occupation'}), 400
 
     try:
-        # Step 1: Build Skills
-        skill_payload = {
-            'occupation': occupation, 
-            'deepening_cycles': deepening_cycles,
-            'apiKeys': api_keys
-        }
-        skill_response = requests.post(f"{SKILL_BUILDER_URL}/skills", json=skill_payload)
-        skill_response.raise_for_status()
-        skills = skill_response.json().get('skills', [])
-
-        # Step 2: Build Knowledge
+        # Step 1: Build Knowledge Cloud
         knowledge_payload = {
             'identifier': model_name, 
             'entity_type': 'Person',
@@ -44,6 +34,20 @@ def build_agent():
         knowledge_response = requests.post(f"{KNOWLEDGE_BUILDER_URL}/knowledge", json=knowledge_payload)
         knowledge_response.raise_for_status()
         knowledge_items = knowledge_response.json().get('knowledge_items', [])
+
+        # Step 2: Aggregate text from knowledge items to create a corpus
+        corpus_text = "\n\n".join([item['entity']['text'] for item in knowledge_items if 'entity' in item and 'text' in item['entity']])
+        
+        # Step 3: Build Skills from the aggregated corpus
+        skill_payload = {
+            'occupation': occupation, 
+            'deepening_cycles': deepening_cycles,
+            'apiKeys': api_keys,
+            'corpus_text': corpus_text
+        }
+        skill_response = requests.post(f"{SKILL_BUILDER_URL}/skills", json=skill_payload)
+        skill_response.raise_for_status()
+        skills = skill_response.json().get('skills', [])
 
         # In a real implementation, we would now pass this to the UnifiedMemoryClient
         # For now, we just return the collected data

@@ -215,21 +215,74 @@ export class TransformerEmbeddingService extends EmbeddingService {
 
 /**
  * Factory: Create appropriate embedding service
+ *
+ * @param type - Service type: 'transformer' (default, semantic) or 'mock' (dev-only)
+ * @param config - Optional configuration overrides
+ * @returns Configured EmbeddingService instance
+ *
+ * @example
+ * // Production usage (real semantic embeddings)
+ * const service = createEmbeddingService('transformer');
+ * await service.initialize();
+ *
+ * @example
+ * // Development/testing only
+ * const mockService = createEmbeddingService('mock');
+ *
+ * @see IMPLEMENTATION_PLAN.md Phase 0.2
+ * @see COMPREHENSIVE_CODE_REVIEW.md CRIT-AI-001
  */
 export function createEmbeddingService(
-  type: 'mock' | 'transformer' = 'mock',
+  type: 'mock' | 'transformer' = 'transformer',  // Changed: default to transformer
   config?: Partial<EmbeddingConfig>
 ): EmbeddingService {
   switch (type) {
     case 'mock':
+      // Warn if using mock in non-development environment
+      if (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'development' && process.env?.NODE_ENV !== 'test') {
+        console.warn(
+          '[EmbeddingService] WARNING: Mock embeddings should only be used in development/testing. ' +
+          'Semantic similarity will not work correctly. Use transformer service for production.'
+        );
+      }
       return new MockEmbeddingService(config);
     
     case 'transformer':
       return new TransformerEmbeddingService(config);
     
     default:
-      return new MockEmbeddingService(config);
+      // Default to transformer for semantic accuracy
+      return new TransformerEmbeddingService(config);
   }
+}
+
+/**
+ * Create embedding service with automatic fallback chain
+ *
+ * Attempts: transformer → mock (with warning)
+ * Use this when you need guaranteed initialization
+ */
+export async function createEmbeddingServiceWithFallback(
+  config?: Partial<EmbeddingConfig>
+): Promise<EmbeddingService> {
+  // Try transformer first
+  try {
+    const transformer = new TransformerEmbeddingService(config);
+    await transformer.initialize();
+    console.info('[EmbeddingService] Initialized with transformer (semantic embeddings enabled)');
+    return transformer;
+  } catch (error) {
+    console.warn('[EmbeddingService] Transformer initialization failed, falling back to mock:', error);
+  }
+  
+  // Fallback to mock with warning
+  console.warn(
+    '[EmbeddingService] Using mock embeddings as fallback. ' +
+    'Semantic similarity will be compromised. Install @xenova/transformers for production use.'
+  );
+  const mock = new MockEmbeddingService(config);
+  await mock.initialize();
+  return mock;
 }
 
 /**

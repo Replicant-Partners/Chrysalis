@@ -27,7 +27,7 @@ import yaml
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-# Get project root by going up from models.py -> pipeline -> semantic_mode -> project root
+# Get project root by going up from models.py -> pipeline -> skill_builder -> project root
 import os
 project_root = Path(__file__).parent.parent.parent
 dotenv_path = project_root / ".env"
@@ -334,6 +334,9 @@ class FrontendSpec:
     # Calibration / self-tuning
     calibration_enabled: bool = True
     calibration_model_path: Optional[Path] = None
+    
+    # Direct corpus injection
+    corpus_text: Optional[str] = None
     
     @classmethod
     def from_yaml(cls, yaml_path: Path) -> FrontendSpec:

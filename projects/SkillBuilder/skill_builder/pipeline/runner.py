@@ -133,6 +133,8 @@ class PipelineRunner:
         """Internal pipeline execution with telemetry context."""
         assert self._telemetry is not None
 
+        print(f"--- [SkillBuilder] Running pipeline with spec: {self.spec}")
+
         # Calibration: load offline artifact (if present) and apply bounded overrides
         if getattr(self.spec, "calibration_enabled", True):
             model_path = getattr(self.spec, "calibration_model_path", None) or DEFAULT_CALIBRATION_MODEL_PATH
@@ -171,41 +173,38 @@ class PipelineRunner:
         ))
 
         try:
-            # Load seeded modes if requested
-            seeded_modes_data: list[dict] = []
-            unmatched_seed_modes: list[str] = []
-            if self.spec.seed_modes:
-                seeded_modes_data, unmatched_seed_modes = self.kilocode.load_modes(list(self.spec.seed_modes))
+            # If corpus_text is provided, bypass the search swarm
+            if self.spec.corpus_text:
+                print("--- [SkillBuilder] Corpus text provided, skipping search swarm.")
+                swarm_data = {
+                    "all_hits": [{
+                        "title": "Provided Corpus",
+                        "url": "local://corpus",
+                        "snippet": self.spec.corpus_text,
+                        "score": 1.0,
+                        "domain": "local",
+                        "provider": "corpus"
+                    }],
+                    "domain_anchors": ["local_corpus"],
+                }
+            else:
+                # Step 1: Run Go-based search swarm
+                with self._telemetry.span("search.swarm", backend="go", enable_hybrid=self.spec.enable_hybrid):
+                    swarm_start = time.perf_counter()
+                    swarm_data = run_go_search_swarm(self.spec, telemetry=self._telemetry, run_id=self.run_id)
+                    swarm_duration_ms = (time.perf_counter() - swarm_start) * 1000
+                
+                self._telemetry.emit(TelemetryEvent(
+                    event_type="search.swarm.done",
+                    data={
+                        "run_id": self.run_id,
+                        "duration_ms": swarm_duration_ms,
+                        "provider_hits": len(swarm_data.get("provider_hits", []) or []),
+                    },
+                ))
 
-                if unmatched_seed_modes:
-                    # Record recoverable miss to keep operators aware without failing run
-                    self._telemetry.emit(
-                        TelemetryEvent(
-                            event_type="kilocode.unmatched",
-                            data={
-                                "requested": list(self.spec.seed_modes),
-                                "unmatched": unmatched_seed_modes,
-                            },
-                        )
-                    )
-
-            # Step 1: Run Go-based search swarm
-            with self._telemetry.span("search.swarm", backend="go", enable_hybrid=self.spec.enable_hybrid):
-                swarm_start = time.perf_counter()
-                swarm_data = run_go_search_swarm(self.spec, telemetry=self._telemetry, run_id=self.run_id)
-                swarm_duration_ms = (time.perf_counter() - swarm_start) * 1000
-            
-            self._telemetry.emit(TelemetryEvent(
-                event_type="search.swarm.done",
-                data={
-                    "run_id": self.run_id,
-                    "duration_ms": swarm_duration_ms,
-                    "provider_hits": len(swarm_data.get("provider_hits", []) or []),
-                },
-            ))
-            
-            swarm_data["seeded_modes"] = seeded_modes_data
-
+            print(f"--- [SkillBuilder] Swarm data: {swarm_data}")
+            swarm_data["seeded_modes"] = []
             # Convert Go output to ResearchArtifacts
             all_hits_raw = swarm_data.get("all_hits", [])
             
@@ -273,6 +272,7 @@ class PipelineRunner:
             prior_domains: set[str] = set(domain_anchors)
             prior_skills: set[str] = set()
             final_skills: tuple[SkillCard, ...] = tuple()
+            final_embeddings: tuple[list[float], ...] = tuple()
             final_map: tuple[SemanticMapEntry, ...] = tuple()
             written_files: list[Path] = []
             stop_reason: Optional[str] = None
@@ -293,6 +293,7 @@ class PipelineRunner:
                         run_id=self.run_id,
                     )
                 
+                print(f"--- [SkillBuilder] Synthesis data: {synthesis_data}")
                 if synthesis_data is None:
                     raise ValueError("Clojure synthesis returned None")
 
@@ -309,6 +310,13 @@ class PipelineRunner:
                     )
                     for s in skills_raw
                 ]
+
+                # Generate embeddings for the new skills
+                skill_embeddings = []
+                for skill in skills:
+                    text_to_embed = f"Skill: {skill.name}\nDescription: {skill.description}"
+                    embedding = self.embedder.embed(text_to_embed)
+                    skill_embeddings.append(embedding)
 
                 semantic_map_raw = synthesis_data.get("semantic_map", []) or []
                 semantic_map = [
@@ -399,8 +407,8 @@ class PipelineRunner:
                 artifacts=[str(f.name) for f in written_files],
                 run_id=self.run_id,
             ))
-
-            return PipelineResult(
+            
+            result = PipelineResult(
                 success=True,
                 spec=self.spec,
                 artifacts=artifacts,
@@ -411,6 +419,241 @@ class PipelineRunner:
                 duration_ms=duration_ms,
                 error=stop_reason,
             )
+            print(f"--- [SkillBuilder] Pipeline result: {result}")
+            return result
+
+        except Exception as e:
+            duration_ms = (time.perf_counter() - start_time) * 1000
+
+            self._telemetry.emit(event_run_error(
+                error=str(e),
+                stage="pipeline",
+                run_id=self.run_id,
+            ))
+
+            return PipelineResult(
+                success=False,
+                spec=self.spec,
+                error=str(e),
+                duration_ms=duration_ms,
+            )
+
+            # Convert Go output to ResearchArtifacts
+            all_hits_raw = swarm_data.get("all_hits", [])
+            
+            if all_hits_raw is None:
+                raise ValueError("Go search swarm returned None for all_hits")
+
+            # Optionally fuse multi-provider results with RRF when hybrid is enabled or provider buckets exist
+            provider_hits_raw = _extract_provider_hits(swarm_data, all_hits_raw)
+            should_rrf = self.spec.enable_hybrid or len(provider_hits_raw) > 1
+
+            if should_rrf and provider_hits_raw:
+                rrf_start = time.perf_counter()
+                fused_hits_raw = _rrf_fuse_hits(provider_hits_raw, k=self.spec.rrf_k)
+                all_hits_source = fused_hits_raw
+                self._telemetry.emit(TelemetryEvent(
+                    event_type="search.rrf.fused",
+                    data={
+                        "run_id": self.run_id,
+                        "k": self.spec.rrf_k,
+                        "providers": [p for p, _ in provider_hits_raw],
+                        "raw_counts": {p: len(h) for p, h in provider_hits_raw},
+                        "fused_count": len(fused_hits_raw),
+                        "duration_ms": (time.perf_counter() - rrf_start) * 1000,
+                    },
+                ))
+            else:
+                all_hits_source = all_hits_raw
+
+            all_hits = [
+                SearchHit(
+                    title=h.get("title", ""),
+                    url=h.get("url", ""),
+                    snippet=h.get("snippet", ""),
+                    score=h.get("score", 0.0),
+                    domain=h.get("domain", ""),
+                    provider=h.get("provider", ""),
+                )
+                for h in all_hits_source
+            ]
+            
+            domain_anchors_raw = swarm_data.get("domain_anchors", [])
+            
+            if domain_anchors_raw is None:
+                domain_anchors = tuple()
+            else:
+                domain_anchors = tuple(domain_anchors_raw)
+
+            artifacts = ResearchArtifacts(
+                all_hits=tuple(all_hits),
+                domain_anchors=domain_anchors,
+                citations=tuple(
+                    Citation(
+                        url=h.url,
+                        title=h.title,
+                        source_type="web",
+                        relevance=h.snippet[:100],
+                    )
+                    for h in all_hits
+                ),
+            )
+
+            # Step 2+: Deepening cycles with strategy selection and scoring
+            cycles_requested = max(0, min(self.spec.deepening_cycles, 11))
+            total_cycles = max(1, cycles_requested if cycles_requested > 0 else 1)
+            prior_domains: set[str] = set(domain_anchors)
+            prior_skills: set[str] = set()
+            final_skills: tuple[SkillCard, ...] = tuple()
+            final_embeddings: tuple[list[float], ...] = tuple()
+            final_map: tuple[SemanticMapEntry, ...] = tuple()
+            written_files: list[Path] = []
+            stop_reason: Optional[str] = None
+
+            for cycle_idx in range(total_cycles):
+                strategy = self._select_strategy(cycle_idx)
+                self._telemetry.emit(TelemetryEvent(
+                    event_type="deepening.strategy",
+                    data={"cycle": cycle_idx + 1, "strategy": strategy, "requested_cycles": cycles_requested},
+                ))
+
+                cycle_start = time.perf_counter()
+                with self._telemetry.span("synthesis", cycle=cycle_idx + 1, strategy=strategy):
+                    synthesis_data = run_clojure_synthesis(
+                        {**swarm_data, "strategy": strategy, "cycle": cycle_idx + 1, "run_id": self.run_id},
+                        self.spec,
+                        telemetry=self._telemetry,
+                        run_id=self.run_id,
+                    )
+                
+                print(f"--- [SkillBuilder] Synthesis data: {synthesis_data}")
+                if synthesis_data is None:
+                    raise ValueError("Clojure synthesis returned None")
+
+                skills_raw = synthesis_data.get("skills", []) or []
+                skills = [
+                    SkillCard(
+                        name=s["name"],
+                        description=s["description"],
+                        triggers=tuple(s.get("triggers", [])),
+                        artifacts=tuple(s.get("artifacts", [])),
+                        constraints=tuple(s.get("constraints", [])),
+                        evidence_urls=tuple(s.get("evidence_urls", [])),
+                        confidence=s.get("confidence", 0.7),
+                    )
+                    for s in skills_raw
+                ]
+
+                # Generate embeddings for the new skills
+                skill_embeddings = []
+                for skill in skills:
+                    text_to_embed = f"Skill: {skill.name}\nDescription: {skill.description}"
+                    embedding = self.embedder.embed(text_to_embed)
+                    skill_embeddings.append(embedding)
+
+                semantic_map_raw = synthesis_data.get("semantic_map", []) or []
+                semantic_map = [
+                    SemanticMapEntry(
+                        schema_type=e["schema_type"],
+                        name=e["name"],
+                        description=e["description"],
+                        properties=e["properties"],
+                        source_urls=tuple(e.get("source_urls", [])),
+                    )
+                    for e in semantic_map_raw
+                ]
+
+                # Scoring
+                current_domains = prior_domains | {m.name.lower() for m in semantic_map}
+                domain_gain = len(current_domains) - len(prior_domains)
+                skill_names = {s.name.lower() for s in skills}
+                skill_gain = len(skill_names - prior_skills)
+
+                score = {
+                    "strategy": strategy,
+                    "cycle": cycle_idx + 1,
+                    "domain_gain": domain_gain,
+                    "skill_gain": skill_gain,
+                    "duration_ms": (time.perf_counter() - cycle_start) * 1000,
+                }
+                self._telemetry.emit(TelemetryEvent(
+                    event_type="deepening.score",
+                    data=score,
+                ))
+
+                # Early stop if requested cycles > 0 but no progressive info
+                if cycles_requested > 0 and cycle_idx + 1 < total_cycles:
+                    if strategy == "segmentation" and domain_gain <= 0:
+                        stop_reason = "segmentation-no-new-domains"
+                        break
+                    if strategy == "drilldown" and skill_gain <= 0:
+                        stop_reason = "drilldown-no-new-skills"
+                        break
+
+                prior_domains = current_domains
+                prior_skills |= skill_names
+                final_skills = tuple(skills)
+                final_embeddings = tuple(skill_embeddings)
+                final_map = tuple(semantic_map)
+
+            # Step 3: Write artifacts from last cycle
+            out_dir = self.spec.out_dir / self.spec.mode_name
+            out_dir.mkdir(parents=True, exist_ok=True)
+
+            markdown_data = synthesis_data.get("markdown", {}) if 'synthesis_data' in locals() else {}
+
+            for name, content in markdown_data.items():
+                file_path = out_dir / f"{name.replace('_', '-')}.md"
+                with open(file_path, "w") as f:
+                    f.write(content)
+                written_files.append(file_path)
+                try:
+                    size_bytes = file_path.stat().st_size
+                except OSError:
+                    size_bytes = 0
+                self._telemetry.emit(event_artifact_written(
+                    artifact_type=name,
+                    path=str(file_path),
+                    size_bytes=size_bytes,
+                ))
+
+            citations_path = out_dir / "citations.md"
+            with open(citations_path, "w") as f:
+                f.write("# Citations\n\n")
+                for c in artifacts.citations:
+                    f.write(f"{c.to_markdown()}\n")
+            written_files.append(citations_path)
+            try:
+                citations_size = citations_path.stat().st_size
+            except OSError:
+                citations_size = 0
+            self._telemetry.emit(event_artifact_written(
+                artifact_type="citations",
+                path=str(citations_path),
+                size_bytes=citations_size,
+            ))
+
+            duration_ms = (time.perf_counter() - start_time) * 1000
+
+            self._telemetry.emit(event_run_done(
+                duration_ms=duration_ms,
+                artifacts=[str(f.name) for f in written_files],
+                run_id=self.run_id,
+            ))
+            
+            result = PipelineResult(
+                success=True,
+                spec=self.spec,
+                artifacts=artifacts,
+                skills=final_skills,
+                embeddings=final_embeddings,
+                semantic_map=final_map,
+                written_files=tuple(written_files),
+                duration_ms=duration_ms,
+                error=stop_reason,
+            )
+            print(f"--- [SkillBuilder] Pipeline result: {result}")
+            return result
 
         except Exception as e:
             duration_ms = (time.perf_counter() - start_time) * 1000

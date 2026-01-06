@@ -27,6 +27,7 @@ class TavilyCollector:
             "max_results": max_results,
             "search_depth": "advanced",  # go deeper per user request
         }
+        print(f"--- [Tavily] Sending query: {payload['query']}")
         # Tavily docs: use Authorization: Bearer <key> (some versions accept Tavily-Key)
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
         resp = requests.post(self.BASE_URL, json=payload, headers=headers, timeout=self.timeout)

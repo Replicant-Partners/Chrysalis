@@ -1,13 +1,24 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { MemoryItem } from './types';
 
 // Placeholder for a LanceDB client. In a real implementation, this would be a
 // proper client for interacting with LanceDB or another vector database.
 class LanceDBClient {
-  private memory: MemoryItem[] = [];
+  private memoryFilePath: string;
+
+  constructor() {
+    this.memoryFilePath = path.join(process.env.GEMINI_TMPDIR || '/tmp', 'unified_memory.json');
+    if (!fs.existsSync(this.memoryFilePath)) {
+      fs.writeFileSync(this.memoryFilePath, '[]');
+    }
+  }
 
   async insert(item: MemoryItem): Promise<void> {
     console.log(`[LanceDBClient] Inserting item: ${item.id}`);
-    this.memory.push(item);
+    const memory = this.getMemory();
+    memory.push(item);
+    fs.writeFileSync(this.memoryFilePath, JSON.stringify(memory, null, 2));
     return Promise.resolve();
   }
 
@@ -15,12 +26,14 @@ class LanceDBClient {
     console.log(`[LanceDBClient] Searching for similar items...`);
     // This is a mock search. A real implementation would perform a vector search.
     // For now, we'll just return the most recent items.
-    return Promise.resolve(this.memory.slice(-k));
+    const memory = this.getMemory();
+    return Promise.resolve(memory.slice(-k));
   }
 
   // Helper method for testing/observation
   getMemory(): MemoryItem[] {
-    return this.memory;
+    const memory = fs.readFileSync(this.memoryFilePath, 'utf-8');
+    return JSON.parse(memory);
   }
 }
 

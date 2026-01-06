@@ -2,8 +2,8 @@
 Command-Line Interface for SkillBuilder.
 
 Usage:
-    python -m semantic_mode create    # Interactive wizard (primary interface)
-    python -m semantic_mode setup     # Check dependencies
+    python -m skill_builder create    # Interactive wizard (primary interface)
+    python -m skill_builder setup     # Check dependencies
 """
 
 from __future__ import annotations
@@ -20,11 +20,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from semantic_mode.pipeline.models import FrontendSpec, Exemplar
-from semantic_mode.pipeline.runner import run_pipeline
-from semantic_mode.pipeline.transformer import ModeTransformer, OutputFormat
-from semantic_mode.pipeline.kilocode import KilocodeManager
-from semantic_mode.pipeline.telemetry import emit_structured
+from skill_builder.pipeline.models import FrontendSpec, Exemplar
+from skill_builder.pipeline.runner import run_pipeline
+from skill_builder.pipeline.transformer import ModeTransformer, OutputFormat
+from skill_builder.pipeline.kilocode import KilocodeManager
+from skill_builder.pipeline.telemetry import emit_structured
 
 
 def main(args: Sequence[str] | None = None) -> int:
@@ -36,9 +36,9 @@ def main(args: Sequence[str] | None = None) -> int:
         # Default to create command if no subcommand given
         print("\n🔮 SkillBuilder - Build agent modes from exemplar-driven research")
         print("\nUsage:")
-        print("  python -m semantic_mode create   # Interactive wizard")
-        print("  python -m semantic_mode setup    # Check dependencies")
-        print("\nRun 'python -m semantic_mode create' to get started!\n")
+        print("  python -m skill_builder create   # Interactive wizard")
+        print("  python -m skill_builder setup    # Check dependencies")
+        print("\nRun 'python -m skill_builder create' to get started!\n")
         return 0
     
     return parsed.func(parsed)
@@ -47,7 +47,7 @@ def main(args: Sequence[str] | None = None) -> int:
 def create_parser() -> argparse.ArgumentParser:
     """Create argument parser with subcommands."""
     parser = argparse.ArgumentParser(
-        prog="semantic_mode",
+        prog="skill_builder",
         description="SkillBuilder: Build agent modes from exemplar-driven research",
     )
     
@@ -423,7 +423,7 @@ def cmd_setup(args: argparse.Namespace) -> int:
                 print("     BRAVE_API_KEY=your_brave_key")
         else:
             print("\n✅ All required dependencies are configured!")
-            print("\nGet started with: python -m semantic_mode create")
+            print("\nGet started with: python -m skill_builder create")
         
         return 0
         
@@ -435,8 +435,8 @@ def cmd_setup(args: argparse.Namespace) -> int:
 def cmd_batch_merge(args: argparse.Namespace) -> int:
     """Execute batch mode merge (semantic clustering + merge)."""
     try:
-        from semantic_mode.pipeline.runner import run_batch_mode_merge
-        from semantic_mode.pipeline.mode_merge import ModeBatchMergeSpec
+        from skill_builder.pipeline.runner import run_batch_mode_merge
+        from skill_builder.pipeline.mode_merge import ModeBatchMergeSpec
     except Exception as e:
         print(f"❌ Cannot load batch merge components: {e}", file=sys.stderr)
         return 1
@@ -474,7 +474,7 @@ def cmd_batch_merge(args: argparse.Namespace) -> int:
 
 def cmd_calibrate(args: argparse.Namespace) -> int:
     """Train/update offline calibration artifact from prior telemetry runs."""
-    from semantic_mode.pipeline.telemetry import train_basic_calibration_model
+    from skill_builder.pipeline.telemetry import train_basic_calibration_model
 
     runs_dir = Path(getattr(args, "runs_dir", ".roo/runs"))
     model_path = Path(getattr(args, "model_path", ".roo/calibration/basic.json"))

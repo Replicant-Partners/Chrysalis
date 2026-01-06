@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Optional, List, Set
 
-from src.collectors.brave_search_collector import BraveSearchCollector
+from src.collectors.tavily_collector import TavilyCollector
 from src.storage.lancedb_client import LanceDBClient
 from src.storage.sqlite_cache import SQLiteCache
 from src.utils.embeddings import EmbeddingService
@@ -11,24 +11,23 @@ logger = logging.getLogger(__name__)
 
 
 class SimplePipeline:
-    # ... (The SimplePipeline class remains unchanged)
     """
     Minimal end-to-end pipeline:
       1. Resolve entity type using Schema.org scaffolding
-      2. Collect basic facts via Brave Search (enriched with type hints)
+      2. Collect basic facts via Tavily Search (enriched with type hints)
       3. Generate embedding
       4. Store in LanceDB and SQLite cache
     """
 
     def __init__(
         self,
-        collector: Optional[BraveSearchCollector] = None,
+        collector: Optional[TavilyCollector] = None,
         lancedb_client: Optional[LanceDBClient] = None,
         cache: Optional[SQLiteCache] = None,
         embedding_service: Optional[EmbeddingService] = None,
         schema_resolver: Optional[SchemaResolver] = None,
     ) -> None:
-        self.collector = collector or BraveSearchCollector()
+        self.collector = collector or TavilyCollector()
         self.lance = lancedb_client or LanceDBClient(uri="./data/lancedb")
         self.cache = cache or SQLiteCache()
         self.embedder = embedding_service or EmbeddingService()

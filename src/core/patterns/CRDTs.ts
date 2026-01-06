@@ -316,14 +316,56 @@ export class AddWinsSet<T> {
 }
 
 /**
- * CRDT for Agent State Merging
+ * Typed interfaces for Agent State (replacing any types)
+ * @see reports/COMPREHENSIVE_CODE_REVIEW.md CRIT-LOG-001
+ */
+export interface TypedMemory {
+  id: string;
+  content: string;
+  type: 'episodic' | 'semantic' | 'working' | 'core';
+  timestamp: string;
+  source: 'user' | 'agent' | 'sync' | 'inference';
+  embedding?: number[];
+  metadata: Record<string, string>;
+}
+
+export interface TypedKnowledge {
+  concept_id: string;
+  value: string;
+  confidence: number;
+  sources: string[];
+  verification_count: number;
+  last_verified: string;
+}
+
+export interface TypedBelief {
+  content: string;
+  conviction: number;
+  privacy: 'PUBLIC' | 'PRIVATE';
+  source: string;
+  timestamp: string;
+}
+
+/**
+ * Conflict record for audit trail
+ */
+export interface KnowledgeConflict {
+  key: string;
+  kept: TypedKnowledge;
+  discarded: TypedKnowledge;
+  reason: 'confidence_priority' | 'recency_priority' | 'source_count_priority';
+  timestamp: string;
+}
+
+/**
+ * CRDT for Agent State Merging with semantic conflict resolution
+ * @see reports/COMPREHENSIVE_CODE_REVIEW.md CRIT-LOG-002
  */
 export interface AgentState {
-  memories: any[];
+  memories: TypedMemory[];
   skills: { [key: string]: number };
-  knowledge: { [key: string]: any };
-  beliefs: { [key: string]: any };
-  // Additional agent-specific properties
+  knowledge: { [key: string]: TypedKnowledge };
+  beliefs: { [key: string]: TypedBelief };
 }
 
 export class AgentStateCRDT {
@@ -331,6 +373,7 @@ export class AgentStateCRDT {
   private state: AgentState;
   private version: number;
   private timestamp: number;
+  private conflicts: KnowledgeConflict[] = [];
 
   constructor(agentId: string) {
     this.id = agentId;
@@ -358,52 +401,233 @@ export class AgentStateCRDT {
   get stateData(): AgentState {
     return { ...this.state };
   }
+  
+  /**
+   * Get conflicts recorded during merges
+   */
+  getConflicts(): KnowledgeConflict[] {
+    return [...this.conflicts];
+  }
+  
+  /**
+   * Clear conflict history
+   */
+  clearConflicts(): void {
+    this.conflicts = [];
+  }
 
   merge(other: AgentStateCRDT): void {
-    // Merge memories (avoid duplicates based on ID if available)
-    const memoryMap = new Map<string, any>();
-    for (const memory of this.state.memories) {
-      const id = (memory as any).id || JSON.stringify(memory);
-      memoryMap.set(id, memory);
-    }
-    for (const memory of other.state.memories) {
-      const id = (memory as any).id || JSON.stringify(memory);
-      memoryMap.set(id, memory);
-    }
-    this.state.memories = Array.from(memoryMap.values());
-
-    // Merge skills using max values
-    for (const [skill, value] of Object.entries(other.state.skills)) {
-      if (this.state.skills[skill] === undefined || value > this.state.skills[skill]) {
-        this.state.skills[skill] = value;
-      }
-    }
-
-    // Merge knowledge
-    this.state.knowledge = { ...this.state.knowledge, ...other.state.knowledge };
-
-    // Merge beliefs (more complex logic would be needed for sophisticated belief merging)
-    this.state.beliefs = { ...this.state.beliefs, ...other.state.beliefs };
+    // Merge memories (avoid duplicates based on ID)
+    this.mergeMemories(other);
+    
+    // Merge skills using max values (proficiency can only increase)
+    this.mergeSkills(other);
+    
+    // Merge knowledge with semantic conflict resolution
+    this.mergeKnowledge(other);
+    
+    // Merge beliefs with conviction-based resolution
+    this.mergeBeliefs(other);
 
     // Update version and timestamp
     this.version = Math.max(this.version, other.version) + 1;
     this.timestamp = Math.max(this.timestamp, other.timestamp);
   }
+  
+  /**
+   * Merge memories with deduplication
+   */
+  private mergeMemories(other: AgentStateCRDT): void {
+    const memoryMap = new Map<string, TypedMemory>();
+    
+    for (const memory of this.state.memories) {
+      memoryMap.set(memory.id, memory);
+    }
+    
+    for (const memory of other.state.memories) {
+      const existing = memoryMap.get(memory.id);
+      if (!existing) {
+        // New memory - add it
+        memoryMap.set(memory.id, memory);
+      } else {
+        // Duplicate - keep the one with more recent timestamp
+        if (memory.timestamp > existing.timestamp) {
+          memoryMap.set(memory.id, memory);
+        }
+      }
+    }
+    
+    this.state.memories = Array.from(memoryMap.values());
+  }
+  
+  /**
+   * Merge skills using max proficiency (skills only improve)
+   */
+  private mergeSkills(other: AgentStateCRDT): void {
+    for (const [skill, value] of Object.entries(other.state.skills)) {
+      const currentValue = this.state.skills[skill];
+      if (currentValue === undefined || value > currentValue) {
+        this.state.skills[skill] = value;
+      }
+    }
+  }
+  
+  /**
+   * Merge knowledge with semantic conflict resolution
+   * Instead of last-write-wins, uses confidence + source count + recency
+   *
+   * @see reports/COMPREHENSIVE_CODE_REVIEW.md CRIT-LOG-002
+   */
+  private mergeKnowledge(other: AgentStateCRDT): void {
+    for (const [key, otherKnowledge] of Object.entries(other.state.knowledge)) {
+      const thisKnowledge = this.state.knowledge[key];
+      
+      if (!thisKnowledge) {
+        // New knowledge - accept it
+        this.state.knowledge[key] = otherKnowledge;
+      } else if (this.areKnowledgeCompatible(thisKnowledge, otherKnowledge)) {
+        // Compatible (same value) - boost confidence, merge sources
+        this.state.knowledge[key] = {
+          ...thisKnowledge,
+          confidence: Math.min(1.0, thisKnowledge.confidence + 0.1),
+          sources: [...new Set([...thisKnowledge.sources, ...otherKnowledge.sources])],
+          verification_count: thisKnowledge.verification_count + otherKnowledge.verification_count,
+          last_verified: thisKnowledge.last_verified > otherKnowledge.last_verified
+            ? thisKnowledge.last_verified
+            : otherKnowledge.last_verified
+        };
+      } else {
+        // Conflict - resolve using multi-factor scoring
+        const resolution = this.resolveKnowledgeConflict(thisKnowledge, otherKnowledge);
+        
+        // Record the conflict for audit
+        this.conflicts.push({
+          key,
+          kept: resolution.winner,
+          discarded: resolution.loser,
+          reason: resolution.reason,
+          timestamp: new Date().toISOString()
+        });
+        
+        this.state.knowledge[key] = resolution.winner;
+      }
+    }
+  }
+  
+  /**
+   * Check if two knowledge items have the same value (compatible)
+   */
+  private areKnowledgeCompatible(a: TypedKnowledge, b: TypedKnowledge): boolean {
+    return a.value === b.value;
+  }
+  
+  /**
+   * Resolve knowledge conflict using multi-factor scoring:
+   * 1. Confidence (40% weight)
+   * 2. Source count (30% weight)
+   * 3. Recency (30% weight)
+   */
+  private resolveKnowledgeConflict(
+    a: TypedKnowledge,
+    b: TypedKnowledge
+  ): { winner: TypedKnowledge; loser: TypedKnowledge; reason: KnowledgeConflict['reason'] } {
+    const scoreA = this.calculateKnowledgeScore(a);
+    const scoreB = this.calculateKnowledgeScore(b);
+    
+    // Determine primary reason for decision
+    let reason: KnowledgeConflict['reason'] = 'confidence_priority';
+    if (a.sources.length !== b.sources.length) {
+      if ((a.sources.length > b.sources.length) === (scoreA > scoreB)) {
+        reason = 'source_count_priority';
+      }
+    }
+    if (a.last_verified !== b.last_verified) {
+      const aRecent = new Date(a.last_verified).getTime();
+      const bRecent = new Date(b.last_verified).getTime();
+      if ((aRecent > bRecent) === (scoreA > scoreB)) {
+        reason = 'recency_priority';
+      }
+    }
+    
+    if (scoreA >= scoreB) {
+      return { winner: a, loser: b, reason };
+    } else {
+      return { winner: b, loser: a, reason };
+    }
+  }
+  
+  /**
+   * Calculate knowledge quality score
+   */
+  private calculateKnowledgeScore(k: TypedKnowledge): number {
+    const confidenceScore = k.confidence * 0.4;
+    const sourceScore = Math.min(k.sources.length / 5, 1) * 0.3; // Cap at 5 sources
+    
+    // Recency score: decay over 30 days
+    const ageMs = Date.now() - new Date(k.last_verified).getTime();
+    const ageDays = ageMs / (1000 * 60 * 60 * 24);
+    const recencyScore = Math.max(0, 1 - (ageDays / 30)) * 0.3;
+    
+    return confidenceScore + sourceScore + recencyScore;
+  }
+  
+  /**
+   * Merge beliefs with conviction-based resolution
+   */
+  private mergeBeliefs(other: AgentStateCRDT): void {
+    for (const [key, otherBelief] of Object.entries(other.state.beliefs)) {
+      const thisBelief = this.state.beliefs[key];
+      
+      if (!thisBelief) {
+        // New belief - accept it
+        this.state.beliefs[key] = otherBelief;
+      } else if (thisBelief.content === otherBelief.content) {
+        // Same belief - reinforce conviction
+        this.state.beliefs[key] = {
+          ...thisBelief,
+          conviction: Math.min(1.0, thisBelief.conviction + 0.05),
+          timestamp: thisBelief.timestamp > otherBelief.timestamp
+            ? thisBelief.timestamp
+            : otherBelief.timestamp
+        };
+      } else {
+        // Different beliefs - higher conviction wins
+        if (otherBelief.conviction > thisBelief.conviction) {
+          this.state.beliefs[key] = otherBelief;
+        }
+        // If equal conviction, keep existing (stability)
+      }
+    }
+  }
 
-  serialize(): any {
+  serialize(): {
+    id: string;
+    state: AgentState;
+    version: number;
+    timestamp: number;
+    conflicts: KnowledgeConflict[];
+  } {
     return {
       id: this.id,
       state: this.state,
       version: this.version,
-      timestamp: this.timestamp
+      timestamp: this.timestamp,
+      conflicts: this.conflicts
     };
   }
 
-  static deserialize(data: any): AgentStateCRDT {
+  static deserialize(data: {
+    id: string;
+    state: AgentState;
+    version: number;
+    timestamp: number;
+    conflicts?: KnowledgeConflict[];
+  }): AgentStateCRDT {
     const crdt = new AgentStateCRDT(data.id);
     crdt.state = data.state;
     crdt.version = data.version;
     crdt.timestamp = data.timestamp;
+    crdt.conflicts = data.conflicts || [];
     return crdt;
   }
 }

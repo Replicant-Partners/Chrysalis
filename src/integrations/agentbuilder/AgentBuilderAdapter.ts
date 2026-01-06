@@ -21,6 +21,8 @@ export class AgentBuilderAdapter {
     const response = await axios.post(`${this.agentBuilderUrl}/build`, { agentId, roleModel, deepeningCycles, apiKeys });
     const buildData = response.data;
 
+    console.log("--- [AgentBuilderAdapter] Received build data:", buildData);
+
     if (buildData.generated_skills) {
       for (const res of buildData.generated_skills) {
         const skillData: any = yaml.load(res.skill);
@@ -37,24 +39,29 @@ export class AgentBuilderAdapter {
             },
             createdAt: new Date().toISOString(),
           };
+          console.log("--- [AgentBuilderAdapter] Inserting skill:", memoryItem);
           await this.memoryClient.insert(memoryItem);
         }
       }
     }
 
-    if (buildData.generated_knowledge && buildData.generated_knowledge.embedding) {
-      const knowledge = buildData.generated_knowledge;
-      const memoryItem: MemoryItem = {
-        id: `${agentId}:kc:${knowledge.entity.id}`,
-        type: 'knowledge_claim',
-        embedding: knowledge.embedding,
-        payload: {
-          ...knowledge.entity,
-          ...knowledge.attributes,
-        },
-        createdAt: new Date().toISOString(),
-      };
-      await this.memoryClient.insert(memoryItem);
+    if (buildData.generated_knowledge) {
+      for (const knowledge of buildData.generated_knowledge) {
+        if (knowledge.embedding) {
+          const memoryItem: MemoryItem = {
+            id: `${agentId}:kc:${knowledge.entity.id}`,
+            type: 'knowledge_claim',
+            embedding: knowledge.embedding,
+            payload: {
+              ...knowledge.entity,
+              ...knowledge.attributes,
+            },
+            createdAt: new Date().toISOString(),
+          };
+          console.log("--- [AgentBuilderAdapter] Inserting knowledge:", memoryItem);
+          await this.memoryClient.insert(memoryItem);
+        }
+      }
     }
   }
 

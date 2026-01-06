@@ -1,6 +1,10 @@
 import { AgentBuilderAdapter, RoleModel } from '../integrations/agentbuilder/AgentBuilderAdapter';
 import { AgentId } from '../sync/events/types';
 import { MemoryItem } from '../memory/types';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 async function main() {
   console.log('--- Starting Ada Lovelace Builder Test ---');
@@ -26,7 +30,7 @@ async function main() {
 
   try {
     if (Object.keys(apiKeys).length === 0) {
-      console.warn('API keys for BRAVE_API_KEY or TAVILY_API_KEY are not set. The builder may not function correctly.');
+      console.warn('API keys for BRAVE_API_KEY or TAVILY_API_KEY are not set in .env file. The builder may not function correctly.');
     }
     await builder.buildAgentCapabilities(agentId, roleModel, deepeningCycles, apiKeys);
 

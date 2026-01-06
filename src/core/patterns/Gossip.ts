@@ -1,15 +1,30 @@
 /**
  * Pattern #4: Gossip Protocol (O(log N) Experience Synchronization)
- * 
+ *
  * Universal Pattern: Information dissemination in distributed systems
  * Natural Analogy: Social networks spreading information
  * Mathematical Property: O(log N) dissemination with Byzantine tolerance
- * 
+ *
  * Application: Agent experience synchronization, knowledge propagation
+ *
+ * v3.2 Changes:
+ * - Migrated to typed payloads from GossipTypes.ts (CRIT-LOG-001)
+ * - Added payload validation
+ *
+ * @see reports/COMPREHENSIVE_CODE_REVIEW.md CRIT-LOG-001
  */
 
 import { hashToHex } from './Hashing';
 import { LamportClock } from './LogicalTime';
+import {
+  GossipPayload,
+  TypedGossipMessage,
+  validateGossipPayload,
+  isExperiencePayload,
+  isStatePayload,
+  isKnowledgePayload,
+  isMemoriesPayload
+} from './GossipTypes';
 
 // Lightweight signature helper using hashing; replace with real keypair-backed
 // signatures when available in the calling environment.
@@ -24,12 +39,17 @@ class SimpleSignatures {
 }
 
 // Placeholder Byzantine checker; extend with real detection as needed.
-class ByzantineChecker {
-  detectFaults(_messages?: GossipMessage[], _keyFn?: (msg: GossipMessage) => string): boolean {
+// Uses generic type to support both old GossipMessage and new TypedGossipMessage
+class ByzantineChecker<T extends { signature: string } = GossipMessage> {
+  detectFaults(_messages?: T[], _keyFn?: (msg: T) => string): boolean {
     return false;
   }
 }
 
+/**
+ * @deprecated Use TypedGossipMessage from GossipTypes.ts instead
+ * Kept for backward compatibility during migration
+ */
 export interface GossipMessage {
   id: string;
   nodeId: string;
@@ -39,6 +59,9 @@ export interface GossipMessage {
   signature: string;
   logicalClock: number;
 }
+
+// Re-export typed message for new code
+export { TypedGossipMessage, GossipPayload } from './GossipTypes';
 
 export interface NodeInfo {
   id: string;

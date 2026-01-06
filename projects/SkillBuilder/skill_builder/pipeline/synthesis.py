@@ -302,37 +302,25 @@ def extract_skills_with_llm(
     if not snippets:
         return []
     
-    prompt = f"""You are an RDF-style knowledge extractor analyzing {exemplar_name}.
+    prompt = f"""You are a talent analyst and historian of science, tasked with inferring the practical skills of a historical figure based on biographical text. Your goal is to analyze the provided text about {exemplar_name} and generate a list of potential skills.
+
+A skill should be an action, capability, or area of expertise. For example, from the text 'she created a program for the Analytical Engine', you could infer the skill 'Algorithm Design'. From 'she translated Menabrea's article', you could infer 'Technical Translation and Annotation'.
 
 Input snippets:
 {chr(10).join(snippets)}
 
-Pipeline:
-(a) Extract atomic subject–predicate–object assertions from each snippet.
-    Focus on UNIQUE intellectual contributions - specific frameworks, theories,
-    concepts, methodologies they created or popularized.
-(b) Normalize entities/relations (standardize skill names, resolve synonyms).
-(c) Cluster semantically equivalent assertions; merge with all unique details.
-    If assertions conflict, keep both tagged "(conflict)".
-(d) Output consolidated skills with:
-    - name: canonical skill/contribution name (NOT generic like "writing" or "analysis")
-    - description: merged details covering unique facts (no invented claims)
-    - sources: list of contributing snippet IDs [S1, S3, etc.]
-    - differentiation: why this is unique/non-obvious to non-experts
+CRITICAL: Do NOT list generic, soft skills like "thinking" or "analysis". Focus on concrete, professional capabilities that could be applied. Infer from the text, even if the skill is not explicitly named.
 
-CRITICAL: Do NOT list generic skills. DO identify:
-- Specific frameworks/theories they created
-- Novel approaches/methodologies they pioneered
-- Ideas experts recognize but the public doesn't know
-
-Every detail must trace to at least one source ID. No hallucinations.
-
-Output JSON array:
-[{{"name": "...", "description": "...", "sources": ["S1", "S3"], "differentiation": "..."}}]
+Output a JSON array of skill objects, where each object has "name" and "description" fields. The description should briefly justify the inferred skill based on the text.
+[{{"name": "...", "description": "..."}}]
 
 Return ONLY the JSON array."""
 
+    print(f"--- [SkillBuilder] LLM Synthesis Prompt:\n{prompt}")
+
     result_text = _call_llm_api(prompt, max_tokens=2500)
+    
+    print(f"--- [SkillBuilder] LLM Raw Response:\n{result_text}")
     
     if not result_text:
         return []
@@ -1386,6 +1374,8 @@ def run_synthesis(artifacts_data: Dict[str, Any], spec_data: Dict[str, Any], tel
         telemetry=telemetry,
     )
     
+    print(f"--- [SkillBuilder] LLM extracted skills: {llm_skills}", flush=True)
+    
     # Convert LLM results to skill cards
     skill_cards = []
     for llm_skill in llm_skills:
@@ -1418,6 +1408,8 @@ def run_synthesis(artifacts_data: Dict[str, Any], spec_data: Dict[str, Any], tel
         }
         skill_cards.append(card)
     
+    print(f"--- [SkillBuilder] Initial skill cards: {skill_cards}", flush=True)
+    
     # Fallback: if LLM extraction failed, use regex + spec skills
     if not skill_cards:
         inferred_skills = infer_skills(all_hits)
@@ -1441,6 +1433,8 @@ def run_synthesis(artifacts_data: Dict[str, Any], spec_data: Dict[str, Any], tel
                 anthropic_skills=llm_skills,
             )
             skill_cards.append(card)
+            
+    print(f"--- [SkillBuilder] Skill cards after fallback: {skill_cards}", flush=True)
     
     # Category-preserving merge (skills only for now): deepen → merge
     merge_start = time.perf_counter()
@@ -1456,6 +1450,8 @@ def run_synthesis(artifacts_data: Dict[str, Any], spec_data: Dict[str, Any], tel
         telemetry=telemetry,
     )
     
+    print(f"--- [SkillBuilder] Merged skills: {merged_skills}", flush=True)
+    
     # Apply semantic MapReduce to deduplicate and merge overlapping skills
     reduce_start = time.perf_counter()
     all_skills = semantic_map_reduce(merged_skills, use_llm=True)
@@ -1469,6 +1465,8 @@ def run_synthesis(artifacts_data: Dict[str, Any], spec_data: Dict[str, Any], tel
         },
         telemetry=telemetry,
     )
+    
+    print(f"--- [SkillBuilder] All skills after reduce: {all_skills}", flush=True)
     
     # Compute external calibration (non-gameable metrics)
     all_book_data = []
@@ -1489,6 +1487,8 @@ def run_synthesis(artifacts_data: Dict[str, Any], spec_data: Dict[str, Any], tel
     
     # Adjust confidence scores based on calibration
     all_skills = adjust_confidence_with_calibration(all_skills, calibration)
+    
+    print(f"--- [SkillBuilder] Final skills: {all_skills}", flush=True)
     
     # Emit quality summary (confidence distribution)
     if telemetry is not None:

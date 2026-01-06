@@ -1,17 +1,24 @@
 /**
- * Adaptive Pattern Resolver v3.1
- * 
+ * Adaptive Pattern Resolver v3.2
+ *
  * Resolves universal pattern implementations based on deployment context.
  * Supports three resolution strategies:
  * 1. MCP Fabric (distributed, network-based)
  * 2. Embedded Patterns (local, function-based)
  * 3. Direct Library (minimal overhead)
- * 
+ *
  * Implements fractal architecture principle: Same patterns at multiple scales
+ *
+ * v3.2 Changes:
+ * - Added CircuitBreaker for fault tolerance (HIGH-ARCH-001)
+ * - MCP/Go calls now timeout after 5 seconds with embedded fallback
+ *
+ * @see reports/COMPREHENSIVE_CODE_REVIEW.md HIGH-ARCH-001
  */
 
 import * as EmbeddedPatterns from '../core/patterns';
 import { GoCryptoClient } from '../adapters/goCryptoClient';
+import { CircuitBreaker, createMCPCircuitBreaker } from '../utils/CircuitBreaker';
 
 /**
  * Pattern types that can be resolved
@@ -286,12 +293,15 @@ class EmbeddedTimeImpl implements TimeImplementation {
 
 /**
  * Adaptive Pattern Resolver
- * 
- * Resolves patterns based on deployment context
+ *
+ * Resolves patterns based on deployment context.
+ * Now includes circuit breaker protection for external service calls.
  */
 export class AdaptivePatternResolver {
   private context: DeploymentContext;
   private mcpClient?: MCPPatternClient;
+  private hashCircuitBreaker: CircuitBreaker<PatternResolution<HashImplementation>>;
+  private signatureCircuitBreaker: CircuitBreaker<PatternResolution<SignatureImplementation>>;
   
   constructor(context?: Partial<DeploymentContext>, mcpClient?: MCPPatternClient) {
     this.mcpClient = mcpClient;
@@ -301,6 +311,10 @@ export class AdaptivePatternResolver {
       performance_critical: context?.performance_critical ?? false,
       prefer_reusability: context?.prefer_reusability ?? false
     };
+    
+    // Initialize circuit breakers for fault tolerance
+    this.hashCircuitBreaker = createMCPCircuitBreaker('hash-resolver');
+    this.signatureCircuitBreaker = createMCPCircuitBreaker('signature-resolver');
   }
   
   /**
@@ -311,70 +325,101 @@ export class AdaptivePatternResolver {
   }
   
   /**
-   * Resolve hash implementation
+   * Get embedded hash resolution (used as fallback)
    */
-  async resolveHash(): Promise<PatternResolution<HashImplementation>> {
-    if (this.shouldUseMCP()) {
-      try {
-        if (this.mcpClient) {
-          return {
-            source: 'mcp',
-            implementation: new MCPHashImpl(this.mcpClient),
-            latency_estimate_ms: 5,
-            reason: 'MCP client'
-          };
-        }
-        return {
-          source: 'go',
-          implementation: new GoHashImpl(),
-          latency_estimate_ms: 5,
-          reason: 'Go gRPC crypto'
-        };
-      } catch (err) {
-        console.error('MCP/Go hash resolution failed', err);
-      }
-    }
+  private getEmbeddedHashResolution(): PatternResolution<HashImplementation> {
     return {
       source: 'embedded',
       implementation: new EmbeddedHashImpl(),
       latency_estimate_ms: 0.1,
-      reason: this.context.distributed 
-        ? 'MCP not yet integrated, using embedded fallback'
+      reason: this.context.distributed
+        ? 'Circuit breaker fallback to embedded patterns'
         : 'Embedded patterns optimal for single-node deployment'
     };
   }
   
   /**
-   * Resolve signature implementation
+   * Get embedded signature resolution (used as fallback)
    */
-  async resolveSignature(): Promise<PatternResolution<SignatureImplementation>> {
-    if (this.shouldUseMCP()) {
-      try {
-        if (this.mcpClient) {
-          return {
-            source: 'mcp',
-            implementation: new MCPSignatureImpl(this.mcpClient),
-            latency_estimate_ms: 5,
-            reason: 'MCP client'
-          };
-        }
-        return {
-          source: 'go',
-          implementation: new GoSignatureImpl(),
-          latency_estimate_ms: 5,
-          reason: 'Go gRPC signatures'
-        };
-      } catch (err) {
-        console.error('MCP/Go signature resolution failed', err);
-      }
-    }
+  private getEmbeddedSignatureResolution(): PatternResolution<SignatureImplementation> {
     return {
       source: 'embedded',
       implementation: new EmbeddedSignatureImpl(),
       latency_estimate_ms: 0.5,
       reason: this.context.distributed
-        ? 'MCP not yet integrated, using embedded fallback'
+        ? 'Circuit breaker fallback to embedded patterns'
         : 'Embedded patterns optimal for single-node deployment'
+    };
+  }
+  
+  /**
+   * Resolve hash implementation with circuit breaker protection
+   */
+  async resolveHash(): Promise<PatternResolution<HashImplementation>> {
+    if (this.shouldUseMCP()) {
+      // Use circuit breaker for external service calls
+      return this.hashCircuitBreaker.execute(
+        async () => {
+          if (this.mcpClient) {
+            return {
+              source: 'mcp' as ResolutionSource,
+              implementation: new MCPHashImpl(this.mcpClient),
+              latency_estimate_ms: 5,
+              reason: 'MCP client (circuit breaker protected)'
+            };
+          }
+          return {
+            source: 'go' as ResolutionSource,
+            implementation: new GoHashImpl(),
+            latency_estimate_ms: 5,
+            reason: 'Go gRPC crypto (circuit breaker protected)'
+          };
+        },
+        () => this.getEmbeddedHashResolution()
+      );
+    }
+    return this.getEmbeddedHashResolution();
+  }
+  
+  /**
+   * Resolve signature implementation with circuit breaker protection
+   */
+  async resolveSignature(): Promise<PatternResolution<SignatureImplementation>> {
+    if (this.shouldUseMCP()) {
+      // Use circuit breaker for external service calls
+      return this.signatureCircuitBreaker.execute(
+        async () => {
+          if (this.mcpClient) {
+            return {
+              source: 'mcp' as ResolutionSource,
+              implementation: new MCPSignatureImpl(this.mcpClient),
+              latency_estimate_ms: 5,
+              reason: 'MCP client (circuit breaker protected)'
+            };
+          }
+          return {
+            source: 'go' as ResolutionSource,
+            implementation: new GoSignatureImpl(),
+            latency_estimate_ms: 5,
+            reason: 'Go gRPC signatures (circuit breaker protected)'
+          };
+        },
+        () => this.getEmbeddedSignatureResolution()
+      );
+    }
+    return this.getEmbeddedSignatureResolution();
+  }
+  
+  /**
+   * Get circuit breaker statistics for monitoring
+   */
+  getCircuitBreakerStats(): {
+    hash: ReturnType<CircuitBreaker<any>['getStats']>;
+    signature: ReturnType<CircuitBreaker<any>['getStats']>;
+  } {
+    return {
+      hash: this.hashCircuitBreaker.getStats(),
+      signature: this.signatureCircuitBreaker.getStats()
     };
   }
   

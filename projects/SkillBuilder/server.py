@@ -11,6 +11,7 @@ def get_skills():
     occupation = data.get('occupation')
     deepening_cycles = data.get('deepening_cycles', 0)
     api_keys = data.get('apiKeys', {})
+    corpus_text = data.get('corpus_text')
 
     if not occupation:
         return jsonify({'error': 'Missing occupation'}), 400
@@ -22,7 +23,8 @@ def get_skills():
     spec = FrontendSpec(
         mode_name=occupation.replace(' ', '-'),
         purpose=f'Skills for {occupation}',
-        deepening_cycles=deepening_cycles
+        deepening_cycles=deepening_cycles,
+        corpus_text=corpus_text
     )
     result = run_pipeline(spec)
     

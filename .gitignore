@@ -54,3 +54,13 @@ git-init.sh
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.windsurf/rules/snyk_rules.md
+
+# Clojure cache
+.clj-kondo/.cache/
+.lsp/.cache/
+
+# Data files (may contain user data)
+data/cache.db
