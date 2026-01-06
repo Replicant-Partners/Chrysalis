@@ -1,0 +1,117 @@
+{
+  "name": "Ada Lovelace",
+  "source_file": "ada_lovelace.json",
+  "processed_at": "2026-01-06T06:14:56.768735",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.0037897818256169558,
+          0.005288180895149708,
+          0.026335949078202248,
+          0.018739525228738785,
+          0.015694601461291313,
+          0.0151423504576087,
+          0.010103150270879269,
+          0.011348836123943329,
+          0.0014169487403705716,
+          0.006315380800515413,
+          "..."
+        ],
+        "has_collected_knowledge": false,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.0037897818256169558,
+          0.005288180895149708,
+          0.026335949078202248,
+          0.018739525228738785,
+          0.015694601461291313,
+          0.0151423504576087,
+          0.010103150270879269,
+          0.011348836123943329,
+          0.0014169487403705716,
+          0.006315380800515413,
+          "..."
+        ],
+        "has_collected_knowledge": false,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.01664128340780735,
+          0.024149606004357338,
+          0.014996022917330265,
+          0.012403296306729317,
+          9.196802238875534e-06,
+          0.02395695261657238,
+          0.00738500477746129,
+          0.025326233357191086,
+          0.030445033684372902,
+          0.008942429907619953,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "visionary",
+          "mathematical",
+          "poetic",
+          "imaginative",
+          "analytical",
+          "Imagination in science",
+          "Interdisciplinary thinking",
+          "Breaking gender barriers",
+          "algorithm_design",
+          "mathematical_analysis",
+          "visionary_thinking"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.01664128340780735,
+          0.024149606004357338,
+          0.014996022917330265,
+          0.012403296306729317,
+          9.196802238875534e-06,
+          0.02395695261657238,
+          0.00738500477746129,
+          0.025326233357191086,
+          0.030445033684372902,
+          0.008942429907619953,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "visionary",
+          "mathematical",
+          "poetic",
+          "imaginative",
+          "analytical",
+          "Imagination in science",
+          "Interdisciplinary thinking",
+          "Breaking gender barriers",
+          "algorithm_design",
+          "mathematical_analysis",
+          "visionary_thinking"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

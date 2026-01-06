@@ -1,0 +1,111 @@
+{
+  "name": "Cal Naughton Jr.",
+  "source_file": "cal_naughton_jr.json",
+  "processed_at": "2026-01-06T06:15:34.421996",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.005398355890065432,
+          0.00011734419967979193,
+          0.027663366869091988,
+          0.024168511852622032,
+          0.014553127810359001,
+          0.020444495603442192,
+          0.02290435880422592,
+          0.022606834769248962,
+          0.027010304853320122,
+          0.014998352155089378,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.005398355890065432,
+          0.00011734419967979193,
+          0.027663366869091988,
+          0.024168511852622032,
+          0.014553127810359001,
+          0.020444495603442192,
+          0.02290435880422592,
+          0.022606834769248962,
+          0.027010304853320122,
+          0.014998352155089378,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.011637912131845951,
+          0.009943023324012756,
+          0.029822345823049545,
+          0.01055696327239275,
+          0.03070964850485325,
+          0.003185019828379154,
+          0.0037276875227689743,
+          0.026944611221551895,
+          0.025358950719237328,
+          0.016078364104032516,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "eternally_loyal",
+          "happily_second",
+          "childishly_enthusiastic",
+          "unquestioningly_supportive",
+          "simply_content",
+          "Friendship above victory",
+          "Team success",
+          "Simple pleasures"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.011637912131845951,
+          0.009943023324012756,
+          0.029822345823049545,
+          0.01055696327239275,
+          0.03070964850485325,
+          0.003185019828379154,
+          0.0037276875227689743,
+          0.026944611221551895,
+          0.025358950719237328,
+          0.016078364104032516,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "eternally_loyal",
+          "happily_second",
+          "childishly_enthusiastic",
+          "unquestioningly_supportive",
+          "simply_content",
+          "Friendship above victory",
+          "Team success",
+          "Simple pleasures"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

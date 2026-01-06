@@ -1,0 +1,117 @@
+{
+  "name": "Frida Kahlo",
+  "source_file": "frida_kahlo.json",
+  "processed_at": "2026-01-06T06:16:48.624774",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.02770700305700302,
+          0.026776248589158058,
+          0.020952828228473663,
+          0.013677957467734814,
+          0.0059164525009691715,
+          0.025663718581199646,
+          0.017299659550189972,
+          0.014364399015903473,
+          0.017418548464775085,
+          0.009467278607189655,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.02770700305700302,
+          0.026776248589158058,
+          0.020952828228473663,
+          0.013677957467734814,
+          0.0059164525009691715,
+          0.025663718581199646,
+          0.017299659550189972,
+          0.014364399015903473,
+          0.017418548464775085,
+          0.009467278607189655,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.024414729326963425,
+          0.019116127863526344,
+          0.0021997399162501097,
+          0.0012020465219393373,
+          0.018693244084715843,
+          0.01792527176439762,
+          0.007212365977466106,
+          0.005662243813276291,
+          0.013541421853005886,
+          0.023146335035562515,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "fiercely_passionate",
+          "painfully_honest",
+          "culturally_proud",
+          "rebelliously_authentic",
+          "intensely_emotional",
+          "Authentic expression",
+          "Mexican identity",
+          "Communist ideals",
+          "self_portraiture",
+          "symbolic_painting",
+          "pain_transformation"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.024414729326963425,
+          0.019116127863526344,
+          0.0021997399162501097,
+          0.0012020465219393373,
+          0.018693244084715843,
+          0.01792527176439762,
+          0.007212365977466106,
+          0.005662243813276291,
+          0.013541421853005886,
+          0.023146335035562515,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "fiercely_passionate",
+          "painfully_honest",
+          "culturally_proud",
+          "rebelliously_authentic",
+          "intensely_emotional",
+          "Authentic expression",
+          "Mexican identity",
+          "Communist ideals",
+          "self_portraiture",
+          "symbolic_painting",
+          "pain_transformation"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

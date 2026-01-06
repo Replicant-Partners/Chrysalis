@@ -1,0 +1,117 @@
+{
+  "name": "Bob Ross",
+  "source_file": "bob_ross.json",
+  "processed_at": "2026-01-06T06:15:12.387157",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.013215182349085808,
+          0.0242442786693573,
+          0.005107735749334097,
+          0.018610451370477676,
+          0.01279494259506464,
+          0.00042870690231211483,
+          0.01950504444539547,
+          0.010122401639819145,
+          0.01095394417643547,
+          0.02712583914399147,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.013215182349085808,
+          0.0242442786693573,
+          0.005107735749334097,
+          0.018610451370477676,
+          0.01279494259506464,
+          0.00042870690231211483,
+          0.01950504444539547,
+          0.010122401639819145,
+          0.01095394417643547,
+          0.02712583914399147,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.019644025713205338,
+          0.024346595630049706,
+          0.028899500146508217,
+          0.02600453980267048,
+          0.0168825164437294,
+          0.004328042268753052,
+          0.0257697906345129,
+          0.009796632453799248,
+          0.01602882519364357,
+          0.011888406239449978,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "infinitely_gentle",
+          "unconditionally_encouraging",
+          "joyfully_creative",
+          "accepting_of_all",
+          "nature_loving",
+          "Everyone can create",
+          "Nature is our friend",
+          "Joy in the process",
+          "wet_on_wet_painting",
+          "teaching_art",
+          "spreading_joy"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.019644025713205338,
+          0.024346595630049706,
+          0.028899500146508217,
+          0.02600453980267048,
+          0.0168825164437294,
+          0.004328042268753052,
+          0.0257697906345129,
+          0.009796632453799248,
+          0.01602882519364357,
+          0.011888406239449978,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "infinitely_gentle",
+          "unconditionally_encouraging",
+          "joyfully_creative",
+          "accepting_of_all",
+          "nature_loving",
+          "Everyone can create",
+          "Nature is our friend",
+          "Joy in the process",
+          "wet_on_wet_painting",
+          "teaching_art",
+          "spreading_joy"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "name": "Dorothea Brooke",
+  "source_file": "dorothea_brooke.json",
+  "processed_at": "2026-01-06T06:16:21.596698",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.02666541561484337,
+          0.024302374571561813,
+          0.003071160987019539,
+          0.0030554754193872213,
+          0.0014583277516067028,
+          0.030095407739281654,
+          0.012586666271090508,
+          0.026103852316737175,
+          0.019482292234897614,
+          0.02968951128423214,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.02666541561484337,
+          0.024302374571561813,
+          0.003071160987019539,
+          0.0030554754193872213,
+          0.0014583277516067028,
+          0.030095407739281654,
+          0.012586666271090508,
+          0.026103852316737175,
+          0.019482292234897614,
+          0.02968951128423214,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.027347760275006294,
+          0.01391445379704237,
+          0.016711337491869926,
+          0.024642376229166985,
+          0.02855178341269493,
+          0.012892401777207851,
+          0.02855064906179905,
+          0.024098645895719528,
+          0.027469446882605553,
+          0.024440879002213478,
+          "..."
+        ],
+        "skill_count": 3,
+        "salts_used": [
+          "Moral earnestness and integrity",
+          "Desire for meaningful contribution",
+          "Architectural and social reform interests"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.027347760275006294,
+          0.01391445379704237,
+          0.016711337491869926,
+          0.024642376229166985,
+          0.02855178341269493,
+          0.012892401777207851,
+          0.02855064906179905,
+          0.024098645895719528,
+          0.027469446882605553,
+          0.024440879002213478,
+          "..."
+        ],
+        "skill_count": 3,
+        "salts_used": [
+          "Moral earnestness and integrity",
+          "Desire for meaningful contribution",
+          "Architectural and social reform interests"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

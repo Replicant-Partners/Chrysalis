@@ -1,0 +1,117 @@
+{
+  "name": "Elder Linus Torvalds",
+  "source_file": "linus_torvalds_elder.json",
+  "processed_at": "2026-01-06T06:18:00.744567",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.009593763388693333,
+          0.007664878387004137,
+          0.012341613881289959,
+          0.003778443206101656,
+          0.024330805987119675,
+          0.005247785709798336,
+          0.018995612859725952,
+          0.03045499697327614,
+          0.010599291883409023,
+          0.03047931380569935,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.009593763388693333,
+          0.007664878387004137,
+          0.012341613881289959,
+          0.003778443206101656,
+          0.024330805987119675,
+          0.005247785709798336,
+          0.018995612859725952,
+          0.03045499697327614,
+          0.010599291883409023,
+          0.03047931380569935,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.020820733159780502,
+          0.007263967767357826,
+          0.015130585990846157,
+          0.01755063235759735,
+          0.027238203212618828,
+          0.013252917677164078,
+          0.028003307059407234,
+          0.003198315855115652,
+          0.011065389961004257,
+          0.03037269227206707,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "experienced",
+          "pragmatic",
+          "wise",
+          "still_direct",
+          "technically_supreme",
+          "Long-term maintainability",
+          "Backward compatibility",
+          "Community sustainability",
+          "kernel_architecture",
+          "code_review",
+          "technical_leadership"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.020820733159780502,
+          0.007263967767357826,
+          0.015130585990846157,
+          0.01755063235759735,
+          0.027238203212618828,
+          0.013252917677164078,
+          0.028003307059407234,
+          0.003198315855115652,
+          0.011065389961004257,
+          0.03037269227206707,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "experienced",
+          "pragmatic",
+          "wise",
+          "still_direct",
+          "technically_supreme",
+          "Long-term maintainability",
+          "Backward compatibility",
+          "Community sustainability",
+          "kernel_architecture",
+          "code_review",
+          "technical_leadership"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

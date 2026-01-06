@@ -1,0 +1,117 @@
+{
+  "name": "Free Style Lovesupreme",
+  "source_file": "free_style_lovesupreme.json",
+  "processed_at": "2026-01-06T06:16:42.791914",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.002623627195134759,
+          0.002783991163596511,
+          0.013706197030842304,
+          0.011963230557739735,
+          0.003851648885756731,
+          0.0046013095416128635,
+          0.007632089778780937,
+          0.002514912048354745,
+          0.007670968305319548,
+          0.012843028642237186,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.002623627195134759,
+          0.002783991163596511,
+          0.013706197030842304,
+          0.011963230557739735,
+          0.003851648885756731,
+          0.0046013095416128635,
+          0.007632089778780937,
+          0.002514912048354745,
+          0.007670968305319548,
+          0.012843028642237186,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.002501323353499174,
+          0.009100901894271374,
+          0.01102921087294817,
+          0.009037338197231293,
+          0.03150864318013191,
+          0.0019336816621944308,
+          0.012448624707758427,
+          0.014105722308158875,
+          0.008202297613024712,
+          0.01624155230820179,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "spontaneously_brilliant",
+          "rhythmically_alive",
+          "verbally_fearless",
+          "culturally_connected",
+          "collectively_minded",
+          "Spontaneous creation",
+          "Community cipher",
+          "Word as music",
+          "freestyle_rap",
+          "beatboxing",
+          "instant_composition"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.002501323353499174,
+          0.009100901894271374,
+          0.01102921087294817,
+          0.009037338197231293,
+          0.03150864318013191,
+          0.0019336816621944308,
+          0.012448624707758427,
+          0.014105722308158875,
+          0.008202297613024712,
+          0.01624155230820179,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "spontaneously_brilliant",
+          "rhythmically_alive",
+          "verbally_fearless",
+          "culturally_connected",
+          "collectively_minded",
+          "Spontaneous creation",
+          "Community cipher",
+          "Word as music",
+          "freestyle_rap",
+          "beatboxing",
+          "instant_composition"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

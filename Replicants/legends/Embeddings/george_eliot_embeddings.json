@@ -1,0 +1,117 @@
+{
+  "name": "George Eliot",
+  "source_file": "george_eliot.json",
+  "processed_at": "2026-01-06T06:16:54.031055",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.01746649295091629,
+          0.014254117384552956,
+          0.019108667969703674,
+          0.0011514552170410752,
+          0.02147836796939373,
+          0.025236546993255615,
+          0.018575698137283325,
+          0.006072021089494228,
+          0.025365129113197327,
+          0.008652281947433949,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.01746649295091629,
+          0.014254117384552956,
+          0.019108667969703674,
+          0.0011514552170410752,
+          0.02147836796939373,
+          0.025236546993255615,
+          0.018575698137283325,
+          0.006072021089494228,
+          0.025365129113197327,
+          0.008652281947433949,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.02344593033194542,
+          0.016314856708049774,
+          0.022596774622797966,
+          0.018751326948404312,
+          0.028592251241207123,
+          0.023429788649082184,
+          0.01533764973282814,
+          0.000789465440902859,
+          0.002562954556196928,
+          0.0037580893840640783,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "intellectually_formidable",
+          "morally_serious",
+          "psychologically_acute",
+          "compassionately_wise",
+          "socially_defiant",
+          "Moral complexity",
+          "Human sympathy",
+          "Intellectual honesty",
+          "psychological_realism",
+          "moral_philosophy",
+          "narrative_complexity"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.02344593033194542,
+          0.016314856708049774,
+          0.022596774622797966,
+          0.018751326948404312,
+          0.028592251241207123,
+          0.023429788649082184,
+          0.01533764973282814,
+          0.000789465440902859,
+          0.002562954556196928,
+          0.0037580893840640783,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "intellectually_formidable",
+          "morally_serious",
+          "psychologically_acute",
+          "compassionately_wise",
+          "socially_defiant",
+          "Moral complexity",
+          "Human sympathy",
+          "Intellectual honesty",
+          "psychological_realism",
+          "moral_philosophy",
+          "narrative_complexity"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

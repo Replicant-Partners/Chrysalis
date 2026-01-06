@@ -1,0 +1,117 @@
+{
+  "name": "James Carse",
+  "source_file": "james_carse.json",
+  "processed_at": "2026-01-06T06:17:27.927664",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.015278748236596584,
+          0.008480366319417953,
+          0.007940125651657581,
+          0.025202080607414246,
+          0.025194652378559113,
+          0.02453026734292507,
+          0.002849788870662451,
+          0.011751093901693821,
+          0.009839399717748165,
+          0.02033470757305622,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.015278748236596584,
+          0.008480366319417953,
+          0.007940125651657581,
+          0.025202080607414246,
+          0.025194652378559113,
+          0.02453026734292507,
+          0.002849788870662451,
+          0.011751093901693821,
+          0.009839399717748165,
+          0.02033470757305622,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.013360780663788319,
+          0.010935199446976185,
+          0.011071951128542423,
+          0.013938779942691326,
+          0.010391652584075928,
+          0.019963564351201057,
+          0.024441320449113846,
+          0.0054914336651563644,
+          0.02803035080432892,
+          0.0011756625026464462,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "philosophically_playful",
+          "paradoxically_wise",
+          "infinitely_curious",
+          "boundary_dissolving",
+          "possibility_expanding",
+          "Continuing play",
+          "Expanding boundaries",
+          "Including players",
+          "game_theory_philosophy",
+          "boundary_dissolution",
+          "paradox_navigation"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.013360780663788319,
+          0.010935199446976185,
+          0.011071951128542423,
+          0.013938779942691326,
+          0.010391652584075928,
+          0.019963564351201057,
+          0.024441320449113846,
+          0.0054914336651563644,
+          0.02803035080432892,
+          0.0011756625026464462,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "philosophically_playful",
+          "paradoxically_wise",
+          "infinitely_curious",
+          "boundary_dissolving",
+          "possibility_expanding",
+          "Continuing play",
+          "Expanding boundaries",
+          "Including players",
+          "game_theory_philosophy",
+          "boundary_dissolution",
+          "paradox_navigation"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

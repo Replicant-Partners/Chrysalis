@@ -1,0 +1,117 @@
+{
+  "name": "William Goldman",
+  "source_file": "william_goldman.json",
+  "processed_at": "2026-01-06T06:19:31.807635",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.020412294194102287,
+          0.02008862793445587,
+          0.01805759407579899,
+          0.004463822115212679,
+          0.03004503808915615,
+          0.030567126348614693,
+          0.028951626271009445,
+          0.001557762734591961,
+          0.025333374738693237,
+          0.012027710676193237,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.020412294194102287,
+          0.02008862793445587,
+          0.01805759407579899,
+          0.004463822115212679,
+          0.03004503808915615,
+          0.030567126348614693,
+          0.028951626271009445,
+          0.001557762734591961,
+          0.025333374738693237,
+          0.012027710676193237,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.022065209224820137,
+          0.022483453154563904,
+          0.025570113211870193,
+          0.01754065603017807,
+          0.026931339874863625,
+          0.024040186777710915,
+          0.00037276934017427266,
+          0.009753012098371983,
+          0.029811052605509758,
+          0.026911623775959015,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "brilliantly_cynical",
+          "structurally_masterful",
+          "hollywood_wise",
+          "brutally_honest",
+          "commercially_artistic",
+          "Story above all",
+          "Professional craft",
+          "Brutal honesty",
+          "screenplay_structure",
+          "multi_genre_mastery",
+          "dialogue_craft"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.022065209224820137,
+          0.022483453154563904,
+          0.025570113211870193,
+          0.01754065603017807,
+          0.026931339874863625,
+          0.024040186777710915,
+          0.00037276934017427266,
+          0.009753012098371983,
+          0.029811052605509758,
+          0.026911623775959015,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "brilliantly_cynical",
+          "structurally_masterful",
+          "hollywood_wise",
+          "brutally_honest",
+          "commercially_artistic",
+          "Story above all",
+          "Professional craft",
+          "Brutal honesty",
+          "screenplay_structure",
+          "multi_genre_mastery",
+          "dialogue_craft"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

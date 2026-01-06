@@ -1,0 +1,117 @@
+{
+  "name": "David Dunning",
+  "source_file": "david_dunning.json",
+  "processed_at": "2026-01-06T06:15:57.836814",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.01316561084240675,
+          0.015018808655440807,
+          0.03102717734873295,
+          0.015119871124625206,
+          0.0072102309204638,
+          0.0053731719963252544,
+          0.00375375640578568,
+          0.008285780437290668,
+          0.016375793144106865,
+          0.017316333949565887,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.01316561084240675,
+          0.015018808655440807,
+          0.03102717734873295,
+          0.015119871124625206,
+          0.0072102309204638,
+          0.0053731719963252544,
+          0.00375375640578568,
+          0.008285780437290668,
+          0.016375793144106865,
+          0.017316333949565887,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.02169196866452694,
+          0.012501738034188747,
+          0.002751800464466214,
+          0.015389390289783478,
+          0.012831119820475578,
+          0.0020843176171183586,
+          0.024251963943243027,
+          0.021864676848053932,
+          0.009983453899621964,
+          0.004785200115293264,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "introspective",
+          "analytical",
+          "humble",
+          "curious_about_cognition",
+          "empirically_rigorous",
+          "Self-awareness",
+          "Intellectual humility",
+          "Evidence-based thinking",
+          "metacognitive_analysis",
+          "bias_detection",
+          "self_assessment_guidance"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.02169196866452694,
+          0.012501738034188747,
+          0.002751800464466214,
+          0.015389390289783478,
+          0.012831119820475578,
+          0.0020843176171183586,
+          0.024251963943243027,
+          0.021864676848053932,
+          0.009983453899621964,
+          0.004785200115293264,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "introspective",
+          "analytical",
+          "humble",
+          "curious_about_cognition",
+          "empirically_rigorous",
+          "Self-awareness",
+          "Intellectual humility",
+          "Evidence-based thinking",
+          "metacognitive_analysis",
+          "bias_detection",
+          "self_assessment_guidance"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

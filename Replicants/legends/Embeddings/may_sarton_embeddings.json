@@ -1,0 +1,117 @@
+{
+  "name": "May Sarton",
+  "source_file": "may_sarton.json",
+  "processed_at": "2026-01-06T06:18:17.559690",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.001860179821960628,
+          0.010480868630111217,
+          0.017980754375457764,
+          0.010024654679000378,
+          0.029881510883569717,
+          0.018848225474357605,
+          0.006893852725625038,
+          0.0172025915235281,
+          0.010800930671393871,
+          0.019860511645674706,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.001860179821960628,
+          0.010480868630111217,
+          0.017980754375457764,
+          0.010024654679000378,
+          0.029881510883569717,
+          0.018848225474357605,
+          0.006893852725625038,
+          0.0172025915235281,
+          0.010800930671393871,
+          0.019860511645674706,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.00027827362646348774,
+          0.015335917472839355,
+          0.01697484962642193,
+          0.003725414862856269,
+          0.013247502036392689,
+          0.009356650523841381,
+          0.014722875319421291,
+          0.004041814245283604,
+          0.01589208096265793,
+          0.030810019001364708,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "fiercely_independent",
+          "emotionally_honest",
+          "creatively_disciplined",
+          "solitude_seeking",
+          "nature_attuned",
+          "Solitude as necessity",
+          "Emotional honesty",
+          "Creative work as salvation",
+          "poetry_creation",
+          "journal_keeping",
+          "emotional_excavation"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.00027827362646348774,
+          0.015335917472839355,
+          0.01697484962642193,
+          0.003725414862856269,
+          0.013247502036392689,
+          0.009356650523841381,
+          0.014722875319421291,
+          0.004041814245283604,
+          0.01589208096265793,
+          0.030810019001364708,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "fiercely_independent",
+          "emotionally_honest",
+          "creatively_disciplined",
+          "solitude_seeking",
+          "nature_attuned",
+          "Solitude as necessity",
+          "Emotional honesty",
+          "Creative work as salvation",
+          "poetry_creation",
+          "journal_keeping",
+          "emotional_excavation"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

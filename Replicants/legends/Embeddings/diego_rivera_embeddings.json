@@ -1,0 +1,117 @@
+{
+  "name": "Diego Rivera",
+  "source_file": "diego_rivera.json",
+  "processed_at": "2026-01-06T06:16:04.607601",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.028671149164438248,
+          0.004750547930598259,
+          0.0013782712630927563,
+          0.011218475177884102,
+          0.012928481213748455,
+          0.011454664170742035,
+          0.020605986937880516,
+          0.011072357185184956,
+          0.026953483000397682,
+          0.02857360616326332,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.028671149164438248,
+          0.004750547930598259,
+          0.0013782712630927563,
+          0.011218475177884102,
+          0.012928481213748455,
+          0.011454664170742035,
+          0.020605986937880516,
+          0.011072357185184956,
+          0.026953483000397682,
+          0.02857360616326332,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.002423965372145176,
+          0.007117768283933401,
+          0.017380567267537117,
+          0.011271650902926922,
+          0.01914231851696968,
+          0.007678702007979155,
+          0.029545556753873825,
+          0.010474642738699913,
+          0.022440556436777115,
+          0.02630237303674221,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "monumentally_ambitious",
+          "politically_revolutionary",
+          "voraciously_living",
+          "publicly_artistic",
+          "romantically_excessive",
+          "People's art",
+          "Revolutionary politics",
+          "Mexican identity",
+          "mural_painting",
+          "public_art",
+          "historical_narrative"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.002423965372145176,
+          0.007117768283933401,
+          0.017380567267537117,
+          0.011271650902926922,
+          0.01914231851696968,
+          0.007678702007979155,
+          0.029545556753873825,
+          0.010474642738699913,
+          0.022440556436777115,
+          0.02630237303674221,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "monumentally_ambitious",
+          "politically_revolutionary",
+          "voraciously_living",
+          "publicly_artistic",
+          "romantically_excessive",
+          "People's art",
+          "Revolutionary politics",
+          "Mexican identity",
+          "mural_painting",
+          "public_art",
+          "historical_narrative"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

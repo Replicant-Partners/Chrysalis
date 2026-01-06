@@ -1,0 +1,117 @@
+{
+  "name": "Elinor Ostrom",
+  "source_file": "elinor_ostrom.json",
+  "processed_at": "2026-01-06T06:16:27.628767",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.027461573481559753,
+          0.013594026677310467,
+          0.004097470548003912,
+          0.01986134983599186,
+          0.00899889599531889,
+          0.016752077266573906,
+          0.016559038311243057,
+          0.029095832258462906,
+          0.009862921200692654,
+          0.029583415016531944,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.027461573481559753,
+          0.013594026677310467,
+          0.004097470548003912,
+          0.01986134983599186,
+          0.00899889599531889,
+          0.016752077266573906,
+          0.016559038311243057,
+          0.029095832258462906,
+          0.009862921200692654,
+          0.029583415016531944,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.005705196876078844,
+          0.027105575427412987,
+          0.00617050938308239,
+          0.013016307726502419,
+          0.018101252615451813,
+          0.01696614921092987,
+          0.008645151741802692,
+          0.02292610891163349,
+          0.014886360615491867,
+          0.015993082895874977,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "empirically_rigorous",
+          "collaboratively_minded",
+          "institutionally_creative",
+          "pragmatically_optimistic",
+          "intellectually_humble",
+          "Evidence over ideology",
+          "Community wisdom",
+          "Institutional diversity",
+          "institutional_analysis",
+          "field_research",
+          "framework_development"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.005705196876078844,
+          0.027105575427412987,
+          0.00617050938308239,
+          0.013016307726502419,
+          0.018101252615451813,
+          0.01696614921092987,
+          0.008645151741802692,
+          0.02292610891163349,
+          0.014886360615491867,
+          0.015993082895874977,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "empirically_rigorous",
+          "collaboratively_minded",
+          "institutionally_creative",
+          "pragmatically_optimistic",
+          "intellectually_humble",
+          "Evidence over ideology",
+          "Community wisdom",
+          "Institutional diversity",
+          "institutional_analysis",
+          "field_research",
+          "framework_development"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

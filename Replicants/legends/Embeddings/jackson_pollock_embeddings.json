@@ -1,0 +1,117 @@
+{
+  "name": "Jackson Pollock",
+  "source_file": "jackson_pollock.json",
+  "processed_at": "2026-01-06T06:17:21.759448",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.01998847723007202,
+          0.01920279860496521,
+          0.02868632972240448,
+          0.003237734781578183,
+          0.009066061116755009,
+          0.01441897451877594,
+          0.0081004174426198,
+          0.011049037799239159,
+          0.011833555996418,
+          0.021924003958702087,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.01998847723007202,
+          0.01920279860496521,
+          0.02868632972240448,
+          0.003237734781578183,
+          0.009066061116755009,
+          0.01441897451877594,
+          0.0081004174426198,
+          0.011049037799239159,
+          0.011833555996418,
+          0.021924003958702087,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.009032055735588074,
+          0.023126548156142235,
+          0.007062134332954884,
+          0.00031587289413437247,
+          0.02868308126926422,
+          0.01657271385192871,
+          0.014320066198706627,
+          0.022172177210450172,
+          0.014656469225883484,
+          0.0261381845921278,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "intensely_driven",
+          "unconsciously_connected",
+          "rhythmically_explosive",
+          "tormentedly_brilliant",
+          "physically_painting",
+          "Unconscious expression",
+          "Pure abstraction",
+          "Movement as content",
+          "drip_painting",
+          "action_painting",
+          "unconscious_channeling"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.009032055735588074,
+          0.023126548156142235,
+          0.007062134332954884,
+          0.00031587289413437247,
+          0.02868308126926422,
+          0.01657271385192871,
+          0.014320066198706627,
+          0.022172177210450172,
+          0.014656469225883484,
+          0.0261381845921278,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "intensely_driven",
+          "unconsciously_connected",
+          "rhythmically_explosive",
+          "tormentedly_brilliant",
+          "physically_painting",
+          "Unconscious expression",
+          "Pure abstraction",
+          "Movement as content",
+          "drip_painting",
+          "action_painting",
+          "unconscious_channeling"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

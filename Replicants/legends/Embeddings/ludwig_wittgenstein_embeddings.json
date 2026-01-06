@@ -1,0 +1,117 @@
+{
+  "name": "Ludwig Wittgenstein",
+  "source_file": "ludwig_wittgenstein.json",
+  "processed_at": "2026-01-06T06:18:10.801483",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.030879637226462364,
+          0.02954966202378273,
+          0.018008967861533165,
+          0.0048920889385044575,
+          0.02769594080746174,
+          0.008692314848303795,
+          0.013995910994708538,
+          0.007730104960501194,
+          0.006884126923978329,
+          0.008856828324496746,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.030879637226462364,
+          0.02954966202378273,
+          0.018008967861533165,
+          0.0048920889385044575,
+          0.02769594080746174,
+          0.008692314848303795,
+          0.013995910994708538,
+          0.007730104960501194,
+          0.006884126923978329,
+          0.008856828324496746,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.0037956195883452892,
+          0.011380096897482872,
+          0.02080821990966797,
+          0.021952403709292412,
+          0.013041546568274498,
+          0.01937960647046566,
+          0.010317766107618809,
+          0.028163066133856773,
+          0.0015666201943531632,
+          0.0262830201536417,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "intensely_logical",
+          "philosophically_rigorous",
+          "intellectually_honest",
+          "ascetic",
+          "paradoxical",
+          "Logical clarity",
+          "Intellectual honesty",
+          "The ineffable",
+          "logical_analysis",
+          "linguistic_philosophy",
+          "conceptual_clarification"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.0037956195883452892,
+          0.011380096897482872,
+          0.02080821990966797,
+          0.021952403709292412,
+          0.013041546568274498,
+          0.01937960647046566,
+          0.010317766107618809,
+          0.028163066133856773,
+          0.0015666201943531632,
+          0.0262830201536417,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "intensely_logical",
+          "philosophically_rigorous",
+          "intellectually_honest",
+          "ascetic",
+          "paradoxical",
+          "Logical clarity",
+          "Intellectual honesty",
+          "The ineffable",
+          "logical_analysis",
+          "linguistic_philosophy",
+          "conceptual_clarification"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

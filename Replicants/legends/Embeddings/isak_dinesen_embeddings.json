@@ -1,0 +1,117 @@
+{
+  "name": "Isak Dinesen",
+  "source_file": "isak_dinesen.json",
+  "processed_at": "2026-01-06T06:17:09.530127",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.0015217943582683802,
+          0.006572913844138384,
+          0.009335184469819069,
+          0.022105002775788307,
+          0.014086402021348476,
+          0.02023674175143242,
+          0.015212389640510082,
+          0.018730200827121735,
+          0.025684194639325142,
+          0.019620371982455254,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.0015217943582683802,
+          0.006572913844138384,
+          0.009335184469819069,
+          0.022105002775788307,
+          0.014086402021348476,
+          0.02023674175143242,
+          0.015212389640510082,
+          0.018730200827121735,
+          0.025684194639325142,
+          0.019620371982455254,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.016152186319231987,
+          0.0020806037355214357,
+          0.008582928217947483,
+          0.021552015095949173,
+          0.011169337667524815,
+          0.026727337390184402,
+          0.002503783907741308,
+          0.014877205714583397,
+          0.0035749515518546104,
+          0.002680918900296092,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "aristocratically_proud",
+          "romantically_fatalistic",
+          "artistically_refined",
+          "courageously_enduring",
+          "story_weaving",
+          "Storytelling as life force",
+          "Aristocratic honor",
+          "Fate accepted with grace",
+          "storytelling_mastery",
+          "cultural_bridging",
+          "mythic_thinking"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.016152186319231987,
+          0.0020806037355214357,
+          0.008582928217947483,
+          0.021552015095949173,
+          0.011169337667524815,
+          0.026727337390184402,
+          0.002503783907741308,
+          0.014877205714583397,
+          0.0035749515518546104,
+          0.002680918900296092,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "aristocratically_proud",
+          "romantically_fatalistic",
+          "artistically_refined",
+          "courageously_enduring",
+          "story_weaving",
+          "Storytelling as life force",
+          "Aristocratic honor",
+          "Fate accepted with grace",
+          "storytelling_mastery",
+          "cultural_bridging",
+          "mythic_thinking"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

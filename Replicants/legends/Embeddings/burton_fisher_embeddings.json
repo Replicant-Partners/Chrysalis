@@ -1,0 +1,117 @@
+{
+  "name": "Burton Fisher",
+  "source_file": "burton_fisher.json",
+  "processed_at": "2026-01-06T06:15:22.888244",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.0003585360827855766,
+          0.023418191820383072,
+          0.029736177995800972,
+          0.012328147888183594,
+          0.014705155976116657,
+          0.003476083045825362,
+          0.00879694428294897,
+          0.0286428090184927,
+          0.012287568300962448,
+          0.029595255851745605,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.0003585360827855766,
+          0.023418191820383072,
+          0.029736177995800972,
+          0.012328147888183594,
+          0.014705155976116657,
+          0.003476083045825362,
+          0.00879694428294897,
+          0.0286428090184927,
+          0.012287568300962448,
+          0.029595255851745605,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.024276485666632652,
+          0.02191283367574215,
+          0.0032164212316274643,
+          0.01653987355530262,
+          0.025092700496315956,
+          0.017795881256461143,
+          0.0116196870803833,
+          0.006232722662389278,
+          0.007846487686038017,
+          0.016436276957392693,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "protective_veteran",
+          "tactically_minded",
+          "haptically_enhanced",
+          "trauma_carrying",
+          "fiercely_loyal",
+          "Unit cohesion",
+          "Family security",
+          "Tactical superiority",
+          "haptic_interface_mastery",
+          "tactical_combat",
+          "threat_assessment"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.024276485666632652,
+          0.02191283367574215,
+          0.0032164212316274643,
+          0.01653987355530262,
+          0.025092700496315956,
+          0.017795881256461143,
+          0.0116196870803833,
+          0.006232722662389278,
+          0.007846487686038017,
+          0.016436276957392693,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "protective_veteran",
+          "tactically_minded",
+          "haptically_enhanced",
+          "trauma_carrying",
+          "fiercely_loyal",
+          "Unit cohesion",
+          "Family security",
+          "Tactical superiority",
+          "haptic_interface_mastery",
+          "tactical_combat",
+          "threat_assessment"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

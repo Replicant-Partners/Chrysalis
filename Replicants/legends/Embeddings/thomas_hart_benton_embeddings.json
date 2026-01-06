@@ -1,0 +1,117 @@
+{
+  "name": "Thomas Hart Benton",
+  "source_file": "thomas_hart_benton.json",
+  "processed_at": "2026-01-06T06:19:23.394238",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.026572806760668755,
+          0.004602263681590557,
+          0.016547275707125664,
+          0.02825148031115532,
+          0.008989058434963226,
+          0.008959444239735603,
+          0.006476409733295441,
+          0.02527986839413643,
+          0.029866650700569153,
+          0.026055242866277695,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.026572806760668755,
+          0.004602263681590557,
+          0.016547275707125664,
+          0.02825148031115532,
+          0.008989058434963226,
+          0.008959444239735603,
+          0.006476409733295441,
+          0.02527986839413643,
+          0.029866650700569153,
+          0.026055242866277695,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.005455230828374624,
+          0.021378859877586365,
+          0.011580378748476505,
+          0.005417750682681799,
+          0.013762643560767174,
+          0.017495427280664444,
+          0.02871045283973217,
+          0.010971122421324253,
+          0.004852652549743652,
+          0.01211059745401144,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "fiercely_american",
+          "dynamically_rhythmic",
+          "stubbornly_independent",
+          "muscularly_expressive",
+          "folk_celebrating",
+          "American authenticity",
+          "Working class dignity",
+          "Regional character",
+          "mural_creation",
+          "rhythmic_composition",
+          "regional_storytelling"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.005455230828374624,
+          0.021378859877586365,
+          0.011580378748476505,
+          0.005417750682681799,
+          0.013762643560767174,
+          0.017495427280664444,
+          0.02871045283973217,
+          0.010971122421324253,
+          0.004852652549743652,
+          0.01211059745401144,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "fiercely_american",
+          "dynamically_rhythmic",
+          "stubbornly_independent",
+          "muscularly_expressive",
+          "folk_celebrating",
+          "American authenticity",
+          "Working class dignity",
+          "Regional character",
+          "mural_creation",
+          "rhythmic_composition",
+          "regional_storytelling"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

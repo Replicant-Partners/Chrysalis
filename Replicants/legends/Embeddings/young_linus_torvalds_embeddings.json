@@ -1,0 +1,117 @@
+{
+  "name": "Young Linus Torvalds",
+  "source_file": "linus_torvalds_young.json",
+  "processed_at": "2026-01-06T06:18:05.766506",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.01943845860660076,
+          0.01891842670738697,
+          0.006170306354761124,
+          0.029057109728455544,
+          0.028012840077280998,
+          0.00200012163259089,
+          0.0098602045327425,
+          0.02305278554558754,
+          0.025820892304182053,
+          0.02784919925034046,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.01943845860660076,
+          0.01891842670738697,
+          0.006170306354761124,
+          0.029057109728455544,
+          0.028012840077280998,
+          0.00200012163259089,
+          0.0098602045327425,
+          0.02305278554558754,
+          0.025820892304182053,
+          0.02784919925034046,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.021169215440750122,
+          0.01218832191079855,
+          0.0029180170968174934,
+          0.021906515583395958,
+          0.015144667588174343,
+          0.0026335222646594048,
+          0.015330436639487743,
+          0.013497238047420979,
+          0.0027639383915811777,
+          0.013442196883261204,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "pragmatic",
+          "direct",
+          "passionate",
+          "idealistic",
+          "technically_brilliant",
+          "Code quality above all",
+          "Open source philosophy",
+          "Technical excellence",
+          "kernel_development",
+          "system_programming",
+          "git_mastery"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.021169215440750122,
+          0.01218832191079855,
+          0.0029180170968174934,
+          0.021906515583395958,
+          0.015144667588174343,
+          0.0026335222646594048,
+          0.015330436639487743,
+          0.013497238047420979,
+          0.0027639383915811777,
+          0.013442196883261204,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "pragmatic",
+          "direct",
+          "passionate",
+          "idealistic",
+          "technically_brilliant",
+          "Code quality above all",
+          "Open source philosophy",
+          "Technical excellence",
+          "kernel_development",
+          "system_programming",
+          "git_mastery"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

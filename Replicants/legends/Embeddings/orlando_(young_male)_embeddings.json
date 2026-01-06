@@ -1,0 +1,117 @@
+{
+  "name": "Orlando (Young Male)",
+  "source_file": "orlando_young.json",
+  "processed_at": "2026-01-06T06:18:38.579433",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.0025742112193256617,
+          0.0227077454328537,
+          0.011750000528991222,
+          0.024539625272154808,
+          0.021624064072966576,
+          0.012947333045303822,
+          0.016138466075062752,
+          0.017603853717446327,
+          0.024492379277944565,
+          0.024484805762767792,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.0025742112193256617,
+          0.0227077454328537,
+          0.011750000528991222,
+          0.024539625272154808,
+          0.021624064072966576,
+          0.012947333045303822,
+          0.016138466075062752,
+          0.017603853717446327,
+          0.024492379277944565,
+          0.024484805762767792,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.0027640354819595814,
+          0.009889409877359867,
+          0.00900603923946619,
+          0.031348250806331635,
+          0.011348697356879711,
+          0.012531628832221031,
+          0.019247395917773247,
+          0.022083783522248268,
+          0.026944132521748543,
+          0.019858136773109436,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "romantically_passionate",
+          "poetically_obsessed",
+          "nobly_naive",
+          "beauty_seeking",
+          "immortally_curious",
+          "Beauty above all",
+          "Poetry as truth",
+          "Love as transformation",
+          "poetry_writing",
+          "aesthetic_perception",
+          "romantic_intensity"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.0027640354819595814,
+          0.009889409877359867,
+          0.00900603923946619,
+          0.031348250806331635,
+          0.011348697356879711,
+          0.012531628832221031,
+          0.019247395917773247,
+          0.022083783522248268,
+          0.026944132521748543,
+          0.019858136773109436,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "romantically_passionate",
+          "poetically_obsessed",
+          "nobly_naive",
+          "beauty_seeking",
+          "immortally_curious",
+          "Beauty above all",
+          "Poetry as truth",
+          "Love as transformation",
+          "poetry_writing",
+          "aesthetic_perception",
+          "romantic_intensity"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

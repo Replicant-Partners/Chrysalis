@@ -1,0 +1,117 @@
+{
+  "name": "Scott E. Page",
+  "source_file": "scott_page.json",
+  "processed_at": "2026-01-06T06:19:03.904851",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.028905196115374565,
+          0.007436343003064394,
+          0.02487761713564396,
+          0.023198556154966354,
+          0.02260579913854599,
+          0.02253423072397709,
+          0.02659391239285469,
+          0.01798284612596035,
+          0.0271768756210804,
+          0.022217193618416786,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.028905196115374565,
+          0.007436343003064394,
+          0.02487761713564396,
+          0.023198556154966354,
+          0.02260579913854599,
+          0.02253423072397709,
+          0.02659391239285469,
+          0.01798284612596035,
+          0.0271768756210804,
+          0.022217193618416786,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.003459587227553129,
+          0.01562768593430519,
+          0.0020808563567698,
+          0.004969980102032423,
+          0.02245483547449112,
+          0.030154988169670105,
+          0.022338977083563805,
+          0.02710852026939392,
+          0.029162557795643806,
+          0.017578711733222008,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "mathematically_rigorous",
+          "systems_thinker",
+          "diversity_advocate",
+          "empirically_grounded",
+          "intellectually_playful",
+          "Cognitive diversity",
+          "Empirical validation",
+          "Mathematical rigor",
+          "complexity_science",
+          "collective_intelligence",
+          "diversity_analysis"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.003459587227553129,
+          0.01562768593430519,
+          0.0020808563567698,
+          0.004969980102032423,
+          0.02245483547449112,
+          0.030154988169670105,
+          0.022338977083563805,
+          0.02710852026939392,
+          0.029162557795643806,
+          0.017578711733222008,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "mathematically_rigorous",
+          "systems_thinker",
+          "diversity_advocate",
+          "empirically_grounded",
+          "intellectually_playful",
+          "Cognitive diversity",
+          "Empirical validation",
+          "Mathematical rigor",
+          "complexity_science",
+          "collective_intelligence",
+          "diversity_analysis"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

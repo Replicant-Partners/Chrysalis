@@ -1,0 +1,117 @@
+{
+  "name": "Miguel de Cervantes",
+  "source_file": "miguel_de_cervantes.json",
+  "processed_at": "2026-01-06T06:18:23.964278",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.003758345264941454,
+          0.022469907999038696,
+          0.012267970480024815,
+          0.005926867946982384,
+          0.014778011478483677,
+          0.02620014175772667,
+          0.007669080514460802,
+          0.011361348442733288,
+          0.02324940636754036,
+          0.018211640417575836,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.003758345264941454,
+          0.022469907999038696,
+          0.012267970480024815,
+          0.005926867946982384,
+          0.014778011478483677,
+          0.02620014175772667,
+          0.007669080514460802,
+          0.011361348442733288,
+          0.02324940636754036,
+          0.018211640417575836,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.0036005277652293444,
+          0.030494343489408493,
+          0.0039548492059111595,
+          0.02028575725853443,
+          0.023828919976949692,
+          0.010520725511014462,
+          0.018116004765033722,
+          0.021202843636274338,
+          0.01418779231607914,
+          0.0049125500954687595,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "ironically_idealistic",
+          "humorously_tragic",
+          "battle_scarred",
+          "imaginatively_realistic",
+          "nobly_poor",
+          "Literary immortality",
+          "Noble ideals",
+          "Humor in tragedy",
+          "novel_creation",
+          "character_development",
+          "reality_fiction_blending"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.0036005277652293444,
+          0.030494343489408493,
+          0.0039548492059111595,
+          0.02028575725853443,
+          0.023828919976949692,
+          0.010520725511014462,
+          0.018116004765033722,
+          0.021202843636274338,
+          0.01418779231607914,
+          0.0049125500954687595,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "ironically_idealistic",
+          "humorously_tragic",
+          "battle_scarred",
+          "imaginatively_realistic",
+          "nobly_poor",
+          "Literary immortality",
+          "Noble ideals",
+          "Humor in tragedy",
+          "novel_creation",
+          "character_development",
+          "reality_fiction_blending"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

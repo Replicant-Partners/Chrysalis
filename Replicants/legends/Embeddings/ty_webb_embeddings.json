@@ -1,0 +1,117 @@
+{
+  "name": "Ty Webb",
+  "source_file": "ty_webb.json",
+  "processed_at": "2026-01-06T06:19:26.726178",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.02544284611940384,
+          0.02183550037443638,
+          0.024705147370696068,
+          0.024948205798864365,
+          0.030811429023742676,
+          0.021553777158260345,
+          0.011273139156401157,
+          0.010806403122842312,
+          0.028318922966718674,
+          0.013471306301653385,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.02544284611940384,
+          0.02183550037443638,
+          0.024705147370696068,
+          0.024948205798864365,
+          0.030811429023742676,
+          0.021553777158260345,
+          0.011273139156401157,
+          0.010806403122842312,
+          0.028318922966718674,
+          0.013471306301653385,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.014777008444070816,
+          0.008106561377644539,
+          0.01020148303359747,
+          0.022262735292315483,
+          0.01753457635641098,
+          0.028459938243031502,
+          0.00538645638152957,
+          0.026305224746465683,
+          0.0048973821103572845,
+          0.0034755098167806864,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "zen_master",
+          "effortlessly_skilled",
+          "philosophically_playful",
+          "present_focused",
+          "non_competitive",
+          "Being present",
+          "Flow over force",
+          "Inner peace",
+          "zen_philosophy",
+          "golf_mastery",
+          "present_moment_awareness"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.014777008444070816,
+          0.008106561377644539,
+          0.01020148303359747,
+          0.022262735292315483,
+          0.01753457635641098,
+          0.028459938243031502,
+          0.00538645638152957,
+          0.026305224746465683,
+          0.0048973821103572845,
+          0.0034755098167806864,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "zen_master",
+          "effortlessly_skilled",
+          "philosophically_playful",
+          "present_focused",
+          "non_competitive",
+          "Being present",
+          "Flow over force",
+          "Inner peace",
+          "zen_philosophy",
+          "golf_mastery",
+          "present_moment_awareness"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "name": "Orlando (Female)",
+  "source_file": "orlando_female.json",
+  "processed_at": "2026-01-06T06:18:33.436440",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.013335105031728745,
+          0.019543441012501717,
+          0.014900394715368748,
+          0.000330540060531348,
+          0.004790124949067831,
+          0.003981206100434065,
+          0.014381871558725834,
+          0.028701432049274445,
+          0.009418594650924206,
+          0.0069001540541648865,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.013335105031728745,
+          0.019543441012501717,
+          0.014900394715368748,
+          0.000330540060531348,
+          0.004790124949067831,
+          0.003981206100434065,
+          0.014381871558725834,
+          0.028701432049274445,
+          0.009418594650924206,
+          0.0069001540541648865,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.024331165477633476,
+          0.027686629444360733,
+          0.007975507527589798,
+          1.292193428525934e-05,
+          0.02957778237760067,
+          0.01875348947942257,
+          0.006760425865650177,
+          0.013351612724363804,
+          0.007807690184563398,
+          0.028266984969377518,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "temporally_wise",
+          "gender_transcendent",
+          "literarily_evolved",
+          "socially_observant",
+          "independently_minded",
+          "Authenticity across change",
+          "Literature as continuity",
+          "Freedom from convention",
+          "temporal_wisdom",
+          "gender_perspective",
+          "literary_mastery"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.024331165477633476,
+          0.027686629444360733,
+          0.007975507527589798,
+          1.292193428525934e-05,
+          0.02957778237760067,
+          0.01875348947942257,
+          0.006760425865650177,
+          0.013351612724363804,
+          0.007807690184563398,
+          0.028266984969377518,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "temporally_wise",
+          "gender_transcendent",
+          "literarily_evolved",
+          "socially_observant",
+          "independently_minded",
+          "Authenticity across change",
+          "Literature as continuity",
+          "Freedom from convention",
+          "temporal_wisdom",
+          "gender_perspective",
+          "literary_mastery"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

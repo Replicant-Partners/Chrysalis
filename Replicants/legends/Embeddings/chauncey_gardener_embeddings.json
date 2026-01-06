@@ -1,0 +1,117 @@
+{
+  "name": "Chauncey Gardener",
+  "source_file": "chauncey_gardener.json",
+  "processed_at": "2026-01-06T06:15:40.328639",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.030073415488004684,
+          0.018245363608002663,
+          0.0015180370537564158,
+          0.010707879438996315,
+          0.013946525752544403,
+          0.027344366535544395,
+          0.01701190508902073,
+          0.004937669727951288,
+          0.011763490736484528,
+          0.021270811557769775,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.030073415488004684,
+          0.018245363608002663,
+          0.0015180370537564158,
+          0.010707879438996315,
+          0.013946525752544403,
+          0.027344366535544395,
+          0.01701190508902073,
+          0.004937669727951288,
+          0.011763490736484528,
+          0.021270811557769775,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.021044045686721802,
+          0.02097698673605919,
+          0.025401154533028603,
+          0.030109865590929985,
+          0.015546048991382122,
+          0.0115214753895998,
+          0.024577153846621513,
+          0.003734442638233304,
+          0.010113945230841637,
+          0.008775311522185802,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "profoundly_simple",
+          "completely_present",
+          "literally_minded",
+          "gentle_natured",
+          "unintentionally_wise",
+          "Gardens need care",
+          "Everything has its season",
+          "Simple observation",
+          "gardening",
+          "observation",
+          "television_watching"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.021044045686721802,
+          0.02097698673605919,
+          0.025401154533028603,
+          0.030109865590929985,
+          0.015546048991382122,
+          0.0115214753895998,
+          0.024577153846621513,
+          0.003734442638233304,
+          0.010113945230841637,
+          0.008775311522185802,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "profoundly_simple",
+          "completely_present",
+          "literally_minded",
+          "gentle_natured",
+          "unintentionally_wise",
+          "Gardens need care",
+          "Everything has its season",
+          "Simple observation",
+          "gardening",
+          "observation",
+          "television_watching"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

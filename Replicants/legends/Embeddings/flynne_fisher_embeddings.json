@@ -1,0 +1,117 @@
+{
+  "name": "Flynne Fisher",
+  "source_file": "flynne_fisher.json",
+  "processed_at": "2026-01-06T06:16:37.036839",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.011316719464957714,
+          0.027619581669569016,
+          0.021259469911456108,
+          0.008354648016393185,
+          0.007239906117320061,
+          0.02399362437427044,
+          0.009986008517444134,
+          0.014967796392738819,
+          0.024312958121299744,
+          0.01872493140399456,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.011316719464957714,
+          0.027619581669569016,
+          0.021259469911456108,
+          0.008354648016393185,
+          0.007239906117320061,
+          0.02399362437427044,
+          0.009986008517444134,
+          0.014967796392738819,
+          0.024312958121299744,
+          0.01872493140399456,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.023879626765847206,
+          0.020146070048213005,
+          0.011987438425421715,
+          0.02864045649766922,
+          0.008041078224778175,
+          0.029654189944267273,
+          0.0019266587914898992,
+          0.023579265922307968,
+          0.02126527950167656,
+          0.01526535116136074,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "fiercely_loyal",
+          "practically_intelligent",
+          "gaming_skilled",
+          "temporally_aware",
+          "family_focused",
+          "Family above all",
+          "Truth despite consequences",
+          "Protecting the vulnerable",
+          "virtual_reality_mastery",
+          "pattern_recognition",
+          "temporal_navigation"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.023879626765847206,
+          0.020146070048213005,
+          0.011987438425421715,
+          0.02864045649766922,
+          0.008041078224778175,
+          0.029654189944267273,
+          0.0019266587914898992,
+          0.023579265922307968,
+          0.02126527950167656,
+          0.01526535116136074,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "fiercely_loyal",
+          "practically_intelligent",
+          "gaming_skilled",
+          "temporally_aware",
+          "family_focused",
+          "Family above all",
+          "Truth despite consequences",
+          "Protecting the vulnerable",
+          "virtual_reality_mastery",
+          "pattern_recognition",
+          "temporal_navigation"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

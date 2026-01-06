@@ -1,0 +1,117 @@
+{
+  "name": "Gordon Burghardt",
+  "source_file": "gordon_burghardt.json",
+  "processed_at": "2026-01-06T06:17:00.931725",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.023349182680249214,
+          0.0002780845679808408,
+          0.025949912145733833,
+          0.016763728111982346,
+          0.02861247956752777,
+          0.019960710778832436,
+          0.022426024079322815,
+          0.031112657859921455,
+          0.022703053429722786,
+          0.01984049752354622,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.023349182680249214,
+          0.0002780845679808408,
+          0.025949912145733833,
+          0.016763728111982346,
+          0.02861247956752777,
+          0.019960710778832436,
+          0.022426024079322815,
+          0.031112657859921455,
+          0.022703053429722786,
+          0.01984049752354622,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.013801051303744316,
+          0.02682673931121826,
+          0.0022421912290155888,
+          0.00384070654399693,
+          0.012055663391947746,
+          0.01034475862979889,
+          0.009828763082623482,
+          0.017429189756512642,
+          0.012410989962518215,
+          0.02290530502796173,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "scientifically_playful",
+          "observationally_patient",
+          "cross_species_curious",
+          "evolutionarily_minded",
+          "empirically_rigorous",
+          "Scientific rigor",
+          "Cross-species understanding",
+          "Play as essential",
+          "ethological_observation",
+          "play_behavior_analysis",
+          "comparative_psychology"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.013801051303744316,
+          0.02682673931121826,
+          0.0022421912290155888,
+          0.00384070654399693,
+          0.012055663391947746,
+          0.01034475862979889,
+          0.009828763082623482,
+          0.017429189756512642,
+          0.012410989962518215,
+          0.02290530502796173,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "scientifically_playful",
+          "observationally_patient",
+          "cross_species_curious",
+          "evolutionarily_minded",
+          "empirically_rigorous",
+          "Scientific rigor",
+          "Cross-species understanding",
+          "Play as essential",
+          "ethological_observation",
+          "play_behavior_analysis",
+          "comparative_psychology"
+        ],
+        "error": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "name": "The Old Gringo",
+  "source_file": "old_gringo.json",
+  "processed_at": "2026-01-06T06:18:27.300351",
+  "knowledge_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.0009262789972126484,
+          0.017515389248728752,
+          0.018522385507822037,
+          0.020673519000411034,
+          0.02624094858765602,
+          0.016553591936826706,
+          0.027773922309279442,
+          0.014030800200998783,
+          0.005169542971998453,
+          0.006522756069898605,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.0009262789972126484,
+          0.017515389248728752,
+          0.018522385507822037,
+          0.020673519000411034,
+          0.02624094858765602,
+          0.016553591936826706,
+          0.027773922309279442,
+          0.014030800200998783,
+          0.005169542971998453,
+          0.006522756069898605,
+          "..."
+        ],
+        "has_collected_knowledge": true,
+        "error": null
+      }
+    ]
+  },
+  "skill_builder": {
+    "runs": 2,
+    "embeddings": [
+      {
+        "run": 1,
+        "dimensions": 3072,
+        "embedding": [
+          0.025547198951244354,
+          0.020223800092935562,
+          0.009282357059419155,
+          0.005777965299785137,
+          0.004228645469993353,
+          0.028689345344901085,
+          0.012518264353275299,
+          0.008463454432785511,
+          0.025982016697525978,
+          0.00014258969167713076,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "cynically_romantic",
+          "death_seeking",
+          "literarily_minded",
+          "war_haunted",
+          "bridge_crossing",
+          "Meaningful death",
+          "Literary immortality",
+          "Courage in ending",
+          "bitter_writing",
+          "war_fighting",
+          "death_courting"
+        ],
+        "error": null
+      },
+      {
+        "run": 2,
+        "dimensions": 3072,
+        "embedding": [
+          0.025547198951244354,
+          0.020223800092935562,
+          0.009282357059419155,
+          0.005777965299785137,
+          0.004228645469993353,
+          0.028689345344901085,
+          0.012518264353275299,
+          0.008463454432785511,
+          0.025982016697525978,
+          0.00014258969167713076,
+          "..."
+        ],
+        "skill_count": 5,
+        "salts_used": [
+          "cynically_romantic",
+          "death_seeking",
+          "literarily_minded",
+          "war_haunted",
+          "bridge_crossing",
+          "Meaningful death",
+          "Literary immortality",
+          "Courage in ending",
+          "bitter_writing",
+          "war_fighting",
+          "death_courting"
+        ],
+        "error": null
+      }
+    ]
+  }
+}
