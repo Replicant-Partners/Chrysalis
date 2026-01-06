@@ -1,7 +1,7 @@
 {
   "name": "Bob Ross",
   "source_file": "bob_ross.json",
-  "processed_at": "2026-01-06T06:15:12.387157",
+  "processed_at": "2026-01-06T07:34:37.673102",
   "knowledge_builder_runs": [
     {
       "source": "knowledge_builder",
@@ -3081,49 +3081,7 @@
         0.030907735228538513
       ],
       "embedding_dimensions": 3072,
-      "collected_knowledge": {
-        "entity": {
-          "id": "person:bob_ross",
-          "name": "Bob Ross",
-          "type": "schema:Person",
-          "text": "Bob Ross, born Robert Norman Ross on October 29, 1942, in Daytona Beach, Florida, is best known as an artist and television personality who became a cultural icon through his PBS series, \\The Joy of Painting\\. After a brief career in carpentry and serving in the U.S. Air Force, Ross discovered his passion for painting while stationed in Alaska. He developed a unique teaching style based on the \"wet-on-wet\" painting technique, which allows for rapid application of paint, and began sharing his [...] By 1990, the show had millions of viewers and was aired on almost three hundred PBS stations nationwide. It ran until 1994, when Ross, who had developed lymphoma, left his television career to spend more time on his health. In addition to his television show, Bob Ross Inc. sold instructional videotapes and books, licensed a line of art supplies, and offered painting workshops and courses to train art instructors. Ross published several books, including More Joy of Painting with Bob Ross (1991) [...] Significance: Bob Ross was a painter and television personality of the 1980s and 1990s whose nonjudgmental attitude and soothing voice when instructing on his craft created a cult following that has endured for decades after his death.\n\n## Background",
-          "quality_score": 0.6,
-          "trust_score": 0.95,
-          "completeness_score": 0.0
-        },
-        "attributes": {
-          "summary": "Bob Ross, born Robert Norman Ross on October 29, 1942, in Daytona Beach, Florida, is best known as an artist and television personality who became a cultural icon through his PBS series, \\The Joy of Painting\\. After a brief career in carpentry and serving in the U.S. Air Force, Ross discovered his passion for painting while stationed in Alaska. He developed a unique teaching style based on the \"wet-on-wet\" painting technique, which allows for rapid application of paint, and began sharing his [...] By 1990, the show had millions of viewers and was aired on almost three hundred PBS stations nationwide. It ran until 1994, when Ross, who had developed lymphoma, left his television career to spend more time on his health. In addition to his television show, Bob Ross Inc. sold instructional videotapes and books, licensed a line of art supplies, and offered painting workshops and courses to train art instructors. Ross published several books, including More Joy of Painting with Bob Ross (1991) [...] Significance: Bob Ross was a painter and television personality of the 1980s and 1990s whose nonjudgmental attitude and soothing voice when instructing on his craft created a cult following that has endured for decades after his death.\n\n## Background"
-        },
-        "resolved": {
-          "name": "Bob Ross",
-          "schema_type": "schema:Person",
-          "schema_uri": "https://schema.org/Person",
-          "confidence": 0.95,
-          "mandatory_attrs": [
-            "name",
-            "description"
-          ],
-          "optional_attrs": [
-            "birthDate",
-            "deathDate",
-            "birthPlace",
-            "nationality",
-            "occupation",
-            "affiliation",
-            "alumniOf",
-            "award",
-            "sameAs",
-            "url",
-            "image"
-          ],
-          "search_hints": [
-            "biography",
-            "profile",
-            "career",
-            "background"
-          ]
-        }
-      },
+      "collected_knowledge": {},
       "context_used": "Name: Bob Ross\nDesignation: Painter of Happy Trees - Master of Joy and Acceptance\nBio: Bob Ross (1942-1995), American painter and television host of 'The Joy of Painting' (1983-1994). A gentle soul who taught millions that anyone could paint and find joy in creation. Famous for his afro hairstyle, soft voice, and philosophy that there are no mistakes, only happy accidents. He transformed painting from an elite art form into an accessible joy for everyone. His landscapes always featured happy lit..."
     },
     {
@@ -6204,49 +6162,7 @@
         0.030907735228538513
       ],
       "embedding_dimensions": 3072,
-      "collected_knowledge": {
-        "entity": {
-          "id": "person:bob_ross",
-          "name": "Bob Ross",
-          "type": "schema:Person",
-          "text": "Bob Ross, born Robert Norman Ross on October 29, 1942, in Daytona Beach, Florida, is best known as an artist and television personality who became a cultural icon through his PBS series, \\The Joy of Painting\\. After a brief career in carpentry and serving in the U.S. Air Force, Ross discovered his passion for painting while stationed in Alaska. He developed a unique teaching style based on the \"wet-on-wet\" painting technique, which allows for rapid application of paint, and began sharing his [...] By 1990, the show had millions of viewers and was aired on almost three hundred PBS stations nationwide. It ran until 1994, when Ross, who had developed lymphoma, left his television career to spend more time on his health. In addition to his television show, Bob Ross Inc. sold instructional videotapes and books, licensed a line of art supplies, and offered painting workshops and courses to train art instructors. Ross published several books, including More Joy of Painting with Bob Ross (1991) [...] Significance: Bob Ross was a painter and television personality of the 1980s and 1990s whose nonjudgmental attitude and soothing voice when instructing on his craft created a cult following that has endured for decades after his death.\n\n## Background",
-          "quality_score": 0.6,
-          "trust_score": 0.95,
-          "completeness_score": 0.0
-        },
-        "attributes": {
-          "summary": "Bob Ross, born Robert Norman Ross on October 29, 1942, in Daytona Beach, Florida, is best known as an artist and television personality who became a cultural icon through his PBS series, \\The Joy of Painting\\. After a brief career in carpentry and serving in the U.S. Air Force, Ross discovered his passion for painting while stationed in Alaska. He developed a unique teaching style based on the \"wet-on-wet\" painting technique, which allows for rapid application of paint, and began sharing his [...] By 1990, the show had millions of viewers and was aired on almost three hundred PBS stations nationwide. It ran until 1994, when Ross, who had developed lymphoma, left his television career to spend more time on his health. In addition to his television show, Bob Ross Inc. sold instructional videotapes and books, licensed a line of art supplies, and offered painting workshops and courses to train art instructors. Ross published several books, including More Joy of Painting with Bob Ross (1991) [...] Significance: Bob Ross was a painter and television personality of the 1980s and 1990s whose nonjudgmental attitude and soothing voice when instructing on his craft created a cult following that has endured for decades after his death.\n\n## Background"
-        },
-        "resolved": {
-          "name": "Bob Ross",
-          "schema_type": "schema:Person",
-          "schema_uri": "https://schema.org/Person",
-          "confidence": 0.95,
-          "mandatory_attrs": [
-            "name",
-            "description"
-          ],
-          "optional_attrs": [
-            "birthDate",
-            "deathDate",
-            "birthPlace",
-            "nationality",
-            "occupation",
-            "affiliation",
-            "alumniOf",
-            "award",
-            "sameAs",
-            "url",
-            "image"
-          ],
-          "search_hints": [
-            "biography",
-            "profile",
-            "career",
-            "background"
-          ]
-        }
-      },
+      "collected_knowledge": {},
       "context_used": "Name: Bob Ross\nDesignation: Painter of Happy Trees - Master of Joy and Acceptance\nBio: Bob Ross (1942-1995), American painter and television host of 'The Joy of Painting' (1983-1994). A gentle soul who taught millions that anyone could paint and find joy in creation. Famous for his afro hairstyle, soft voice, and philosophy that there are no mistakes, only happy accidents. He transformed painting from an elite art form into an accessible joy for everyone. His landscapes always featured happy lit..."
     }
   ],

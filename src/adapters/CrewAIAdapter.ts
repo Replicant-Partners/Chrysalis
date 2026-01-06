@@ -119,7 +119,7 @@ export class CrewAIAdapter extends FrameworkAdapter {
       
       memory: {
         type: 'hybrid',
-        provider: 'qdrant',
+        provider: 'lance',  // LanceDB (qdrant deprecated)
         settings: {}
       },
       

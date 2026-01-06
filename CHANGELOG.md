@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.0] - 2026-01-06
+
+### Removed
+- **Qdrant Vector Index**: Deprecated in favor of LanceDB for embedded persistence
+  - Removed `QdrantVectorIndex.ts` adapter
+  - Updated `VectorIndexFactory` to remove qdrant option
+  - Updated `MemoryMerger` type definitions
+  - Updated adapters to use `provider: 'lance'`
+
+### Fixed
+- **KnowledgeBuilder LanceDB**: Fixed deprecated `table_names()` → `list_tables()` in [`lancedb_client.py`](projects/KnowledgeBuilder/src/storage/lancedb_client.py:78)
+
+### Changed
+- **Vector Index Backends**: Now `hnsw | lance | brute` (removed `qdrant`)
+- **Documentation**: Updated VECTOR_INDEX_SETUP.md and MEMORY_MERGE_PLAN.md
+- Adapters (CrewAI, ElizaOS, OrchestratedAdapter, AgentBuilder) default to LanceDB
+
+### Notes
+- LanceDB provides zero-infrastructure embedded vector storage
+- For graph+vector hybrid needs, use ArangoDB
+- Migration guide added in VECTOR_INDEX_SETUP.md
+
+---
+
 ## [3.1.0] - 2025-12-28
 
 ### Added
@@ -99,6 +123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Key Features |
 |---------|------|--------------|
+| **3.2.0** | 2026-01-06 | Qdrant removal, LanceDB consolidation, pipeline fixes |
 | **3.1.0** | 2025-12-28 | Fractal architecture, adaptive patterns, enhanced memory |
 | **3.0.0** | 2025-12-27 | Universal patterns, MCP fabric, deep research |
 | **2.0.0** | 2025-12-26 | Three agent types, experience sync, instance management |

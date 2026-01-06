@@ -69,7 +69,7 @@ class LanceDBClient:
         
         Schema is derived from _SCHEMA_FIELDS to maintain single source of truth.
         """
-        if self.table_name in self.db.table_names():
+        if self.table_name in self.db.list_tables():
             return
 
         # Build schema from _SCHEMA_FIELDS

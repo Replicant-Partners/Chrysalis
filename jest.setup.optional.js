@@ -1,8 +1,8 @@
 // Skip optional backend tests when deps are missing
+// Note: Qdrant removed - using LanceDB/ArangoDB instead
 const optionalDeps = [
   { name: 'hnswlib-node', flag: 'HAS_HNSW' },
-  { name: 'lancedb', flag: 'HAS_LANCE' },
-  { name: '@qdrant/js-client-rest', flag: 'HAS_QDRANT' }
+  { name: 'lancedb', flag: 'HAS_LANCE' }
 ];
 
 optionalDeps.forEach(dep => {

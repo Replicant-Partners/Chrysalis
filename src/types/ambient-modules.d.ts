@@ -1,6 +1,6 @@
 declare module 'hnswlib-node';
 declare module 'lancedb';
-declare module '@qdrant/js-client-rest';
+// Note: qdrant removed - using LanceDB/ArangoDB instead
 
 declare module 'ws';
 

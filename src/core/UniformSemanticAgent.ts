@@ -285,7 +285,7 @@ export function createUniformSemanticAgent(
     },
     memory: {
       type: 'hybrid',
-      provider: 'qdrant',
+      provider: 'lance',  // LanceDB (qdrant deprecated)
       settings: {},
       ...overrides?.memory
     },

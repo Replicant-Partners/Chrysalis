@@ -128,7 +128,7 @@ export class ElizaOSAdapter extends FrameworkAdapter {
       
       memory: {
         type: 'hybrid',
-        provider: 'qdrant',
+        provider: 'lance',  // LanceDB (qdrant deprecated)
         settings: character.settings || {}
       },
       

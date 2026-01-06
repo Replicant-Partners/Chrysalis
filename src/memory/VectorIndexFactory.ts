@@ -1,12 +1,12 @@
 import { BruteForceVectorIndex, type VectorIndex } from './VectorIndex';
 
-export type VectorIndexKind = 'hnsw' | 'lance' | 'qdrant' | 'brute';
+export type VectorIndexKind = 'hnsw' | 'lance' | 'brute';
 
 export interface VectorIndexOptions {
   collection?: string;
   dim?: number;
   hnsw?: { maxElements?: number; efSearch?: number; m?: number };
-  qdrant?: { url?: string; apiKey?: string; collection?: string };
+  lance?: { path?: string; collection?: string };
 }
 
 export interface VectorIndexConfig {
@@ -17,6 +17,13 @@ export interface VectorIndexConfig {
 /**
  * Create a vector index. Tries HNSW (hnswlib-node) by default,
  * falls back to brute force if dependency is missing.
+ * 
+ * Supported backends:
+ * - hnsw: In-memory HNSW index (hnswlib-node)
+ * - lance: LanceDB embedded vector database (recommended for persistence)
+ * - brute: Brute-force fallback (no dependencies)
+ * 
+ * Note: Qdrant has been deprecated in favor of LanceDB/ArangoDB.
  */
 export async function createVectorIndex(kind: VectorIndexKind = 'hnsw', dim?: number, options?: VectorIndexOptions): Promise<VectorIndex> {
   if (kind === 'hnsw') {
@@ -28,24 +35,10 @@ export async function createVectorIndex(kind: VectorIndexKind = 'hnsw', dim?: nu
     }
   }
 
-  if (kind === 'qdrant') {
-    try {
-      const { QdrantVectorIndex } = await import('./adapters/QdrantVectorIndex');
-      return new QdrantVectorIndex({
-        collection: options?.qdrant?.collection || options?.collection || 'memories',
-        url: options?.qdrant?.url,
-        apiKey: options?.qdrant?.apiKey,
-        dim
-      });
-    } catch (err) {
-      console.warn('[vector-index] qdrant client not available, falling back to brute force');
-    }
-  }
-
   if (kind === 'lance') {
     try {
       const { LanceDBVectorIndex } = await import('./adapters/LanceDBVectorIndex');
-      return new LanceDBVectorIndex(dim, options?.collection);
+      return new LanceDBVectorIndex(dim, options?.collection || options?.lance?.collection);
     } catch (err) {
       console.warn('[vector-index] lancedb not available, falling back to brute force');
     }
@@ -60,7 +53,7 @@ export async function createVectorIndex(kind: VectorIndexKind = 'hnsw', dim?: nu
 export function vectorIndexFromEnv(): VectorIndexConfig {
   const envKind = (process.env.VECTOR_INDEX_TYPE || '').toLowerCase();
   const kind: VectorIndexKind =
-    envKind === 'hnsw' || envKind === 'lance' || envKind === 'qdrant' || envKind === 'brute'
+    envKind === 'hnsw' || envKind === 'lance' || envKind === 'brute'
       ? (envKind as VectorIndexKind)
       : 'hnsw';
 
@@ -72,10 +65,9 @@ export function vectorIndexFromEnv(): VectorIndexConfig {
       efSearch: process.env.HNSW_EF_SEARCH ? parseInt(process.env.HNSW_EF_SEARCH, 10) : undefined,
       m: process.env.HNSW_M ? parseInt(process.env.HNSW_M, 10) : undefined
     },
-    qdrant: {
-      url: process.env.QDRANT_URL,
-      apiKey: process.env.QDRANT_API_KEY,
-      collection: process.env.QDRANT_COLLECTION
+    lance: {
+      path: process.env.LANCEDB_PATH,
+      collection: process.env.LANCEDB_COLLECTION
     }
   };
 

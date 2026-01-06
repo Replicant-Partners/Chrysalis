@@ -1,7 +1,7 @@
 {
   "name": "Bob Ross",
   "source_file": "bob_ross.json",
-  "processed_at": "2026-01-06T06:15:12.387157",
+  "processed_at": "2026-01-06T07:34:37.673102",
   "knowledge_builder": {
     "runs": 2,
     "embeddings": [
@@ -21,7 +21,7 @@
           0.02712583914399147,
           "..."
         ],
-        "has_collected_knowledge": true,
+        "has_collected_knowledge": false,
         "error": null
       },
       {
@@ -40,7 +40,7 @@
           0.02712583914399147,
           "..."
         ],
-        "has_collected_knowledge": true,
+        "has_collected_knowledge": false,
         "error": null
       }
     ]

@@ -112,7 +112,7 @@ export class MultiAgentAdapter extends FrameworkAdapterV2 {
       
       memory: {
         type: 'hybrid',
-        provider: 'qdrant',
+        provider: 'lance',  // LanceDB (qdrant deprecated)
         settings: {},
         collections: {
           episodic: [],

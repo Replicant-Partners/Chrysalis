@@ -25,7 +25,7 @@ export interface MemoryMergerConfig {
   embedding_service?: any;  // EmbeddingService (optional)
   use_vector_index: boolean;  // Default: false (v3.2+)
   vector_index?: VectorIndex;  // VectorIndex (optional, v3.2+)
-  vector_index_type?: 'hnsw' | 'lance' | 'qdrant' | 'brute'; // Preferred backend
+  vector_index_type?: 'hnsw' | 'lance' | 'brute'; // Preferred backend (qdrant deprecated)
   vector_index_options?: Record<string, any>; // Backend options (collection, host, etc.)
   voyeur?: VoyeurSink;  // Optional observer for “voyeur” mode
   slow_mode_ms?: number;  // Optional artificial delay for human-speed playback

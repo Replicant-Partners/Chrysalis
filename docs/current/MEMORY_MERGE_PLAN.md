@@ -41,10 +41,11 @@ flowchart TD
 - Caps: per-source contribution caps to avoid dominance; LRU decay for rarely used memories.
 
 ## Vector Index Backends
-- Preferred (local): **HNSW** (`hnswlib-node`) for fast ANN; auto-fallback to brute-force if not installed.  
-- Embedded persistent: **LanceDB** adapter scaffolded for on-disk vectors (requires `lancedb`).  
-- Cloud/distributed: **Qdrant** adapter (requires `@qdrant/js-client-rest`) with collection setup.  
-- Config: `vector_index_type` = `hnsw | lance | qdrant | brute`; default tries HNSW then falls back.
+- Preferred (local): **HNSW** (`hnswlib-node`) for fast ANN; auto-fallback to brute-force if not installed.
+- Embedded persistent: **LanceDB** adapter for on-disk vectors (requires `lancedb`).
+- Config: `vector_index_type` = `hnsw | lance | brute`; default tries HNSW then falls back.
+
+> **Note**: Qdrant support was removed in January 2026. LanceDB provides embedded persistence; use ArangoDB for graph+vector hybrid needs.
 
 ## Merge Rules (deterministic)
 - Confidence: `c_new = lerp(c_old, c_incoming, weight)` where weight depends on source tier and recency.  
