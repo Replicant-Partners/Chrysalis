@@ -1,156 +1,206 @@
 """
-Chrysalis Memory System - Pattern-Based Agent Memory
-Built on 7 Universal Patterns from distributed systems, cryptography, and nature
+Memory System - Unified Semantic Services for Chrysalis.
 
-This is NOT a traditional memory system - it's memory engineered from
-validated universal patterns:
+A consolidated semantic processing framework providing:
 
-- Pattern #1 (Hash): Cryptographic fingerprinting (SHA-384)
-- Pattern #2 (Signature): Digital authentication (Ed25519)
-- Pattern #4 (Gossip): O(log N) propagation across instances
-- Pattern #5 (DAG): Causal relationships between memories
-- Pattern #6 (Convergence): Fixed-point consolidation
-- Pattern #8 (Threshold): Byzantine-resistant validation (>2/3)
-- Pattern #9 (Time): Logical time ordering (Lamport + Vector clocks)
-- Pattern #10 (CRDT): Conflict-free replicated data types
+- **Semantic Decomposition**: Extract triples from natural language
+- **Knowledge Graphs**: Store and query semantic relationships
+- **Embeddings**: Multi-provider embedding generation with caching
+- **Analysis**: Information-theoretic analysis (Shannon entropy)
+- **External Knowledge**: YAGO knowledge base integration
+- **Code Understanding**: LSP-based symbol resolution
+- **Document Processing**: Convert and chunk documents
+- **MCP Server**: Expose services via Model Context Protocol
 
-Integration:
-- ✅ Chrysalis v3.0 Universal Patterns
-- ✅ V2 Experience Synchronization (Streaming, Lumped, Check-in)
-- ✅ Cryptographic identity and verification
-- ✅ Byzantine resistance (tolerates up to 1/3 malicious nodes)
-- ✅ Gossip-based memory propagation
-- ✅ CRDT-based conflict-free merging
+Architecture:
+```
+memory_system/
+├── semantic/      # Triple decomposition (Ollama→spaCy→Heuristic fallback)
+├── graph/         # Knowledge graph storage (SQLite, NetworkX)
+├── embedding/     # Embedding service with cache
+├── analysis/      # Shannon analyzer, YAGO client
+├── resolvers/     # LSP symbol resolution
+├── converters/    # Document & code converters
+└── mcp/           # MCP server interface
+```
 
-Usage:
-    from memory_system import ChrysalisMemory, MemoryType
-    
-    # Create memory instance
-    memory = ChrysalisMemory(
-        instance_id="instance-001",
-        agent_id="research-agent",
-        instance_index=0,
-        total_instances=10
+Quick Start:
+    from memory_system import (
+        SemanticDecomposer,
+        GraphStore,
+        EmbeddingService,
+        ShannonAnalyzer,
     )
     
-    # Create memory (automatically fingerprinted, signed, timestamped)
-    episodic = memory.create_episodic_memory(
-        content="User asked about quantum computing",
-        memory_type=MemoryType.OBSERVATION,
-        importance=0.8
-    )
+    # Decompose text into triples
+    decomposer = SemanticDecomposer()
+    result = await decomposer.decompose("Python was created by Guido van Rossum")
+    for triple in result.triples:
+        print(f"{triple.subject} --{triple.predicate}--> {triple.object}")
     
-    # Gossip to peers (O(log N) propagation)
-    await memory.gossip_memory_to_peers(episodic)
+    # Store in knowledge graph
+    store = GraphStore(backend="sqlite")
+    for triple in result.triples:
+        store.add_triple(triple.subject, triple.predicate, triple.object)
     
-    # Merge with another instance (conflict-free)
-    merged = memory.merge_with_instance(other_instance.state)
+    # Generate embeddings
+    embeddings = EmbeddingService(provider="ollama")
+    vector = await embeddings.embed("Hello world")
+    
+    # Analyze information
+    analyzer = ShannonAnalyzer()
+    result = analyzer.analyze_distribution(["a", "b", "a", "c"])
+    print(f"Entropy: {result.entropy:.2f} bits")
+
+MCP Server:
+    from memory_system.mcp import SemanticServer
+    
+    server = SemanticServer()
+    server.run_stdio()  # For Claude Desktop integration
+
+Version: 1.0.0
 """
 
-# Main Chrysalis Memory API
-from .chrysalis_memory import (
-    ChrysalisMemory,
-    create_chrysalis_memory,
-)
-
-# Core types
-from .chrysalis_types import (
-    # Enums
-    MemoryType,
-    MemorySource,
-    
-    # Pattern-based types
-    MemoryFingerprint,
-    MemorySignature,
-    LogicalTime,
-    GossipMetadata,
-    ByzantineValidation,
-    CRDTMetadata,
-    MemoryCausality,
-    ConvergenceMetadata,
-    
-    # Memory types
-    CoreMemory,
-    WorkingMemory,
-    EpisodicMemory,
-    SemanticMemory,
-    MemoryState,
-)
-
-# Pattern implementations
-from .identity import (
-    MemoryIdentity,
-    KeyPairManager,
-    create_memory_id,
-    sign_and_verify,
-)
-
-from .gossip import (
-    MemoryGossipProtocol,
-    GossipConfig,
-    GossipPeer,
-    GossipScheduler,
-)
-
-from .byzantine import (
-    ByzantineMemoryValidator,
-    ValidationVote,
-    SupermajorityChecker,
-)
-
-from .crdt_merge import (
-    MemoryCRDTMerger,
-    GSet,
-    ORSet,
-    LWWRegister,
-)
-
 __version__ = "1.0.0"
-__title__ = "Chrysalis Memory System"
-__description__ = "Pattern-based agent memory built on universal distributed systems principles"
+__author__ = "Chrysalis Team"
+
+# Core semantic services
+from .semantic import (
+    SemanticDecomposer,
+    Triple,
+    Intent,
+    SemanticFrame,
+)
+
+# Graph storage
+from .graph import (
+    GraphStore,
+    GraphStoreBase,
+)
+
+# Embedding service
+from .embedding import (
+    EmbeddingService,
+    EmbeddingResult,
+    EmbeddingCache,
+)
+
+# Analysis tools
+from .analysis import (
+    ShannonAnalyzer,
+    AnalysisResult,
+    YAGOClient,
+    YAGOEntity,
+)
+
+# Document converters
+from .converters import (
+    DocumentConverter,
+    ConversionResult,
+    CodeConverter,
+    CodeChunk,
+    ChunkConverter,
+    Chunk,
+)
+
+# LSP resolver
+from .resolvers import (
+    LSPResolver,
+    LSPResult,
+    SymbolInfo,
+)
+
+# MCP server
+from .mcp import (
+    SemanticServer,
+    create_server,
+)
 
 __all__ = [
-    # Main API
-    "ChrysalisMemory",
-    "create_chrysalis_memory",
+    # Version
+    "__version__",
     
-    # Enums
-    "MemoryType",
-    "MemorySource",
+    # Semantic
+    "SemanticDecomposer",
+    "Triple",
+    "Intent",
+    "SemanticFrame",
     
-    # Pattern-based types
-    "MemoryFingerprint",
-    "MemorySignature",
-    "LogicalTime",
-    "GossipMetadata",
-    "ByzantineValidation",
-    "CRDTMetadata",
-    "MemoryCausality",
-    "ConvergenceMetadata",
+    # Graph
+    "GraphStore",
+    "GraphStoreBase",
     
-    # Memory types
-    "CoreMemory",
-    "WorkingMemory",
-    "EpisodicMemory",
-    "SemanticMemory",
-    "MemoryState",
+    # Embedding
+    "EmbeddingService",
+    "EmbeddingResult",
+    "EmbeddingCache",
     
-    # Pattern implementations
-    "MemoryIdentity",
-    "KeyPairManager",
-    "MemoryGossipProtocol",
-    "GossipConfig",
-    "GossipPeer",
-    "GossipScheduler",
-    "ByzantineMemoryValidator",
-    "ValidationVote",
-    "SupermajorityChecker",
-    "MemoryCRDTMerger",
-    "GSet",
-    "ORSet",
-    "LWWRegister",
+    # Analysis
+    "ShannonAnalyzer",
+    "AnalysisResult",
+    "YAGOClient",
+    "YAGOEntity",
     
-    # Utilities
-    "create_memory_id",
-    "sign_and_verify",
+    # Converters
+    "DocumentConverter",
+    "ConversionResult",
+    "CodeConverter",
+    "CodeChunk",
+    "ChunkConverter",
+    "Chunk",
+    
+    # Resolvers
+    "LSPResolver",
+    "LSPResult",
+    "SymbolInfo",
+    
+    # MCP
+    "SemanticServer",
+    "create_server",
 ]
+
+
+def get_version() -> str:
+    """Get the package version."""
+    return __version__
+
+
+def create_decomposer(**kwargs) -> SemanticDecomposer:
+    """
+    Factory function to create a semantic decomposer.
+    
+    Args:
+        **kwargs: Arguments passed to SemanticDecomposer
+        
+    Returns:
+        Configured SemanticDecomposer instance
+    """
+    return SemanticDecomposer(**kwargs)
+
+
+def create_graph_store(backend: str = "sqlite", **kwargs) -> GraphStore:
+    """
+    Factory function to create a graph store.
+    
+    Args:
+        backend: "sqlite" or "networkx"
+        **kwargs: Additional arguments
+        
+    Returns:
+        Configured GraphStore instance
+    """
+    return GraphStore(backend=backend, **kwargs)
+
+
+def create_embedding_service(provider: str = "ollama", **kwargs) -> EmbeddingService:
+    """
+    Factory function to create an embedding service.
+    
+    Args:
+        provider: "ollama", "openai", or "sentence_transformers"
+        **kwargs: Additional arguments
+        
+    Returns:
+        Configured EmbeddingService instance
+    """
+    return EmbeddingService(provider=provider, **kwargs)

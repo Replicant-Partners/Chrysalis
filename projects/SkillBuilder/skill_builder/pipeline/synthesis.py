@@ -9,8 +9,8 @@ Implements:
 - Mode merging from seeded modes
 - Markdown artifact generation
 
-LLM Provider: OpenAI-compatible API via HTTP (no SDK dependency).
-Supports any OpenAI-compatible endpoint (OpenAI, OpenRouter, local).
+LLM Provider: Anthropic Claude Sonnet 4.5 (primary), OpenAI-compatible (fallback).
+Supports Anthropic API directly or OpenAI-compatible endpoints via HTTP.
 """
 
 from __future__ import annotations
@@ -31,9 +31,68 @@ from skill_builder.pipeline.telemetry import (
 )
 
 
-def _call_llm_api(prompt: str, max_tokens: int = 2000) -> str:
+def _call_anthropic_api(prompt: str, system_prompt: str = "", max_tokens: int = 2000) -> str:
     """
-    Call OpenAI-compatible LLM API via HTTP.
+    Call Anthropic Claude Sonnet 4.5 API via HTTP.
+    
+    Primary LLM provider for SkillBuilder synthesis.
+    
+    Returns raw text response or empty string on failure.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+    api_url = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com/v1/messages")
+    anthropic_version = os.environ.get("ANTHROPIC_VERSION", "2023-06-01")
+    
+    if not api_key:
+        return ""
+    
+    debug_info = {
+        "provider": "anthropic",
+        "model": model,
+        "api_url": api_url,
+        "has_key": bool(api_key),
+    }
+    print(f"LLM DEBUG: prepared Anthropic request {json.dumps(debug_info)}")
+    
+    headers = {
+        "Content-Type": "application/json",
+        "x-api-key": api_key,
+        "anthropic-version": anthropic_version,
+    }
+    
+    payload = {
+        "model": model,
+        "max_tokens": max_tokens,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    
+    if system_prompt:
+        payload["system"] = system_prompt
+    
+    try:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(api_url, data=data, headers=headers, method="POST")
+        
+        with urllib.request.urlopen(req, timeout=120) as response:
+            status = response.getcode()
+            result = json.loads(response.read().decode())
+            
+            # Extract content from Anthropic response format
+            content = result.get("content", [])
+            print(f"LLM DEBUG: Anthropic response status={status}, has_content={bool(content)}")
+            if content and isinstance(content, list) and len(content) > 0:
+                return content[0].get("text", "")
+            return ""
+            
+    except Exception as e:
+        print(f"Anthropic API error: {e}")
+        return ""
+
+
+def _call_openai_fallback(prompt: str, max_tokens: int = 2000) -> str:
+    """
+    Fallback to OpenAI-compatible API if Anthropic is unavailable.
     
     Supports:
     - OpenAI: Set OPENAI_API_KEY
@@ -61,16 +120,16 @@ def _call_llm_api(prompt: str, max_tokens: int = 2000) -> str:
         api_url = os.environ.get("LLM_API_URL")
         model = os.environ.get("LLM_MODEL", "gpt-4o-mini")
     
+    if not api_key:
+        return ""
+    
     debug_info = {
         "provider": provider,
         "api_url": api_url,
         "model": model,
         "has_key": bool(api_key),
     }
-    print(f"LLM DEBUG: prepared request {json.dumps(debug_info)}")
-    
-    if not api_key:
-        return ""
+    print(f"LLM DEBUG: fallback OpenAI request {json.dumps(debug_info)}")
     
     # Build request
     payload = {
@@ -94,21 +153,43 @@ def _call_llm_api(prompt: str, max_tokens: int = 2000) -> str:
             
             # Extract content from response
             choices = result.get("choices", [])
-            print(f"LLM DEBUG: response status={status}, has_choices={bool(choices)}")
+            print(f"LLM DEBUG: OpenAI response status={status}, has_choices={bool(choices)}")
             if choices:
                 message = choices[0].get("message", {})
                 return message.get("content", "")
             return ""
             
     except Exception as e:
-        print(f"LLM API error: {e}")
-        print(f"LLM DEBUG: failure provider={provider} api_url={api_url} model={model} has_key={bool(api_key)}")
+        print(f"OpenAI fallback API error: {e}")
         return ""
+
+
+def _call_llm_api(prompt: str, max_tokens: int = 2000, system_prompt: str = "") -> str:
+    """
+    Call LLM API with Anthropic Claude Sonnet 4.5 as primary, OpenAI as fallback.
+    
+    Provider priority:
+    1. Anthropic Claude Sonnet 4.5 (if ANTHROPIC_API_KEY is set)
+    2. OpenAI/OpenRouter/Custom (if OPENAI_API_KEY or OPENROUTER_API_KEY is set)
+    
+    Returns raw text response or empty string on failure.
+    """
+    # Try Anthropic first (primary provider)
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        result = _call_anthropic_api(prompt, system_prompt, max_tokens)
+        if result:
+            return result
+        print("LLM DEBUG: Anthropic returned empty, trying fallback...")
+    
+    # Fallback to OpenAI-compatible API
+    result = _call_openai_fallback(prompt, max_tokens)
+    return result
 
 
 def _has_llm_api() -> bool:
     """Check if any LLM API is configured."""
     return bool(
+        os.environ.get("ANTHROPIC_API_KEY") or
         os.environ.get("OPENAI_API_KEY") or
         os.environ.get("OPENROUTER_API_KEY")
     )
