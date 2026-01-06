@@ -9,7 +9,15 @@ from pathlib import Path
 from memory_system.graph import GraphStore, GraphStoreBase
 from memory_system.semantic.exceptions import GraphStorageError
 
+# Check if NetworkX is available
+try:
+    import networkx
+    NETWORKX_AVAILABLE = True
+except ImportError:
+    NETWORKX_AVAILABLE = False
 
+
+@pytest.mark.skipif(not NETWORKX_AVAILABLE, reason="NetworkX not installed")
 class TestGraphStoreNetworkX:
     """Tests for NetworkX-based graph store."""
     
@@ -177,6 +185,7 @@ class TestGraphStoreSQLite:
 class TestGraphStoreFactory:
     """Tests for graph store factory."""
     
+    @pytest.mark.skipif(not NETWORKX_AVAILABLE, reason="NetworkX not installed")
     def test_create_networkx(self):
         """Test creating NetworkX store."""
         store = GraphStore(backend="networkx")
@@ -195,6 +204,7 @@ class TestGraphStoreFactory:
             GraphStore(backend="invalid")
 
 
+@pytest.mark.skipif(not NETWORKX_AVAILABLE, reason="NetworkX not installed")
 class TestGraphStoreAdvanced:
     """Advanced graph operations tests."""
     
@@ -264,6 +274,7 @@ class TestGraphStoreAdvanced:
         assert new_store.edge_count() == 3
         assert new_store.has_node("Python")
     
+    @pytest.mark.skipif(not NETWORKX_AVAILABLE, reason="NetworkX not installed")
     def test_edge_auto_creates_nodes(self):
         """Test that adding edge auto-creates missing nodes."""
         store = GraphStore(backend="networkx")

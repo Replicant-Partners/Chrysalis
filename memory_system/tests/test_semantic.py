@@ -2,6 +2,7 @@
 Tests for semantic decomposition module.
 """
 
+import asyncio
 import pytest
 from memory_system.semantic import (
     Triple,
@@ -236,43 +237,49 @@ class TestHeuristicStrategy:
         """Test strategy doesn't require external model."""
         assert strategy.requires_model is False
     
-    @pytest.mark.asyncio
-    async def test_decompose_debug_intent(self, strategy):
+    def test_decompose_debug_intent(self, strategy):
         """Test decomposition detects debug intent."""
-        frame = await strategy.decompose("fix the login bug in auth.py")
+        async def run_test():
+            frame = await strategy.decompose("fix the login bug in auth.py")
+            assert frame.intent == Intent.DEBUG
+            assert frame.strategy_used == "heuristic"
+            assert frame.confidence <= 0.35  # Heuristic caps confidence
         
-        assert frame.intent == Intent.DEBUG
-        assert frame.strategy_used == "heuristic"
-        assert frame.confidence <= 0.35  # Heuristic caps confidence
+        asyncio.run(run_test())
     
-    @pytest.mark.asyncio
-    async def test_decompose_create_intent(self, strategy):
+    def test_decompose_create_intent(self, strategy):
         """Test decomposition detects create intent."""
-        frame = await strategy.decompose("create a new UserController class")
+        async def run_test():
+            frame = await strategy.decompose("create a new UserController class")
+            assert frame.intent == Intent.CREATE
         
-        assert frame.intent == Intent.CREATE
+        asyncio.run(run_test())
     
-    @pytest.mark.asyncio
-    async def test_decompose_empty_raises(self, strategy):
+    def test_decompose_empty_raises(self, strategy):
         """Test empty input raises ValidationError."""
-        with pytest.raises(ValidationError):
-            await strategy.decompose("")
+        async def run_test():
+            with pytest.raises(ValidationError):
+                await strategy.decompose("")
+        
+        asyncio.run(run_test())
     
-    @pytest.mark.asyncio
-    async def test_decompose_extracts_triples(self, strategy):
+    def test_decompose_extracts_triples(self, strategy):
         """Test pattern-based triple extraction."""
-        frame = await strategy.decompose("class UserController(BaseController)")
+        async def run_test():
+            frame = await strategy.decompose("class UserController(BaseController)")
+            # Should extract extends relationship
+            extends_triples = [t for t in frame.triples if t.predicate == "extends"]
+            assert len(extends_triples) > 0
         
-        # Should extract extends relationship
-        extends_triples = [t for t in frame.triples if t.predicate == "extends"]
-        assert len(extends_triples) > 0
+        asyncio.run(run_test())
     
-    @pytest.mark.asyncio
-    async def test_decompose_returns_semantic_frame(self, strategy):
+    def test_decompose_returns_semantic_frame(self, strategy):
         """Test decompose returns proper SemanticFrame."""
-        frame = await strategy.decompose("analyze the code quality")
+        async def run_test():
+            frame = await strategy.decompose("analyze the code quality")
+            assert isinstance(frame, SemanticFrame)
+            assert isinstance(frame.intent, Intent)
+            assert isinstance(frame.confidence, float)
+            assert frame.raw == "analyze the code quality"
         
-        assert isinstance(frame, SemanticFrame)
-        assert isinstance(frame.intent, Intent)
-        assert isinstance(frame.confidence, float)
-        assert frame.raw == "analyze the code quality"
+        asyncio.run(run_test())

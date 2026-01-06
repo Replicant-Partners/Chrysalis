@@ -325,20 +325,22 @@ class TestChunk:
         
         assert chunk.source is None
         assert chunk.section is None
-        assert chunk.metadata is None
+        assert chunk.token_count is None
     
-    def test_chunk_with_metadata(self):
-        """Test chunk with custom metadata."""
+    def test_chunk_with_section(self):
+        """Test chunk with section info."""
         chunk = Chunk(
-            content="Content with metadata",
+            content="Content with section",
             index=0,
             start_char=0,
-            end_char=21,
-            metadata={"key": "value", "count": 42}
+            end_char=20,
+            section="Introduction",
+            token_count=4
         )
         
-        assert chunk.metadata["key"] == "value"
-        assert chunk.metadata["count"] == 42
+        assert chunk.section == "Introduction"
+        assert chunk.token_count == 4
         
         d = chunk.to_dict()
-        assert d["metadata"]["key"] == "value"
+        assert d["section"] == "Introduction"
+        assert d["token_count"] == 4

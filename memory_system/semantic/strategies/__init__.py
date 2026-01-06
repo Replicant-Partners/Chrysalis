@@ -2,7 +2,8 @@
 Decomposition Strategies for Semantic Processing.
 
 Pluggable strategies for extracting semantic frames from text:
-- OllamaStrategy: LLM-based semantic parsing (highest quality)
+- AnthropicStrategy: Claude Sonnet 4.5 API (highest quality, recommended)
+- OllamaStrategy: Local LLM-based semantic parsing (good quality)
 - SpacyStrategy: NLP dependency parsing (deterministic)
 - TreeSitterStrategy: AST-based code parsing (for code)
 - HeuristicStrategy: Keyword-based fallback (fastest)
@@ -19,6 +20,13 @@ __all__ = [
     "SpacyStrategy",
     "HeuristicStrategy",
 ]
+
+# AnthropicStrategy imported conditionally (requires anthropic package)
+try:
+    from memory_system.semantic.strategies.anthropic_strategy import AnthropicStrategy
+    __all__.append("AnthropicStrategy")
+except ImportError:
+    AnthropicStrategy = None
 
 # TreeSitterStrategy imported conditionally (requires tree-sitter-languages)
 try:
