@@ -50,7 +50,7 @@ interface MessageItemProps {
 }
 
 function MessageItem({ message, side }: MessageItemProps) {
-  const isAgent = message.sender === 'agent' || side === 'left';
+  const isAgent = message.senderType === 'agent' || side === 'left';
   
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);

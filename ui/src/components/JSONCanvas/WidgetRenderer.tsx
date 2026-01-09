@@ -5,7 +5,6 @@
  * Supports all 10 built-in widget types from the protocol.
  */
 
-import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { WidgetNode } from '../../../../src/terminal/protocols/types';
@@ -256,7 +255,7 @@ function SettingsWidget({ props }: { props: Record<string, unknown> }) {
 // Main Widget Renderer
 // ============================================================================
 
-export function WidgetRenderer({ widget, isSelected }: WidgetRendererProps) {
+export function WidgetRenderer({ widget }: WidgetRendererProps) {
   const { widgetType, props } = widget;
 
   const renderWidget = () => {

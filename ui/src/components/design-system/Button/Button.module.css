@@ -1,0 +1,193 @@
+/**
+ * Button Component Styles
+ * Uses design tokens from the Chrysalis design system
+ */
+
+/* Base Button Styles */
+.button {
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  
+  /* Typography */
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  text-decoration: none;
+  
+  /* Spacing */
+  padding: 0 var(--button-padding-x-md);
+  height: var(--button-height-md);
+  
+  /* Visual */
+  border: none;
+  border-radius: var(--button-radius);
+  box-shadow: var(--button-shadow);
+  cursor: pointer;
+  user-select: none;
+  
+  /* Animation */
+  transition: all var(--duration-fast) var(--ease-smooth);
+  
+  /* Accessibility */
+  outline: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button:not(:disabled):hover {
+  box-shadow: var(--button-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.button:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: var(--button-shadow);
+}
+
+/* ============================================================================
+   VARIANTS
+   ============================================================================ */
+
+/* Primary Variant */
+.button--primary {
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  border: 1px solid var(--button-primary-border);
+}
+
+.button--primary:not(:disabled):hover {
+  background: var(--button-primary-bg-hover);
+}
+
+.button--primary:not(:disabled):active {
+  background: var(--button-primary-bg-active);
+}
+
+/* Secondary Variant */
+.button--secondary {
+  background: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
+  border: 1px solid var(--button-secondary-border);
+}
+
+.button--secondary:not(:disabled):hover {
+  background: var(--button-secondary-bg-hover);
+}
+
+.button--secondary:not(:disabled):active {
+  background: var(--button-secondary-bg-active);
+}
+
+/* Ghost Variant */
+.button--ghost {
+  background: var(--button-ghost-bg);
+  color: var(--button-ghost-text);
+  border: 1px solid var(--button-ghost-border);
+}
+
+.button--ghost:not(:disabled):hover {
+  background: var(--button-ghost-bg-hover);
+}
+
+.button--ghost:not(:disabled):active {
+  background: var(--button-ghost-bg-active);
+}
+
+/* Danger Variant */
+.button--danger {
+  background: var(--button-danger-bg);
+  color: var(--button-danger-text);
+  border: 1px solid var(--button-danger-border);
+}
+
+.button--danger:not(:disabled):hover {
+  background: var(--button-danger-bg-hover);
+}
+
+.button--danger:not(:disabled):active {
+  background: var(--button-danger-bg-active);
+}
+
+/* ============================================================================
+   SIZES
+   ============================================================================ */
+
+.button--sm {
+  height: var(--button-height-sm);
+  padding: 0 var(--button-padding-x-sm);
+  font-size: var(--font-size-sm);
+}
+
+.button--md {
+  height: var(--button-height-md);
+  padding: 0 var(--button-padding-x-md);
+  font-size: var(--font-size-base);
+}
+
+.button--lg {
+  height: var(--button-height-lg);
+  padding: 0 var(--button-padding-x-lg);
+  font-size: var(--font-size-lg);
+}
+
+/* ============================================================================
+   MODIFIERS
+   ============================================================================ */
+
+.button--full-width {
+  width: 100%;
+}
+
+.button--icon-only {
+  padding: 0;
+  aspect-ratio: 1;
+}
+
+.button--loading {
+  pointer-events: none;
+}
+
+/* ============================================================================
+   ELEMENTS
+   ============================================================================ */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.text {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Loading Spinner */
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: currentColor;
+  border-radius: var(--radius-full);
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

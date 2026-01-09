@@ -5,7 +5,7 @@
  * enabling React components to reactively update when terminal state changes.
  */
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import type { 
@@ -153,9 +153,11 @@ export function useSendMessage(doc: Y.Doc, pane: 'left' | 'right') {
     const message: ChatMessage = {
       id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       content,
-      sender: senderId || (pane === 'left' ? 'agent' : 'human'),
+      senderId: senderId || (pane === 'left' ? 'agent' : 'human'),
+      senderType: pane === 'left' ? 'agent' : 'human',
+      senderName: senderId || (pane === 'left' ? 'Agent' : 'Human'),
       timestamp: Date.now(),
-      type: 'text'
+      metadata: {}
     };
 
     yMessages.push([message]);
@@ -275,7 +277,7 @@ export function useCanvasActions(doc: Y.Doc) {
     }
   }, [doc]);
 
-  const addEdge = useCallback((fromNode: string, toNode: string, edgeType?: string) => {
+  const addEdge = useCallback((fromNode: string, toNode: string) => {
     if (!doc) return null;
 
     const yEdges = doc.getArray<CanvasEdge>('canvas_edges');
@@ -284,8 +286,7 @@ export function useCanvasActions(doc: Y.Doc) {
       fromNode,
       toNode,
       fromSide: 'right',
-      toSide: 'left',
-      edgeType
+      toSide: 'left'
     };
 
     yEdges.push([newEdge]);
@@ -329,8 +330,14 @@ export function useSession(doc: Y.Doc): TerminalSession | null {
         id,
         name: ySession.get('name') as string || 'Unnamed Session',
         createdAt: ySession.get('createdAt') as number || Date.now(),
+        lastActivity: Date.now(),
         participants: (ySession.get('participants') as Participant[]) || [],
-        activeCanvas: ySession.get('activeCanvas') as string
+        frames: {
+          left: { id: 'left', position: 'left', title: 'Agent', messages: [], participants: [], isTyping: [], scrollPosition: 0, metadata: {} },
+          center: { id: 'center', nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 }, selectedNodes: [], selectedEdges: [], metadata: {} },
+          right: { id: 'right', position: 'right', title: 'Human', messages: [], participants: [], isTyping: [], scrollPosition: 0, metadata: {} }
+        },
+        metadata: {}
       });
     };
 

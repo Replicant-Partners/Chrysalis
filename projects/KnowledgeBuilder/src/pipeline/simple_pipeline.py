@@ -5,6 +5,7 @@ from src.collectors.tavily_collector import TavilyCollector
 from src.storage.lancedb_client import LanceDBClient
 from src.storage.sqlite_cache import SQLiteCache
 from src.utils.embeddings import EmbeddingService
+from shared.embedding import EmbeddingTelemetry
 from src.ground_truth.schema_resolver import SchemaResolver, SchemaType
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,14 @@ class SimplePipeline:
     ) -> None:
         self.collector = collector or TavilyCollector()
         self.cache = cache or SQLiteCache()
-        self.embedder = embedding_service or EmbeddingService()
+        
+        # Initialize embedding service
+        if embedding_service:
+            self.embedder = embedding_service
+        else:
+            # Initialize without telemetry for now (can be added later via router)
+            # Telemetry integration should be handled at pipeline/router level
+            self.embedder = EmbeddingService()
         
         # Initialize LanceDB with correct dimensions from embedding service
         if lancedb_client:
@@ -37,7 +45,9 @@ class SimplePipeline:
         else:
             # Get actual embedding dimensions from the service
             embedding_dims = self.embedder.dimensions
-            logger.info(f"Initializing LanceDB with {embedding_dims} dimensions (from {self.embedder._provider})")
+            provider_info = self.embedder.get_provider_info()
+            provider_name = provider_info.get("provider", "unknown")
+            logger.info(f"Initializing LanceDB with {embedding_dims} dimensions (from {provider_name})")
             self.lance = LanceDBClient(uri="./data/lancedb", vector_dim=embedding_dims)
         
         self.schema_resolver = schema_resolver or SchemaResolver()
@@ -98,7 +108,7 @@ class SimplePipeline:
                 "quality_score": entity["quality_score"],
                 "trust_score": entity["trust_score"],
                 "completeness": entity["completeness_score"],
-                "model": getattr(self.embedder, "model", None),
+                    "model": self.embedder.model,
                 "model_version": None,
                 "attributes": collected["attributes"],
                 "extracted_facts": collected.get("extracted_facts", {}),

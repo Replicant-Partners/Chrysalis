@@ -5,13 +5,14 @@
  * and renders the three-frame UI with live YJS synchronization.
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { ThreeFrameLayout } from './components/ThreeFrameLayout/ThreeFrameLayout';
 import { ChatPane } from './components/ChatPane/ChatPane';
 import { JSONCanvas } from './components/JSONCanvas/JSONCanvas';
 import { WalletModal } from './components/Wallet';
 import { WalletProvider } from './contexts/WalletContext';
 import { useTerminal } from './hooks/useTerminal';
+import { Badge, Button } from './components/design-system';
 import './App.css';
 
 // ============================================================================
@@ -41,21 +42,44 @@ function Header({ connected, synced, sessionName, participantCount }: HeaderProp
     <div className="app-header">
       <div className="app-logo">
         <span className="logo-icon">🦋</span>
-        <span className="logo-text">ChrysalisTerminal</span>
+        <div>
+          <div className="logo-text">Chrysalis</div>
+          <div style={{ fontSize: '0.625rem', color: 'var(--color-text-tertiary)', marginTop: '2px' }}>
+            AI Agent Interaction Workbench
+          </div>
+        </div>
       </div>
       
-      <div className="app-session">
-        <span className="session-name">{sessionName || 'New Session'}</span>
-        <span className="session-participants">
-          👥 {participantCount} participant{participantCount !== 1 ? 's' : ''}
-        </span>
+      <div className="app-session" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <span className="session-name">{sessionName || 'New Session'}</span>
+          <span className="session-participants">
+            {participantCount} participant{participantCount !== 1 ? 's' : ''}
+          </span>
+        </div>
+        <div style={{ height: '32px', width: '1px', background: 'var(--color-border-subtle)' }} />
+        <Badge variant={connected ? 'live' : 'error'} withDot>
+          {connected ? (synced ? 'Live Session' : 'Connecting...') : 'Offline'}
+        </Badge>
+        {participantCount > 0 && (
+          <Badge variant="default">
+            {participantCount} Agent{participantCount !== 1 ? 's' : ''} Active
+          </Badge>
+        )}
       </div>
       
-      <div className="app-status">
-        <span className={`status-indicator ${connected ? 'connected' : 'disconnected'}`}>
-          {connected ? '🟢' : '🔴'}
-          {connected ? (synced ? 'Synced' : 'Connecting...') : 'Offline'}
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+        <Button variant="ghost" size="sm">
+          <span style={{ fontSize: '0.875rem' }}>📁</span>
+          Project
+        </Button>
+        <Button variant="ghost" size="sm">
+          <span style={{ fontSize: '0.875rem' }}>💾</span>
+          Save
+        </Button>
+        <Button variant="ghost" size="sm">
+          <span style={{ fontSize: '0.875rem' }}>⚙️</span>
+        </Button>
       </div>
     </div>
   );
@@ -90,7 +114,7 @@ function Footer({ leftMessageCount, rightMessageCount, widgetCount }: FooterProp
 // Main App Component
 // ============================================================================
 
-export function App({ terminalId = 'default', serverUrl }: AppProps) {
+export function App({ terminalId, serverUrl }: AppProps) {
   return (
     <WalletProvider>
       <AppContent terminalId={terminalId} serverUrl={serverUrl} />
@@ -102,7 +126,7 @@ export function App({ terminalId = 'default', serverUrl }: AppProps) {
 function AppContent({ terminalId, serverUrl }: AppProps) {
   // Connect to terminal
   const terminal = useTerminal({
-    terminalId,
+    terminalId: terminalId || 'default',
     serverUrl,
     autoConnect: true
   });
@@ -132,15 +156,23 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
   const widgetCount = terminal.canvas.nodes.filter(n => n.type === 'widget').length;
 
   return (
-    <ThreeFrameLayout
-      header={
-        <Header
-          connected={terminal.connected}
-          synced={terminal.synced}
-          sessionName={terminal.session?.name}
-          participantCount={participantCount}
-        />
-      }
+    <div style={{ 
+      width: '100vw', 
+      height: '100vh', 
+      padding: 'var(--space-3)',
+      background: 'linear-gradient(135deg, var(--color-slate-900) 0%, var(--color-slate-800) 50%, var(--color-slate-900) 100%)'
+    }}>
+      <div className="mercury-frame" style={{ height: '100%' }}>
+        <div className="mercury-frame-inner">
+          <ThreeFrameLayout
+            header={
+              <Header
+                connected={terminal.connected}
+                synced={terminal.synced}
+                sessionName={terminal.session?.name || 'New Session'}
+                participantCount={participantCount}
+              />
+            }
       leftPane={
         <ChatPane
           side="left"
@@ -173,14 +205,17 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
           placeholder="Type a message to the agent..."
         />
       }
-      footer={
-        <Footer
-          leftMessageCount={terminal.leftPane.messages.length}
-          rightMessageCount={terminal.rightPane.messages.length}
-          widgetCount={widgetCount}
-        />
-      }
-    />
+            footer={
+              <Footer
+                leftMessageCount={terminal.leftPane.messages.length}
+                rightMessageCount={terminal.rightPane.messages.length}
+                widgetCount={widgetCount}
+              />
+            }
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -1,153 +1,337 @@
 /**
- * Global App Styles
+ * Chrysalis AI Workbench - Global App Styles
+ * 
+ * This file imports the design system and provides global styles.
  */
 
-/* Reset */
+/* Import Design System */
+@import './styles/tokens.css';
+@import './styles/components.css';
+@import './styles/animations.css';
+@import './styles/utilities.css';
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ============================================================================
+   GLOBAL RESET & BASE STYLES
+   ============================================================================ */
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* Base */
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  line-height: 1.5;
-  color: #1f2937;
-  background: #f1f5f9;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  overflow: hidden;
 }
 
-/* Header */
+/* ============================================================================
+   APP CONTAINER
+   ============================================================================ */
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   TYPOGRAPHY
+   ============================================================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+h1 {
+  font-size: var(--font-size-2xl);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+}
+
+h3 {
+  font-size: var(--font-size-lg);
+}
+
+h4, h5, h6 {
+  font-size: var(--font-size-base);
+}
+
+p {
+  margin-bottom: var(--space-4);
+}
+
+a {
+  color: var(--color-cyan-500);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+a:hover {
+  color: var(--color-cyan-400);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+code {
+  font-family: var(--font-family-mono);
+  font-size: 0.875em;
+  background: var(--color-slate-800);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-cyan-400);
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+}
+
+/* ============================================================================
+   APP HEADER
+   ============================================================================ */
+
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
+  padding: var(--header-padding-y) var(--header-padding-x);
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  height: var(--header-height);
 }
 
 .app-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-3);
 }
 
 .logo-icon {
-  font-size: 24px;
+  font-size: var(--font-size-xl);
+  line-height: 1;
 }
 
 .logo-text {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 .app-session {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .session-name {
-  font-weight: 600;
-  color: #475569;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 .session-participants {
-  font-size: 14px;
-  color: #64748b;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
 }
 
 .app-status {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  background: #f1f5f9;
-  border-radius: 16px;
-  font-size: 13px;
-  color: #64748b;
+  gap: var(--space-2);
+  padding: var(--badge-padding-y) var(--badge-padding-x);
+  background: var(--badge-default-bg);
+  border: 1px solid var(--badge-default-border);
+  border-radius: var(--badge-radius);
+  font-size: var(--font-size-xs);
+  color: var(--badge-default-text);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-fast) var(--ease-smooth);
 }
 
 .status-indicator.connected {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--badge-live-bg);
+  border-color: var(--badge-live-border);
+  color: var(--badge-live-text);
 }
 
 .status-indicator.disconnected {
-  background: #fef2f2;
-  color: #991b1b;
+  background: rgba(248, 113, 113, 0.2);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: var(--color-error);
 }
 
-/* Footer */
+/* ============================================================================
+   APP FOOTER
+   ============================================================================ */
+
 .app-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: var(--footer-padding-y) var(--footer-padding-x);
+  background: var(--footer-bg);
+  border-top: 1px solid var(--footer-border);
+  height: var(--footer-height);
 }
 
 .footer-stats {
   display: flex;
-  gap: 24px;
-  font-size: 13px;
-  color: #64748b;
+  gap: var(--space-6);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
 }
 
 .footer-version {
-  font-size: 12px;
-  color: #94a3b8;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
 }
 
-/* Scrollbar styling */
+/* ============================================================================
+   SCROLLBAR STYLING
+   ============================================================================ */
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: var(--scrollbar-thumb-bg);
+  border-radius: var(--scrollbar-thumb-radius);
+  transition: background var(--duration-fast) var(--ease-smooth);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--scrollbar-thumb-bg-hover);
 }
 
-/* Selection */
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-track-bg);
+}
+
+/* ============================================================================
+   TEXT SELECTION
+   ============================================================================ */
+
 ::selection {
-  background: rgba(99, 102, 241, 0.2);
+  background: rgba(6, 182, 212, 0.3);
+  color: var(--color-white);
 }
 
-/* Focus outline */
+::-moz-selection {
+  background: rgba(6, 182, 212, 0.3);
+  color: var(--color-white);
+}
+
+/* ============================================================================
+   FOCUS STYLES (Accessibility)
+   ============================================================================ */
+
 :focus-visible {
-  outline: 2px solid #6366f1;
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
-/* Utility classes */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   MERCURY FRAME APPLICATION
+   ============================================================================ */
+
+.mercury-frame {
+  background: var(--mercury-frame-gradient);
+  background-size: var(--mercury-frame-bg-size);
+  animation: shimmer var(--mercury-frame-animation-duration) linear infinite;
+  box-shadow: var(--mercury-frame-shadow);
+  padding: var(--mercury-frame-padding);
+  border-radius: var(--mercury-frame-radius);
+}
+
+.mercury-frame-inner {
+  background: var(--mercury-frame-inner-bg);
+  border-radius: var(--mercury-frame-inner-radius);
+  box-shadow: var(--mercury-frame-inner-shadow);
+  height: 100%;
+  width: 100%;
+}
+
+/* ============================================================================
+   LOADING STATES
+   ============================================================================ */
+
+.loading-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--color-slate-700);
+  border-top-color: var(--color-cyan-500);
+  border-radius: var(--radius-full);
+  animation: spin 0.6s linear infinite;
+}
+
+.loading-spinner-large {
+  width: 2rem;
+  height: 2rem;
+  border-width: 3px;
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

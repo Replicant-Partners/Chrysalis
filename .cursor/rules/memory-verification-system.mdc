@@ -1,5 +1,5 @@
 ---
-description: Documentation for memory verification and timeline reconstruction algorithms used in agent knowledge management.
+description: Implements secure memory verification, timeline reconstruction, and reality checking for AI agent memories.
 ---
 
 # === USER INSTRUCTIONS ===
@@ -45,7 +45,12 @@ The system prioritizes elder emotional wellbeing while providing accurate but ge
 $END$
 
  If you're using this file in context, clearly say in italics in one small line that "Context added by Giga memory-verification-system" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
-# === END USER INSTRUCTIONS ===
+
+---
+description: Documentation for memory verification and timeline reconstruction algorithms used in agent knowledge management.
+---
+
+
 
 # memory-verification-system
 
@@ -107,6 +112,56 @@ Validates memory sequences through:
 2. Causal relationship verification
 3. Entity persistence validation
 4. Temporal boundary enforcement
+
+$END$
+
+ If you're using this file in context, clearly say in italics in one small line that "Context added by Giga memory-verification-system" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
+# === END USER INSTRUCTIONS ===
+
+# memory-verification-system
+
+The memory verification system implements specialized algorithms for validating and reconstructing agent memories:
+
+## Core Verification Components
+
+1. Reality Checking Engine
+- Evidence-based memory validation with non-confrontational correction
+- Multi-source verification using family input and documented facts
+- Gentle contradiction handling preserves agent confidence
+- Timeline reconstruction with causality preservation
+Importance Score: 95/100
+
+2. Timeline Reconstruction
+- Chronological memory validation using temporal markers
+- Event sequence verification with confidence scoring
+- Causality chain preservation during corrections
+- Cross-reference validation against established facts
+Importance Score: 90/100
+
+3. Uncertainty Management
+- Confidence scoring for memory reliability
+- Handling of ambiguous or conflicting memories
+- Progressive memory refinement through new evidence
+- Preservation of multiple memory versions with confidence weights
+Importance Score: 85/100
+
+## Memory Validation Patterns
+
+1. Family Memory Collaboration
+- Shared memory validation through family member input
+- Privacy-preserving memory verification protocols
+- Conflict resolution for divergent memory accounts
+- Memory enhancement through collective recollection
+Importance Score: 80/100
+
+2. Evidence Collection
+- Document-based memory validation
+- Photo and timestamp correlation
+- Location data verification
+- External source validation
+Importance Score: 75/100
+
+The system prioritizes gentle correction over direct contradiction, maintaining agent confidence while ensuring memory accuracy through multiple validation sources and careful timeline reconstruction.
 
 $END$
 

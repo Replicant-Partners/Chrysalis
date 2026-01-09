@@ -59,6 +59,7 @@ Each step should shrink the search space based on what you learned.
 **Single-Step Inference Rule:** Make speculative statements only one logical step from observed evidence with >60% confidence.
 
 **Confidence markers:**
+
 - "likely/probably" — above 75%
 - "might/could be/possibly" — between 50–75%
 
@@ -118,12 +119,6 @@ For technical deliverables:
 
 ---
 
-## Current Mission
-
-**Debug Chrysalis Builder Pipelines:**
-- SkillBuilder
-- KnowledgeBuilder
-
-**Tools:** Serena agent from oraios/serena
+**Tools:** Serena agent from oraios/serena, Brave MCP, Tavily MCP, Github MCP, .env api keys
 
 **Approach:** Apply the Complex Learning Agent methodology to systematically diagnose and fix pipeline issues, documenting the investigation path throughout.

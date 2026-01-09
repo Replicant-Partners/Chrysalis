@@ -85,6 +85,9 @@ class PipelineRunner:
         self._telemetry: Optional[TelemetryWriter] = None
         self.kilocode = KilocodeManager(spec.kilocode_config_path)
         self.run_id = run_id or str(uuid.uuid4())
+        
+        # Embedding service will be initialized in run() after telemetry is set up
+        # Initialize with None telemetry first (will be updated in run())
         self.embedder = EmbeddingService()
     
     def run(self) -> PipelineResult:
@@ -117,6 +120,13 @@ class PipelineRunner:
             )
         else:
             self._telemetry = NullTelemetryWriter()
+        
+        # Re-initialize embedding service with telemetry if available
+        # (telemetry is not available in __init__, so we connect it here)
+        from shared.embedding import EmbeddingTelemetry
+        telemetry = EmbeddingTelemetry(telemetry_writer=self._telemetry) if self._telemetry else None
+        # Update embedder with telemetry (re-initialize to add telemetry support)
+        self.embedder = EmbeddingService(telemetry=telemetry)
         
         try:
             with self._telemetry:

@@ -7,7 +7,7 @@
  * @module ui/contexts/WalletContext
  */
 
-import React, { 
+import { 
   createContext, 
   useContext, 
   useState, 

@@ -144,7 +144,7 @@ function CanvasNodeComponent({
       default:
         return (
           <div className={styles.unknownNode}>
-            Unknown: {node.type}
+            Unknown: {(node as any).type}
           </div>
         );
     }
