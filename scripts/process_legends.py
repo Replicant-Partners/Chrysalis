@@ -475,7 +475,8 @@ def load_consolidated_skills() -> Dict[str, Any]:
 def save_skill_artifacts(legend_name: str, sb_runs: List[Dict[str, Any]]) -> None:
     """Semantic merge of skill artifacts into consolidated all_skills.json."""
     EMBEDDINGS_DIR.mkdir(parents=True, exist_ok=True)
-    lock = FileLock(str(ALL_SKILLS) + ".lock")
+    # Issue #1 Fix: Add timeout to prevent indefinite hangs
+    lock = FileLock(str(ALL_SKILLS) + ".lock", timeout=300)  # 5 minutes
     
     skill_merger = SkillMerger(similarity_threshold=0.90)
     
@@ -562,7 +563,8 @@ def load_consolidated_embeddings() -> Dict[str, Any]:
 def save_embeddings(legend_name: str, results: Dict[str, Any]) -> Path:
     """Semantic merge of embeddings into consolidated all_embeddings.json."""
     EMBEDDINGS_DIR.mkdir(parents=True, exist_ok=True)
-    lock = FileLock(str(ALL_EMBEDDINGS) + ".lock")
+    # Issue #1 Fix: Add timeout to prevent indefinite hangs
+    lock = FileLock(str(ALL_EMBEDDINGS) + ".lock", timeout=300)  # 5 minutes
     
     embedding_merger = EmbeddingMerger(similarity_threshold=0.85)
     
@@ -747,7 +749,8 @@ def load_consolidated_personas() -> Dict[str, Any]:
 def save_persona(legend_path: Path, legend: Dict[str, Any]) -> None:
     """Semantic merge of persona into consolidated all_personas.json."""
     EMBEDDINGS_DIR.mkdir(parents=True, exist_ok=True)
-    lock = FileLock(str(ALL_PERSONAS) + ".lock")
+    # Issue #1 Fix: Add timeout to prevent indefinite hangs
+    lock = FileLock(str(ALL_PERSONAS) + ".lock", timeout=300)  # 5 minutes
     
     name = legend.get("name", legend_path.stem)
     

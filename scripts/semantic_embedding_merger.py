@@ -33,7 +33,17 @@ class EmbeddingMerger:
         Returns:
             Cosine similarity score between 0 and 1
         """
-        if not vec1 or not vec2 or len(vec1) != len(vec2):
+        if not vec1 or not vec2:
+            return 0.0
+        
+        # Issue #7 Fix: Log dimension mismatch for debugging
+        if len(vec1) != len(vec2):
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"Dimension mismatch in cosine_similarity: "
+                f"vec1={len(vec1)} dims, vec2={len(vec2)} dims"
+            )
             return 0.0
         
         dot_product = sum(a * b for a, b in zip(vec1, vec2))
@@ -59,19 +69,37 @@ class EmbeddingMerger:
         
         Returns:
             Averaged embedding vector
+        
+        Raises:
+            ValueError: If embeddings and weights lengths don't match
+            TypeError: If embeddings or weights are not the expected types
         """
         if not embeddings:
             return []
         
+        # Issue #12 Fix: Add type validation
+        if not isinstance(embeddings, list):
+            raise TypeError(f"embeddings must be a list, got {type(embeddings)}")
+        
+        if not all(isinstance(emb, list) for emb in embeddings):
+            raise TypeError("All embeddings must be lists")
+        
         if weights is None:
             weights = [1.0] * len(embeddings)
         
+        if not isinstance(weights, list):
+            raise TypeError(f"weights must be a list, got {type(weights)}")
+        
         if len(embeddings) != len(weights):
-            raise ValueError("Number of embeddings must match number of weights")
+            raise ValueError(
+                f"Number of embeddings ({len(embeddings)}) must match "
+                f"number of weights ({len(weights)})"
+            )
         
         # Normalize weights
         total_weight = sum(weights)
-        if total_weight == 0:
+        # Issue #8 Fix: Use epsilon for floating-point comparison
+        if total_weight < 1e-10:  # More robust than == 0
             weights = [1.0] * len(embeddings)
             total_weight = len(embeddings)
         
