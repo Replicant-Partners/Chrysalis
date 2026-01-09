@@ -35,6 +35,8 @@ sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
 # Import semantic merging utilities
 from semantic_embedding_merger import EmbeddingMerger, SkillMerger
+# Import rate limiting (Issue #3 integration)
+from rate_limiter import get_rate_limiter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -286,6 +288,15 @@ def process_legend_with_knowledge_builder(
 
         name = legend.get("name", "Unknown")
         context = extract_legend_context(legend)
+        
+        # Issue #3: Apply rate limiting before API calls
+        # Determine which provider is being used and apply appropriate rate limit
+        provider = os.getenv("EMBEDDING_PROVIDER", "voyage").lower()
+        if provider in ["voyage", "openai"] and not allow_deterministic:
+            rate_limiter = get_rate_limiter(provider)
+            wait_time = rate_limiter.acquire()
+            if wait_time > 0:
+                logger.info(f"  Rate limited: waited {wait_time:.2f}s for {provider}")
         if selected_descriptors:
             context += "\nSelected descriptors: " + ", ".join(selected_descriptors)
         if prior_embeddings:
@@ -352,6 +363,14 @@ def process_legend_with_skill_builder(
         salts = selected_descriptors[:]
 
         logger.info(f"  SkillBuilder run {run_number} for {name}")
+        
+        # Issue #3: Apply rate limiting before API calls
+        provider = os.getenv("EMBEDDING_PROVIDER", "voyage").lower()
+        if provider in ["voyage", "openai"] and not allow_deterministic:
+            rate_limiter = get_rate_limiter(provider)
+            wait_time = rate_limiter.acquire()
+            if wait_time > 0:
+                logger.info(f"  Rate limited: waited {wait_time:.2f}s for {provider}")
 
         # Create embedding service
         embedder = EmbeddingService()
@@ -854,12 +873,36 @@ def main():
             logger.error(f"Failed to process {legend_file.name}: {e}")
             errors += 1
 
-    # Summary
+    # Summary and rate limiter statistics
     logger.info("=" * 60)
     logger.info(f"Processing complete!")
     logger.info(f"  Processed: {processed} legends")
     logger.info(f"  Errors: {errors}")
     logger.info(f"  Output: {EMBEDDINGS_DIR}")
+    
+    # Log rate limiter statistics if used
+    try:
+        from rate_limiter import VOYAGE_RATE_LIMITER, OPENAI_RATE_LIMITER
+        
+        voyage_stats = VOYAGE_RATE_LIMITER.get_stats()
+        if voyage_stats["total_calls"] > 0:
+            logger.info(f"\nVoyage API Rate Limiter Stats:")
+            logger.info(f"  Total calls: {voyage_stats['total_calls']}")
+            logger.info(f"  Total waits: {voyage_stats['total_waits']}")
+            logger.info(f"  Total wait time: {voyage_stats['total_wait_time']:.2f}s")
+            if voyage_stats['total_waits'] > 0:
+                logger.info(f"  Average wait: {voyage_stats['average_wait']:.2f}s")
+        
+        openai_stats = OPENAI_RATE_LIMITER.get_stats()
+        if openai_stats["total_calls"] > 0:
+            logger.info(f"\nOpenAI API Rate Limiter Stats:")
+            logger.info(f"  Total calls: {openai_stats['total_calls']}")
+            logger.info(f"  Total waits: {openai_stats['total_waits']}")
+            logger.info(f"  Total wait time: {openai_stats['total_wait_time']:.2f}s")
+            if openai_stats['total_waits'] > 0:
+                logger.info(f"  Average wait: {openai_stats['average_wait']:.2f}s")
+    except Exception as e:
+        logger.debug(f"Could not log rate limiter stats: {e}")
 
     return 0 if errors == 0 else 1
 
