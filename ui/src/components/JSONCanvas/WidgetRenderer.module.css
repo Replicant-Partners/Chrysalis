@@ -1,0 +1,458 @@
+/**
+ * Widget Renderer Styles
+ */
+
+.widgetContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.widgetHeader {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.widgetType {
+  font-weight: 600;
+}
+
+.widgetBody {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Markdown Widget */
+.markdownWidget {
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.markdownWidget h1,
+.markdownWidget h2,
+.markdownWidget h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #1e293b;
+}
+
+.markdownWidget p {
+  margin: 0 0 8px;
+}
+
+.markdownWidget code {
+  background: #f1f5f9;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.markdownWidget pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+/* Code Widget */
+.codeWidget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.codeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1e293b;
+  color: #94a3b8;
+}
+
+.codeLanguage {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.copyButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.copyButton:hover {
+  opacity: 1;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: 12px;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow: auto;
+  flex: 1;
+}
+
+/* Chart Widget */
+.chartWidget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 12px;
+}
+
+.chartPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+}
+
+.chartIcon {
+  font-size: 32px;
+}
+
+.chartInfo {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Table Widget */
+.tableWidget {
+  overflow: auto;
+  height: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #475569;
+}
+
+.table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Image Widget */
+.imageWidget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 8px;
+}
+
+.image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.imagePlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* Button Widget */
+.buttonWidget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 12px;
+}
+
+.button {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button.primary {
+  background: #6366f1;
+  color: white;
+}
+
+.button.primary:hover {
+  background: #4f46e5;
+}
+
+.button.secondary {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.button.secondary:hover {
+  background: #cbd5e1;
+}
+
+/* Input Widget */
+.inputWidget {
+  padding: 12px;
+}
+
+.inputLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Memory Viewer Widget */
+.memoryViewerWidget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.memoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-weight: 600;
+}
+
+.memoryIcon {
+  font-size: 18px;
+}
+
+.memoryContent {
+  flex: 1;
+  padding: 12px;
+  overflow: auto;
+}
+
+.memoryInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.memoryPlaceholder {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 6px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* Skill Executor Widget */
+.skillExecutorWidget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.skillHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: white;
+  font-weight: 600;
+}
+
+.skillIcon {
+  font-size: 18px;
+}
+
+.skillContent {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skillInfo {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.executeButton {
+  padding: 8px 16px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.executeButton:hover {
+  background: #059669;
+}
+
+/* Conversation Widget */
+.conversationWidget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.conversationHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+  color: white;
+  font-weight: 600;
+}
+
+.conversationIcon {
+  font-size: 18px;
+}
+
+.conversationContent {
+  flex: 1;
+  padding: 12px;
+}
+
+.conversationId {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.conversationPlaceholder {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 6px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* Unknown Widget */
+.unknownWidget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Settings Widget */
+.settingsWidget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.settingsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-weight: 600;
+}
+
+.settingsIcon {
+  font-size: 18px;
+}
+
+.settingsContent {
+  flex: 1;
+  padding: 12px;
+}
+
+.settingsCategory {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.settingsPlaceholder {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 6px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}

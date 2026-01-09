@@ -1,273 +1,518 @@
-# Chrysalis Architecture Overview
+# Chrysalis Architecture Specification
 
-**Version**: 3.1.0  
-**Status**: Current  
-**Last Updated**: December 28, 2025
+**Version**: 3.2.0
+**Last Updated**: January 9, 2026
+**Status**: Current
 
 ---
 
 ## Table of Contents
 
-1. [System Overview](#system-overview)
-2. [Fractal Architecture](#fractal-architecture)
-3. [Core Components](#core-components)
-4. [Data Flow](#data-flow)
-5. [Deployment Models](#deployment-models)
-6. [Security Architecture](#security-architecture)
+1. [System Purpose](#system-purpose)
+2. [Operating Philosophy](#operating-philosophy)
+3. [Component Architecture](#component-architecture)
+4. [Runtime Flow](#runtime-flow)
+5. [Data Models](#data-models)
+6. [API Contracts](#api-contracts)
+7. [Configuration](#configuration)
+8. [Security Architecture](#security-architecture)
+9. [Performance Characteristics](#performance-characteristics)
+10. [Deployment Models](#deployment-models)
 
 ---
 
-## System Overview
+## System Purpose
 
-Chrysalis is a **Uniform Semantic Agent transformation system** that enables AI agents to:
-- Morph between different implementation types
-- Maintain persistent, distributed memory
-- Evolve through synchronized experiences
-- Preserve cryptographic identity across transformations
+Chrysalis enables AI agents to operate as **independent, evolving entities** through:
 
-### Design Philosophy
+- **Lossless Morphing**: Transform agents between MCP, Multi-Agent, and Orchestrated implementations without information loss
+- **Distributed Memory**: Persistent episodic and semantic memory with deduplication and similarity-based merging
+- **Experience Synchronization**: Continuous learning from deployed instances via streaming, lumped, or check-in protocols
+- **Cryptographic Identity**: SHA-384 fingerprints and Ed25519 signatures for tamper-evident agent identity
 
-**Evidence-Based**: All design decisions rooted in distributed systems research  
-**Fractal Composition**: Patterns recur at multiple architectural scales  
-**Adaptive Integration**: Context-aware selection of implementation strategies  
-**Byzantine Resistant**: Tolerates <1/3 malicious or faulty nodes
+### Design Rationale
+
+The system applies **10 universal patterns** from distributed systems research[^1]:
+
+1. **Hash** - Agent fingerprinting (SHA-384)
+2. **Signatures** - Authentication (Ed25519)
+3. **Random** - Instance placement
+4. **Gossip** - Experience propagation
+5. **DAG** - Evolution tracking
+6. **Convergence** - Skill aggregation
+7. **Redundancy** - Multi-instance deployment
+8. **Threshold** - Byzantine resistance (2/3 supermajority)
+9. **Time** - Causal ordering (Lamport/Vector clocks)
+10. **CRDT** - Conflict-free state merge
+
+[^1]: Patterns validated against production systems: Cassandra (gossip), Ethereum (DAG), Git (hash), TLS (signatures). See [`docs/research/universal-patterns/PATTERNS_ANCHORED.md`](docs/research/universal-patterns/PATTERNS_ANCHORED.md).
 
 ---
 
-## Fractal Architecture
+## Operating Philosophy
 
-### The Five Scales
+### Fractal Architecture
+
+Patterns recur at multiple scales, from mathematical primitives to application logic:
+
+```mermaid
+flowchart TB
+    subgraph Scale0["Scale 0: Mathematics"]
+        M1[Hash Functions]
+        M2[Digital Signatures]
+        M3[DAG Structures]
+    end
+
+    subgraph Scale1["Scale 1: Libraries"]
+        L1["@noble/hashes"]
+        L2["@noble/ed25519"]
+        L3[graphlib]
+    end
+
+    subgraph Scale2["Scale 2: Services"]
+        S1[Go gRPC Crypto]
+        S2[MCP Servers]
+    end
+
+    subgraph Scale3["Scale 3: Patterns"]
+        P1[EmbeddedHashImpl]
+        P2[EmbeddedSignatureImpl]
+        P3[EmbeddedThresholdImpl]
+    end
+
+    subgraph Scale4["Scale 4: Operations"]
+        O1[Agent Fingerprinting]
+        O2[Experience Signing]
+        O3[Memory Merging]
+    end
+
+    Scale0 --> Scale1 --> Scale2 --> Scale3 --> Scale4
+```
+
+### Adaptive Resolution
+
+The [`AdaptivePatternResolver`](src/fabric/PatternResolver.ts:300) selects implementations based on deployment context:
+
+| Context | Resolution | Latency |
+|---------|------------|---------|
+| Distributed + MCP available | Go gRPC / MCP servers | ~5ms |
+| Single-node | Embedded patterns | ~0.1ms |
+| Performance-critical | Direct library | ~0.05ms |
+
+---
+
+## Component Architecture
+
+### High-Level Component Diagram
 
 ```mermaid
 flowchart LR
-    subgraph Scale0[Math]
-      Z0[Patterns: hash, signature, gossip, DAG, time, CRDT]
+    subgraph Core["Core Layer"]
+        USA[UniformSemanticAgentV2]
+        PR[PatternResolver]
+        CB[CircuitBreaker]
     end
-    subgraph Scale1[Libs]
-      Z1[@noble/hashes, @noble/ed25519, graphlib]
+
+    subgraph Memory["Memory Layer"]
+        MM[MemoryMerger]
+        VIF[VectorIndexFactory]
+        EB[EmbeddingBridge]
+        MS[MemorySanitizer]
     end
-    subgraph Scale2[MCP Fabric]
-      Z2[Go gRPC crypto]
-      Z2a[MCP servers (crypto, structures)]
+
+    subgraph Sync["Sync Layer"]
+        ESM[ExperienceSyncManager]
+        SS[StreamingSync]
+        LS[LumpedSync]
+        CS[CheckInSync]
+        ET[ExperienceTransport]
     end
-    subgraph Scale3[Embedded]
-      Z3[TS patterns]
+
+    subgraph Observability["Observability"]
+        VB[VoyeurBus]
+        VWS[VoyeurWebServer]
+        MET[MetricsSink]
     end
-    subgraph Scale4[Agent Ops]
-      Z4[Agent morphing, sync, memory]
+
+    subgraph Adapters["Framework Adapters"]
+        MCP[MCPAdapter]
+        MA[MultiAgentAdapter]
+        OA[OrchestratedAdapter]
     end
-    Z0 --> Z1 --> Z2 --> Z3 --> Z4
-    Z4 -. observability .-> Z5[Voyeur SSE/metrics]
-  ```
-  
-  **References**: HNSW (Malkov & Yashunin 2018) for ANN; Prometheus/OTel for metrics; SSE spec for voyeur stream; Ed25519 (RFC 8032) for signatures.
 
-**Scale 0: Mathematics**  
-Universal patterns with proven properties (hash functions, digital signatures, DAGs, gossip, etc.)
+    USA --> PR
+    PR --> CB
+    USA --> MM
+    MM --> VIF
+    MM --> EB
+    MM --> MS
+    MM --> VB
 
-**Scale 1: Validated Libraries**  
-Audited implementations (@noble/hashes, @noble/curves, graphlib)
+    ESM --> SS
+    ESM --> LS
+    ESM --> CS
+    ESM --> ET
+    ESM --> MM
+    ESM --> VB
 
-**Scale 2: MCP Fabric**  
-Network-accessible services exposing primitives via MCP protocol
+    VB --> VWS
+    VB --> MET
 
-**Scale 3: Embedded Patterns**  
-Agent-specific implementations wrapping libraries with domain logic
+    USA --> MCP
+    USA --> MA
+    USA --> OA
+```
 
-**Scale 4: Agent Operations**  
-Application-level operations using patterns (fingerprinting, signing, syncing)
+### Component Responsibilities
+
+| Component | Responsibility | Source |
+|-----------|---------------|--------|
+| **UniformSemanticAgentV2** | Agent schema, validation, type definitions | [`src/core/UniformSemanticAgentV2.ts`](src/core/UniformSemanticAgentV2.ts) |
+| **PatternResolver** | Adaptive pattern implementation selection | [`src/fabric/PatternResolver.ts`](src/fabric/PatternResolver.ts) |
+| **CircuitBreaker** | Fault tolerance for external service calls | [`src/utils/CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
+| **MemoryMerger** | Memory deduplication and similarity-based merging | [`src/experience/MemoryMerger.ts`](src/experience/MemoryMerger.ts) |
+| **VectorIndexFactory** | Backend selection (HNSW/LanceDB/brute) | [`src/memory/VectorIndexFactory.ts`](src/memory/VectorIndexFactory.ts) |
+| **EmbeddingBridge** | Embedding provider abstraction | [`src/memory/EmbeddingBridge.ts`](src/memory/EmbeddingBridge.ts) |
+| **ExperienceSyncManager** | Sync protocol coordination | [`src/sync/ExperienceSyncManager.ts`](src/sync/ExperienceSyncManager.ts) |
+| **VoyeurBus** | Observability event bus | [`src/observability/VoyeurEvents.ts`](src/observability/VoyeurEvents.ts) |
 
 ---
 
-## Core Components
-
-### 1. Uniform Semantic Agent Schema
-
-```mermaid
-classDiagram
-    class UniformSemanticAgentV2 {
-        +identity: CryptoIdentity
-        +memory: MemorySystem
-        +capabilities: Capabilities
-        +experiences: Experience[]
-        +instances: InstanceMetadata[]
-    }
-    
-    class CryptoIdentity {
-        +fingerprint: string
-        +publicKey: Uint8Array
-        +signatureAlgorithm: string
-    }
-    
-    class MemorySystem {
-        +episodic: Episode[]
-        +semantic: Concept[]
-        +type: "vector" | "graph" | "hybrid"
-    }
-    
-    UniformSemanticAgentV2 --> CryptoIdentity
-    UniformSemanticAgentV2 --> MemorySystem
-```
-
-**Key Features**:
-- SHA-384 fingerprint for tamper-evident identity
-- Ed25519 signatures for authentication
-- Dual-coded memory (episodic + semantic)
-- Experience accumulation from instances
-- Evolution tracking via DAG
-
-### 2. Pattern Resolver (Adaptive)
-
-```mermaid
-flowchart TD
-    A[Agent Request] --> B{Pattern Resolver}
-    B --> C{Deployment Context?}
-    C -->|Distributed + MCP| D[Go gRPC Crypto]
-    C -->|Distributed + No MCP| E[MCP Servers]
-    C -->|Single-Node| F[Embedded]
-    C -->|Perf-Critical| G[Direct Library]
-    D --> H[~5ms]
-    E --> H
-    F --> H
-    G --> H
-```
-
-**Decision Factors**:
-- distributed & mcp_available → Go gRPC crypto + MCP structures
-- prefer_reusability, not perf-critical → Go/MCP
-- perf-critical → embedded/local
-- fallback → direct library
-
-### 3. Memory System
-
-```mermaid
-flowchart TD
-    In[Memory Input] --> San[Sanitize & hash]
-    San --> Sel{Embedding ready?}
-    Sel -->|Yes| Emb[Embed]
-    Sel -->|No| Jac[Jaccard]
-    Emb --> ANN{Vector index?}
-    Jac --> ANN
-    ANN -->|Yes| Search[ANN search]
-    ANN -->|No| Scan[Linear scan]
-    Search --> Sim{similarity > threshold?}
-    Scan --> Sim
-    Sim -->|Yes| Merge[Merge existing]
-    Sim -->|No| Add[Add new memory]
-    Merge --> Store[Persist + update index]
-    Add --> Store
-    Store --> Obs[Voyeur events + metrics]
-```
-
-**Evolution Path**:
-- **v3.0**: Jaccard similarity (lexical), O(N²), <1000 memories
-- **v3.1**: Embedding similarity (semantic), O(N²), <5000 memories
-- **v3.2**: Vector indexing (HNSW), O(log N), millions of memories
-
-### 4. Experience Sync + OODA Capture
-
-```mermaid
-sequenceDiagram
-    participant S as Agent
-    participant I1 as Instance 1
-    participant I2 as Instance 2
-    participant I3 as Instance 3
-    
-    I1->>S: Streaming (real-time)
-    I2->>S: Lumped (batch)
-    I3->>S: Check-in (periodic)
-    S->>S: Merge + OODA record per episode
-    S->>S: Update Memory/Skills/Knowledge
-```
-
-**Protocols**: streaming, lumped, check-in. OODA interrogatives stored on episodes for audit and learning.
-
----
-
-## Data Flow
+## Runtime Flow
 
 ### Agent Morphing Flow
 
 ```mermaid
-flowchart LR
-    A[Uniform Semantic Agent] --> B[Framework Adapter]
-    B --> C{Target Type?}
-    
-    C -->|MCP| D[MCPAdapter]
-    C -->|Multi-Agent| E[MultiAgentAdapter]
-    C -->|Orchestrated| F[OrchestratedAdapter]
-    
-    D --> G[MCP Agent + Shadow]
-    E --> H[Multi-Agent + Shadow]
-    F --> I[Orchestrated Agent + Shadow]
-    
-    G --> J[Lossless Restoration]
-    H --> J
-    I --> J
-    
-    J --> A
+sequenceDiagram
+    participant Client
+    participant Adapter as FrameworkAdapter
+    participant USA as UniformSemanticAgent
+    participant Shadow as ShadowFields
+
+    Client->>Adapter: morph(agent, targetType)
+    Adapter->>USA: extract canonical form
+    USA->>Shadow: store non-mappable fields
+    Adapter->>Adapter: transform to target schema
+    Adapter->>Client: return morphed agent + shadow
+
+    Note over Client,Shadow: Restoration preserves all data
+
+    Client->>Adapter: restore(morphedAgent, shadow)
+    Adapter->>Shadow: retrieve stored fields
+    Adapter->>USA: reconstruct original
+    Adapter->>Client: return restored agent
 ```
 
-**Key Property**: **Lossless** - No information lost in transformation
-
-**Shadow Fields**: Encrypted metadata enables perfect restoration
-
-### Experience Accumulation
+### Experience Sync Flow
 
 ```mermaid
-graph TD
-    A[Instance Experiences] --> B[Experience Sync]
-    B --> C[MemoryMerger]
-    B --> D[SkillAccumulator]
-    B --> E[KnowledgeIntegrator]
-    
-    C --> F[Deduplication]
-    F --> G[Similarity Check]
-    G --> H[Merge or Add]
-    
-    D --> I[Proficiency Aggregation]
-    I --> J[Learning Curve Update]
-    
-    E --> K[Confidence Threshold]
-    K --> L[Verification Count]
-    L --> M[Accept or Reject]
-    
-    H --> N[Updated Agent State]
-    J --> N
-    M --> N
+sequenceDiagram
+    participant Instance as Agent Instance
+    participant Transport as ExperienceTransport
+    participant ESM as ExperienceSyncManager
+    participant MM as MemoryMerger
+    participant SA as SkillAccumulator
+    participant KI as KnowledgeIntegrator
+    participant Source as Source Agent
+
+    Instance->>Transport: send experiences
+    Transport->>ESM: deliver payload
+
+    alt Streaming Protocol
+        ESM->>MM: addMemory (real-time)
+    else Lumped Protocol
+        ESM->>MM: mergeBatch
+        ESM->>SA: accumulateSkills
+        ESM->>KI: integrate
+    else Check-in Protocol
+        ESM->>ESM: processCheckIn
+    end
+
+    MM->>MM: findDuplicate
+    alt Duplicate Found
+        MM->>MM: mergeWithExisting
+    else New Memory
+        MM->>Source: addMemory
+    end
+
+    ESM->>Source: update metadata.evolution
+```
+
+### Memory Merge Decision Flow
+
+```mermaid
+flowchart TD
+    Input[Memory Input] --> Sanitize{Sanitize}
+    Sanitize -->|Blocked| Reject[Reject + Log]
+    Sanitize -->|OK| RateCheck{Rate Limit?}
+    RateCheck -->|Exceeded| Reject
+    RateCheck -->|OK| Method{Similarity Method}
+
+    Method -->|Jaccard| Jaccard[Word Overlap]
+    Method -->|Embedding| Embed[Vector Similarity]
+
+    Jaccard --> Threshold{> threshold?}
+    Embed --> Threshold
+
+    Threshold -->|Yes| Merge[Merge Existing]
+    Threshold -->|No| Add[Add New]
+
+    Merge --> Index{Vector Index?}
+    Add --> Index
+
+    Index -->|Yes| Upsert[Upsert to Index]
+    Index -->|No| Store[Store in Map]
+
+    Upsert --> Voyeur[Emit Voyeur Event]
+    Store --> Voyeur
+    Voyeur --> Metrics[Record Metrics]
 ```
 
 ---
 
-## Deployment Models
+## Data Models
 
-### Model A: Embedded (Monolithic)
-```
-Single Process:
-  ├── Agent
-  ├── Embedded Patterns
-  └── Direct Library Imports
-```
-Use: CLI, edge, single-user | Latency: ~0.1ms | Complexity: Low
+### Uniform Semantic Agent Schema
 
-### Model B: Go gRPC + MCP (Distributed)
-```
-Multiple Processes:
-  ├── Agent Process
-  ├── Go Crypto gRPC (hash/verify/merkle/Ed25519/BLS/random)
-  └── Distributed-Structures MCP
-```
-Use: Multi-region/shared infra | Latency: ~5ms | Complexity: Medium
+```mermaid
+classDiagram
+    class UniformSemanticAgentV2 {
+        +string schema_version
+        +Identity identity
+        +Personality personality
+        +Communication communication
+        +Capabilities capabilities
+        +Knowledge knowledge
+        +Memory memory
+        +Beliefs beliefs
+        +Instances instances
+        +ExperienceSyncConfig experience_sync
+        +Protocols protocols
+        +Execution execution
+        +Metadata metadata
+    }
 
-### Model C: Adaptive (Hybrid)
+    class Identity {
+        +string id
+        +string name
+        +string designation
+        +string fingerprint
+        +string created
+        +string version
+    }
+
+    class Memory {
+        +string type
+        +string provider
+        +object settings
+        +Collections collections
+    }
+
+    class Collections {
+        +Episode[] episodic
+        +Concept[] semantic
+    }
+
+    class Episode {
+        +string episode_id
+        +string timestamp
+        +string source_instance
+        +number duration
+        +Interaction[] interactions
+        +string outcome
+        +string[] lessons_learned
+        +OODAInterrogatives ooda
+    }
+
+    class OODAInterrogatives {
+        +OODAStep observe
+        +OODAStep orient
+        +OODAStep decide
+        +OODAStep act
+    }
+
+    UniformSemanticAgentV2 --> Identity
+    UniformSemanticAgentV2 --> Memory
+    Memory --> Collections
+    Collections --> Episode
+    Episode --> OODAInterrogatives
 ```
-Agent:
-  └── Pattern Resolver
-      ├── Prefer Go gRPC when distributed & available
-      ├── Else MCP
-      └── Else Embedded
+
+### Memory Structure
+
+```typescript
+interface Memory {
+  memory_id: string;
+  content: string;
+  embedding?: number[];
+  confidence: number;
+  source_instance: string;
+  created: string;
+  accessed_count: number;
+  last_accessed: string;
+  tags: string[];
+  related_memories: string[];
+  importance: number;
+}
 ```
-Use: Gradual migration | Latency: adaptive | Complexity: Medium-High
+
+### Experience Event
+
+```typescript
+interface ExperienceEvent {
+  event_id: string;
+  timestamp: string;
+  source_instance: string;
+  event_type: 'memory' | 'skill' | 'knowledge' | 'characteristic' | 'interaction';
+  priority: number;  // 0.0 - 1.0
+  data: Record<string, any>;
+  context: {
+    task_id?: string;
+    conversation_id?: string;
+    trigger: string;
+    environment: Record<string, any>;
+  };
+}
+```
+
+---
+
+## API Contracts
+
+### Pattern Resolver API
+
+```typescript
+// Create resolver for deployment model
+function createPatternResolver(
+  deploymentModel: 'embedded' | 'distributed' | 'adaptive',
+  mcpClient?: MCPPatternClient
+): AdaptivePatternResolver;
+
+// Resolve hash implementation
+async resolveHash(): Promise<PatternResolution<HashImplementation>>;
+
+// Resolve signature implementation
+async resolveSignature(): Promise<PatternResolution<SignatureImplementation>>;
+
+// Get circuit breaker statistics
+getCircuitBreakerStats(): {
+  hash: CircuitBreakerStats;
+  signature: CircuitBreakerStats;
+};
+```
+
+### Memory Merger API
+
+```typescript
+// Initialize merger (required for embedding mode)
+async initialize(): Promise<void>;
+
+// Add single memory
+async addMemory(
+  agent: UniformSemanticAgentV2,
+  memoryData: any,
+  sourceInstance: string
+): Promise<void>;
+
+// Merge batch of memories
+async mergeBatch(
+  agent: UniformSemanticAgentV2,
+  memories: any[],
+  sourceInstance: string
+): Promise<MemoryMergeResult>;
+```
+
+### Experience Sync API
+
+```typescript
+// Initialize sync for instance
+async initializeSync(
+  instanceId: string,
+  protocol: SyncProtocol,
+  config: ExperienceSyncConfig,
+  sourceAgent?: UniformSemanticAgentV2,
+  syncEndpoint?: string
+): Promise<void>;
+
+// Stream single event (real-time)
+async streamEvent(instanceId: string, event: ExperienceEvent): Promise<void>;
+
+// Send batch (lumped sync)
+async sendBatch(instanceId: string, batch: ExperienceBatch): Promise<{ batch_id: string; processed: boolean }>;
+
+// Handle check-in
+async checkIn(instanceId: string, state: any): Promise<MergeResult>;
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Purpose | Default | Required |
+|----------|---------|---------|----------|
+| `VOYAGE_API_KEY` | Voyage AI embeddings | - | For production |
+| `OPENAI_API_KEY` | OpenAI embeddings (fallback) | - | For production |
+| `ANTHROPIC_API_KEY` | Claude semantic decomposition | - | For LLM analysis |
+| `VECTOR_INDEX_TYPE` | Index backend | `brute` | No |
+| `VECTOR_INDEX_COLLECTION` | Collection name | `memories` | No |
+| `METRICS_PROMETHEUS` | Enable Prometheus | `false` | No |
+| `METRICS_PROM_PORT` | Prometheus port | `9464` | No |
+| `METRICS_OTEL` | Enable OpenTelemetry | `false` | No |
+
+### Memory Merger Configuration
+
+```typescript
+interface MemoryMergerConfig {
+  similarity_method: 'jaccard' | 'embedding';  // Default: 'jaccard'
+  similarity_threshold: number;                 // Default: 0.9
+  embedding_service?: EmbeddingService;
+  use_vector_index: boolean;                    // Default: false
+  vector_index_type?: 'hnsw' | 'lance' | 'brute';
+  voyeur?: VoyeurSink;
+  slow_mode_ms?: number;                        // For debugging
+  sanitize?: (content: string, source: string) => SanitizeResult;
+  rate_limit?: { windowMs: number; max: number };
+}
+```
+
+### Experience Sync Configuration
+
+```typescript
+interface ExperienceSyncConfig {
+  enabled: boolean;
+  default_protocol: SyncProtocol;
+  transport?: ExperienceTransportConfig;
+
+  streaming?: {
+    enabled: boolean;
+    interval_ms: number;
+    batch_size: number;
+    priority_threshold: number;
+  };
+
+  lumped?: {
+    enabled: boolean;
+    batch_interval: string;  // e.g., "1h", "6h"
+    max_batch_size: number;
+    compression: boolean;
+  };
+
+  check_in?: {
+    enabled: boolean;
+    schedule: string;  // cron expression
+    include_full_state: boolean;
+  };
+
+  merge_strategy: {
+    conflict_resolution: 'latest_wins' | 'weighted_merge' | 'manual_review';
+    memory_deduplication: boolean;
+    skill_aggregation: 'max' | 'average' | 'weighted';
+    knowledge_verification_threshold: number;
+  };
+}
+```
 
 ---
 
@@ -276,85 +521,148 @@ Use: Gradual migration | Latency: adaptive | Complexity: Medium-High
 ### Multi-Layer Defense
 
 ```mermaid
-graph TB
-    subgraph Layer_1[Layer 1: Cryptographic Identity]
-        A1[SHA-384 Fingerprint]
-        A2[Ed25519 Signatures]
+flowchart TB
+    subgraph Layer1["Layer 1: Cryptographic Identity"]
+        L1A[SHA-384 Fingerprint]
+        L1B[Ed25519 Signatures]
     end
-    
-    subgraph Layer_2[Layer 2: Byzantine Resistance]
-        B1[Threshold Voting >2/3]
-        B2[Median Aggregation]
-        B3[Trimmed Mean]
+
+    subgraph Layer2["Layer 2: Input Validation"]
+        L2A[Memory Sanitizer]
+        L2B[Rate Limiting]
+        L2C[Trust Tiers]
     end
-    
-    subgraph Layer_3[Layer 3: Redundancy]
-        C1[Multi-Instance]
-        C2[Quorum Operations]
+
+    subgraph Layer3["Layer 3: Byzantine Resistance"]
+        L3A[Threshold Voting 2/3]
+        L3B[Median Aggregation]
+        L3C[Trimmed Mean]
     end
-    
-    subgraph Layer_4[Layer 4: Causal Consistency]
-        D1[Lamport Clocks]
-        D2[Vector Clocks]
+
+    subgraph Layer4["Layer 4: Fault Tolerance"]
+        L4A[Circuit Breaker]
+        L4B[Graceful Degradation]
+        L4C[Fallback Patterns]
     end
-    
-    Layer_1 --> Layer_2
-    Layer_2 --> Layer_3
-    Layer_3 --> Layer_4
+
+    Layer1 --> Layer2 --> Layer3 --> Layer4
 ```
 
-**Defends Against**:
-- Impersonation (cryptographic identity)
-- Malicious instances (<1/3 Byzantine tolerance)
-- Single point of failure (redundancy)
-- Timing attacks (logical time)
+### Threat Model
+
+| Threat | Defense | Implementation |
+|--------|---------|----------------|
+| Agent impersonation | Cryptographic fingerprint | [`generateAgentFingerprint()`](src/core/patterns/Hashing.ts) |
+| Malicious instances | Byzantine threshold (2/3) | [`hasSupermajority()`](src/core/patterns/ByzantineResistance.ts) |
+| Memory poisoning | Sanitizer + rate limits | [`MemorySanitizer`](src/experience/MemorySanitizer.ts) |
+| Service unavailability | Circuit breaker | [`CircuitBreaker`](src/utils/CircuitBreaker.ts) |
+| Timing attacks | Logical clocks | [`LamportClock`](src/core/patterns/LogicalTime.ts) |
+
+### Trust Tiers
+
+The memory sanitizer implements trust tiers for ingest control:
+
+1. **Trusted**: Internal instances, no filtering
+2. **Verified**: Known external sources, basic filtering
+3. **Untrusted**: Unknown sources, strict filtering + rate limits
 
 ---
 
 ## Performance Characteristics
 
-| Operation | Complexity | Latency | Scale |
-|-----------|-----------|---------|-------|
-| **Hash (embedded)** | O(N) | ~0.1ms | Any |
-| **Hash (MCP)** | O(N) | ~5ms | Any |
-| **Memory search (Jaccard)** | O(N²) | ~10ms | <1K |
-| **Memory search (embedding)** | O(N²) | ~50ms | <5K |
-| **Memory search (HNSW)** | O(log N) | ~5ms | Millions |
-| **Experience sync (RPC)** | O(N) | ~100ms | <100 instances |
-| **Experience sync (gossip)** | O(log N) | ~500ms | Thousands |
+### Complexity Analysis
+
+| Operation | Complexity | Latency | Scale Limit |
+|-----------|-----------|---------|-------------|
+| Hash (embedded) | O(N) | ~0.1ms | Any |
+| Hash (Go gRPC) | O(N) | ~5ms | Any |
+| Memory search (Jaccard) | O(N²) | ~10ms | <1K memories |
+| Memory search (embedding) | O(N²) | ~50ms | <5K memories |
+| Memory search (HNSW) | O(log N) | ~5ms | Millions |
+| Experience sync (RPC) | O(N) | ~100ms | <100 instances |
+
+### Memory Evolution Path
+
+```mermaid
+flowchart LR
+    V30["v3.0: Jaccard<br/>O(N²), <1K"] --> V31["v3.1: Embedding<br/>O(N²), <5K"]
+    V31 --> V32["v3.2: HNSW<br/>O(log N), millions"]
+    V32 --> Future["Future: Vector DB<br/>Persistent, distributed"]
+```
 
 ---
 
-## Technology Stack
+## Deployment Models
 
-**Language**: TypeScript 5.0+  
-**Runtime**: Node.js 18+
+### Model A: Embedded (Monolithic)
 
-**Cryptography**:
-- @noble/hashes (hash functions)
-- @noble/ed25519 (signatures)
-- @noble/curves (BLS)
+```
+Single Process:
+  ├── Agent
+  ├── Embedded Patterns
+  └── Direct Library Imports
+```
 
-**Distributed Systems**:
-- graphlib (DAG operations)
-- simple-statistics (aggregation)
+**Use when**: CLI tools, edge deployment, single-user applications
+**Latency**: ~0.1ms
+**Complexity**: Low
 
-**Future**:
-- @xenova/transformers (embeddings)
-- hnswlib-node (vector indexing)
-- @automerge/automerge (CRDTs)
+### Model B: Distributed (Microservices)
+
+```
+Multiple Processes:
+  ├── Agent Process
+  ├── Go Crypto gRPC Server
+  └── MCP Servers
+```
+
+**Use when**: Multi-region, shared infrastructure, high availability
+**Latency**: ~5ms
+**Complexity**: Medium
+
+### Model C: Adaptive (Hybrid)
+
+```
+Agent:
+  └── PatternResolver
+      ├── Prefer Go gRPC when distributed & available
+      ├── Else MCP servers
+      └── Else Embedded patterns
+```
+
+**Use when**: Gradual migration, uncertain deployment
+**Latency**: Adaptive
+**Complexity**: Medium-High
+
+### Decision Matrix
+
+| Factor | Embedded | Distributed | Adaptive |
+|--------|----------|-------------|----------|
+| Latency requirement | <1ms | <10ms | Variable |
+| Deployment complexity | Low | High | Medium |
+| Shared infrastructure | No | Yes | Optional |
+| Fault tolerance | Process-level | Service-level | Both |
+| Recommended for | CLI, edge | Production | Migration |
 
 ---
 
-## Related Documentation
+## References
 
-- **[Complete Specification](docs/current/UNIFIED_SPEC_V3.1.md)** - Comprehensive technical spec
-- **[Implementation Guide](docs/current/IMPLEMENTATION_GUIDE.md)** - How to implement
-- **[Research Foundation](docs/research/)** - Deep research and patterns
-- **[API Reference](docs/current/API_REFERENCE.md)** - API documentation
+### External Standards
+
+- **Ed25519**: [RFC 8032](https://tools.ietf.org/html/rfc8032) - Edwards-Curve Digital Signature Algorithm
+- **SHA-384**: [FIPS 180-4](https://csrc.nist.gov/publications/detail/fips/180/4/final) - Secure Hash Standard
+- **HNSW**: Malkov & Yashunin (2018) - Efficient and robust approximate nearest neighbor search
+- **SSE**: [HTML Living Standard](https://html.spec.whatwg.org/multipage/server-sent-events.html) - Server-Sent Events
+
+### Internal Documentation
+
+- [Implementation Status](docs/current/STATUS.md)
+- [Universal Patterns Research](docs/research/universal-patterns/PATTERNS_ANCHORED.md)
+- [Security Analysis](docs/research/deep-research/SECURITY_ATTACKS.md)
+- [Memory System](memory_system/README.md)
 
 ---
 
-**Version**: 3.1.0 | **Last Updated**: December 28, 2025
-
-🦋 **Rigorous architecture through evidence-based design** 🦋
+**Document Owner**: Chrysalis Team
+**Review Cadence**: Monthly or on major releases

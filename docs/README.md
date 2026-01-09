@@ -1,6 +1,20 @@
 # Chrysalis Documentation
 
-**Navigation Hub** | **Version**: 3.1.0 | **Status**: Active
+> **Version:** 3.1.0 | **Status:** Active Development
+
+Chrysalis is a **Uniform Semantic Agent Transformation System** that enables AI agents to morph between different framework implementations while preserving identity, knowledge, and skills.
+
+---
+
+## Quick Navigation
+
+| I want to... | Go to |
+|-------------|-------|
+| **Get started quickly** | [Quickstart Guide](./getting-started/quickstart.md) |
+| **Understand the architecture** | [Architecture Overview](./architecture/overview.md) |
+| **Learn about the patterns** | [Universal Patterns](./architecture/universal-patterns.md) |
+| **See what's implemented** | [Implementation Status](./current/STATUS.md) |
+| **Read the full specification** | [Unified Spec v3.1](./current/UNIFIED_SPEC_V3.1.md) |
 
 ---
 
@@ -8,193 +22,168 @@
 
 ```
 docs/
-├── current/          # Active specifications and guides
-├── research/         # Research foundation
-├── archive/          # Historical versions (v1, v2, deprecated)
-├── diagrams/         # Mermaid diagrams
-└── index.md          # Master navigation
+├── getting-started/         # 🚀 Start here
+│   └── quickstart.md        # 5-minute setup guide
+│
+├── architecture/            # 🏗️ System design
+│   ├── overview.md          # High-level architecture
+│   ├── universal-patterns.md # 10 mathematical patterns
+│   ├── experience-sync.md   # Sync protocols (planned)
+│   └── memory-system.md     # Memory architecture (planned)
+│
+├── guides/                  # 📖 How-to guides
+│   ├── morphing-agents.md   # ElizaOS ↔ CrewAI (planned)
+│   ├── services.md          # Running services (planned)
+│   └── observability.md     # Metrics and tracing (planned)
+│
+├── reference/               # 📚 API reference
+│   ├── typescript-api.md    # TypeScript API (planned)
+│   └── python-api.md        # Python API (planned)
+│
+├── current/                 # 📋 Active specifications
+│   ├── STATUS.md            # Implementation tracker
+│   ├── UNIFIED_SPEC_V3.1.md # Complete technical spec
+│   └── memory/              # Memory subsystem specs
+│
+├── research/                # 🔬 Research foundation
+│   ├── RESEARCH_SUMMARY.md
+│   └── COMPARISON.md
+│
+└── archive/                 # 📦 Historical docs
+    ├── v1/
+    ├── v2/
+    └── v3/
 ```
 
 ---
 
-## Quick Navigation
+## Getting Started
 
-### 🎯 Start Here
+### For New Users
 
-| Document | Purpose | Time |
-|----------|---------|------|
-| **[Unified Spec v3.1](current/UNIFIED_SPEC_V3.1.md)** | Complete system specification | 2 hours |
-| **[Quick Start](../QUICK_START.md)** | Get started in 10 minutes | 10 min |
-| **[Architecture](../ARCHITECTURE.md)** | System design overview | 30 min |
+1. **[Quickstart Guide](./getting-started/quickstart.md)** - Install, build, and morph your first agent
+2. **[Architecture Overview](./architecture/overview.md)** - Understand the system design
+3. **[Universal Patterns](./architecture/universal-patterns.md)** - Learn the foundational patterns
 
-### 📐 Current Specifications (v3.1)
+### For Contributors
 
-**Core Specs**:
-- **[UNIFIED_SPEC_V3.1.md](current/UNIFIED_SPEC_V3.1.md)** - Complete v3.1 specification
-- **[FOUNDATION_SPEC.md](current/FOUNDATION_SPEC.md)** - Pattern foundations
-- **[ANALYSIS.md](current/ANALYSIS.md)** - Rigorous system analysis
-- **[SYNTHESIS.md](current/SYNTHESIS.md)** - Design insights
-- **[TECH_DECISIONS_MEMORY_OBSERVABILITY.md](current/TECH_DECISIONS_MEMORY_OBSERVABILITY.md)** - Latest memory/observability choices
-- **[VECTOR_INDEX_SETUP.md](current/VECTOR_INDEX_SETUP.md)** - Configure HNSW/Lance/Qdrant backends
-
-**Subsystem Docs**:
-- **[Memory System](current/memory/)** - Memory architecture and implementation
-- **[MCP Setup](current/MCP_SETUP.md)** - MCP server configuration
-- **[Implementation Guide](current/IMPLEMENTATION_GUIDE.md)** - How to implement
-- **[Uniform Semantic Agent Lexicon](current/UNIVERSAL_AGENT_LEXICON.md)** - Core terms, OODA, emoji mode
-- **[uSA Profile v0.1](current/USA_PROFILE_V0.1.md)** - Authorable profile vs operational envelope (belief deprecated for calibration)
-- **[OBSERVABILITY_VOYEUR.md](current/OBSERVABILITY_VOYEUR.md)** - Voyeur mode + metrics hooks
-- **[DOCUMENTATION_STANDARDS.md](current/DOCUMENTATION_STANDARDS.md)** - How to keep docs consistent
-- **[OBSERVABILITY_GUIDE.md](current/OBSERVABILITY_GUIDE.md)** - SSE viewer + metrics how-to
-- **[SANITIZATION_POLICY.md](current/SANITIZATION_POLICY.md)** - Trust tiers, sanitization, rate limits
-- **[DUAL_SYNC_PLAN.md](current/DUAL_SYNC_PLAN.md)** - Public CRDT + private ledger sync design
-- **[SYNC_PRIMITIVES.md](current/SYNC_PRIMITIVES.md)** - Nouns/verbs and CLI/emoji mapping for sync/ledger
-
-### 🔬 Research Foundation
-
-**Universal Patterns**:
-- **[PATTERNS.md](research/universal-patterns/PATTERNS.md)** - 10 universal patterns
-- **[PATTERNS_ANCHORED.md](research/universal-patterns/PATTERNS_ANCHORED.md)** - Evidence validation
-
-**Deep Research**:
-- **[MATHEMATICAL_FOUNDATIONS.md](research/deep-research/MATHEMATICAL_FOUNDATIONS.md)** - Virtual voting, DAG
-- **[SECURITY_ATTACKS.md](research/deep-research/SECURITY_ATTACKS.md)** - Attack vectors & defenses
-- **[GOSSIP_PROTOCOLS.md](research/deep-research/GOSSIP_PROTOCOLS.md)** - Epidemic spreading
-- **[SYNTHESIS.md](research/deep-research/SYNTHESIS.md)** - Meta-insights
-
-**Agent Research**:
-- **[AgentSpecResearch.md](research/agent-spec/AgentSpecResearch.md)** - Agent architecture research
-- **[MemoryResearch.md](research/agent-spec/MemoryResearch.md)** - Memory system research
-
-### 📚 Historical Archive
-
-**Version 2** (Superseded by v3.1):
-- **[archive/v2/](archive/v2/)** - V2 specifications and guides
-
-**Version 1** (Original):
-- **[archive/v1/](archive/v1/)** - V1 morphing specifications
-
-**Deprecated**:
-- **[archive/deprecated/](archive/deprecated/)** - uSA and outdated approaches
+1. Review the [Implementation Status](./current/STATUS.md)
+2. Read the [Unified Specification](./current/UNIFIED_SPEC_V3.1.md)
+3. Check open issues on GitHub
 
 ---
 
-## Documentation Standards
+## Core Concepts
 
-### File Naming
-- `UPPERCASE.md` - Major documents
-- `PascalCase.md` - Specific topics
-- `kebab-case.md` - Multi-word topics
+### Three Agent Types
 
-### Required Sections
-1. Header (title, version, date, status)
-2. Purpose statement
-3. Navigation links
-4. Main content
-5. Mermaid diagrams (where appropriate)
-6. Citations/sources
-7. Footer (last updated)
+| Type | Description | Use Case |
+|------|-------------|----------|
+| **MCP** | Tool-augmented single agent | Rich tool access |
+| **Multi-Agent** | Peer-to-peer collaboration | Autonomous networks |
+| **Orchestrated** | Managed fleet with coordinator | Task delegation |
 
-### Status Indicators
-- ✅ **Current** - Active, up-to-date
-- 🔄 **In Progress** - Being updated
-- 📋 **Planned** - Designed, not implemented
-- 🗄️ **Archived** - Historical reference
-- ⚠️ **Deprecated** - No longer recommended
+### Supported Frameworks
 
----
+| Framework | Adapter Status | Direction |
+|-----------|---------------|-----------|
+| **ElizaOS** | ✅ Implemented | Bidirectional |
+| **CrewAI** | ✅ Implemented | Bidirectional |
+| **LangChain** | 📋 Planned | - |
+| **AutoGen** | 📋 Planned | - |
 
-## Finding Information
+### 10 Universal Patterns
 
-### By Topic
+Mathematical foundations from distributed systems:
 
-**Architecture**:
-- System overview → [ARCHITECTURE.md](../ARCHITECTURE.md)
-- Fractal composition → [UNIFIED_SPEC_V3.1.md](current/UNIFIED_SPEC_V3.1.md#fractal-architecture)
-- Deployment models → [UNIFIED_SPEC_V3.1.md](current/UNIFIED_SPEC_V3.1.md#deployment-models)
+1. Hash Functions
+2. Digital Signatures
+3. Encryption
+4. Byzantine Agreement
+5. Logical Time
+6. CRDTs
+7. Gossip Protocol
+8. DAG
+9. Convergence
+10. Random Selection
 
-**Patterns**:
-- What are they? → [research/universal-patterns/PATTERNS.md](research/universal-patterns/PATTERNS.md)
-- Why these? → [research/universal-patterns/PATTERNS_ANCHORED.md](research/universal-patterns/PATTERNS_ANCHORED.md)
-- How implemented? → [FOUNDATION_SPEC.md](current/FOUNDATION_SPEC.md)
-
-**Memory**:
-- Architecture → [current/memory/ARCHITECTURE.md](current/memory/ARCHITECTURE.md)
-- Implementation → [current/memory/IMPLEMENTATION.md](current/memory/IMPLEMENTATION.md)
-- Evolution → [UNIFIED_SPEC_V3.1.md#memory-system](current/UNIFIED_SPEC_V3.1.md#memory-system)
-
-**Security**:
-- Model → [UNIFIED_SPEC_V3.1.md#security-architecture](current/UNIFIED_SPEC_V3.1.md#security-architecture)
-- Attacks → [research/deep-research/SECURITY_ATTACKS.md](research/deep-research/SECURITY_ATTACKS.md)
-- Defenses → [FOUNDATION_SPEC.md#security](current/FOUNDATION_SPEC.md)
-
-### By Use Case
-
-**I want to...**
-
-| Goal | Document |
-|------|----------|
-| Understand the system | [ARCHITECTURE.md](../ARCHITECTURE.md) |
-| Start using it | [QUICK_START.md](../QUICK_START.md) |
-| Implement patterns | [IMPLEMENTATION_GUIDE.md](current/IMPLEMENTATION_GUIDE.md) |
-| Set up MCP servers | [MCP_SETUP.md](current/MCP_SETUP.md) |
-| Understand research | [research/](research/) |
-| See examples | [../examples/](../examples/) |
-| Review source code | [../src/](../src/) |
+See [Universal Patterns](./architecture/universal-patterns.md) for details.
 
 ---
 
-## Documentation Maintenance
+## Technology Stack
 
-### Update Triggers
-- New feature implementation
-- API changes
-- Architecture decisions
-- Bug fixes affecting behavior
-- Version releases
-
-### Review Schedule
-- **Weekly**: Current specs accuracy check
-- **Monthly**: Research relevance review
-- **Quarterly**: Archive cleanup
-- **Per-release**: Version update
-
-### Contributors
-See [../CONTRIBUTING.md](../CONTRIBUTING.md) for documentation contribution guidelines.
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Core Runtime** | TypeScript / Node.js 18+ | Agent morphing, sync |
+| **Memory System** | Python 3.11+ | Semantic analysis |
+| **Vector Store** | LanceDB | Memory retrieval |
+| **CRDT Sync** | Yjs | Distributed state |
+| **Crypto** | @noble/curves | Identity, signatures |
 
 ---
 
-## Quality Standards
+## Key Files Reference
 
-**Accuracy** ✅: Documentation reflects actual implementation  
-**Completeness** ✅: All major systems documented  
-**Clarity** ✅: Technical terms defined, diagrams support text  
-**Maintainability** ✅: Structured for ongoing updates  
-**Professionalism** ✅: Consistent formatting and presentation
+### TypeScript Core
 
----
+| File | Purpose |
+|------|---------|
+| [`src/core/UniformSemanticAgentV2.ts`](../src/core/UniformSemanticAgentV2.ts) | Agent type definitions |
+| [`src/adapters/ElizaOSAdapter.ts`](../src/adapters/ElizaOSAdapter.ts) | ElizaOS conversion |
+| [`src/adapters/CrewAIAdapter.ts`](../src/adapters/CrewAIAdapter.ts) | CrewAI conversion |
+| [`src/fabric/PatternResolver.ts`](../src/fabric/PatternResolver.ts) | Pattern resolution |
+| [`src/sync/ExperienceSyncManager.ts`](../src/sync/ExperienceSyncManager.ts) | Experience sync |
 
-## External Resources
+### Python Memory
 
-**Research Papers**:
-- Hedera Hashgraph whitepaper
-- Byzantine fault tolerance literature
-- Gossip protocol research
-
-**Related Projects**:
-- @noble/hashes - Audited cryptography
-- graphlib - Graph operations
-- Model Context Protocol (MCP)
-
-**Community**:
-- GitHub Issues
-- Discussions
-- Contributing guidelines
+| File | Purpose |
+|------|---------|
+| [`memory_system/core.py`](../memory_system/core.py) | Memory interface |
+| [`memory_system/semantic/`](../memory_system/semantic/) | Semantic analysis |
+| [`memory_system/embedding/`](../memory_system/embedding/) | Vector embeddings |
 
 ---
 
-**Navigation**: [Root README](../README.md) | [Architecture](../ARCHITECTURE.md) | [Quick Start](../QUICK_START.md)
+## Status Legend
 
-**Last Updated**: December 28, 2025 | **Maintained By**: Chrysalis Team
+Throughout the documentation:
 
-🦋 **Comprehensive documentation for rigorous development** 🦋
+| Symbol | Meaning |
+|--------|---------|
+| ✅ | Implemented and tested |
+| 🔄 | In progress |
+| 📋 | Designed, not implemented |
+| 💭 | Concept only |
+| ⚠️ | Deprecated |
+
+---
+
+## Version History
+
+| Version | Date | Highlights |
+|---------|------|------------|
+| 3.1.0 | Current | Experience sync, memory merging |
+| 3.0.0 | - | Universal patterns, adapters |
+| 2.0.0 | - | Agent V2 schema |
+| 1.0.0 | - | Initial release |
+
+See [archive/](./archive/) for historical documentation.
+
+---
+
+## Related Resources
+
+- **Root README**: [`../README.md`](../README.md)
+- **Architecture Doc**: [`../ARCHITECTURE.md`](../ARCHITECTURE.md)
+- **Memory System**: [`../memory_system/README.md`](../memory_system/README.md)
+- **Plans**: [`../plans/`](../plans/)
+
+---
+
+## Contributing to Docs
+
+1. Follow the templates in [`plans/documentation-architecture-plan.md`](../plans/documentation-architecture-plan.md)
+2. All code references must use clickable format: [`file.ts:line`](../src/file.ts:line)
+3. Mark implementation status with symbols
+4. Keep tone technical but accessible

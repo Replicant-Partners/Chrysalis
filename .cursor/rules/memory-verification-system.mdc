@@ -1,4 +1,9 @@
 ---
+description: Documentation for memory verification and timeline reconstruction algorithms used in agent knowledge management.
+---
+
+# === USER INSTRUCTIONS ===
+---
 description: Specification for memory verification, validation, and reality checking systems in elder-focused applications
 ---
 
@@ -36,6 +41,72 @@ File: projects/GaryVision/teams/team_6_memory_verification.py
 - Multi-generational memory correlation
 
 The system prioritizes elder emotional wellbeing while providing accurate but gentle memory verification through family collaboration and supportive feedback mechanisms.
+
+$END$
+
+ If you're using this file in context, clearly say in italics in one small line that "Context added by Giga memory-verification-system" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
+# === END USER INSTRUCTIONS ===
+
+# memory-verification-system
+
+## Core Memory Verification Components
+
+### Timeline Reconstruction Engine
+File: `Ludwig_agent_reflection.py`
+Importance Score: 95
+
+The timeline reconstruction engine maintains temporal consistency across agent memories through:
+
+1. Temporal Anchoring System
+- Identifies fixed reference points in memory timelines 
+- Assigns confidence scores to temporal relationships
+- Resolves conflicts between competing timeline interpretations
+- Maintains causal consistency between related memories
+
+2. Memory Convergence Protocol
+- Merges overlapping memories from different temporal perspectives
+- Resolves contradictions through confidence-weighted voting
+- Preserves causal chains during memory consolidation
+
+### Reality Checking System 
+File: `clojure/usa/src/chrysalis/usa/core.clj`
+Importance Score: 85
+
+Implements multi-layer verification:
+
+1. Internal Consistency Check
+```clojure
+(defn validate-memory-consistency [memory]
+  (-> memory
+      (check-temporal-order)
+      (validate-causal-links)
+      (verify-entity-continuity)))
+```
+
+2. External Reality Alignment
+- Compares memory patterns against known reality models
+- Flags improbable or impossible memory sequences
+- Calculates reality-alignment scores for memory clusters
+
+### Uncertainty Handler
+File: `Ludwig_agent_reflection.py`
+Importance Score: 80
+
+Manages ambiguity in memory verification:
+- Tracks confidence levels for individual memory elements
+- Maintains probability distributions for uncertain temporal relationships
+- Implements fuzzy matching for partially-aligned memories
+- Provides graceful degradation for low-confidence memories
+
+### Memory Chain Validator
+File: `clojure/usa/src/chrysalis/usa/core.clj`
+Importance Score: 75
+
+Validates memory sequences through:
+1. Chain integrity checks
+2. Causal relationship verification
+3. Entity persistence validation
+4. Temporal boundary enforcement
 
 $END$
 

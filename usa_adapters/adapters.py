@@ -271,3 +271,287 @@ def crewai_agent_to_usa(agent: Dict[str, Any]) -> Dict[str, Any]:
         },
         "protocols": {},
     }
+
+
+def replicant_to_usa(replicant: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Map a Replicant/legends JSON format into a uSA scaffold.
+    
+    Replicant format (from Replicants/legends/) includes:
+    - name, designation, bio: Core identity
+    - personality: core_traits, quirks, values, fears, aspirations
+    - communication_style: all, work, conversational, social, introspective
+    - signature_phrases: List of characteristic phrases
+    - emotional_ranges: Mapping of emotional states to triggers/expressions
+    - capabilities: primary, secondary, tools
+    - avatar: Visual representation config
+    - voice: Voice synthesis config
+    - beliefs: Categorized beliefs (who/what/where/when/why/how/huh)
+    - privacy_preferences: Data sharing configuration
+    
+    Returns a uSA v2 compliant scaffold ready for further enhancement.
+    """
+    replicant = replicant or {}
+    
+    # Extract basic identity
+    name = replicant.get("name", "Unknown Replicant")
+    designation = replicant.get("designation", "")
+    bio = replicant.get("bio", "")
+    
+    # Extract personality traits
+    personality = replicant.get("personality", {}) or {}
+    core_traits = personality.get("core_traits", [])
+    quirks = personality.get("quirks", [])
+    values = personality.get("values", [])
+    fears = personality.get("fears", [])
+    aspirations = personality.get("aspirations", [])
+    
+    # Build personality traits dict for uSA
+    personality_traits = {
+        "core_traits": core_traits,
+        "quirks": quirks,
+        "values": values,
+        "fears": fears,
+        "aspirations": aspirations,
+    }
+    
+    # Extract communication style
+    comm_style = replicant.get("communication_style", {}) or {}
+    signature_phrases = replicant.get("signature_phrases", [])
+    
+    # Build backstory from bio, communication style, and signature phrases
+    backstory_parts = [bio]
+    if comm_style.get("all"):
+        backstory_parts.extend(comm_style["all"])
+    if signature_phrases:
+        backstory_parts.append("Characteristic phrases: " + "; ".join(signature_phrases[:3]))
+    backstory = " ".join(filter(None, backstory_parts))
+    
+    # Extract capabilities
+    capabilities_raw = replicant.get("capabilities", {}) or {}
+    primary_caps = capabilities_raw.get("primary", [])
+    secondary_caps = capabilities_raw.get("secondary", [])
+    tool_names = capabilities_raw.get("tools", [])
+    
+    # Build tools list
+    tools = [
+        {"name": t, "protocol": "native", "config": {}}
+        for t in tool_names
+    ]
+    
+    # Build skills from primary and secondary capabilities
+    skills = []
+    for cap in primary_caps:
+        skills.append({
+            "name": cap,
+            "type": "primary",
+            "parameters": {}
+        })
+    for cap in secondary_caps:
+        skills.append({
+            "name": cap,
+            "type": "secondary",
+            "parameters": {}
+        })
+    
+    # Extract beliefs for memory/knowledge seeding
+    beliefs = replicant.get("beliefs", {}) or {}
+    belief_content = []
+    for category, items in beliefs.items():
+        if isinstance(items, list):
+            for item in items:
+                if isinstance(item, dict):
+                    content = item.get("content", "")
+                    conviction = item.get("conviction", 0.5)
+                    if content:
+                        belief_content.append({
+                            "category": category,
+                            "content": content,
+                            "conviction": conviction
+                        })
+    
+    # Extract avatar info
+    avatar_raw = replicant.get("avatar", {}) or {}
+    appearance = avatar_raw.get("appearance", {}) or {}
+    
+    # Extract voice info
+    voice_raw = replicant.get("voice", {}) or {}
+    
+    # Extract emotional ranges for procedural memory
+    emotional_ranges = replicant.get("emotional_ranges", {}) or {}
+    emotional_procedures = []
+    for emotion, config in emotional_ranges.items():
+        if isinstance(config, dict):
+            emotional_procedures.append({
+                "name": f"express_{emotion}",
+                "triggers": config.get("triggers", []),
+                "expressions": config.get("expressions", []),
+                "voice_modifiers": config.get("voice", {})
+            })
+    
+    # Build memory configuration with beliefs as initial semantic memory
+    memory_config = {
+        "architecture": "hierarchical",
+        "working": {"enabled": True, "max_tokens": 8192},
+        "episodic": {"enabled": True, "storage": "vector_db"},
+        "semantic": {
+            "enabled": True,
+            "storage": "hybrid",
+            "initial_knowledge": belief_content
+        },
+        "procedural": {
+            "enabled": True,
+            "storage": "structured",
+            "initial_procedures": emotional_procedures
+        },
+        "core": {
+            "enabled": True,
+            "blocks": [
+                {"name": "persona", "content": bio, "editable": False},
+                {"name": "traits", "content": ", ".join(core_traits), "editable": False}
+            ]
+        }
+    }
+    
+    # Determine goal from aspirations or designation
+    goal = aspirations[0] if aspirations else f"Fulfill role as {designation}"
+    
+    # Build complete uSA scaffold
+    usa_spec = {
+        "apiVersion": "usa/v2",
+        "kind": "Agent",
+        "metadata": {
+            "name": name,
+            "version": "1.0.0",
+            "description": designation,
+            "author": "Replicant Import",
+            "tags": ["replicant", "imported"] + core_traits[:3]
+        },
+        "identity": {
+            "role": designation or "AI Assistant",
+            "goal": goal,
+            "backstory": backstory,
+            "personality_traits": personality_traits,
+            "constraints": fears  # Use fears as behavioral constraints
+        },
+        "capabilities": {
+            "tools": tools,
+            "skills": skills,
+            "reasoning": {
+                "strategy": "chain_of_thought",
+                "max_iterations": 20,
+                "allow_backtracking": True
+            },
+            "memory": memory_config
+        },
+        "protocols": {
+            "mcp": {"enabled": False, "role": "client", "servers": []},
+            "a2a": {"enabled": False}
+        },
+        "execution": {
+            "llm": {
+                "provider": "anthropic",
+                "model": "claude-3-5-sonnet-20241022",
+                "temperature": 0.7,
+                "max_tokens": 4096
+            },
+            "runtime": {
+                "timeout": 300,
+                "max_iterations": 20,
+                "error_handling": "graceful_degradation"
+            }
+        },
+        "deployment": {
+            "context": "agent-canvas",
+            "environment": {}
+        },
+        # Store original format info for reference
+        "_import_metadata": {
+            "source_format": "replicant",
+            "avatar": {
+                "type": avatar_raw.get("base_model", "generated"),
+                "appearance": appearance,
+                "animations": avatar_raw.get("animations", {})
+            },
+            "voice": {
+                "model": voice_raw.get("model", "default"),
+                "speaker": voice_raw.get("speaker", "default"),
+                "characteristics": voice_raw.get("characteristics", []),
+                "speed": voice_raw.get("speed", 1.0),
+                "pitch": voice_raw.get("pitch", 1.0)
+            },
+            "communication_style": comm_style,
+            "signature_phrases": signature_phrases,
+            "privacy_preferences": replicant.get("privacy_preferences", {})
+        }
+    }
+    
+    return usa_spec
+
+
+def detect_agent_format(data: Dict[str, Any]) -> str:
+    """
+    Detect the format of an agent specification.
+    
+    Returns one of: 'usa', 'eliza', 'crewai', 'replicant', 'unknown'
+    """
+    if not isinstance(data, dict):
+        return "unknown"
+    
+    # Check for uSA format
+    if data.get("apiVersion", "").startswith("usa/"):
+        return "usa"
+    if data.get("kind") == "Agent" and "identity" in data:
+        return "usa"
+    
+    # Check for Replicant format
+    if "designation" in data and "personality" in data:
+        return "replicant"
+    if "beliefs" in data and isinstance(data.get("beliefs"), dict):
+        if any(k in data.get("beliefs", {}) for k in ["who", "what", "why", "how", "huh"]):
+            return "replicant"
+    if "emotional_ranges" in data:
+        return "replicant"
+    
+    # Check for ElizaOS format
+    if "plugins" in data and ("topics" in data or "adjectives" in data):
+        return "eliza"
+    if "system" in data and ("topics" in data or "adjectives" in data):
+        return "eliza"
+    
+    # Check for CrewAI format
+    if "agent" in data:
+        inner = data["agent"]
+        if isinstance(inner, dict) and ("role" in inner or "backstory" in inner):
+            return "crewai"
+    if "role" in data and "backstory" in data and "goal" in data:
+        if "apiVersion" not in data:  # Not uSA
+            return "crewai"
+    
+    return "unknown"
+
+
+def convert_to_usa(data: Dict[str, Any], source_format: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Convert any supported agent format to uSA.
+    
+    Args:
+        data: Agent specification in any supported format
+        source_format: Override format detection (usa, eliza, crewai, replicant)
+    
+    Returns:
+        uSA v2 specification
+    """
+    if source_format is None:
+        source_format = detect_agent_format(data)
+    
+    if source_format == "usa":
+        return data  # Already in uSA format
+    elif source_format == "eliza":
+        return eliza_persona_to_usa(data)
+    elif source_format == "crewai":
+        return crewai_agent_to_usa(data)
+    elif source_format == "replicant":
+        return replicant_to_usa(data)
+    else:
+        raise ValueError(f"Unknown or unsupported agent format: {source_format}")

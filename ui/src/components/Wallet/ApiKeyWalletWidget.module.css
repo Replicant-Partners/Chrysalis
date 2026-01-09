@@ -1,0 +1,215 @@
+/**
+ * ApiKeyWalletWidget Styles
+ */
+
+.widget {
+  background: var(--bg-primary, #1a1a2e);
+  border-radius: 8px;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.compact {
+  font-size: 12px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--bg-secondary, #16162a);
+  border-bottom: 1px solid var(--border-color, #2d2d44);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.icon {
+  font-size: 14px;
+}
+
+.status {
+  font-size: 11px;
+}
+
+.unlocked {
+  color: #22c55e;
+}
+
+.locked {
+  color: #f59e0b;
+}
+
+/* Provider Grid */
+.providerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.compact .providerGrid {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 8px;
+}
+
+.provider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  background: var(--bg-secondary, #16162a);
+  border: 1px solid var(--border-color, #2d2d44);
+  border-radius: 6px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.compact .provider {
+  padding: 6px 4px;
+  flex-direction: row;
+  justify-content: center;
+  gap: 4px;
+}
+
+.provider:hover {
+  border-color: var(--border-hover, #3d3d5c);
+}
+
+.provider.configured {
+  border-color: var(--provider-color, #22c55e);
+  background: color-mix(in srgb, var(--provider-color, #22c55e) 10%, transparent);
+}
+
+.provider.configured::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  background: var(--provider-color, #22c55e);
+  border-radius: 50%;
+}
+
+.compact .provider.configured::after {
+  display: none;
+}
+
+.providerIcon {
+  font-size: 18px;
+}
+
+.compact .providerIcon {
+  font-size: 14px;
+}
+
+.providerName {
+  font-size: 10px;
+  color: var(--text-secondary, #888);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.providerStatus {
+  font-size: 10px;
+  color: var(--text-secondary, #666);
+}
+
+.provider.configured .providerStatus {
+  color: var(--provider-color, #22c55e);
+}
+
+.compact .providerStatus {
+  font-size: 9px;
+}
+
+/* Actions */
+.actions {
+  padding: 10px;
+  border-top: 1px solid var(--border-color, #2d2d44);
+}
+
+.compact .actions {
+  padding: 8px;
+}
+
+.manageButton {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg-secondary, #16162a);
+  border: 1px solid var(--border-color, #2d2d44);
+  color: var(--text-secondary, #888);
+}
+
+.manageButton:hover {
+  background: var(--bg-hover, #2d2d44);
+  color: var(--text-primary, #e0e0e0);
+  border-color: var(--border-hover, #3d3d5c);
+}
+
+.compact .manageButton {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+/* Locked Content */
+.lockedContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.lockedContent p {
+  margin: 0;
+  color: var(--text-secondary, #888);
+  font-size: 13px;
+}
+
+.compact .lockedContent p {
+  font-size: 11px;
+}
+
+.unlockButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--accent-color, #6366f1);
+  border: none;
+  color: white;
+  font-weight: 500;
+}
+
+.unlockButton:hover {
+  background: var(--accent-hover, #5558e3);
+}
+
+.compact .unlockButton {
+  padding: 6px 12px;
+  font-size: 11px;
+}

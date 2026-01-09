@@ -64,3 +64,6 @@ git-init.sh
 
 # Data files (may contain user data)
 data/cache.db
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.cursor/rules/snyk_rules.mdc
