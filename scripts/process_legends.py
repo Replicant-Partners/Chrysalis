@@ -719,8 +719,206 @@ def load_consolidated_embeddings() -> Dict[str, Any]:
     }
 
 
+def create_kb_embedding_dict(run_result: Dict[str, Any], processed_at: str) -> Dict[str, Any]:
+    """
+    Create embedding dictionary from KnowledgeBuilder run result.
+    
+    Args:
+        run_result: KnowledgeBuilder run result
+        processed_at: Processing timestamp
+        
+    Returns:
+        Embedding dictionary for storage
+    """
+    return {
+        "run": run_result["run_number"],
+        "dimensions": run_result.get("embedding_dimensions", 0),
+        "embedding": run_result.get("embedding", []),
+        "has_collected_knowledge": bool(run_result.get("collected_knowledge")),
+        "collected_knowledge": run_result.get("collected_knowledge", {}),
+        "descriptor_strategy": run_result.get("descriptor_strategy"),
+        "descriptors": run_result.get("descriptors", []),
+        "duration_sec": run_result.get("duration_sec"),
+        "processed_at": processed_at,
+        "error": run_result.get("error"),
+    }
+
+
+def create_sb_embedding_dict(run_result: Dict[str, Any], processed_at: str) -> Dict[str, Any]:
+    """
+    Create embedding dictionary from SkillBuilder run result.
+    
+    Args:
+        run_result: SkillBuilder run result
+        processed_at: Processing timestamp
+        
+    Returns:
+        Embedding dictionary for storage
+    """
+    return {
+        "run": run_result["run_number"],
+        "dimensions": run_result.get("embedding_dimensions", 0),
+        "embedding": run_result.get("embedding", []),
+        "skill_count": len(run_result.get("skill_embeddings", [])),
+        "salts_used": run_result.get("salts_used", []),
+        "descriptor_strategy": run_result.get("descriptor_strategy"),
+        "descriptors": run_result.get("descriptors", []),
+        "duration_sec": run_result.get("duration_sec"),
+        "processed_at": processed_at,
+        "error": run_result.get("error"),
+    }
+
+
+def merge_embedding_list(
+    existing_embeddings: List[Dict[str, Any]],
+    new_embeddings: List[Dict[str, Any]],
+    merger: EmbeddingMerger
+) -> Tuple[List[Dict[str, Any]], int, int]:
+    """
+    Merge new embeddings with existing embeddings using semantic similarity.
+    
+    This is a common function used by both KnowledgeBuilder and SkillBuilder
+    to eliminate duplicate merge logic (Issue #6).
+    
+    Args:
+        existing_embeddings: List of existing embedding dictionaries
+        new_embeddings: List of new embedding dictionaries to merge
+        merger: EmbeddingMerger instance for semantic comparison
+        
+    Returns:
+        Tuple of (merged_embeddings, merged_count, added_count)
+    """
+    merged_embs = existing_embeddings.copy()
+    merged_count = 0
+    added_count = 0
+    
+    for new_emb in new_embeddings:
+        updated, was_merged = merger.merge_similar_embeddings(merged_embs, new_emb)
+        merged_embs = updated
+        if was_merged:
+            merged_count += 1
+        else:
+            added_count += 1
+    
+    return merged_embs, merged_count, added_count
+
+
+def create_new_legend_entry(results: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Create a new legend entry for first-time processing.
+    
+    Args:
+        results: Processing results from process_legend()
+        
+    Returns:
+        Legend entry dictionary
+    """
+    return {
+        "name": results["name"],
+        "source_file": results["source_file"],
+        "processed_at": results["processed_at"],
+        "run_count": results.get("run_count"),
+        "strategy": results.get("strategy"),
+        "knowledge_builder": {
+            "runs": len(results["knowledge_builder_runs"]),
+            "embeddings": [
+                {
+                    **create_kb_embedding_dict(r, results["processed_at"]),
+                    "merged_count": 1,
+                }
+                for r in results["knowledge_builder_runs"]
+            ],
+        },
+        "skill_builder": {
+            "runs": len(results["skill_builder_runs"]),
+            "embeddings": [
+                {
+                    **create_sb_embedding_dict(r, results["processed_at"]),
+                    "merged_count": 1,
+                }
+                for r in results["skill_builder_runs"]
+            ],
+        },
+    }
+
+
+def merge_with_existing_embeddings(
+    existing_entry: Dict[str, Any],
+    results: Dict[str, Any],
+    merger: EmbeddingMerger
+) -> Dict[str, Any]:
+    """
+    Merge new processing results with existing legend entry.
+    
+    Args:
+        existing_entry: Existing legend entry from consolidated file
+        results: New processing results from process_legend()
+        merger: EmbeddingMerger instance for semantic comparison
+        
+    Returns:
+        Updated legend entry with merged embeddings
+    """
+    # Prepare new embeddings
+    new_kb_embs = [
+        create_kb_embedding_dict(r, results["processed_at"])
+        for r in results["knowledge_builder_runs"]
+    ]
+    
+    new_sb_embs = [
+        create_sb_embedding_dict(r, results["processed_at"])
+        for r in results["skill_builder_runs"]
+    ]
+    
+    # Merge KnowledgeBuilder embeddings
+    existing_kb_embs = existing_entry.get("knowledge_builder", {}).get("embeddings", [])
+    merged_kb_embs, kb_merged_count, kb_added_count = merge_embedding_list(
+        existing_kb_embs, new_kb_embs, merger
+    )
+    
+    # Merge SkillBuilder embeddings
+    existing_sb_embs = existing_entry.get("skill_builder", {}).get("embeddings", [])
+    merged_sb_embs, sb_merged_count, sb_added_count = merge_embedding_list(
+        existing_sb_embs, new_sb_embs, merger
+    )
+    
+    logger.info(f"    KB: merged {kb_merged_count}, added {kb_added_count}")
+    logger.info(f"    SB: merged {sb_merged_count}, added {sb_added_count}")
+    
+    # Create updated entry
+    return {
+        "name": results["name"],
+        "source_file": results["source_file"],
+        "processed_at": results["processed_at"],
+        "run_count": existing_entry.get("run_count", 0) + results.get("run_count", 0),
+        "strategy": results.get("strategy"),
+        "knowledge_builder": {
+            "runs": len(merged_kb_embs),
+            "embeddings": merged_kb_embs,
+        },
+        "skill_builder": {
+            "runs": len(merged_sb_embs),
+            "embeddings": merged_sb_embs,
+        },
+    }
+
+
 def save_embeddings(legend_name: str, results: Dict[str, Any]) -> Path:
-    """Semantic merge of embeddings into consolidated all_embeddings.json."""
+    """
+    Semantic merge of embeddings into consolidated all_embeddings.json.
+    
+    This function orchestrates the merging process by:
+    1. Loading existing consolidated data
+    2. Determining if this is a new or existing legend
+    3. Merging embeddings semantically if existing
+    4. Saving the updated consolidated data
+    
+    Args:
+        legend_name: Name of the legend being processed
+        results: Processing results from process_legend()
+        
+    Returns:
+        Path to the consolidated embeddings file
+    """
     EMBEDDINGS_DIR.mkdir(parents=True, exist_ok=True)
     # Issue #1 Fix: Add timeout to prevent indefinite hangs
     lock = FileLock(str(ALL_EMBEDDINGS) + ".lock", timeout=300)  # 5 minutes
@@ -729,140 +927,16 @@ def save_embeddings(legend_name: str, results: Dict[str, Any]) -> Path:
     
     with lock:
         data = load_consolidated_embeddings()
-        
-        # Get existing entry if it exists
         existing_entry = data["legends"].get(legend_name)
         
         if existing_entry:
             # SEMANTIC MERGE: Combine new embeddings with existing ones
             logger.info(f"  Semantically merging embeddings for {legend_name}")
-            
-            # Merge KnowledgeBuilder embeddings
-            existing_kb_embs = existing_entry.get("knowledge_builder", {}).get("embeddings", [])
-            new_kb_embs = [
-                {
-                    "run": r["run_number"],
-                    "dimensions": r.get("embedding_dimensions", 0),
-                    "embedding": r.get("embedding", []),
-                    "has_collected_knowledge": bool(r.get("collected_knowledge")),
-                    "collected_knowledge": r.get("collected_knowledge", {}),
-                    "descriptor_strategy": r.get("descriptor_strategy"),
-                    "descriptors": r.get("descriptors", []),
-                    "duration_sec": r.get("duration_sec"),
-                    "processed_at": results["processed_at"],
-                    "error": r.get("error"),
-                }
-                for r in results["knowledge_builder_runs"]
-            ]
-            
-            # Merge each new embedding
-            merged_kb_embs = existing_kb_embs.copy()
-            kb_merged_count = 0
-            kb_added_count = 0
-            
-            for new_emb in new_kb_embs:
-                updated, was_merged = embedding_merger.merge_similar_embeddings(merged_kb_embs, new_emb)
-                merged_kb_embs = updated
-                if was_merged:
-                    kb_merged_count += 1
-                else:
-                    kb_added_count += 1
-            
-            # Merge SkillBuilder embeddings
-            existing_sb_embs = existing_entry.get("skill_builder", {}).get("embeddings", [])
-            new_sb_embs = [
-                {
-                    "run": r["run_number"],
-                    "dimensions": r.get("embedding_dimensions", 0),
-                    "embedding": r.get("embedding", []),
-                    "skill_count": len(r.get("skill_embeddings", [])),
-                    "salts_used": r.get("salts_used", []),
-                    "descriptor_strategy": r.get("descriptor_strategy"),
-                    "descriptors": r.get("descriptors", []),
-                    "duration_sec": r.get("duration_sec"),
-                    "processed_at": results["processed_at"],
-                    "error": r.get("error"),
-                }
-                for r in results["skill_builder_runs"]
-            ]
-            
-            merged_sb_embs = existing_sb_embs.copy()
-            sb_merged_count = 0
-            sb_added_count = 0
-            
-            for new_emb in new_sb_embs:
-                updated, was_merged = embedding_merger.merge_similar_embeddings(merged_sb_embs, new_emb)
-                merged_sb_embs = updated
-                if was_merged:
-                    sb_merged_count += 1
-                else:
-                    sb_added_count += 1
-            
-            logger.info(f"    KB: merged {kb_merged_count}, added {kb_added_count}")
-            logger.info(f"    SB: merged {sb_merged_count}, added {sb_added_count}")
-            
-            # Update entry with merged embeddings
-            legend_entry = {
-                "name": results["name"],
-                "source_file": results["source_file"],
-                "processed_at": results["processed_at"],
-                "run_count": existing_entry.get("run_count", 0) + results.get("run_count", 0),
-                "strategy": results.get("strategy"),
-                "knowledge_builder": {
-                    "runs": len(merged_kb_embs),
-                    "embeddings": merged_kb_embs,
-                },
-                "skill_builder": {
-                    "runs": len(merged_sb_embs),
-                    "embeddings": merged_sb_embs,
-                },
-            }
+            legend_entry = merge_with_existing_embeddings(existing_entry, results, embedding_merger)
         else:
             # First time processing this legend
             logger.info(f"  First time processing {legend_name}")
-            legend_entry = {
-                "name": results["name"],
-                "source_file": results["source_file"],
-                "processed_at": results["processed_at"],
-                "run_count": results.get("run_count"),
-                "strategy": results.get("strategy"),
-                "knowledge_builder": {
-                    "runs": len(results["knowledge_builder_runs"]),
-                    "embeddings": [
-                        {
-                            "run": r["run_number"],
-                            "dimensions": r.get("embedding_dimensions", 0),
-                            "embedding": r.get("embedding", []),
-                            "has_collected_knowledge": bool(r.get("collected_knowledge")),
-                            "collected_knowledge": r.get("collected_knowledge", {}),
-                            "descriptor_strategy": r.get("descriptor_strategy"),
-                            "descriptors": r.get("descriptors", []),
-                            "duration_sec": r.get("duration_sec"),
-                            "merged_count": 1,
-                            "error": r.get("error"),
-                        }
-                        for r in results["knowledge_builder_runs"]
-                    ],
-                },
-                "skill_builder": {
-                    "runs": len(results["skill_builder_runs"]),
-                    "embeddings": [
-                        {
-                            "run": r["run_number"],
-                            "dimensions": r.get("embedding_dimensions", 0),
-                            "embedding": r.get("embedding", []),
-                            "skill_count": len(r.get("skill_embeddings", [])),
-                            "salts_used": r.get("salts_used", []),
-                            "descriptor_strategy": r.get("descriptor_strategy"),
-                            "descriptors": r.get("descriptors", []),
-                            "duration_sec": r.get("duration_sec"),
-                            "merged_count": 1,
-                            "error": r.get("error"),
-                        }
-                        for r in results["skill_builder_runs"]
-                    ],
-                },
-            }
+            legend_entry = create_new_legend_entry(results)
         
         # Save merged data
         data["legends"][legend_name] = legend_entry
