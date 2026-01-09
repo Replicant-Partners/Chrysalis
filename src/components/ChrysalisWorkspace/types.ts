@@ -1,12 +1,13 @@
 /**
  * ChrysalisWorkspace Types
- * 
+ *
  * Type definitions for the three-frame dual-chat canvas architecture.
- * 
+ *
  * @module components/ChrysalisWorkspace/types
  */
 
 import * as Y from 'yjs';
+import type { MemUAdapter } from '../../memory/MemUAdapter';
 
 // =============================================================================
 // Chat Types
@@ -199,6 +200,20 @@ export interface ChatPaneProps {
 }
 
 /**
+ * Memory event emitted by the workspace for UI feedback
+ */
+export interface MemoryUIEvent {
+  type: 'added' | 'recalled' | 'learned' | 'consolidated';
+  tier?: 'working' | 'episodic' | 'semantic' | 'procedural';
+  memoryId?: string;
+  memoryIds?: string[];
+  content?: string;
+  count?: number;
+  source?: string;
+  factsExtracted?: number;
+}
+
+/**
  * ChrysalisWorkspace component props
  */
 export interface ChrysalisWorkspaceProps {
@@ -214,6 +229,9 @@ export interface ChrysalisWorkspaceProps {
   // YJS sync (optional - if not provided, local state only)
   yjsDoc?: Y.Doc;
   
+  // Memory system (optional - if not provided, creates internal adapter)
+  memoryAdapter?: MemUAdapter;
+  
   // Configuration
   config?: Partial<WorkspaceConfig>;
   
@@ -223,4 +241,7 @@ export interface ChrysalisWorkspaceProps {
   onMessageSent?: (message: ChatMessage, pane: ChatPanePosition) => void;
   onAgentResponse?: (message: ChatMessage, pane: ChatPanePosition) => void;
   onDocumentDrop?: (file: File, position: { x: number; y: number }) => void;
+  
+  // Memory events for UI feedback
+  onMemoryEvent?: (event: MemoryUIEvent) => void;
 }

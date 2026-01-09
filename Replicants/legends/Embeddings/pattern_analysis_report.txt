@@ -1,0 +1,62 @@
+================================================================================
+DESCRIPTOR SELECTION PATTERN ANALYSIS REPORT
+================================================================================
+
+## SUMMARY
+Total legends processed: 96
+Total builder runs: 288
+
+## STRATEGY METRICS
+------------------------------------------------------------
+Strategy         Runs   Avg Duration   Avg Skills   Errors
+------------------------------------------------------------
+focused           192        0.068s          4.2        0
+diverse            96        0.058s          4.4        0
+hybrid              0        0.000s          0.0        0
+
+## DESCRIPTOR OVERLAP (Focused vs Diverse)
+  Average Jaccard Similarity: 60.56%
+  Min Overlap: 40.00%
+  Max Overlap: 100.00%
+  Std Dev: 0.2647
+
+## RUN PROGRESSION (1 → 2 → 3)
+------------------------------------------------------------
+Run        KB Avg Dur   SB Avg Dur   Avg Skills
+------------------------------------------------------------
+Run 1         0.077s      0.304s          4.1
+Run 2         0.058s      0.314s          4.4
+Run 3         0.058s      0.307s          4.4
+
+## TOP DESCRIPTORS BY STRATEGY
+
+### FOCUSED Strategy (Top 10)
+    12x  analytical
+    12x  pragmatic
+    12x  empirically_rigorous
+     8x  poetry
+     8x  teaching_art
+     8x  systems_thinker
+     8x  fiercely_loyal
+     8x  Mexican identity
+     8x  Practical solutions
+     8x  Intellectual honesty
+
+### DIVERSE Strategy (Top 10)
+     6x  pragmatic
+     4x  poetry
+     4x  teaching_art
+     4x  analytical
+     4x  field_research
+     4x  fiercely_independent
+     4x  Talk is cheap. Show me the code.
+     4x  Literary immortality
+     3x  philosophically_playful
+     2x  visionary
+
+## OPTIMIZATION RECOMMENDATIONS
+  • ✅ Low error rate (0/288). Pipeline is stable.
+
+================================================================================
+END OF REPORT
+================================================================================

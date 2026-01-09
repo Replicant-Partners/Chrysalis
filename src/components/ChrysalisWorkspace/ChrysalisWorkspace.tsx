@@ -1,17 +1,18 @@
 /**
  * ChrysalisWorkspace Component
- * 
+ *
  * The main three-frame layout for Chrysalis with:
  * - Left Frame: Chat pane bound to Primary Agent
  * - Center Frame: JSON Canvas workspace
  * - Right Frame: Chat pane bound to Secondary Agent
- * 
+ *
  * Features:
  * - Resizable panels with drag handles
  * - YJS CRDT sync for real-time collaboration
  * - Document drop-to-learn on canvas
  * - Memory indicators on agent messages
- * 
+ * - MemU integration for conversation memory persistence
+ *
  * @module components/ChrysalisWorkspace/ChrysalisWorkspace
  */
 
@@ -28,6 +29,9 @@ import {
   ChatParticipant,
   DEFAULT_WORKSPACE_CONFIG,
 } from './types';
+import { MemUAdapter } from '../../memory/MemUAdapter';
+import { AgentChatController, AgentResponse } from '../../agents/AgentChatController';
+import { AgentLearningPipeline, DocumentInput, LegendEmbeddingLoader, LegendEmbeddingFile } from '../../learning';
 
 // =============================================================================
 // Styles
@@ -239,12 +243,14 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
   primaryAgent,
   secondaryAgent,
   yjsDoc,
+  memoryAdapter: externalMemoryAdapter,
   config: configOverrides,
   onSessionStart,
   onSessionEnd,
   onMessageSent,
   onAgentResponse,
   onDocumentDrop,
+  onMemoryEvent,
 }) => {
   // Merge config with defaults
   const config = useMemo(() => ({
@@ -268,6 +274,12 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
   // Document drop state
   const [isDropTarget, setIsDropTarget] = useState(false);
   
+  // Memory system refs (persisted across renders)
+  const memoryAdapterRef = useRef<MemUAdapter | null>(null);
+  const leftControllerRef = useRef<AgentChatController | null>(null);
+  const rightControllerRef = useRef<AgentChatController | null>(null);
+  const learningPipelineRef = useRef<AgentLearningPipeline | null>(null);
+  
   // Participants
   const participants = useMemo<ChatParticipant[]>(() => [
     {
@@ -290,6 +302,56 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     }] : []),
   ], [userId, userName, primaryAgent, secondaryAgent]);
   
+  // Initialize memory system
+  useEffect(() => {
+    // Use external adapter or create internal one
+    const adapter = externalMemoryAdapter ?? new MemUAdapter(primaryAgent.agentId);
+    memoryAdapterRef.current = adapter;
+    
+    // Create learning pipeline for document processing
+    learningPipelineRef.current = new AgentLearningPipeline(adapter, primaryAgent.agentId);
+    
+    // Create left controller for primary agent
+    leftControllerRef.current = new AgentChatController(
+      primaryAgent,
+      'left',
+      adapter,
+      userId,
+      userName,
+      undefined, // No terminal client for now (uses mock responses)
+      { showMemoryIndicators: config.showMemoryIndicators }
+    );
+    
+    // Create right controller for secondary agent (if present)
+    if (secondaryAgent) {
+      // For secondary agent, we could share the same adapter or create separate
+      // Sharing allows cross-agent memory recall which is useful
+      rightControllerRef.current = new AgentChatController(
+        secondaryAgent,
+        'right',
+        adapter, // Shared memory adapter
+        userId,
+        userName,
+        undefined,
+        { showMemoryIndicators: config.showMemoryIndicators }
+      );
+    }
+    
+    // Subscribe to memory events for UI feedback
+    const unsubscribe = adapter.on('memory:added', (event) => {
+      onMemoryEvent?.({
+        type: 'added',
+        tier: event.memory.tier,
+        memoryId: event.memory.memoryId,
+        content: event.memory.content.slice(0, 100),
+      });
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [primaryAgent.agentId, secondaryAgent?.agentId, userId, userName, externalMemoryAdapter, config.showMemoryIndicators]);
+  
   // Initialize session
   useEffect(() => {
     const newSession: WorkspaceSession = {
@@ -304,6 +366,22 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     onSessionStart?.(newSession);
     
     return () => {
+      // Consolidate memories on session end
+      const endSession = async () => {
+        try {
+          if (leftControllerRef.current) {
+            await leftControllerRef.current.endConversation();
+          }
+          if (rightControllerRef.current) {
+            await rightControllerRef.current.endConversation();
+          }
+        } catch (error) {
+          console.error('[ChrysalisWorkspace] Error ending conversation:', error);
+        }
+      };
+      
+      endSession();
+      
       if (newSession) {
         onSessionEnd?.(newSession);
       }
@@ -372,11 +450,11 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     });
   }, []);
   
-  // Handle sending messages
-  const handleSendLeftMessage = useCallback((content: string) => {
+  // Handle sending messages - Left pane (Primary Agent with MemU)
+  const handleSendLeftMessage = useCallback(async (content: string) => {
     const message = createMessage(content, userId, userName, 'user');
     
-    // Add to local state or YJS
+    // Add user message to local state or YJS
     if (yjsDoc) {
       const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
       leftChatArray.push([message]);
@@ -386,29 +464,79 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     
     onMessageSent?.(message, 'left');
     
-    // Simulate agent response (in real implementation, this would go through AgentTerminalClient)
-    setLeftTyping(true);
-    setTimeout(() => {
-      setLeftTyping(false);
-      const agentResponse = createMessage(
-        `I received your message: "${content}". Let me think about that...`,
-        primaryAgent.agentId,
-        primaryAgent.agentName,
-        'agent'
-      );
+    // Process through AgentChatController with MemU integration
+    const controller = leftControllerRef.current;
+    if (controller) {
+      setLeftTyping(true);
       
-      if (yjsDoc) {
-        const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
-        leftChatArray.push([agentResponse]);
-      } else {
-        setLeftMessages(prev => [...prev, agentResponse]);
+      try {
+        const response: AgentResponse = await controller.processUserMessage({ content });
+        
+        // Add agent response with memory indicators
+        if (yjsDoc) {
+          const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
+          leftChatArray.push([response.message]);
+        } else {
+          setLeftMessages(prev => [...prev, response.message]);
+        }
+        
+        onAgentResponse?.(response.message, 'left');
+        
+        // Emit memory event if memories were recalled
+        if (response.recalledMemories.length > 0) {
+          onMemoryEvent?.({
+            type: 'recalled',
+            tier: 'episodic',
+            count: response.recalledMemories.length,
+            memoryIds: response.recalledMemories.map(m => m.memoryId),
+          });
+        }
+      } catch (error) {
+        console.error('[ChrysalisWorkspace] Error processing message:', error);
+        
+        // Fallback error message
+        const errorMessage = createMessage(
+          'I encountered an issue processing your message. Please try again.',
+          primaryAgent.agentId,
+          primaryAgent.agentName,
+          'agent'
+        );
+        
+        if (yjsDoc) {
+          const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
+          leftChatArray.push([errorMessage]);
+        } else {
+          setLeftMessages(prev => [...prev, errorMessage]);
+        }
+      } finally {
+        setLeftTyping(false);
       }
-      
-      onAgentResponse?.(agentResponse, 'left');
-    }, 1500);
-  }, [userId, userName, primaryAgent, yjsDoc, onMessageSent, onAgentResponse]);
+    } else {
+      // Fallback to mock response if controller not available
+      setLeftTyping(true);
+      setTimeout(() => {
+        setLeftTyping(false);
+        const agentResponse = createMessage(
+          `I received your message: "${content}". Memory system not connected.`,
+          primaryAgent.agentId,
+          primaryAgent.agentName,
+          'agent'
+        );
+        
+        if (yjsDoc) {
+          const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
+          leftChatArray.push([agentResponse]);
+        } else {
+          setLeftMessages(prev => [...prev, agentResponse]);
+        }
+        
+        onAgentResponse?.(agentResponse, 'left');
+      }, 500);
+    }
+  }, [userId, userName, primaryAgent, yjsDoc, onMessageSent, onAgentResponse, onMemoryEvent]);
   
-  const handleSendRightMessage = useCallback((content: string) => {
+  // Handle sending messages - Right pane (Secondary Agent with MemU)
+  const handleSendRightMessage = useCallback(async (content: string) => {
     if (!secondaryAgent) return;
     
     const message = createMessage(content, userId, userName, 'user');
@@ -422,27 +550,74 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     
     onMessageSent?.(message, 'right');
     
-    // Simulate agent response
-    setRightTyping(true);
-    setTimeout(() => {
-      setRightTyping(false);
-      const agentResponse = createMessage(
-        `Understood. I'll analyze that and provide my perspective.`,
-        secondaryAgent.agentId,
-        secondaryAgent.agentName,
-        'agent'
-      );
+    // Process through AgentChatController with MemU integration
+    const controller = rightControllerRef.current;
+    if (controller) {
+      setRightTyping(true);
       
-      if (yjsDoc) {
-        const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
-        rightChatArray.push([agentResponse]);
-      } else {
-        setRightMessages(prev => [...prev, agentResponse]);
+      try {
+        const response: AgentResponse = await controller.processUserMessage({ content });
+        
+        if (yjsDoc) {
+          const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
+          rightChatArray.push([response.message]);
+        } else {
+          setRightMessages(prev => [...prev, response.message]);
+        }
+        
+        onAgentResponse?.(response.message, 'right');
+        
+        // Emit memory event if memories were recalled
+        if (response.recalledMemories.length > 0) {
+          onMemoryEvent?.({
+            type: 'recalled',
+            tier: 'episodic',
+            count: response.recalledMemories.length,
+            memoryIds: response.recalledMemories.map(m => m.memoryId),
+          });
+        }
+      } catch (error) {
+        console.error('[ChrysalisWorkspace] Error processing message:', error);
+        
+        const errorMessage = createMessage(
+          'I encountered an issue processing your message. Please try again.',
+          secondaryAgent.agentId,
+          secondaryAgent.agentName,
+          'agent'
+        );
+        
+        if (yjsDoc) {
+          const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
+          rightChatArray.push([errorMessage]);
+        } else {
+          setRightMessages(prev => [...prev, errorMessage]);
+        }
+      } finally {
+        setRightTyping(false);
       }
-      
-      onAgentResponse?.(agentResponse, 'right');
-    }, 1500);
-  }, [userId, userName, secondaryAgent, yjsDoc, onMessageSent, onAgentResponse]);
+    } else {
+      // Fallback to mock response
+      setRightTyping(true);
+      setTimeout(() => {
+        setRightTyping(false);
+        const agentResponse = createMessage(
+          `Understood. I'll analyze that and provide my perspective. Memory system not connected.`,
+          secondaryAgent.agentId,
+          secondaryAgent.agentName,
+          'agent'
+        );
+        
+        if (yjsDoc) {
+          const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
+          rightChatArray.push([agentResponse]);
+        } else {
+          setRightMessages(prev => [...prev, agentResponse]);
+        }
+        
+        onAgentResponse?.(agentResponse, 'right');
+      }, 500);
+    }
+  }, [userId, userName, secondaryAgent, yjsDoc, onMessageSent, onAgentResponse, onMemoryEvent]);
   
   // Handle clear chat
   const handleClearLeftChat = useCallback(() => {
@@ -478,7 +653,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     setIsDropTarget(false);
   }, []);
   
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDropTarget(false);
@@ -486,7 +661,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     if (!config.enableDocumentDrop) return;
     
     const files = Array.from(e.dataTransfer.files);
-    const supportedFiles = files.filter(f => 
+    const supportedFiles = files.filter(f =>
       f.type.includes('json') ||
       f.type.includes('yaml') ||
       f.type.includes('text') ||
@@ -494,10 +669,73 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       f.name.endsWith('.md')
     );
     
-    for (const file of supportedFiles) {
-      onDocumentDrop?.(file, { x: e.clientX, y: e.clientY });
+    // Check for embedding files (from builder pipeline)
+    const embeddingFiles = files.filter(f =>
+      f.name.endsWith('_embeddings.json') ||
+      f.name.endsWith('_embeddings_full.json')
+    );
+    
+    // Load embedding files into agent memory
+    const leftController = leftControllerRef.current;
+    if (leftController && embeddingFiles.length > 0) {
+      for (const file of embeddingFiles) {
+        try {
+          const content = await readFileContent(file);
+          const embeddingData: LegendEmbeddingFile = JSON.parse(content);
+          await leftController.loadSingleLegend(embeddingData);
+          
+          // Emit learning event
+          onMemoryEvent?.({
+            type: 'learned',
+            tier: 'semantic',
+            source: file.name,
+            factsExtracted: embeddingData.knowledge_builder?.embeddings.length || 0,
+          });
+          
+          console.log(`[ChrysalisWorkspace] Loaded legend embeddings from ${file.name}`);
+        } catch (error) {
+          console.error(`[ChrysalisWorkspace] Error loading embeddings from ${file.name}:`, error);
+        }
+      }
     }
-  }, [config.enableDocumentDrop, onDocumentDrop]);
+    
+    // Process non-embedding files through AgentLearningPipeline
+    const documentFiles = supportedFiles.filter(f =>
+      !f.name.endsWith('_embeddings.json') &&
+      !f.name.endsWith('_embeddings_full.json')
+    );
+    
+    for (const file of documentFiles) {
+      onDocumentDrop?.(file, { x: e.clientX, y: e.clientY });
+      
+      // Read file content and learn from it
+      const pipeline = learningPipelineRef.current;
+      if (pipeline) {
+        try {
+          const content = await readFileContent(file);
+          const documentInput: DocumentInput = {
+            fileName: file.name,
+            content,
+            mimeType: file.type,
+          };
+          
+          const extractedFacts = await pipeline.learnFromDocument(documentInput);
+          
+          // Emit learning event
+          onMemoryEvent?.({
+            type: 'learned',
+            tier: 'semantic',
+            source: file.name,
+            factsExtracted: extractedFacts.length,
+          });
+          
+          console.log(`[ChrysalisWorkspace] Learned ${extractedFacts.length} facts from ${file.name}`);
+        } catch (error) {
+          console.error(`[ChrysalisWorkspace] Error learning from ${file.name}:`, error);
+        }
+      }
+    }
+  }, [config.enableDocumentDrop, onDocumentDrop, onMemoryEvent]);
   
   return (
     <div ref={workspaceRef} style={styles.workspace}>
@@ -520,24 +758,28 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       <ResizeHandle onResize={handleLeftResize} position="left" />
       
       {/* Center Canvas */}
-      <div 
+      <div
         style={{ ...styles.centerPanel, width: `${panelSizes.centerWidth}%` }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {/* Placeholder for AgentCanvas - will integrate with existing component */}
-        <div style={styles.emptyCanvas}>
-          <div style={styles.emptyCanvasIcon}>🦋</div>
-          <div style={styles.emptyCanvasTitle}>Agent Canvas</div>
-          <div style={styles.emptyCanvasSubtitle}>
-            Drop documents here to teach your agents.
-            <br />
-            Drag agents from the import menu to add them to the workspace.
-          </div>
-        </div>
+        {/* AgentCanvas Component */}
+        <AgentCanvas
+          showToolbar={true}
+          showMinimap={false}
+          onAgentSelect={(agentId) => {
+            console.log('[ChrysalisWorkspace] Agent selected:', agentId);
+          }}
+          onChatRequest={(agentId) => {
+            console.log('[ChrysalisWorkspace] Chat requested with:', agentId);
+          }}
+          onImportComplete={(result) => {
+            console.log('[ChrysalisWorkspace] Import complete:', result);
+          }}
+        />
         
-        {/* Drop Overlay */}
+        {/* Drop Overlay for Embedding Files */}
         {isDropTarget && (
           <div style={styles.dropOverlay}>
             <div style={styles.dropOverlayText}>
@@ -579,5 +821,24 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     </div>
   );
 };
+
+/**
+ * Helper function to read file content as text
+ */
+async function readFileContent(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (typeof result === 'string') {
+        resolve(result);
+      } else {
+        reject(new Error('Failed to read file as text'));
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(file);
+  });
+}
 
 export default ChrysalisWorkspace;

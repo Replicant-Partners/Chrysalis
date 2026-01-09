@@ -28,9 +28,18 @@ class SimplePipeline:
         schema_resolver: Optional[SchemaResolver] = None,
     ) -> None:
         self.collector = collector or TavilyCollector()
-        self.lance = lancedb_client or LanceDBClient(uri="./data/lancedb")
         self.cache = cache or SQLiteCache()
         self.embedder = embedding_service or EmbeddingService()
+        
+        # Initialize LanceDB with correct dimensions from embedding service
+        if lancedb_client:
+            self.lance = lancedb_client
+        else:
+            # Get actual embedding dimensions from the service
+            embedding_dims = self.embedder.dimensions
+            logger.info(f"Initializing LanceDB with {embedding_dims} dimensions (from {self.embedder._provider})")
+            self.lance = LanceDBClient(uri="./data/lancedb", vector_dim=embedding_dims)
+        
         self.schema_resolver = schema_resolver or SchemaResolver()
 
     def collect_and_store(self, identifier: str, entity_type: Optional[str] = None) -> Dict:

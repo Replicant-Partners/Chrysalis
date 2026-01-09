@@ -13,6 +13,7 @@
 
 import { MemUAdapter } from '../memory/MemUAdapter';
 import { AgentLearningPipeline, LearningEvent } from '../learning/AgentLearningPipeline';
+import { LegendEmbeddingLoader, LegendEmbeddingFile, LoadingStats } from '../learning/LegendEmbeddingLoader';
 import { AgentTerminalClient } from '../terminal/AgentTerminalClient';
 import {
   ChatMessage,
@@ -108,6 +109,7 @@ export type StatusHandler = (status: 'idle' | 'thinking' | 'recalling' | 'respon
 export class AgentChatController {
   private memory: MemUAdapter;
   private learning: AgentLearningPipeline;
+  private embeddingLoader: LegendEmbeddingLoader;
   private agent: AgentBinding;
   private panePosition: ChatPanePosition;
   private config: AgentChatControllerConfig;
@@ -120,6 +122,7 @@ export class AgentChatController {
   private userId: string;
   private userName: string;
   private messageCount: number = 0;
+  private loadedLegendsStats: LoadingStats | null = null;
   
   constructor(
     agent: AgentBinding,
@@ -140,6 +143,9 @@ export class AgentChatController {
     
     // Initialize learning pipeline
     this.learning = new AgentLearningPipeline(memory, agent.agentId);
+    
+    // Initialize embedding loader for builder knowledge
+    this.embeddingLoader = new LegendEmbeddingLoader(memory, agent.agentId);
     
     // Subscribe to learning events
     this.learning.onLearning((event: LearningEvent) => {
@@ -538,6 +544,99 @@ Guidelines:
    */
   getPanePosition(): ChatPanePosition {
     return this.panePosition;
+  }
+  
+  // ===========================================================================
+  // Learning Status Reporting
+  // ===========================================================================
+  
+  /**
+   * Load legend embeddings from builder output
+   */
+  async loadLegendEmbeddings(embeddings: LegendEmbeddingFile[]): Promise<LoadingStats> {
+    const stats = await this.embeddingLoader.loadMultiple(embeddings);
+    this.loadedLegendsStats = stats;
+    return stats;
+  }
+  
+  /**
+   * Load a single legend's embeddings
+   */
+  async loadSingleLegend(embedding: LegendEmbeddingFile): Promise<void> {
+    const result = await this.embeddingLoader.loadFromParsedFile(embedding);
+    console.log(`[AgentChatController] Loaded ${result.legendName}: ${result.knowledgeLoaded} knowledge, ${result.skillsLoaded} skills`);
+  }
+  
+  /**
+   * Get learning status report for display in chat
+   */
+  getLearningReport(): string {
+    return this.embeddingLoader.generateLearningReport();
+  }
+  
+  /**
+   * Check if agent has learned about a specific legend
+   */
+  hasLearnedLegend(legendName: string): boolean {
+    return this.embeddingLoader.isLegendLoaded(legendName);
+  }
+  
+  /**
+   * Get list of learned legends
+   */
+  getLearnedLegends(): string[] {
+    return this.embeddingLoader.getLoadedLegends();
+  }
+  
+  /**
+   * Search knowledge about a specific legend
+   */
+  async searchLegendKnowledge(legendName: string, query: string): Promise<string[]> {
+    return this.embeddingLoader.searchLegendKnowledge(legendName, query);
+  }
+  
+  /**
+   * Get skills for a specific legend
+   */
+  async getLegendSkills(legendName: string): Promise<Array<{ name: string; description: string }>> {
+    return this.embeddingLoader.getLegendSkills(legendName);
+  }
+  
+  /**
+   * Generate a conversational response about what the agent has learned
+   */
+  async generateLearningDiscussion(query: string): Promise<string> {
+    const loadedLegends = this.getLearnedLegends();
+    
+    if (loadedLegends.length === 0) {
+      return "I haven't learned from any legends yet. Drop legend embedding files on the canvas to teach me!";
+    }
+    
+    // Search across all loaded knowledge
+    const results = await this.memory.search(query, {
+      tiers: ['semantic', 'procedural'],
+      limit: 5,
+    });
+    
+    if (results.memories.length === 0) {
+      return `I've learned about ${loadedLegends.length} legends (${loadedLegends.slice(0, 3).join(', ')}...), but I couldn't find specific information about "${query}".`;
+    }
+    
+    // Build conversational response
+    const insights = results.memories.map(m => {
+      if ('fact' in m) return (m as any).fact;
+      if ('skillName' in m) return `Skill: ${(m as any).skillName} - ${(m as any).description}`;
+      return m.content.slice(0, 150);
+    });
+    
+    return `Based on what I've learned from ${loadedLegends.length} legends:\n\n${insights.map((i, idx) => `${idx + 1}. ${i}`).join('\n')}`;
+  }
+  
+  /**
+   * Get the embedding loader for advanced operations
+   */
+  getEmbeddingLoader(): LegendEmbeddingLoader {
+    return this.embeddingLoader;
   }
 }
 

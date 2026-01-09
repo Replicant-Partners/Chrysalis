@@ -43,14 +43,14 @@ def _call_voyage_http(text: str, api_key: str, model: str = "voyage-3") -> Optio
         "model": model,
         "input": [text]
     }
-    
+
     req = urllib.request.Request(
         url,
         data=json.dumps(data).encode("utf-8"),
         headers=headers,
         method="POST"
     )
-    
+
     try:
         with urllib.request.urlopen(req, timeout=30) as response:
             result = json.loads(response.read().decode("utf-8"))
@@ -73,7 +73,7 @@ except ImportError:
 class EmbeddingService:
     """
     Embedding service with Voyage AI as primary, OpenAI as fallback, deterministic for offline.
-    
+
     Provider priority:
     1. Voyage AI (if VOYAGE_API_KEY is set) - Anthropic's recommended provider
     2. OpenAI (if OPENAI_API_KEY is set) - Fallback
@@ -89,7 +89,7 @@ class EmbeddingService:
     ) -> None:
         """
         Initialize embedding service.
-        
+
         Args:
             model: Voyage AI model name (default: voyage-3)
             dimensions: Voyage embedding dimensions (default: 1024)
@@ -100,19 +100,19 @@ class EmbeddingService:
         self.dimensions = dimensions
         self.fallback_model = fallback_model
         self.fallback_dimensions = fallback_dimensions
-        
+
         # Initialize clients
         self._voyage_client = None
         self._openai_client = None
         self._provider = None
-        
+
         # Check for forced provider override
         forced_provider = os.getenv("EMBEDDING_PROVIDER", "").lower()
         if forced_provider == "deterministic":
             self._provider = "deterministic"
             logger.info("Embedding provider: deterministic (forced)")
             return
-        
+
         # Try Voyage AI first (primary)
         voyage_api_key = os.getenv("VOYAGE_API_KEY")
         if voyage_api_key and (forced_provider in ("", "voyage")):
@@ -128,7 +128,7 @@ class EmbeddingService:
                 self._voyage_api_key = voyage_api_key
                 self._provider = "voyage_http"
                 logger.info(f"Embedding provider: Voyage AI HTTP ({model})")
-        
+
         # Try OpenAI as fallback
         if self._provider is None:
             openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("GPT_API_KEY")
@@ -141,11 +141,12 @@ class EmbeddingService:
                     logger.info(f"Embedding provider: OpenAI fallback ({self.fallback_model})")
                 except Exception as e:
                     logger.warning(f"OpenAI client init failed: {e}")
-        
-        # Default to deterministic
+
+        # No implicit deterministic fallback
         if self._provider is None:
-            self._provider = "deterministic"
-            logger.info("Embedding provider: deterministic (no API keys)")
+            raise RuntimeError(
+                "No embedding provider available (set VOYAGE_API_KEY or OPENAI_API_KEY, or force EMBEDDING_PROVIDER=deterministic for tests)."
+            )
 
     def embed(self, text: str) -> List[float]:
         """
@@ -163,7 +164,7 @@ class EmbeddingService:
                 return result.embeddings[0]
             except Exception as exc:
                 logger.warning(f"Voyage AI embedding failed, trying fallback: {exc}")
-        
+
         # Voyage AI HTTP
         if self._provider == "voyage_http":
             api_key = getattr(self, "_voyage_api_key", os.getenv("VOYAGE_API_KEY", ""))
@@ -172,7 +173,7 @@ class EmbeddingService:
                 if result:
                     return result
                 logger.warning("Voyage HTTP embedding failed, trying fallback")
-        
+
         # OpenAI fallback
         if self._openai_client:
             try:
@@ -185,9 +186,11 @@ class EmbeddingService:
             except Exception as exc:
                 logger.warning(f"OpenAI embedding failed, using deterministic: {exc}")
 
-        # Deterministic fallback: hash -> seed -> random vector
-        return self._deterministic_embed(text)
-    
+        if self._provider == "deterministic":
+            return self._deterministic_embed(text)
+
+        raise RuntimeError("Embedding failed after provider attempts; aborting instead of downgrading.")
+
     def _deterministic_embed(self, text: str) -> List[float]:
         """Generate deterministic embedding for offline/test mode."""
         h = hashlib.sha256(text.encode("utf-8")).hexdigest()
@@ -198,7 +201,7 @@ class EmbeddingService:
         if norm > 0:
             vec = vec / norm
         return vec.tolist()
-    
+
     def get_provider_info(self) -> dict:
         """Return information about the current embedding provider."""
         return {

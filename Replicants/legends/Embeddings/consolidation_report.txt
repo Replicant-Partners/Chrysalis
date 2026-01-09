@@ -1,0 +1,29 @@
+============================================================
+OUTPUT CONSOLIDATION REPORT
+============================================================
+Timestamp: 2026-01-09T06:43:26.866365
+
+## EMBEDDINGS
+  Files processed: 49
+  Total unique: 49
+  Deduplicated: 0
+
+## SKILLS
+  Files processed: 147
+  Total unique: 346
+  Deduplicated: 286
+
+## PERSONAS
+  Total: 49
+
+## CONSOLIDATED FILES
+  1. /home/mdz-axolotl/Documents/GitClones/Chrysalis/Replicants/legends/Embeddings/all_embeddings.json
+  2. /home/mdz-axolotl/Documents/GitClones/Chrysalis/Replicants/legends/Embeddings/all_skills.json
+  3. /home/mdz-axolotl/Documents/GitClones/Chrysalis/Replicants/legends/Embeddings/all_personas.json
+
+## SUMMARY
+  Conflicts resolved: 0
+  Total errors: 0
+  Status: ✅ SUCCESS
+
+============================================================

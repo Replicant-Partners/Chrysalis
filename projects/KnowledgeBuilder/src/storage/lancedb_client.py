@@ -68,9 +68,33 @@ class LanceDBClient:
         """Create table if it does not exist.
         
         Schema is derived from _SCHEMA_FIELDS to maintain single source of truth.
+        If table exists with wrong dimensions, it will be dropped and recreated.
         """
         if self.table_name in self.db.list_tables():
-            return
+            # Check if existing table has correct dimensions
+            try:
+                existing_table = self.db.open_table(self.table_name)
+                existing_schema = existing_table.schema
+                
+                # Check vector field dimensions
+                vector_field = existing_schema.field("vector")
+                if hasattr(vector_field.type, 'list_size'):
+                    existing_dims = vector_field.type.list_size
+                    if existing_dims != self.vector_dim:
+                        logger.warning(
+                            f"LanceDB table {self.table_name} exists with {existing_dims} dimensions, "
+                            f"but {self.vector_dim} dimensions required. Dropping and recreating."
+                        )
+                        self.db.drop_table(self.table_name)
+                    else:
+                        logger.info(f"LanceDB table {self.table_name} already exists with correct dimensions ({self.vector_dim})")
+                        return
+                else:
+                    logger.info(f"LanceDB table {self.table_name} already exists, reusing")
+                    return
+            except Exception as e:
+                logger.warning(f"Could not verify table dimensions: {e}. Attempting to use existing table.")
+                return
 
         # Build schema from _SCHEMA_FIELDS
         fields = []
@@ -82,8 +106,15 @@ class LanceDBClient:
                 fields.append(pa.field(field_name, field_type))
         
         schema = pa.schema(fields)
-        logger.info("Creating LanceDB table %s", self.table_name)
-        self.db.create_table(self.table_name, schema=schema)
+        logger.info(f"Creating LanceDB table {self.table_name} with {self.vector_dim} dimensions")
+        try:
+            self.db.create_table(self.table_name, schema=schema)
+        except Exception as e:
+            # If table was created by another process, that's okay
+            if "already exists" in str(e).lower():
+                logger.info("LanceDB table %s was created by another process", self.table_name)
+            else:
+                raise
 
     def insert_entity(self, entity: Dict[str, Any], embedding: np.ndarray) -> None:
         """Insert a single entity with embedding."""

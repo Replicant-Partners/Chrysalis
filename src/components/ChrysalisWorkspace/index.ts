@@ -35,6 +35,9 @@ export type {
   // Props types
   ChatPaneProps,
   ChrysalisWorkspaceProps,
+  
+  // Memory event types
+  MemoryUIEvent,
 } from './types';
 
 // Constants
