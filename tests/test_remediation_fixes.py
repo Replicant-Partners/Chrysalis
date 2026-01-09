@@ -330,5 +330,125 @@ class TestIntegration:
         assert "merged_count" in result
 
 
+class TestIssue2PathTraversal:
+    """Test Issue #2: Path traversal validation."""
+    
+    def test_load_legend_valid_path(self, tmp_path):
+        """Test that valid paths within LEGENDS_DIR work."""
+        import sys
+        from pathlib import Path
+        
+        # Add scripts to path
+        sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+        
+        # Mock LEGENDS_DIR for testing
+        import process_legends
+        original_legends_dir = process_legends.LEGENDS_DIR
+        
+        try:
+            # Create temp legend directory
+            test_legends_dir = tmp_path / "legends"
+            test_legends_dir.mkdir()
+            process_legends.LEGENDS_DIR = test_legends_dir
+            
+            # Create test legend file
+            legend_data = {"name": "Test Legend", "designation": "Tester"}
+            legend_file = test_legends_dir / "test_legend.json"
+            
+            import json
+            with open(legend_file, "w") as f:
+                json.dump(legend_data, f)
+            
+            # Should load successfully
+            result = process_legends.load_legend(legend_file)
+            assert result["name"] == "Test Legend"
+            assert result["designation"] == "Tester"
+        finally:
+            process_legends.LEGENDS_DIR = original_legends_dir
+    
+    def test_load_legend_path_traversal_absolute(self):
+        """Test that absolute paths outside LEGENDS_DIR are rejected."""
+        import sys
+        from pathlib import Path
+        
+        sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+        import process_legends
+        
+        # Try to load file outside LEGENDS_DIR
+        malicious_path = Path("/etc/passwd")
+        
+        with pytest.raises(ValueError, match="Path traversal detected"):
+            process_legends.load_legend(malicious_path)
+    
+    def test_load_legend_path_traversal_relative(self, tmp_path):
+        """Test that relative paths escaping LEGENDS_DIR are rejected."""
+        import sys
+        from pathlib import Path
+        
+        sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+        import process_legends
+        
+        original_legends_dir = process_legends.LEGENDS_DIR
+        
+        try:
+            # Create temp structure
+            test_legends_dir = tmp_path / "legends"
+            test_legends_dir.mkdir()
+            outside_dir = tmp_path / "outside"
+            outside_dir.mkdir()
+            
+            process_legends.LEGENDS_DIR = test_legends_dir
+            
+            # Create file outside legends dir
+            outside_file = outside_dir / "malicious.json"
+            with open(outside_file, "w") as f:
+                f.write('{"name": "Malicious"}')
+            
+            # Try to load with relative path traversal
+            with pytest.raises(ValueError, match="Path traversal detected"):
+                process_legends.load_legend(outside_file)
+        finally:
+            process_legends.LEGENDS_DIR = original_legends_dir
+    
+    def test_load_legend_symlink_outside(self, tmp_path):
+        """Test that symlinks pointing outside LEGENDS_DIR are rejected."""
+        import sys
+        from pathlib import Path
+        import os
+        
+        sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+        import process_legends
+        
+        original_legends_dir = process_legends.LEGENDS_DIR
+        
+        try:
+            # Create temp structure
+            test_legends_dir = tmp_path / "legends"
+            test_legends_dir.mkdir()
+            outside_dir = tmp_path / "outside"
+            outside_dir.mkdir()
+            
+            process_legends.LEGENDS_DIR = test_legends_dir
+            
+            # Create file outside
+            outside_file = outside_dir / "target.json"
+            with open(outside_file, "w") as f:
+                f.write('{"name": "Target"}')
+            
+            # Create symlink inside legends dir pointing outside
+            symlink_path = test_legends_dir / "symlink.json"
+            try:
+                os.symlink(outside_file, symlink_path)
+                
+                # Should be rejected (symlink resolves to outside)
+                with pytest.raises(ValueError, match="Path traversal detected"):
+                    process_legends.load_legend(symlink_path)
+            except OSError:
+                # Symlinks might not be supported on this system
+                pytest.skip("Symlinks not supported on this system")
+        finally:
+            process_legends.LEGENDS_DIR = original_legends_dir
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

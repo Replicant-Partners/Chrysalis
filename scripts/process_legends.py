@@ -138,7 +138,30 @@ def ensure_runtime(allow_deterministic: bool) -> Dict[str, Any]:
 
 
 def load_legend(legend_path: Path) -> Dict[str, Any]:
-    """Load a legend JSON file."""
+    """
+    Load a legend JSON file.
+    
+    Args:
+        legend_path: Path to legend JSON file
+        
+    Returns:
+        Legend data dictionary
+        
+    Raises:
+        ValueError: If path is outside LEGENDS_DIR (path traversal attempt)
+    """
+    # Issue #2 Fix: Validate path is within LEGENDS_DIR (defense-in-depth)
+    try:
+        legend_path_resolved = legend_path.resolve()
+        legends_dir_resolved = LEGENDS_DIR.resolve()
+        
+        # Check if path is relative to LEGENDS_DIR
+        legend_path_resolved.relative_to(legends_dir_resolved)
+    except ValueError:
+        raise ValueError(
+            f"Path traversal detected: {legend_path} is outside {LEGENDS_DIR}"
+        )
+    
     with open(legend_path, "r") as f:
         return json.load(f)
 
