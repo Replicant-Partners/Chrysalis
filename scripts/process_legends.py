@@ -444,16 +444,132 @@ def process_legend_with_skill_builder(
         return {"source": "skill_builder", "run_number": run_number, "error": str(e)}
 
 
+def select_descriptors_for_runs(
+    descriptors: Dict[str, List[str]],
+    strategy: str,
+    run_count: int,
+    prior_salts: List[str] = None
+) -> List[Tuple[List[str], str]]:
+    """
+    Select descriptors for each run based on strategy.
+    
+    Args:
+        descriptors: Dictionary of descriptor buckets
+        strategy: Descriptor sampling strategy
+        run_count: Number of runs to generate descriptors for
+        prior_salts: Previously used salts for continuity
+        
+    Returns:
+        List of (selected_descriptors, resolved_strategy) tuples for each run
+    """
+    selections = []
+    for run in range(1, run_count + 1):
+        selected, resolved_strategy = select_descriptors(
+            descriptors, 
+            strategy, 
+            run, 
+            prior_salts or []
+        )
+        selections.append((selected, resolved_strategy))
+        prior_salts = selected  # Use current as prior for next run
+    return selections
+
+
+def run_knowledge_builder_pipeline(
+    legend: Dict[str, Any],
+    run_number: int,
+    selected_descriptors: List[str],
+    resolved_strategy: str,
+    prior_embeddings: List[Dict[str, Any]],
+    allow_deterministic: bool
+) -> Dict[str, Any]:
+    """
+    Run KnowledgeBuilder for a single run.
+    
+    Args:
+        legend: Legend data
+        run_number: Current run number
+        selected_descriptors: Descriptors for this run
+        resolved_strategy: Resolved descriptor strategy
+        prior_embeddings: Previous run embeddings
+        allow_deterministic: Whether to allow deterministic embeddings
+        
+    Returns:
+        KnowledgeBuilder result dictionary
+    """
+    kb_start = time.perf_counter()
+    kb_result = process_legend_with_knowledge_builder(
+        legend, run_number, selected_descriptors, prior_embeddings, allow_deterministic
+    )
+    kb_result["descriptor_strategy"] = resolved_strategy
+    kb_result["duration_sec"] = round(time.perf_counter() - kb_start, 3)
+    
+    if "error" in kb_result:
+        name = legend.get("name", "Unknown")
+        raise RuntimeError(f"KnowledgeBuilder failed for {name} run {run_number}: {kb_result['error']}")
+    
+    return kb_result
+
+
+def run_skill_builder_pipeline(
+    legend: Dict[str, Any],
+    run_number: int,
+    selected_descriptors: List[str],
+    resolved_strategy: str,
+    prior_embeddings: List[Dict[str, Any]],
+    allow_deterministic: bool
+) -> Dict[str, Any]:
+    """
+    Run SkillBuilder for a single run.
+    
+    Args:
+        legend: Legend data
+        run_number: Current run number
+        selected_descriptors: Descriptors for this run
+        resolved_strategy: Resolved descriptor strategy
+        prior_embeddings: Previous run embeddings
+        allow_deterministic: Whether to allow deterministic embeddings
+        
+    Returns:
+        SkillBuilder result dictionary
+    """
+    sb_start = time.perf_counter()
+    sb_result = process_legend_with_skill_builder(
+        legend, run_number, selected_descriptors, prior_embeddings, allow_deterministic
+    )
+    sb_result["descriptor_strategy"] = resolved_strategy
+    sb_result["duration_sec"] = round(time.perf_counter() - sb_start, 3)
+    
+    if "error" in sb_result:
+        name = legend.get("name", "Unknown")
+        raise RuntimeError(f"SkillBuilder failed for {name} run {run_number}: {sb_result['error']}")
+    
+    return sb_result
+
+
 def process_legend(legend_path: Path, run_count: int, strategy: str, allow_deterministic: bool) -> Dict[str, Any]:
-    """Process a single legend through both builders with telemetry harness."""
+    """
+    Process a single legend through both builders with telemetry harness.
+    
+    This is the main orchestration function that coordinates descriptor selection,
+    KnowledgeBuilder processing, and SkillBuilder processing across multiple runs.
+    
+    Args:
+        legend_path: Path to legend JSON file
+        run_count: Number of iterations per builder
+        strategy: Descriptor sampling strategy
+        allow_deterministic: Whether to allow deterministic embeddings
+        
+    Returns:
+        Complete processing results including all runs
+    """
     legend = load_legend(legend_path)
     name = legend.get("name", legend_path.stem)
     descriptors = extract_descriptors(legend)
-    prior_kb: List[Dict[str, Any]] = []
-    prior_sb: List[Dict[str, Any]] = []
-
+    
     logger.info(f"Processing legend: {name}")
-
+    
+    # Initialize results structure
     results = {
         "name": name,
         "source_file": str(legend_path.name),
@@ -463,30 +579,31 @@ def process_legend(legend_path: Path, run_count: int, strategy: str, allow_deter
         "knowledge_builder_runs": [],
         "skill_builder_runs": [],
     }
-
-    for run in range(1, run_count + 1):
-        selected, resolved_strategy = select_descriptors(descriptors, strategy, run, prior_sb and prior_sb[-1].get("salts_used", []))
-
-        kb_start = time.perf_counter()
-        kb_result = process_legend_with_knowledge_builder(legend, run, selected, prior_kb, allow_deterministic)
-        kb_result["descriptor_strategy"] = resolved_strategy
-        kb_result["duration_sec"] = round(time.perf_counter() - kb_start, 3)
+    
+    # Select descriptors for all runs
+    descriptor_selections = select_descriptors_for_runs(descriptors, strategy, run_count)
+    
+    # Process each run
+    prior_kb: List[Dict[str, Any]] = []
+    prior_sb: List[Dict[str, Any]] = []
+    
+    for run_number, (selected, resolved_strategy) in enumerate(descriptor_selections, start=1):
+        # Run KnowledgeBuilder
+        kb_result = run_knowledge_builder_pipeline(
+            legend, run_number, selected, resolved_strategy, prior_kb, allow_deterministic
+        )
         results["knowledge_builder_runs"].append(kb_result)
-        if "error" in kb_result:
-            raise RuntimeError(f"KnowledgeBuilder failed for {name} run {run}: {kb_result['error']}")
         if "embedding" in kb_result:
             prior_kb.append(kb_result)
-
-        sb_start = time.perf_counter()
-        sb_result = process_legend_with_skill_builder(legend, run, selected, prior_sb, allow_deterministic)
-        sb_result["descriptor_strategy"] = resolved_strategy
-        sb_result["duration_sec"] = round(time.perf_counter() - sb_start, 3)
+        
+        # Run SkillBuilder
+        sb_result = run_skill_builder_pipeline(
+            legend, run_number, selected, resolved_strategy, prior_sb, allow_deterministic
+        )
         results["skill_builder_runs"].append(sb_result)
-        if "error" in sb_result:
-            raise RuntimeError(f"SkillBuilder failed for {name} run {run}: {sb_result['error']}")
         if "embedding" in sb_result:
             prior_sb.append(sb_result)
-
+    
     return results
 
 
