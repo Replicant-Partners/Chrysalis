@@ -1,6 +1,23 @@
+/**
+ * CapabilityGatewayService - Unified API Standard
+ *
+ * Agent-facing API for learning capabilities (grounding, skillforge).
+ * Routes to AgentBuilder and commits events to LedgerService.
+ */
+
 import http from 'http';
 import path from 'path';
-import { badRequest, methodNotAllowed, notFound, readJsonBody, sendJson } from '../../demo/milestone1/http';
+import { badRequest, methodNotAllowed, notFound, readJsonBody } from '../../demo/milestone1/http';
+import {
+  sendJson,
+  sendError,
+  createSuccessResponse,
+  createErrorResponse,
+  APIError,
+  ErrorCode,
+  ErrorCategory,
+} from '../ledger/api-utils';
+import { authenticateRequest } from '../../shared/api-core/src/auth';
 import { LedgerClient } from '../../demo/milestone1/ledger-client';
 import { AgentBuilderAdapter, RoleModel } from '../../integrations/agentbuilder/AgentBuilderAdapter';
 import { ApiKeyStore } from '../auth/ApiKeyStore';
@@ -37,25 +54,78 @@ export class CapabilityGatewayService {
   private async route(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     try {
       const url = new URL(req.url || '/', `http://localhost:${this.cfg.port}`);
-      if (url.pathname === '/health') return sendJson(res, 200, { ok: true });
 
-      if (url.pathname === '/auth/bootstrap') {
-        if (req.method !== 'POST') return methodNotAllowed(res);
-        if (!this.cfg.allowBootstrap) return sendJson(res, 403, { error: 'bootstrap_disabled' });
-        if (this.apiKeys.exists()) return sendJson(res, 409, { error: 'already_initialized' });
-        const body = (await readJsonBody(req)) as { name?: string };
-        const name = body?.name?.trim() || 'admin';
-        const minted = this.apiKeys.mint(name, 'admin').key;
-        return sendJson(res, 200, { ok: true, token: `${minted.id}.${minted.secret}`, key: minted });
+      // Health check (public endpoint)
+      if (url.pathname === '/health' || url.pathname === '/api/v1/health') {
+        const response = createSuccessResponse({ status: 'healthy', service: 'capability-gateway' });
+        return sendJson(res, 200, response);
       }
 
-      const authz = this.getBearerToken(req);
-      if (!authz) return sendJson(res, 401, { error: 'missing_authorization' });
-      const v = this.apiKeys.verify(authz);
-      if (!v.ok) return sendJson(res, 401, { error: 'invalid_authorization', reason: v.reason });
-      const allowed = this.limiter.allow(v.keyId);
-      if (!allowed.ok) return sendJson(res, 429, { error: 'rate_limited', retryAfterMs: allowed.retryAfterMs });
+      // Authentication endpoints
+      if (url.pathname === '/api/v1/auth/bootstrap' || url.pathname === '/auth/bootstrap') {
+        if (req.method !== 'POST') return methodNotAllowed(res);
+        return void this.handleBootstrap(req, res);
+      }
 
+      // Authenticate request for protected endpoints
+      const authz = this.getBearerToken(req);
+      if (!authz) {
+        const error: APIError = {
+          code: ErrorCode.MISSING_AUTH,
+          message: 'Authentication required',
+          category: ErrorCategory.AUTHENTICATION_ERROR,
+          timestamp: new Date().toISOString(),
+          documentation_url: 'https://docs.chrysalis.dev/auth',
+        };
+        const { response, statusCode } = createErrorResponse(error, 401);
+        return sendError(res, statusCode, error);
+      }
+
+      const v = this.apiKeys.verify(authz);
+      if (!v.ok) {
+        const error: APIError = {
+          code: ErrorCode.INVALID_TOKEN,
+          message: `Invalid authorization: ${v.reason}`,
+          category: ErrorCategory.AUTHENTICATION_ERROR,
+          timestamp: new Date().toISOString(),
+        };
+        const { response, statusCode } = createErrorResponse(error, 401);
+        return sendError(res, statusCode, error);
+      }
+
+      const allowed = this.limiter.allow(v.keyId);
+      if (!allowed.ok) {
+        const error: APIError = {
+          code: ErrorCode.TOO_MANY_REQUESTS,
+          message: 'Rate limit exceeded',
+          category: ErrorCategory.RATE_LIMIT_ERROR,
+          retry_after: allowed.retryAfterMs ? Math.ceil(allowed.retryAfterMs / 1000) : undefined,
+          timestamp: new Date().toISOString(),
+        };
+        const { response, statusCode } = createErrorResponse(error, 429);
+        return sendError(res, statusCode, error);
+      }
+
+      // Unified API endpoints
+      if (url.pathname === '/api/v1/capabilities') {
+        if (req.method === 'GET') {
+          return void this.handleListCapabilities(res, v.keyId);
+        } else if (req.method === 'POST') {
+          const body = (await readJsonBody(req)) as BuildRequest;
+          return void (await this.handleBuild(res, body, v.keyId));
+        }
+        return methodNotAllowed(res);
+      }
+
+      if (url.pathname.startsWith('/api/v1/capabilities/') && url.pathname !== '/api/v1/capabilities') {
+        if (req.method === 'GET') {
+          const capabilityId = url.pathname.split('/').pop();
+          return void this.handleGetCapability(res, capabilityId || '', v.keyId);
+        }
+        return methodNotAllowed(res);
+      }
+
+      // Legacy endpoints (backwards compatibility)
       if (url.pathname === '/capabilities/build') {
         if (req.method !== 'POST') return methodNotAllowed(res);
         const body = (await readJsonBody(req)) as BuildRequest;
@@ -64,8 +134,71 @@ export class CapabilityGatewayService {
 
       return notFound(res);
     } catch (err: any) {
-      return sendJson(res, 500, { error: 'server_error', message: String(err?.message || err) });
+      const error: APIError = {
+        code: ErrorCode.INTERNAL_ERROR,
+        message: String(err?.message || err),
+        category: ErrorCategory.SERVICE_ERROR,
+        timestamp: new Date().toISOString(),
+      };
+      const { response, statusCode } = createErrorResponse(error, 500);
+      return sendError(res, statusCode, error);
     }
+  }
+
+  private async handleBootstrap(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    if (!this.cfg.allowBootstrap) {
+      const error: APIError = {
+        code: ErrorCode.INSUFFICIENT_PERMISSIONS,
+        message: 'Bootstrap is disabled',
+        category: ErrorCategory.AUTHORIZATION_ERROR,
+        timestamp: new Date().toISOString(),
+      };
+      const { response, statusCode } = createErrorResponse(error, 403);
+      return sendError(res, statusCode, error);
+    }
+
+    if (this.apiKeys.exists()) {
+      const error: APIError = {
+        code: ErrorCode.DUPLICATE_RESOURCE,
+        message: 'API keys already initialized',
+        category: ErrorCategory.CONFLICT_ERROR,
+        timestamp: new Date().toISOString(),
+      };
+      const { response, statusCode } = createErrorResponse(error, 409);
+      return sendError(res, statusCode, error);
+    }
+
+    const body = (await readJsonBody(req)) as { name?: string };
+    const name = body?.name?.trim() || 'admin';
+    const minted = this.apiKeys.mint(name, 'admin').key;
+
+    const response = createSuccessResponse({
+      token: `${minted.id}.${minted.secret}`,
+      key: minted,
+    });
+    sendJson(res, 201, response);
+  }
+
+  private handleListCapabilities(res: http.ServerResponse, keyId: string): void {
+    // List capabilities for the authenticated key
+    // For now, return empty list (would query capability registry)
+    const capabilities: any[] = [];
+
+    const response = createSuccessResponse(capabilities);
+    sendJson(res, 200, response);
+  }
+
+  private handleGetCapability(res: http.ServerResponse, capabilityId: string, keyId: string): void {
+    // Get capability by ID
+    // For now, return not found
+    const error: APIError = {
+      code: ErrorCode.RESOURCE_NOT_FOUND,
+      message: `Capability '${capabilityId}' not found`,
+      category: ErrorCategory.NOT_FOUND_ERROR,
+      timestamp: new Date().toISOString(),
+    };
+    const { response, statusCode } = createErrorResponse(error, 404);
+    return sendError(res, statusCode, error);
   }
 
   private getBearerToken(req: http.IncomingMessage): string | null {
@@ -76,14 +209,66 @@ export class CapabilityGatewayService {
   }
 
   private async handleBuild(res: http.ServerResponse, body: BuildRequest, callerKeyId: string): Promise<void> {
-    const agentId = body.agentId || (await this.ensureAgent(body.agent, callerKeyId));
-    if (!agentId || !body?.roleModel) return badRequest(res, 'agentId (or agent profile) and roleModel required');
-    await this.assertOwnerOrAdmin(callerKeyId, agentId);
+    try {
+      // Validate request
+      if (!body?.roleModel) {
+        const error: APIError = {
+          code: ErrorCode.REQUIRED_FIELD,
+          message: 'roleModel is required',
+          category: ErrorCategory.VALIDATION_ERROR,
+          details: [{ field: 'roleModel', message: 'roleModel is required' }],
+          timestamp: new Date().toISOString(),
+        };
+        const { response, statusCode } = createErrorResponse(error, 400);
+        return sendError(res, statusCode, error);
+      }
 
-    await this.builder.buildAgentCapabilities(agentId, body.roleModel);
+      const agentId = body.agentId || (await this.ensureAgent(body.agent, callerKeyId));
+      if (!agentId) {
+        const error: APIError = {
+          code: ErrorCode.REQUIRED_FIELD,
+          message: 'agentId (or agent profile) is required',
+          category: ErrorCategory.VALIDATION_ERROR,
+          details: [{ field: 'agentId', message: 'agentId or agent profile is required' }],
+          timestamp: new Date().toISOString(),
+        };
+        const { response, statusCode } = createErrorResponse(error, 400);
+        return sendError(res, statusCode, error);
+      }
 
-    const out: CapabilityResponse = { ok: true, agentId, committed: 1, txIds: [] };
-    sendJson(res, 200, out);
+      // Check authorization
+      try {
+        await this.assertOwnerOrAdmin(callerKeyId, agentId);
+      } catch (authErr: any) {
+        const error: APIError = {
+          code: ErrorCode.INSUFFICIENT_PERMISSIONS,
+          message: authErr.message || 'Insufficient permissions',
+          category: ErrorCategory.AUTHORIZATION_ERROR,
+          timestamp: new Date().toISOString(),
+        };
+        const { response, statusCode } = createErrorResponse(error, 403);
+        return sendError(res, statusCode, error);
+      }
+
+      // Build capabilities
+      await this.builder.buildAgentCapabilities(agentId, body.roleModel);
+
+      const response = createSuccessResponse({
+        agent_id: agentId,
+        committed: 1,
+        tx_ids: [],
+      });
+      sendJson(res, 200, response);
+    } catch (err: any) {
+      const error: APIError = {
+        code: ErrorCode.INTERNAL_ERROR,
+        message: `Build failed: ${String(err?.message || err)}`,
+        category: ErrorCategory.SERVICE_ERROR,
+        timestamp: new Date().toISOString(),
+      };
+      const { response, statusCode } = createErrorResponse(error, 500);
+      return sendError(res, statusCode, error);
+    }
   }
 
   private async ensureAgent(

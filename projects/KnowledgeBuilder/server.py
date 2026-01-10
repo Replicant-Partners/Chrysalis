@@ -1,28 +1,427 @@
+"""
+KnowledgeBuilder Service - Unified API Standard
+
+Collects and structures knowledge about entities using multi-source search and fact extraction.
+"""
+
+import sys
+from pathlib import Path
+from flask import Flask, request, jsonify, g
+from datetime import datetime, timezone
 import os
-from flask import Flask, request, jsonify
-from src.pipeline.simple_pipeline import run_knowledge_pipeline
+from typing import Optional, Dict, List, Any
+
+# Add shared directory to path
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+SHARED_PATH = PROJECT_ROOT / "shared"
+if str(SHARED_PATH) not in sys.path:
+    sys.path.insert(0, str(SHARED_PATH))
+
+from shared.api_core import (
+    APIResponse,
+    APIError,
+    ErrorCode,
+    ErrorCategory,
+    ValidationError,
+    RequestValidator,
+    PaginationParams,
+    PaginationMeta,
+    FilterParams,
+    SortParams,
+    require_auth,
+    authenticate_request,
+    create_error_handler,
+    create_all_middleware,
+)
+
+from src.pipeline.simple_pipeline import run_knowledge_pipeline, SimplePipeline
 
 app = Flask(__name__)
 
+# Setup middleware
+create_error_handler(app)
+create_all_middleware(app, api_version="v1")
+
+# In-memory knowledge store (replace with database in production)
+knowledge_store: Dict[str, Dict[str, Any]] = {}
+
+@app.route('/health', methods=['GET'])
+def health():
+    """Health check endpoint."""
+    return jsonify(APIResponse.success_response(
+        {"status": "healthy", "service": "knowledgebuilder"}
+    ).to_dict()), 200
+
+@app.route('/api/v1/knowledge', methods=['POST'])
+@require_auth
+def create_knowledge():
+    """Create knowledge entry for an entity."""
+    try:
+        data = request.get_json() or {}
+
+        # Validate request
+        identifier = RequestValidator.require_string(data, 'identifier', min_length=1)
+        entity_type = data.get('entity_type')
+        deepening_cycles = data.get('deepening_cycles', 0)
+        if not isinstance(deepening_cycles, int) or deepening_cycles < 0:
+            deepening_cycles = 0
+
+        # Extract API keys from Authorization header (not request body)
+        # For now, we'll keep the legacy support but log a warning
+        api_keys = data.get('apiKeys', {})
+        if api_keys:
+            # Log warning but still process (for backwards compatibility during transition)
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning("API keys passed in request body - use Authorization header instead")
+            # Set API keys as environment variables (legacy behavior)
+            for key, value in api_keys.items():
+                os.environ[key] = value
+
+        # Run knowledge pipeline
+        results = run_knowledge_pipeline(identifier, entity_type, deepening_cycles)
+
+        # Store knowledge entries
+        knowledge_id = f"{entity_type or 'Entity'}:{identifier}".lower().replace(' ', '_')
+        knowledge_store[knowledge_id] = {
+            'knowledge_id': knowledge_id,
+            'identifier': identifier,
+            'entity_type': entity_type,
+            'knowledge_items': results,
+            'deepening_cycles': deepening_cycles,
+        }
+
+        # Return standardized response
+        response = APIResponse.success_response({
+            'knowledge_id': knowledge_id,
+            'identifier': identifier,
+            'entity_type': entity_type,
+            'knowledge_items': results,
+        })
+        return jsonify(response.to_dict()), 201
+
+    except ValidationError as e:
+        error = APIError.from_exception(e)
+        response, status = APIResponse.error_response(error, status_code=422)
+        return jsonify(response.to_dict()), status
+    except Exception as e:
+        error = APIError(
+            code=ErrorCode.INTERNAL_ERROR,
+            message=f"Internal server error: {str(e)}",
+            category=ErrorCategory.SERVICE_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=500)
+        return jsonify(response.to_dict()), status
+
+@app.route('/api/v1/knowledge/<knowledge_id>', methods=['GET'])
+@require_auth
+def get_knowledge(knowledge_id: str):
+    """Get knowledge entry by ID."""
+    if knowledge_id not in knowledge_store:
+        error = APIError(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=f"Knowledge entry '{knowledge_id}' not found",
+            category=ErrorCategory.NOT_FOUND_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=404)
+        return jsonify(response.to_dict()), status
+
+    response = APIResponse.success_response(knowledge_store[knowledge_id])
+    return jsonify(response.to_dict()), 200
+
+@app.route('/api/v1/knowledge', methods=['GET'])
+@require_auth
+def list_knowledge():
+    """List all knowledge entries."""
+    pagination = PaginationParams.from_request(request)
+    filters = FilterParams.from_request(request)
+
+    # Get all knowledge entries
+    all_knowledge = list(knowledge_store.values())
+
+    # Apply filters (basic implementation)
+    filtered_knowledge = all_knowledge
+    if filters.filters:
+        for field, value in filters.filters.items():
+            if isinstance(value, dict):
+                # Handle filter[field][op] format
+                for op, op_value in value.items():
+                    filtered_knowledge = [
+                        k for k in filtered_knowledge
+                        if _apply_filter(k.get(field), op, op_value)
+                    ]
+            else:
+                # Simple equality filter
+                filtered_knowledge = [
+                    k for k in filtered_knowledge
+                    if k.get(field) == value
+                ]
+
+    total = len(filtered_knowledge)
+
+    # Apply pagination
+    start = pagination.offset
+    end = start + pagination.per_page
+    knowledge_page = filtered_knowledge[start:end]
+
+    pagination_meta = PaginationMeta.create(pagination, total)
+
+    response = APIResponse.success_response(
+        knowledge_page,
+        pagination=pagination_meta
+    )
+    return jsonify(response.to_dict()), 200
+
+@app.route('/api/v1/knowledge/search', methods=['POST'])
+@require_auth
+def search_knowledge():
+    """Advanced search for knowledge entries."""
+    try:
+        data = request.get_json() or {}
+
+        query = RequestValidator.require_string(data, 'query', min_length=1)
+        entity_type = data.get('entity_type')
+        limit = data.get('limit', 10)
+
+        # Use SimplePipeline search if available
+        pipeline = SimplePipeline()
+        results = pipeline.search(query, k=limit, entity_type=entity_type)
+
+        response = APIResponse.success_response({
+            'query': query,
+            'results': results,
+        })
+        return jsonify(response.to_dict()), 200
+
+    except ValidationError as e:
+        error = APIError.from_exception(e)
+        response, status = APIResponse.error_response(error, status_code=422)
+        return jsonify(response.to_dict()), status
+    except Exception as e:
+        error = APIError(
+            code=ErrorCode.INTERNAL_ERROR,
+            message=f"Search failed: {str(e)}",
+            category=ErrorCategory.SERVICE_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=500)
+        return jsonify(response.to_dict()), status
+
+@app.route('/api/v1/knowledge/entities/<entity_id>', methods=['GET'])
+@require_auth
+def get_knowledge_by_entity(entity_id: str):
+    """Get knowledge entries for a specific entity."""
+    # Find knowledge by entity identifier
+    matching_knowledge = [
+        k for k in knowledge_store.values()
+        if k.get('identifier', '').lower() == entity_id.lower()
+    ]
+
+    if not matching_knowledge:
+        error = APIError(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=f"No knowledge found for entity '{entity_id}'",
+            category=ErrorCategory.NOT_FOUND_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=404)
+        return jsonify(response.to_dict()), status
+
+    response = APIResponse.success_response(matching_knowledge[0] if len(matching_knowledge) == 1 else matching_knowledge)
+    return jsonify(response.to_dict()), 200
+
+@app.route('/api/v1/knowledge/<knowledge_id>', methods=['PATCH'])
+@require_auth
+def update_knowledge(knowledge_id: str):
+    """Partially update knowledge entry."""
+    if knowledge_id not in knowledge_store:
+        error = APIError(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=f"Knowledge entry '{knowledge_id}' not found",
+            category=ErrorCategory.NOT_FOUND_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=404)
+        return jsonify(response.to_dict()), status
+
+    try:
+        data = request.get_json() or {}
+        knowledge = knowledge_store[knowledge_id]
+
+        # Update allowed fields
+        if 'identifier' in data:
+            knowledge['identifier'] = RequestValidator.require_string(data, 'identifier', min_length=1)
+
+        if 'entity_type' in data:
+            knowledge['entity_type'] = data['entity_type']
+
+        if 'knowledge_items' in data:
+            if isinstance(data['knowledge_items'], list):
+                knowledge['knowledge_items'] = data['knowledge_items']
+            else:
+                error = APIError(
+                    code=ErrorCode.INVALID_TYPE,
+                    message="knowledge_items must be a list",
+                    category=ErrorCategory.VALIDATION_ERROR,
+                )
+                response, status = APIResponse.error_response(error, status_code=422)
+                return jsonify(response.to_dict()), status
+
+        if 'deepening_cycles' in data:
+            deepening_cycles = data['deepening_cycles']
+            if isinstance(deepening_cycles, int) and deepening_cycles >= 0:
+                knowledge['deepening_cycles'] = deepening_cycles
+            else:
+                error = APIError(
+                    code=ErrorCode.INVALID_RANGE,
+                    message="deepening_cycles must be a non-negative integer",
+                    category=ErrorCategory.VALIDATION_ERROR,
+                )
+                response, status = APIResponse.error_response(error, status_code=422)
+                return jsonify(response.to_dict()), status
+
+        # Update timestamp
+        knowledge['updated_at'] = datetime.now(timezone.utc).isoformat()
+
+        response = APIResponse.success_response(knowledge)
+        return jsonify(response.to_dict()), 200
+
+    except ValidationError as e:
+        error = APIError.from_exception(e)
+        response, status = APIResponse.error_response(error, status_code=422)
+        return jsonify(response.to_dict()), status
+    except Exception as e:
+        error = APIError(
+            code=ErrorCode.INTERNAL_ERROR,
+            message=f"Update failed: {str(e)}",
+            category=ErrorCategory.SERVICE_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=500)
+        return jsonify(response.to_dict()), status
+
+@app.route('/api/v1/knowledge/<knowledge_id>', methods=['PUT'])
+@require_auth
+def replace_knowledge(knowledge_id: str):
+    """Replace knowledge entry (full update)."""
+    try:
+        data = request.get_json() or {}
+
+        # Validate required fields
+        identifier = RequestValidator.require_string(data, 'identifier', min_length=1)
+        entity_type = data.get('entity_type')
+        deepening_cycles = data.get('deepening_cycles', 0)
+        if not isinstance(deepening_cycles, int) or deepening_cycles < 0:
+            deepening_cycles = 0
+
+        knowledge_items = data.get('knowledge_items', [])
+        if not isinstance(knowledge_items, list):
+            knowledge_items = []
+
+        # Replace entire knowledge entry
+        knowledge_store[knowledge_id] = {
+            'knowledge_id': knowledge_id,
+            'identifier': identifier,
+            'entity_type': entity_type,
+            'knowledge_items': knowledge_items,
+            'deepening_cycles': deepening_cycles,
+            'updated_at': datetime.now(timezone.utc).isoformat(),
+        }
+
+        response = APIResponse.success_response(knowledge_store[knowledge_id])
+        return jsonify(response.to_dict()), 200
+
+    except ValidationError as e:
+        error = APIError.from_exception(e)
+        response, status = APIResponse.error_response(error, status_code=422)
+        return jsonify(response.to_dict()), status
+    except Exception as e:
+        error = APIError(
+            code=ErrorCode.INTERNAL_ERROR,
+            message=f"Replace failed: {str(e)}",
+            category=ErrorCategory.SERVICE_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=500)
+        return jsonify(response.to_dict()), status
+
+@app.route('/api/v1/knowledge/<knowledge_id>', methods=['DELETE'])
+@require_auth
+def delete_knowledge(knowledge_id: str):
+    """Delete knowledge entry."""
+    if knowledge_id not in knowledge_store:
+        error = APIError(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=f"Knowledge entry '{knowledge_id}' not found",
+            category=ErrorCategory.NOT_FOUND_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=404)
+        return jsonify(response.to_dict()), status
+
+    del knowledge_store[knowledge_id]
+
+    response = APIResponse.success_response({'deleted': True, 'knowledge_id': knowledge_id})
+    return jsonify(response.to_dict()), 200
+
+# Backwards compatibility endpoint (deprecated)
 @app.route('/knowledge', methods=['POST'])
-def get_knowledge():
-    data = request.get_json()
+def create_knowledge_legacy():
+    """Legacy endpoint (deprecated - use POST /api/v1/knowledge)."""
+    data = request.get_json() or {}
+
     identifier = data.get('identifier')
-    entity_type = data.get('entity_type')
-    deepening_cycles = data.get('deepening_cycles', 0)
-    api_keys = data.get('apiKeys', {})
-
     if not identifier:
-        return jsonify({'error': 'Missing identifier'}), 400
+        error = APIError(
+            code=ErrorCode.REQUIRED_FIELD,
+            message="Missing 'identifier' field",
+            category=ErrorCategory.VALIDATION_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=400)
+        return jsonify(response.to_dict()), status
 
-    # Set API keys as environment variables
-    for key, value in api_keys.items():
-        os.environ[key] = value
+    # Convert to new format and call new endpoint
+    new_data = {
+        'identifier': identifier,
+        'entity_type': data.get('entity_type'),
+        'deepening_cycles': data.get('deepening_cycles', 0),
+        'apiKeys': data.get('apiKeys', {}),
+    }
 
-    results = run_knowledge_pipeline(identifier, entity_type, deepening_cycles)
-    
-    return jsonify({'knowledge_items': results})
+    # Store original request data temporarily
+    request._cached_json = (new_data, new_data)
+
+    # Call new endpoint
+    response_data = create_knowledge()
+    if isinstance(response_data, tuple):
+        json_response, status_code = response_data
+        if isinstance(json_response, dict):
+            json_response.setdefault('meta', {})['deprecated'] = True
+            json_response['meta']['deprecation_notice'] = "Use POST /api/v1/knowledge instead"
+            # Transform response to legacy format
+            if 'data' in json_response and 'knowledge_items' in json_response['data']:
+                return jsonify({'knowledge_items': json_response['data']['knowledge_items']}), status_code
+            return jsonify(json_response), status_code
+
+    return response_data
+
+def _apply_filter(value: Any, op: str, op_value: Any) -> bool:
+    """Apply filter operation."""
+    if op == 'eq':
+        return value == op_value
+    elif op == 'ne':
+        return value != op_value
+    elif op == 'gt':
+        return value > op_value
+    elif op == 'gte':
+        return value >= op_value
+    elif op == 'lt':
+        return value < op_value
+    elif op == 'lte':
+        return value <= op_value
+    elif op == 'in':
+        return value in (op_value if isinstance(op_value, list) else [op_value])
+    elif op == 'contains':
+        return op_value in str(value)
+    return False
 
 if __name__ == '__main__':
     print('--- KnowledgeBuilder Server Starting ---')
+    print('API Version: v1')
+    print('Health: http://localhost:5002/health')
+    print('API Base: http://localhost:5002/api/v1')
     app.run(port=5002, debug=True)

@@ -1,66 +1,424 @@
-from flask import Flask, request, jsonify
+"""
+AgentBuilder Service - Unified API Standard
+
+Builds complete agents by orchestrating KnowledgeBuilder and SkillBuilder services.
+"""
+
+import sys
+from pathlib import Path
+from flask import Flask, request, jsonify, g
+from datetime import datetime, timezone
 import requests
+import os
+
+# Add shared directory to path
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+SHARED_PATH = PROJECT_ROOT / "shared"
+if str(SHARED_PATH) not in sys.path:
+    sys.path.insert(0, str(SHARED_PATH))
+
+from shared.api_core import (
+    APIResponse,
+    APIError,
+    ErrorCode,
+    ErrorCategory,
+    ValidationError,
+    RequestValidator,
+    PaginationParams,
+    PaginationMeta,
+    require_auth,
+    authenticate_request,
+    create_error_handler,
+    create_all_middleware,
+)
 
 app = Flask(__name__)
 
-SKILL_BUILDER_URL = "http://localhost:5001"
-KNOWLEDGE_BUILDER_URL = "http://localhost:5002"
+# Configure services
+SKILL_BUILDER_URL = os.getenv("SKILL_BUILDER_URL", "http://localhost:5001")
+KNOWLEDGE_BUILDER_URL = os.getenv("KNOWLEDGE_BUILDER_URL", "http://localhost:5002")
 
-@app.route('/build', methods=['POST'])
-def build_agent():
-    data = request.get_json()
-    role_model = data.get('roleModel')
-    agent_id = data.get('agentId')
-    deepening_cycles = data.get('deepeningCycles', 0)
-    api_keys = data.get('apiKeys', {})
+# Setup middleware
+create_error_handler(app)
+create_all_middleware(app, api_version="v1")
 
-    if not role_model or not agent_id:
-        return jsonify({'error': 'Missing roleModel or agentId'}), 400
+# In-memory agent store (replace with database in production)
+agents_store = {}
 
-    model_name = role_model.get('name')
-    occupation = role_model.get('occupation')
+@app.route('/health', methods=['GET'])
+def health():
+    """Health check endpoint."""
+    return jsonify(APIResponse.success_response(
+        {"status": "healthy", "service": "agentbuilder"}
+    ).to_dict()), 200
 
-    if not model_name or not occupation:
-        return jsonify({'error': 'roleModel must include name and occupation'}), 400
-
+@app.route('/api/v1/agents', methods=['POST'])
+@require_auth
+def create_agent():
+    """Create a new agent."""
     try:
+        data = request.get_json() or {}
+
+        # Validate request
+        role_model = RequestValidator.require_field(data, 'role_model', 'roleModel')
+        agent_id = RequestValidator.require_field(data, 'agent_id', 'agentId')
+        model_name = RequestValidator.require_string(role_model, 'name', min_length=1)
+        occupation = RequestValidator.require_string(role_model, 'occupation', min_length=1)
+        deepening_cycles = data.get('deepening_cycles', 0)
+        if not isinstance(deepening_cycles, int) or deepening_cycles < 0:
+            deepening_cycles = 0
+
+        # Check if agent already exists
+        if agent_id in agents_store:
+            error = APIError(
+                code=ErrorCode.DUPLICATE_RESOURCE,
+                message=f"Agent with id '{agent_id}' already exists",
+                category=ErrorCategory.CONFLICT_ERROR,
+            )
+            response, status = APIResponse.error_response(error, status_code=409)
+            return jsonify(response.to_dict()), status
+
+        # Get API keys from Authorization header (not request body)
+        api_keys = _extract_api_keys_from_headers(request)
+
         # Step 1: Build Knowledge Cloud
         knowledge_payload = {
-            'identifier': model_name, 
+            'identifier': model_name,
             'entity_type': 'Person',
             'deepening_cycles': deepening_cycles,
-            'apiKeys': api_keys
         }
-        knowledge_response = requests.post(f"{KNOWLEDGE_BUILDER_URL}/knowledge", json=knowledge_payload)
+        knowledge_response = requests.post(
+            f"{KNOWLEDGE_BUILDER_URL}/api/v1/knowledge",
+            json=knowledge_payload,
+            headers=_get_forward_headers(request),
+            timeout=300
+        )
         knowledge_response.raise_for_status()
-        knowledge_items = knowledge_response.json().get('knowledge_items', [])
+        knowledge_data = knowledge_response.json()
+        knowledge_items = knowledge_data.get('data', {}).get('knowledge_items', []) if isinstance(knowledge_data.get('data'), dict) else []
 
         # Step 2: Aggregate text from knowledge items to create a corpus
-        corpus_text = "\n\n".join([item['entity']['text'] for item in knowledge_items if 'entity' in item and 'text' in item['entity']])
-        
+        corpus_text = "\n\n".join([
+            item.get('entity', {}).get('text', '')
+            for item in knowledge_items
+            if isinstance(item, dict) and 'entity' in item and isinstance(item['entity'], dict) and 'text' in item['entity']
+        ])
+
         # Step 3: Build Skills from the aggregated corpus
         skill_payload = {
-            'occupation': occupation, 
+            'occupation': occupation,
             'deepening_cycles': deepening_cycles,
-            'apiKeys': api_keys,
             'corpus_text': corpus_text
         }
-        skill_response = requests.post(f"{SKILL_BUILDER_URL}/skills", json=skill_payload)
+        skill_response = requests.post(
+            f"{SKILL_BUILDER_URL}/api/v1/skills",
+            json=skill_payload,
+            headers=_get_forward_headers(request),
+            timeout=300
+        )
         skill_response.raise_for_status()
-        skills = skill_response.json().get('skills', [])
+        skill_data = skill_response.json()
+        skills = skill_data.get('data', {}).get('skills', []) if isinstance(skill_data.get('data'), dict) else []
 
-        # In a real implementation, we would now pass this to the UnifiedMemoryClient
-        # For now, we just return the collected data
-        return jsonify({
-            'agentId': agent_id,
-            'roleModel': role_model,
+        # Store agent
+        agent_data = {
+            'agent_id': agent_id,
+            'role_model': role_model,
             'generated_skills': skills,
-            'generated_knowledge': knowledge_items
-        })
+            'generated_knowledge': knowledge_items,
+            'status': 'completed',
+        }
+        agents_store[agent_id] = agent_data
 
+        # Return standardized response
+        response = APIResponse.success_response({
+            'agent_id': agent_id,
+            'role_model': role_model,
+            'generated_skills': skills,
+            'generated_knowledge': knowledge_items,
+        })
+        return jsonify(response.to_dict()), 201
+
+    except ValidationError as e:
+        error = APIError.from_exception(e)
+        response, status = APIResponse.error_response(error, status_code=422)
+        return jsonify(response.to_dict()), status
     except requests.exceptions.RequestException as e:
-        return jsonify({'error': f'Failed to connect to a builder service: {e}'}), 500
+        error = APIError(
+            code=ErrorCode.UPSTREAM_ERROR,
+            message=f"Failed to connect to builder service: {str(e)}",
+            category=ErrorCategory.UPSTREAM_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=502)
+        return jsonify(response.to_dict()), status
+    except Exception as e:
+        error = APIError(
+            code=ErrorCode.INTERNAL_ERROR,
+            message=f"Internal server error: {str(e)}",
+            category=ErrorCategory.SERVICE_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=500)
+        return jsonify(response.to_dict()), status
+
+@app.route('/api/v1/agents/<agent_id>', methods=['GET'])
+@require_auth
+def get_agent(agent_id: str):
+    """Get agent by ID."""
+    if agent_id not in agents_store:
+        error = APIError(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=f"Agent '{agent_id}' not found",
+            category=ErrorCategory.NOT_FOUND_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=404)
+        return jsonify(response.to_dict()), status
+
+    response = APIResponse.success_response(agents_store[agent_id])
+    return jsonify(response.to_dict()), 200
+
+@app.route('/api/v1/agents', methods=['GET'])
+@require_auth
+def list_agents():
+    """List all agents."""
+    pagination = PaginationParams.from_request(request)
+
+    # Get agents (in production, this would query a database with pagination)
+    all_agents = list(agents_store.values())
+    total = len(all_agents)
+
+    # Apply pagination
+    start = pagination.offset
+    end = start + pagination.per_page
+    agents_page = all_agents[start:end]
+
+    pagination_meta = PaginationMeta.create(pagination, total)
+
+    response = APIResponse.success_response(
+        agents_page,
+        pagination=pagination_meta
+    )
+    return jsonify(response.to_dict()), 200
+
+@app.route('/api/v1/agents/<agent_id>/build', methods=['POST'])
+@require_auth
+def build_agent(agent_id: str):
+    """Trigger build for existing agent (same as create, but for existing agent)."""
+    # This is essentially the same as create_agent but for existing agents
+    # For now, redirect to create if not exists
+    return create_agent()
+
+@app.route('/api/v1/agents/<agent_id>/capabilities', methods=['GET'])
+@require_auth
+def get_agent_capabilities(agent_id: str):
+    """Get agent capabilities (skills and knowledge)."""
+    if agent_id not in agents_store:
+        error = APIError(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=f"Agent '{agent_id}' not found",
+            category=ErrorCategory.NOT_FOUND_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=404)
+        return jsonify(response.to_dict()), status
+
+    agent = agents_store[agent_id]
+    capabilities = {
+        'skills': agent.get('generated_skills', []),
+        'knowledge': agent.get('generated_knowledge', []),
+    }
+
+    response = APIResponse.success_response(capabilities)
+    return jsonify(response.to_dict()), 200
+
+@app.route('/api/v1/agents/<agent_id>', methods=['PATCH'])
+@require_auth
+def update_agent(agent_id: str):
+    """Partially update agent."""
+    if agent_id not in agents_store:
+        error = APIError(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=f"Agent '{agent_id}' not found",
+            category=ErrorCategory.NOT_FOUND_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=404)
+        return jsonify(response.to_dict()), status
+
+    try:
+        data = request.get_json() or {}
+        agent = agents_store[agent_id]
+
+        # Update allowed fields
+        if 'role_model' in data:
+            if isinstance(data['role_model'], dict):
+                # Merge role_model updates
+                if 'role_model' not in agent:
+                    agent['role_model'] = {}
+                agent['role_model'].update(data['role_model'])
+            else:
+                error = APIError(
+                    code=ErrorCode.INVALID_TYPE,
+                    message="role_model must be an object",
+                    category=ErrorCategory.VALIDATION_ERROR,
+                )
+                response, status = APIResponse.error_response(error, status_code=422)
+                return jsonify(response.to_dict()), status
+
+        if 'deepening_cycles' in data:
+            deepening_cycles = data['deepening_cycles']
+            if isinstance(deepening_cycles, int) and 0 <= deepening_cycles <= 11:
+                agent['deepening_cycles'] = deepening_cycles
+            else:
+                error = APIError(
+                    code=ErrorCode.INVALID_RANGE,
+                    message="deepening_cycles must be an integer between 0 and 11",
+                    category=ErrorCategory.VALIDATION_ERROR,
+                )
+                response, status = APIResponse.error_response(error, status_code=422)
+                return jsonify(response.to_dict()), status
+
+        # Update timestamp
+        agent['updated_at'] = datetime.now(timezone.utc).isoformat()
+
+        response = APIResponse.success_response(agent)
+        return jsonify(response.to_dict()), 200
+
+    except ValidationError as e:
+        error = APIError.from_exception(e)
+        response, status = APIResponse.error_response(error, status_code=422)
+        return jsonify(response.to_dict()), status
+    except Exception as e:
+        error = APIError(
+            code=ErrorCode.INTERNAL_ERROR,
+            message=f"Update failed: {str(e)}",
+            category=ErrorCategory.SERVICE_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=500)
+        return jsonify(response.to_dict()), status
+
+@app.route('/api/v1/agents/<agent_id>', methods=['PUT'])
+@require_auth
+def replace_agent(agent_id: str):
+    """Replace agent (full update)."""
+    try:
+        data = request.get_json() or {}
+
+        # Validate required fields
+        role_model = RequestValidator.require_field(data, 'role_model', 'roleModel')
+        model_name = RequestValidator.require_string(role_model, 'name', min_length=1)
+        occupation = RequestValidator.require_string(role_model, 'occupation', min_length=1)
+        deepening_cycles = data.get('deepening_cycles', 0)
+        if not isinstance(deepening_cycles, int) or not (0 <= deepening_cycles <= 11):
+            deepening_cycles = 0
+
+        # Replace entire agent
+        agents_store[agent_id] = {
+            'agent_id': agent_id,
+            'role_model': role_model,
+            'deepening_cycles': deepening_cycles,
+            'generated_skills': agents_store.get(agent_id, {}).get('generated_skills', []),
+            'generated_knowledge': agents_store.get(agent_id, {}).get('generated_knowledge', []),
+            'status': 'updated',
+            'updated_at': datetime.now(timezone.utc).isoformat(),
+        }
+
+        response = APIResponse.success_response(agents_store[agent_id])
+        return jsonify(response.to_dict()), 200
+
+    except ValidationError as e:
+        error = APIError.from_exception(e)
+        response, status = APIResponse.error_response(error, status_code=422)
+        return jsonify(response.to_dict()), status
+    except Exception as e:
+        error = APIError(
+            code=ErrorCode.INTERNAL_ERROR,
+            message=f"Replace failed: {str(e)}",
+            category=ErrorCategory.SERVICE_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=500)
+        return jsonify(response.to_dict()), status
+
+@app.route('/api/v1/agents/<agent_id>', methods=['DELETE'])
+@require_auth
+def delete_agent(agent_id: str):
+    """Delete agent."""
+    if agent_id not in agents_store:
+        error = APIError(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=f"Agent '{agent_id}' not found",
+            category=ErrorCategory.NOT_FOUND_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=404)
+        return jsonify(response.to_dict()), status
+
+    del agents_store[agent_id]
+
+    response = APIResponse.success_response({'deleted': True, 'agent_id': agent_id})
+    return jsonify(response.to_dict()), 200
+
+# Backwards compatibility endpoint (deprecated)
+@app.route('/build', methods=['POST'])
+def build_agent_legacy():
+    """Legacy endpoint (deprecated - use POST /api/v1/agents)."""
+    data = request.get_json() or {}
+
+    # Transform legacy format to new format
+    role_model = data.get('roleModel') or {}
+    agent_id = data.get('agentId')
+
+    if not agent_id:
+        error = APIError(
+            code=ErrorCode.REQUIRED_FIELD,
+            message="Missing 'agentId' field",
+            category=ErrorCategory.VALIDATION_ERROR,
+        )
+        response, status = APIResponse.error_response(error, status_code=400)
+        return jsonify(response.to_dict()), status
+
+    # Convert to new format and call new endpoint
+    new_data = {
+        'agent_id': agent_id,
+        'role_model': role_model,
+        'deepening_cycles': data.get('deepeningCycles', 0),
+    }
+
+    # Store original request data temporarily
+    request._cached_json = (new_data, new_data)
+
+    # Add deprecation warning in response
+    response_data = create_agent()
+    if isinstance(response_data, tuple):
+        response_obj, status_code = response_data
+        if isinstance(response_obj, tuple):
+            json_response, _ = response_obj
+            if isinstance(json_response, dict):
+                json_response['meta'] = json_response.get('meta', {})
+                json_response['meta']['deprecated'] = True
+                json_response['meta']['deprecation_notice'] = "Use POST /api/v1/agents instead"
+                return jsonify(json_response), status_code
+
+    return response_data
+
+def _extract_api_keys_from_headers(request) -> dict:
+    """Extract API keys from Authorization header (not request body)."""
+    # API keys should be in Authorization header, not body
+    # For now, return empty dict - services should handle auth via headers
+    return {}
+
+def _get_forward_headers(request) -> dict:
+    """Get headers to forward to downstream services."""
+    headers = {
+        'Content-Type': 'application/json',
+    }
+
+    # Forward Authorization header if present
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        headers['Authorization'] = auth_header
+
+    return headers
 
 if __name__ == '__main__':
     print('--- AgentBuilder Server Starting ---')
+    print('API Version: v1')
+    print('Health: http://localhost:5000/health')
+    print('API Base: http://localhost:5000/api/v1')
     app.run(port=5000, debug=True)
