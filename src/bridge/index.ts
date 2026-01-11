@@ -276,10 +276,6 @@ export {
   type IPersistenceService,
   type IDiscoveryService,
   
-  // Decorators
-  Injectable,
-  Inject,
-  
   // Lazy resolution
   Lazy,
   lazy,
@@ -318,12 +314,8 @@ export {
   ConsoleTransport,
   type ConsoleTransportOptions,
   
-  // Correlation context
-  correlationContext,
+  // Request logger helper
   createRequestLogger,
-  
-  // Decorators
-  LogMethod,
   
   // Default logger
   getLogger,
@@ -373,10 +365,6 @@ export {
   // Using helpers
   using,
   usingAll,
-  
-  // Lazy initialization
-  LazyDisposable,
-  lazyDisposable,
 } from './lifecycle';
 
 // ============================================================================
@@ -418,8 +406,6 @@ export {
   
   // Invariant checking
   invariant,
-  unreachable,
-  exhaustiveCheck,
   
   // Object utilities
   pickDefined,

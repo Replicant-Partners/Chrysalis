@@ -1,26 +1,23 @@
 /**
  * Service Integration Tests
- * 
+ *
  * Tests for the Bridge Service Integration layer:
  * - AdapterDiscoveryService
  * - BridgeEventBus
- * - BridgePersistenceService
  * - IntegratedBridgeService
+ *
+ * Note: BridgePersistenceService was removed in favor of using TemporalStore
+ * directly for bi-temporal agent storage.
  */
 
 import {
   AdapterDiscoveryService,
   BridgeEventBus,
-  BridgePersistenceService,
   IntegratedBridgeService,
   createIntegratedBridgeService,
   BridgeEvent,
   AgentTranslatedPayload,
   AgentIngestedPayload,
-  AgentStoredPayload,
-  StoredAgent,
-  AgentVersion,
-  TranslationRecord,
 } from '../../src/bridge/service-integration';
 import { BridgeOrchestrator } from '../../src/bridge/orchestrator';
 import { NativeAgent, AgentFramework } from '../../src/adapters/base-adapter';
@@ -369,309 +366,6 @@ describe('BridgeEventBus', () => {
 });
 
 // ============================================================================
-// BridgePersistenceService Tests
-// ============================================================================
-
-describe('BridgePersistenceService', () => {
-  let orchestrator: BridgeOrchestrator;
-  let eventBus: BridgeEventBus;
-  let persistence: BridgePersistenceService;
-
-  beforeEach(() => {
-    orchestrator = new BridgeOrchestrator();
-    eventBus = new BridgeEventBus();
-    persistence = new BridgePersistenceService(orchestrator, eventBus);
-  });
-
-  afterEach(() => {
-    persistence.clear();
-  });
-
-  describe('storeAgent', () => {
-    it('should store agent and return stored record', () => {
-      const agent = { id: 'test-agent', name: 'Test Agent' };
-      const uri = 'urn:chrysalis:agent:test';
-
-      const stored = persistence.storeAgent(uri, agent);
-
-      expect(stored.uri).toBe(uri);
-      expect(stored.agentId).toBe(agent.id);
-      expect(stored.name).toBe(agent.name);
-      expect(stored.versionId).toBeDefined();
-    });
-
-    it('should emit AgentStored event', (done) => {
-      eventBus.subscribe<AgentStoredPayload>('AgentStored', (event) => {
-        expect(event.payload.agentUri).toBe('urn:chrysalis:agent:test');
-        done();
-      });
-
-      const agent = { id: 'test-agent', name: 'Test Agent' };
-      persistence.storeAgent('urn:chrysalis:agent:test', agent);
-    });
-
-    it('should create version history', () => {
-      const agent = { id: 'test-agent', name: 'Test Agent' };
-      const uri = 'urn:chrysalis:agent:test';
-
-      persistence.storeAgent(uri, agent);
-      const versions = persistence.getVersionHistory(uri);
-
-      expect(versions.length).toBe(1);
-      expect(versions[0].changeType).toBe('create');
-    });
-
-    it('should update existing agent', () => {
-      const agent = { id: 'test-agent', name: 'Test Agent' };
-      const uri = 'urn:chrysalis:agent:test';
-
-      persistence.storeAgent(uri, agent);
-      persistence.storeAgent(uri, { id: 'test-agent', name: 'Updated Agent' });
-
-      const stored = persistence.getAgent(uri);
-      expect(stored?.name).toBe('Updated Agent');
-
-      const versions = persistence.getVersionHistory(uri);
-      expect(versions.length).toBe(2);
-      expect(versions[1].changeType).toBe('update');
-    });
-
-    it('should close previous version on update', () => {
-      const agent = { id: 'test-agent', name: 'Test Agent' };
-      const uri = 'urn:chrysalis:agent:test';
-
-      persistence.storeAgent(uri, agent);
-      persistence.storeAgent(uri, { ...agent, name: 'Updated' });
-
-      const versions = persistence.getVersionHistory(uri);
-      expect(versions[0].validTo).toBeDefined();
-      expect(versions[1].validTo).toBeUndefined();
-    });
-  });
-
-  describe('getAgent', () => {
-    it('should retrieve stored agent', () => {
-      const agent = { id: 'test-agent', name: 'Test Agent' };
-      const uri = 'urn:chrysalis:agent:test';
-
-      persistence.storeAgent(uri, agent);
-      const retrieved = persistence.getAgent(uri);
-
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.agentId).toBe(agent.id);
-    });
-
-    it('should return undefined for non-existent agent', () => {
-      const retrieved = persistence.getAgent('urn:nonexistent');
-      expect(retrieved).toBeUndefined();
-    });
-  });
-
-  describe('getAgentAtTime', () => {
-    it('should retrieve agent version at specific time', async () => {
-      const agent = { id: 'test-agent', name: 'Test Agent' };
-      const uri = 'urn:chrysalis:agent:test';
-
-      persistence.storeAgent(uri, agent);
-      const timeAfterCreate = new Date().toISOString();
-
-      await new Promise(resolve => setTimeout(resolve, 10));
-      persistence.storeAgent(uri, { ...agent, name: 'Updated' });
-
-      const version = persistence.getAgentAtTime(uri, timeAfterCreate);
-      expect(version).toBeDefined();
-      expect(version?.changeType).toBe('create');
-    });
-
-    it('should return undefined for time before agent existed', () => {
-      const pastTime = new Date(Date.now() - 1000000).toISOString();
-      const agent = { id: 'test-agent', name: 'Test Agent' };
-      const uri = 'urn:chrysalis:agent:test';
-
-      persistence.storeAgent(uri, agent);
-      const version = persistence.getAgentAtTime(uri, pastTime);
-
-      expect(version).toBeUndefined();
-    });
-  });
-
-  describe('queryAgents', () => {
-    beforeEach(() => {
-      persistence.storeAgent('urn:agent:1', { id: 'agent-1', name: 'Test Agent' }, {
-        framework: 'usa',
-        fidelityScore: 0.9,
-      });
-      persistence.storeAgent('urn:agent:2', { id: 'agent-2', name: 'LMOS Agent' }, {
-        framework: 'lmos',
-        fidelityScore: 0.8,
-      });
-      persistence.storeAgent('urn:agent:3', { id: 'agent-3', name: 'Test Agent' }, {
-        framework: 'usa',
-        fidelityScore: 0.95,
-      });
-    });
-
-    it('should return all agents without query', () => {
-      const agents = persistence.queryAgents();
-      expect(agents.length).toBe(3);
-    });
-
-    it('should filter by framework', () => {
-      const agents = persistence.queryAgents({ framework: 'usa' });
-      expect(agents.length).toBe(2);
-    });
-
-    it('should filter by name', () => {
-      const agents = persistence.queryAgents({ name: 'LMOS' });
-      expect(agents.length).toBe(1);
-      expect(agents[0].name).toContain('LMOS');
-    });
-
-    it('should filter by minimum fidelity', () => {
-      const agents = persistence.queryAgents({ minFidelity: 0.85 });
-      expect(agents.length).toBe(2);
-    });
-
-    it('should apply pagination', () => {
-      const agents = persistence.queryAgents({ limit: 2, offset: 1 });
-      expect(agents.length).toBe(2);
-    });
-  });
-
-  describe('translations', () => {
-    it('should store and retrieve translation record', () => {
-      const record: TranslationRecord = {
-        id: 'trans-1',
-        sourceFramework: 'usa' as AgentFramework,
-        targetFramework: 'lmos' as AgentFramework,
-        fidelityScore: 0.95,
-        timestamp: new Date().toISOString(),
-        canonicalUri: 'urn:agent:1',
-        sourceUri: 'urn:source:1',
-        targetUri: 'urn:target:1',
-        warnings: [],
-        durationMs: 100,
-      };
-
-      persistence.storeTranslation(record);
-      const retrieved = persistence.getTranslation('trans-1');
-
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.sourceFramework).toBe('usa');
-    });
-
-    it('should query translations', () => {
-      persistence.storeTranslation({
-        id: 'trans-1',
-        sourceFramework: 'usa',
-        targetFramework: 'lmos',
-        fidelityScore: 0.95,
-        timestamp: new Date().toISOString(),
-        canonicalUri: 'urn:agent:1',
-        sourceUri: 'urn:source:1',
-        targetUri: 'urn:target:1',
-        warnings: [],
-        durationMs: 100,
-      });
-      persistence.storeTranslation({
-        id: 'trans-2',
-        sourceFramework: 'lmos',
-        targetFramework: 'usa',
-        fidelityScore: 0.85,
-        timestamp: new Date().toISOString(),
-        canonicalUri: 'urn:agent:2',
-        sourceUri: 'urn:source:2',
-        targetUri: 'urn:target:2',
-        warnings: [],
-        durationMs: 150,
-      });
-
-      const fromUSA = persistence.queryTranslations({ sourceFramework: 'usa' });
-      expect(fromUSA.length).toBe(1);
-
-      const highFidelity = persistence.queryTranslations({ minFidelity: 0.9 });
-      expect(highFidelity.length).toBe(1);
-    });
-  });
-
-  describe('deleteAgent', () => {
-    it('should delete agent and return true', () => {
-      const agent = { id: 'test-agent', name: 'Test Agent' };
-      const uri = 'urn:chrysalis:agent:test';
-
-      persistence.storeAgent(uri, agent);
-      const result = persistence.deleteAgent(uri);
-
-      expect(result).toBe(true);
-      expect(persistence.getAgent(uri)).toBeUndefined();
-    });
-
-    it('should return false for non-existent agent', () => {
-      const result = persistence.deleteAgent('urn:nonexistent');
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('getStats', () => {
-    it('should return correct statistics', () => {
-      persistence.storeAgent('urn:agent:1', { id: 'agent-1', name: 'Agent 1' }, {
-        framework: 'usa',
-        fidelityScore: 0.9,
-      });
-      persistence.storeAgent('urn:agent:2', { id: 'agent-2', name: 'Agent 2' }, {
-        framework: 'lmos',
-        fidelityScore: 0.8,
-      });
-      persistence.storeTranslation({
-        id: 'trans-1',
-        sourceFramework: 'usa',
-        targetFramework: 'lmos',
-        fidelityScore: 0.85,
-        timestamp: new Date().toISOString(),
-        canonicalUri: 'urn:agent:1',
-        sourceUri: 'urn:source:1',
-        targetUri: 'urn:target:1',
-        warnings: [],
-        durationMs: 100,
-      });
-
-      const stats = persistence.getStats();
-
-      expect(stats.totalAgents).toBe(2);
-      expect(stats.totalVersions).toBe(2);
-      expect(stats.totalTranslations).toBe(1);
-      expect(stats.avgFidelity).toBe(0.85);
-      expect(stats.byFramework.usa).toBe(1);
-      expect(stats.byFramework.lmos).toBe(1);
-    });
-  });
-
-  describe('clear', () => {
-    it('should clear all data', () => {
-      persistence.storeAgent('urn:agent:1', { id: 'agent-1', name: 'Agent 1' });
-      persistence.storeTranslation({
-        id: 'trans-1',
-        sourceFramework: 'usa',
-        targetFramework: 'lmos',
-        fidelityScore: 0.85,
-        timestamp: new Date().toISOString(),
-        canonicalUri: 'urn:agent:1',
-        sourceUri: 'urn:source:1',
-        targetUri: 'urn:target:1',
-        warnings: [],
-        durationMs: 100,
-      });
-
-      persistence.clear();
-
-      const stats = persistence.getStats();
-      expect(stats.totalAgents).toBe(0);
-      expect(stats.totalTranslations).toBe(0);
-    });
-  });
-});
-
-// ============================================================================
 // IntegratedBridgeService Tests
 // ============================================================================
 
@@ -695,7 +389,7 @@ describe('IntegratedBridgeService', () => {
       expect(service.orchestrator).toBeDefined();
       expect(service.discovery).toBeDefined();
       expect(service.events).toBeDefined();
-      expect(service.persistence).toBeDefined();
+      // Note: persistence was removed - use TemporalStore directly for bi-temporal storage
     });
 
     it('should start and stop cleanly', () => {
@@ -728,16 +422,6 @@ describe('IntegratedBridgeService', () => {
 
       expect(result.canonical).toBeDefined();
       expect(result.stored.framework).toBe('lmos');
-    });
-
-    it('should store agent in persistence', async () => {
-      const native = createMockUSAAgent();
-
-      const { stored } = await service.ingestAgent(native);
-      const retrieved = service.persistence.getAgent(stored.uri);
-
-      expect(retrieved).toBeDefined();
-      expect(retrieved?.agentId).toBe(stored.agentId);
     });
 
     it('should emit event', async () => {
@@ -779,15 +463,6 @@ describe('IntegratedBridgeService', () => {
       expect(result.targetFramework).toBe('usa');
     });
 
-    it('should store translation record', async () => {
-      const native = createMockUSAAgent();
-
-      await service.translateAgent(native, 'lmos');
-      const translations = service.persistence.queryTranslations({ sourceFramework: 'usa' });
-
-      expect(translations.length).toBeGreaterThan(0);
-    });
-
     it('should include fidelity score', async () => {
       const native = createMockUSAAgent();
 
@@ -811,7 +486,7 @@ describe('IntegratedBridgeService', () => {
 
       expect(stats.discovery.adapterCount).toBeGreaterThan(0);
       expect(stats.events.totalEvents).toBeGreaterThan(0);
-      expect(stats.persistence.totalAgents).toBeGreaterThan(0);
+      // Note: persistence stats removed - use TemporalStore for bi-temporal queries
     });
 
     it('should track adapter health', () => {
@@ -831,7 +506,7 @@ describe('IntegratedBridgeService', () => {
       expect(health.details.orchestrator).toBe(true);
       expect(health.details.discovery).toBe(true);
       expect(health.details.events).toBe(true);
-      expect(health.details.persistence).toBe(true);
+      // Note: persistence health removed - persistence handled by TemporalStore
     });
 
     it('should include component details', () => {
