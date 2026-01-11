@@ -1,0 +1,890 @@
+# ============================================================================
+# Chrysalis Universal Agent Bridge - Canonical Agent Ontology
+# Version: 1.0.0
+# Date: 2026-01-11
+# ============================================================================
+#
+# This ontology defines the canonical semantic model for agent representation
+# in the Chrysalis Universal Agent Bridge. It enables bidirectional translation
+# between heterogeneous agent frameworks (LMOS, USA, MCP, LangChain, etc.)
+# while preserving semantic fidelity through extension namespaces.
+#
+# Design Principles:
+# 1. W3C alignment (Web of Things Thing Description as base)
+# 2. Temporal versioning support via named graphs
+# 3. Extension namespaces for framework-specific properties
+# 4. PROV-O integration for provenance tracking
+#
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Namespace Declarations
+# ----------------------------------------------------------------------------
+
+@prefix chrysalis: <https://chrysalis.dev/ontology/agent#> .
+@prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:       <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:       <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:      <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov:      <http://www.w3.org/ns/prov#> .
+@prefix td:        <https://www.w3.org/2019/wot/td#> .
+@prefix sh:        <http://www.w3.org/ns/shacl#> .
+
+# Extension namespaces for framework-specific properties
+@prefix lmos:      <https://lmos.2060.io/lmos#> .
+@prefix usa:       <https://chrysalis.dev/usa#> .
+@prefix mcp:       <https://anthropic.com/mcp#> .
+@prefix langchain: <https://langchain.com/ontology#> .
+@prefix openai:    <https://openai.com/api#> .
+
+# ----------------------------------------------------------------------------
+# Ontology Metadata
+# ----------------------------------------------------------------------------
+
+<https://chrysalis.dev/ontology/agent> a owl:Ontology ;
+    rdfs:label "Chrysalis Agent Ontology"@en ;
+    rdfs:comment """
+        Canonical ontology for representing AI agents across heterogeneous
+        frameworks. Provides semantic interoperability between Eclipse LMOS,
+        Chrysalis USA, Anthropic MCP, LangChain, and other agent specifications.
+    """@en ;
+    owl:versionInfo "1.0.0" ;
+    owl:imports <http://www.w3.org/ns/prov-o#> .
+
+# ============================================================================
+# CORE CLASSES
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Agent - The root class for all agent representations
+# ----------------------------------------------------------------------------
+
+chrysalis:Agent a owl:Class ;
+    rdfs:label "Agent"@en ;
+    rdfs:comment """
+        A computational entity capable of autonomous action, perception, and
+        interaction. This is the root class for all agent representations in
+        the Chrysalis bridge system.
+    """@en ;
+    rdfs:subClassOf td:Thing ;
+    rdfs:subClassOf prov:Agent ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:hasIdentity ;
+        owl:minCardinality 1
+    ] ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:name ;
+        owl:cardinality 1
+    ] ;
+    skos:exactMatch td:Thing ;
+    skos:relatedMatch lmos:Agent, usa:Agent .
+
+# ----------------------------------------------------------------------------
+# AgentIdentity - Identity and authentication information
+# ----------------------------------------------------------------------------
+
+chrysalis:AgentIdentity a owl:Class ;
+    rdfs:label "Agent Identity"@en ;
+    rdfs:comment """
+        Represents the unique identity of an agent, including cryptographic
+        credentials, identifiers, and authentication mechanisms.
+    """@en ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:identifierValue ;
+        owl:cardinality 1
+    ] ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:identifierScheme ;
+        owl:cardinality 1
+    ] .
+
+chrysalis:DecentralizedIdentifier a owl:Class ;
+    rdfs:subClassOf chrysalis:AgentIdentity ;
+    rdfs:label "Decentralized Identifier"@en ;
+    rdfs:comment "W3C DID-based identity used by Eclipse LMOS protocol."@en ;
+    skos:exactMatch lmos:DID .
+
+chrysalis:FingerprintIdentity a owl:Class ;
+    rdfs:subClassOf chrysalis:AgentIdentity ;
+    rdfs:label "Fingerprint Identity"@en ;
+    rdfs:comment "SHA-384 fingerprint-based identity used by Chrysalis USA."@en ;
+    skos:exactMatch usa:fingerprint .
+
+chrysalis:UUIDIdentity a owl:Class ;
+    rdfs:subClassOf chrysalis:AgentIdentity ;
+    rdfs:label "UUID Identity"@en ;
+    rdfs:comment "Standard UUID-based identity."@en .
+
+# ----------------------------------------------------------------------------
+# AgentCapability - Abilities and functions an agent possesses
+# ----------------------------------------------------------------------------
+
+chrysalis:AgentCapability a owl:Class ;
+    rdfs:label "Agent Capability"@en ;
+    rdfs:comment """
+        An ability, skill, or function that an agent possesses. Capabilities
+        include tools, skills, reasoning strategies, and memory systems.
+    """@en .
+
+chrysalis:Tool a owl:Class ;
+    rdfs:subClassOf chrysalis:AgentCapability ;
+    rdfs:label "Tool"@en ;
+    rdfs:comment """
+        An invocable function, API, or service that an agent can use to
+        perform actions in the world. Maps to LMOS actions, MCP tools,
+        and OpenAI functions.
+    """@en ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:toolName ;
+        owl:cardinality 1
+    ] ;
+    skos:relatedMatch td:ActionAffordance ;
+    skos:relatedMatch mcp:Tool ;
+    skos:relatedMatch openai:Function ;
+    skos:relatedMatch lmos:Action .
+
+chrysalis:Skill a owl:Class ;
+    rdfs:subClassOf chrysalis:AgentCapability ;
+    rdfs:label "Skill"@en ;
+    rdfs:comment """
+        A learned or configured behavior pattern that combines multiple
+        tools or reasoning steps into a coherent capability.
+    """@en ;
+    skos:relatedMatch usa:Skill .
+
+chrysalis:ReasoningStrategy a owl:Class ;
+    rdfs:subClassOf chrysalis:AgentCapability ;
+    rdfs:label "Reasoning Strategy"@en ;
+    rdfs:comment """
+        A method for structured thinking and problem-solving, such as
+        Chain-of-Thought, ReAct, Reflexion, or Tree-of-Thoughts.
+    """@en .
+
+# Enumeration of reasoning strategy types
+chrysalis:ChainOfThought a chrysalis:ReasoningStrategy ;
+    rdfs:label "Chain of Thought"@en ;
+    rdfs:comment "Step-by-step reasoning before answering."@en .
+
+chrysalis:ReAct a chrysalis:ReasoningStrategy ;
+    rdfs:label "ReAct"@en ;
+    rdfs:comment "Reason + Act paradigm for tool-using agents."@en .
+
+chrysalis:Reflexion a chrysalis:ReasoningStrategy ;
+    rdfs:label "Reflexion"@en ;
+    rdfs:comment "Self-reflection and error correction."@en .
+
+chrysalis:TreeOfThoughts a chrysalis:ReasoningStrategy ;
+    rdfs:label "Tree of Thoughts"@en ;
+    rdfs:comment "Branching exploration of reasoning paths."@en .
+
+# ----------------------------------------------------------------------------
+# MemorySystem - Cognitive memory architecture
+# ----------------------------------------------------------------------------
+
+chrysalis:MemorySystem a owl:Class ;
+    rdfs:subClassOf chrysalis:AgentCapability ;
+    rdfs:label "Memory System"@en ;
+    rdfs:comment """
+        The cognitive memory architecture of an agent. Supports multiple
+        memory types inspired by human cognition and MemGPT/Letta patterns.
+    """@en .
+
+chrysalis:WorkingMemory a owl:Class ;
+    rdfs:subClassOf chrysalis:MemorySystem ;
+    rdfs:label "Working Memory"@en ;
+    rdfs:comment """
+        Short-term active memory for current task context. Analogous to
+        the context window or scratchpad in LLM-based agents.
+    """@en .
+
+chrysalis:EpisodicMemory a owl:Class ;
+    rdfs:subClassOf chrysalis:MemorySystem ;
+    rdfs:label "Episodic Memory"@en ;
+    rdfs:comment """
+        Memory of past experiences, interactions, and events. Enables
+        agents to learn from history and maintain conversation continuity.
+    """@en .
+
+chrysalis:SemanticMemory a owl:Class ;
+    rdfs:subClassOf chrysalis:MemorySystem ;
+    rdfs:label "Semantic Memory"@en ;
+    rdfs:comment """
+        Knowledge base and facts storage. Often backed by vector databases
+        for similarity search (RAG patterns).
+    """@en .
+
+chrysalis:ProceduralMemory a owl:Class ;
+    rdfs:subClassOf chrysalis:MemorySystem ;
+    rdfs:label "Procedural Memory"@en ;
+    rdfs:comment """
+        Learned procedures, action sequences, and skills. Represents
+        'how to do' knowledge rather than 'what is' knowledge.
+    """@en .
+
+chrysalis:CoreMemory a owl:Class ;
+    rdfs:subClassOf chrysalis:MemorySystem ;
+    rdfs:label "Core Memory"@en ;
+    rdfs:comment """
+        Persistent identity, persona, and foundational beliefs. Forms the
+        stable core of an agent's identity across interactions.
+    """@en .
+
+# ----------------------------------------------------------------------------
+# ProtocolBinding - Communication protocol support
+# ----------------------------------------------------------------------------
+
+chrysalis:ProtocolBinding a owl:Class ;
+    rdfs:label "Protocol Binding"@en ;
+    rdfs:comment """
+        A communication protocol supported by the agent for interaction
+        with other agents, tools, or external systems.
+    """@en .
+
+chrysalis:MCPBinding a owl:Class ;
+    rdfs:subClassOf chrysalis:ProtocolBinding ;
+    rdfs:label "MCP Binding"@en ;
+    rdfs:comment "Anthropic Model Context Protocol binding."@en ;
+    skos:exactMatch mcp:Protocol .
+
+chrysalis:A2ABinding a owl:Class ;
+    rdfs:subClassOf chrysalis:ProtocolBinding ;
+    rdfs:label "A2A Binding"@en ;
+    rdfs:comment "Agent-to-Agent protocol binding for multi-agent systems."@en .
+
+chrysalis:HTTPBinding a owl:Class ;
+    rdfs:subClassOf chrysalis:ProtocolBinding ;
+    rdfs:label "HTTP Binding"@en ;
+    rdfs:comment "HTTP/REST API binding."@en ;
+    skos:relatedMatch td:Form .
+
+chrysalis:WebSocketBinding a owl:Class ;
+    rdfs:subClassOf chrysalis:ProtocolBinding ;
+    rdfs:label "WebSocket Binding"@en ;
+    rdfs:comment "WebSocket real-time communication binding."@en .
+
+chrysalis:AgentProtocolBinding a owl:Class ;
+    rdfs:subClassOf chrysalis:ProtocolBinding ;
+    rdfs:label "Agent Protocol Binding"@en ;
+    rdfs:comment "Standard Agent Protocol (agent-protocol spec) binding."@en .
+
+# ----------------------------------------------------------------------------
+# TemporalContext - Versioning and time-based metadata
+# ----------------------------------------------------------------------------
+
+chrysalis:TemporalContext a owl:Class ;
+    rdfs:label "Temporal Context"@en ;
+    rdfs:comment """
+        Captures time-based metadata for agent versioning, including
+        valid-time and transaction-time dimensions for bitemporal queries.
+    """@en ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:validFrom ;
+        owl:cardinality 1
+    ] .
+
+chrysalis:AgentSnapshot a owl:Class ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:subClassOf chrysalis:TemporalContext ;
+    rdfs:label "Agent Snapshot"@en ;
+    rdfs:comment """
+        A point-in-time snapshot of an agent's configuration and state.
+        Stored in named graphs for temporal versioning.
+    """@en .
+
+# ----------------------------------------------------------------------------
+# ExecutionConfig - Runtime configuration
+# ----------------------------------------------------------------------------
+
+chrysalis:ExecutionConfig a owl:Class ;
+    rdfs:label "Execution Configuration"@en ;
+    rdfs:comment """
+        Runtime and execution configuration for the agent, including
+        LLM settings, timeouts, and iteration limits.
+    """@en .
+
+chrysalis:LLMConfig a owl:Class ;
+    rdfs:subClassOf chrysalis:ExecutionConfig ;
+    rdfs:label "LLM Configuration"@en ;
+    rdfs:comment """
+        Language model provider and parameter configuration.
+    """@en ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:llmProvider ;
+        owl:cardinality 1
+    ] ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:llmModel ;
+        owl:cardinality 1
+    ] .
+
+# ----------------------------------------------------------------------------
+# TranslationActivity - Provenance for cross-framework translations
+# ----------------------------------------------------------------------------
+
+chrysalis:TranslationActivity a owl:Class ;
+    rdfs:subClassOf prov:Activity ;
+    rdfs:label "Translation Activity"@en ;
+    rdfs:comment """
+        Records a translation between agent formats, including source/target
+        formats, fidelity score, and any information loss.
+    """@en ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:sourceFormat ;
+        owl:cardinality 1
+    ] ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:targetFormat ;
+        owl:cardinality 1
+    ] ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty chrysalis:fidelityScore ;
+        owl:cardinality 1
+    ] .
+
+# ============================================================================
+# OBJECT PROPERTIES
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Agent relationships
+# ----------------------------------------------------------------------------
+
+chrysalis:hasIdentity a owl:ObjectProperty ;
+    rdfs:label "has identity"@en ;
+    rdfs:comment "Links an agent to its identity information."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range chrysalis:AgentIdentity .
+
+chrysalis:hasCapability a owl:ObjectProperty ;
+    rdfs:label "has capability"@en ;
+    rdfs:comment "Links an agent to a capability it possesses."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range chrysalis:AgentCapability .
+
+chrysalis:supportsProtocol a owl:ObjectProperty ;
+    rdfs:label "supports protocol"@en ;
+    rdfs:comment "Links an agent to a communication protocol it supports."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range chrysalis:ProtocolBinding .
+
+chrysalis:hasExecutionConfig a owl:ObjectProperty ;
+    rdfs:label "has execution config"@en ;
+    rdfs:comment "Links an agent to its execution configuration."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range chrysalis:ExecutionConfig .
+
+chrysalis:hasTemporalContext a owl:ObjectProperty ;
+    rdfs:label "has temporal context"@en ;
+    rdfs:comment "Links an agent to temporal versioning metadata."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range chrysalis:TemporalContext .
+
+# ----------------------------------------------------------------------------
+# Memory system relationships
+# ----------------------------------------------------------------------------
+
+chrysalis:hasMemorySystem a owl:ObjectProperty ;
+    rdfs:subPropertyOf chrysalis:hasCapability ;
+    rdfs:label "has memory system"@en ;
+    rdfs:comment "Links an agent to its memory system configuration."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range chrysalis:MemorySystem .
+
+chrysalis:hasMemoryComponent a owl:ObjectProperty ;
+    rdfs:label "has memory component"@en ;
+    rdfs:comment "Links a memory system to its component types."@en ;
+    rdfs:domain chrysalis:MemorySystem ;
+    rdfs:range chrysalis:MemorySystem .
+
+# ----------------------------------------------------------------------------
+# Tool relationships
+# ----------------------------------------------------------------------------
+
+chrysalis:requiresTool a owl:ObjectProperty ;
+    rdfs:label "requires tool"@en ;
+    rdfs:comment "Indicates that a capability requires another tool."@en ;
+    rdfs:domain chrysalis:AgentCapability ;
+    rdfs:range chrysalis:Tool .
+
+chrysalis:usesReasoningStrategy a owl:ObjectProperty ;
+    rdfs:label "uses reasoning strategy"@en ;
+    rdfs:comment "Links an agent to its reasoning strategy."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range chrysalis:ReasoningStrategy .
+
+# ----------------------------------------------------------------------------
+# Protocol binding relationships
+# ----------------------------------------------------------------------------
+
+chrysalis:hasEndpoint a owl:ObjectProperty ;
+    rdfs:label "has endpoint"@en ;
+    rdfs:comment "Links a protocol binding to its endpoint."@en ;
+    rdfs:domain chrysalis:ProtocolBinding ;
+    rdfs:range rdfs:Resource .
+
+# ----------------------------------------------------------------------------
+# Temporal and provenance relationships
+# ----------------------------------------------------------------------------
+
+chrysalis:snapshotOf a owl:ObjectProperty ;
+    rdfs:label "snapshot of"@en ;
+    rdfs:comment "Links a snapshot to the agent it represents."@en ;
+    rdfs:domain chrysalis:AgentSnapshot ;
+    rdfs:range chrysalis:Agent .
+
+chrysalis:translatedFrom a owl:ObjectProperty ;
+    rdfs:subPropertyOf prov:wasDerivedFrom ;
+    rdfs:label "translated from"@en ;
+    rdfs:comment "Links a translation result to its source."@en ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Entity .
+
+chrysalis:translatedBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf prov:wasGeneratedBy ;
+    rdfs:label "translated by"@en ;
+    rdfs:comment "Links an entity to the translation activity that created it."@en ;
+    rdfs:domain prov:Entity ;
+    rdfs:range chrysalis:TranslationActivity .
+
+# ============================================================================
+# DATATYPE PROPERTIES
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Agent metadata properties
+# ----------------------------------------------------------------------------
+
+chrysalis:name a owl:DatatypeProperty ;
+    rdfs:label "name"@en ;
+    rdfs:comment "Human-readable name of the agent."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string ;
+    skos:exactMatch td:title .
+
+chrysalis:description a owl:DatatypeProperty ;
+    rdfs:label "description"@en ;
+    rdfs:comment "Detailed description of the agent's purpose and capabilities."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string ;
+    skos:exactMatch td:description .
+
+chrysalis:version a owl:DatatypeProperty ;
+    rdfs:label "version"@en ;
+    rdfs:comment "Semantic version string for the agent specification."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string .
+
+chrysalis:author a owl:DatatypeProperty ;
+    rdfs:label "author"@en ;
+    rdfs:comment "Author or organization that created the agent."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string .
+
+chrysalis:tags a owl:DatatypeProperty ;
+    rdfs:label "tags"@en ;
+    rdfs:comment "Categorization tags for the agent (JSON array as string)."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string .
+
+# ----------------------------------------------------------------------------
+# Identity properties
+# ----------------------------------------------------------------------------
+
+chrysalis:identifierValue a owl:DatatypeProperty ;
+    rdfs:label "identifier value"@en ;
+    rdfs:comment "The actual identifier string (DID, UUID, fingerprint, etc.)."@en ;
+    rdfs:domain chrysalis:AgentIdentity ;
+    rdfs:range xsd:string .
+
+chrysalis:identifierScheme a owl:DatatypeProperty ;
+    rdfs:label "identifier scheme"@en ;
+    rdfs:comment "The scheme of the identifier (did:web, uuid, sha384, etc.)."@en ;
+    rdfs:domain chrysalis:AgentIdentity ;
+    rdfs:range xsd:string .
+
+chrysalis:publicKey a owl:DatatypeProperty ;
+    rdfs:label "public key"@en ;
+    rdfs:comment "Public key for cryptographic identity verification."@en ;
+    rdfs:domain chrysalis:AgentIdentity ;
+    rdfs:range xsd:string .
+
+# ----------------------------------------------------------------------------
+# Tool properties
+# ----------------------------------------------------------------------------
+
+chrysalis:toolName a owl:DatatypeProperty ;
+    rdfs:label "tool name"@en ;
+    rdfs:comment "Unique name identifier for the tool."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+chrysalis:toolDescription a owl:DatatypeProperty ;
+    rdfs:label "tool description"@en ;
+    rdfs:comment "Human-readable description of what the tool does."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+chrysalis:inputSchema a owl:DatatypeProperty ;
+    rdfs:label "input schema"@en ;
+    rdfs:comment "JSON Schema defining the tool's input parameters."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+chrysalis:outputSchema a owl:DatatypeProperty ;
+    rdfs:label "output schema"@en ;
+    rdfs:comment "JSON Schema defining the tool's output format."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+chrysalis:toolEndpoint a owl:DatatypeProperty ;
+    rdfs:label "tool endpoint"@en ;
+    rdfs:comment "URI endpoint for invoking the tool."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:anyURI .
+
+# ----------------------------------------------------------------------------
+# Memory properties
+# ----------------------------------------------------------------------------
+
+chrysalis:memoryEnabled a owl:DatatypeProperty ;
+    rdfs:label "memory enabled"@en ;
+    rdfs:comment "Whether this memory type is enabled."@en ;
+    rdfs:domain chrysalis:MemorySystem ;
+    rdfs:range xsd:boolean .
+
+chrysalis:maxTokens a owl:DatatypeProperty ;
+    rdfs:label "max tokens"@en ;
+    rdfs:comment "Maximum token capacity for memory."@en ;
+    rdfs:domain chrysalis:MemorySystem ;
+    rdfs:range xsd:integer .
+
+chrysalis:storageBackend a owl:DatatypeProperty ;
+    rdfs:label "storage backend"@en ;
+    rdfs:comment "Storage backend type (vector_db, graph_db, etc.)."@en ;
+    rdfs:domain chrysalis:MemorySystem ;
+    rdfs:range xsd:string .
+
+# ----------------------------------------------------------------------------
+# LLM configuration properties
+# ----------------------------------------------------------------------------
+
+chrysalis:llmProvider a owl:DatatypeProperty ;
+    rdfs:label "LLM provider"@en ;
+    rdfs:comment "Language model provider (openai, anthropic, google, etc.)."@en ;
+    rdfs:domain chrysalis:LLMConfig ;
+    rdfs:range xsd:string .
+
+chrysalis:llmModel a owl:DatatypeProperty ;
+    rdfs:label "LLM model"@en ;
+    rdfs:comment "Specific model identifier (gpt-4, claude-3, etc.)."@en ;
+    rdfs:domain chrysalis:LLMConfig ;
+    rdfs:range xsd:string .
+
+chrysalis:temperature a owl:DatatypeProperty ;
+    rdfs:label "temperature"@en ;
+    rdfs:comment "Sampling temperature for LLM responses."@en ;
+    rdfs:domain chrysalis:LLMConfig ;
+    rdfs:range xsd:float .
+
+chrysalis:maxOutputTokens a owl:DatatypeProperty ;
+    rdfs:label "max output tokens"@en ;
+    rdfs:comment "Maximum tokens in LLM response."@en ;
+    rdfs:domain chrysalis:LLMConfig ;
+    rdfs:range xsd:integer .
+
+chrysalis:systemPrompt a owl:DatatypeProperty ;
+    rdfs:label "system prompt"@en ;
+    rdfs:comment "System prompt for the LLM."@en ;
+    rdfs:domain chrysalis:LLMConfig ;
+    rdfs:range xsd:string .
+
+# ----------------------------------------------------------------------------
+# Protocol binding properties
+# ----------------------------------------------------------------------------
+
+chrysalis:protocolVersion a owl:DatatypeProperty ;
+    rdfs:label "protocol version"@en ;
+    rdfs:comment "Version of the protocol."@en ;
+    rdfs:domain chrysalis:ProtocolBinding ;
+    rdfs:range xsd:string .
+
+chrysalis:endpointUrl a owl:DatatypeProperty ;
+    rdfs:label "endpoint URL"@en ;
+    rdfs:comment "URL for protocol endpoint."@en ;
+    rdfs:domain chrysalis:ProtocolBinding ;
+    rdfs:range xsd:anyURI .
+
+chrysalis:protocolConfig a owl:DatatypeProperty ;
+    rdfs:label "protocol config"@en ;
+    rdfs:comment "JSON configuration for the protocol binding."@en ;
+    rdfs:domain chrysalis:ProtocolBinding ;
+    rdfs:range xsd:string .
+
+# ----------------------------------------------------------------------------
+# Temporal properties
+# ----------------------------------------------------------------------------
+
+chrysalis:validFrom a owl:DatatypeProperty ;
+    rdfs:label "valid from"@en ;
+    rdfs:comment "Start of the valid-time interval."@en ;
+    rdfs:domain chrysalis:TemporalContext ;
+    rdfs:range xsd:dateTime .
+
+chrysalis:validTo a owl:DatatypeProperty ;
+    rdfs:label "valid to"@en ;
+    rdfs:comment "End of the valid-time interval (null if current)."@en ;
+    rdfs:domain chrysalis:TemporalContext ;
+    rdfs:range xsd:dateTime .
+
+chrysalis:transactionTime a owl:DatatypeProperty ;
+    rdfs:label "transaction time"@en ;
+    rdfs:comment "When the fact was recorded in the system."@en ;
+    rdfs:domain chrysalis:TemporalContext ;
+    rdfs:range xsd:dateTime .
+
+chrysalis:snapshotVersion a owl:DatatypeProperty ;
+    rdfs:label "snapshot version"@en ;
+    rdfs:comment "Monotonically increasing version number."@en ;
+    rdfs:domain chrysalis:AgentSnapshot ;
+    rdfs:range xsd:integer .
+
+# ----------------------------------------------------------------------------
+# Translation activity properties
+# ----------------------------------------------------------------------------
+
+chrysalis:sourceFormat a owl:DatatypeProperty ;
+    rdfs:label "source format"@en ;
+    rdfs:comment "Framework identifier of source format (lmos, usa, mcp, etc.)."@en ;
+    rdfs:domain chrysalis:TranslationActivity ;
+    rdfs:range xsd:string .
+
+chrysalis:targetFormat a owl:DatatypeProperty ;
+    rdfs:label "target format"@en ;
+    rdfs:comment "Framework identifier of target format."@en ;
+    rdfs:domain chrysalis:TranslationActivity ;
+    rdfs:range xsd:string .
+
+chrysalis:fidelityScore a owl:DatatypeProperty ;
+    rdfs:label "fidelity score"@en ;
+    rdfs:comment "Semantic preservation score (0.0-1.0)."@en ;
+    rdfs:domain chrysalis:TranslationActivity ;
+    rdfs:range xsd:float .
+
+chrysalis:lostFields a owl:DatatypeProperty ;
+    rdfs:label "lost fields"@en ;
+    rdfs:comment "JSON array of field names that could not be mapped."@en ;
+    rdfs:domain chrysalis:TranslationActivity ;
+    rdfs:range xsd:string .
+
+chrysalis:translationDuration a owl:DatatypeProperty ;
+    rdfs:label "translation duration"@en ;
+    rdfs:comment "Time taken for translation in milliseconds."@en ;
+    rdfs:domain chrysalis:TranslationActivity ;
+    rdfs:range xsd:integer .
+
+# ============================================================================
+# EXTENSION NAMESPACE PROPERTIES
+# ============================================================================
+# These properties preserve framework-specific information that doesn't
+# map directly to the canonical ontology.
+
+# ----------------------------------------------------------------------------
+# LMOS Extensions (lmos:)
+# ----------------------------------------------------------------------------
+
+lmos:agentClass a owl:DatatypeProperty ;
+    rdfs:label "LMOS agent class"@en ;
+    rdfs:comment "LMOS-specific agent classification."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string .
+
+lmos:securityDefinitions a owl:DatatypeProperty ;
+    rdfs:label "LMOS security definitions"@en ;
+    rdfs:comment "LMOS security definitions as JSON."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string .
+
+lmos:forms a owl:DatatypeProperty ;
+    rdfs:label "LMOS forms"@en ;
+    rdfs:comment "LMOS form bindings as JSON array."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+lmos:events a owl:DatatypeProperty ;
+    rdfs:label "LMOS events"@en ;
+    rdfs:comment "LMOS event subscriptions as JSON."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string .
+
+# ----------------------------------------------------------------------------
+# USA Extensions (usa:)
+# ----------------------------------------------------------------------------
+
+usa:role a owl:DatatypeProperty ;
+    rdfs:label "USA role"@en ;
+    rdfs:comment "Agent role in USA identity specification."@en ;
+    rdfs:domain chrysalis:AgentIdentity ;
+    rdfs:range xsd:string .
+
+usa:goal a owl:DatatypeProperty ;
+    rdfs:label "USA goal"@en ;
+    rdfs:comment "Agent goal in USA identity specification."@en ;
+    rdfs:domain chrysalis:AgentIdentity ;
+    rdfs:range xsd:string .
+
+usa:backstory a owl:DatatypeProperty ;
+    rdfs:label "USA backstory"@en ;
+    rdfs:comment "Agent backstory for persona."@en ;
+    rdfs:domain chrysalis:AgentIdentity ;
+    rdfs:range xsd:string .
+
+usa:memoryArchitecture a owl:DatatypeProperty ;
+    rdfs:label "USA memory architecture"@en ;
+    rdfs:comment "Memory architecture type (hierarchical, structured, etc.)."@en ;
+    rdfs:domain chrysalis:MemorySystem ;
+    rdfs:range xsd:string .
+
+usa:experienceSync a owl:DatatypeProperty ;
+    rdfs:label "USA experience sync"@en ;
+    rdfs:comment "Experience synchronization configuration as JSON."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string .
+
+usa:deploymentContext a owl:DatatypeProperty ;
+    rdfs:label "USA deployment context"@en ;
+    rdfs:comment "Deployment context (local, cloud, edge)."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string .
+
+# ----------------------------------------------------------------------------
+# MCP Extensions (mcp:)
+# ----------------------------------------------------------------------------
+
+mcp:serverCommand a owl:DatatypeProperty ;
+    rdfs:label "MCP server command"@en ;
+    rdfs:comment "Command to start the MCP server."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+mcp:serverArgs a owl:DatatypeProperty ;
+    rdfs:label "MCP server args"@en ;
+    rdfs:comment "Arguments for MCP server startup as JSON array."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+mcp:serverEnv a owl:DatatypeProperty ;
+    rdfs:label "MCP server env"@en ;
+    rdfs:comment "Environment variables for MCP server as JSON object."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+mcp:alwaysAllow a owl:DatatypeProperty ;
+    rdfs:label "MCP always allow"@en ;
+    rdfs:comment "Tool operations always allowed without confirmation."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+# ----------------------------------------------------------------------------
+# LangChain Extensions (langchain:)
+# ----------------------------------------------------------------------------
+
+langchain:agentType a owl:DatatypeProperty ;
+    rdfs:label "LangChain agent type"@en ;
+    rdfs:comment "LangChain agent type (zero-shot-react, conversational, etc.)."@en ;
+    rdfs:domain chrysalis:Agent ;
+    rdfs:range xsd:string .
+
+langchain:memoryType a owl:DatatypeProperty ;
+    rdfs:label "LangChain memory type"@en ;
+    rdfs:comment "LangChain memory type (buffer, summary, etc.)."@en ;
+    rdfs:domain chrysalis:MemorySystem ;
+    rdfs:range xsd:string .
+
+langchain:memoryConfig a owl:DatatypeProperty ;
+    rdfs:label "LangChain memory config"@en ;
+    rdfs:comment "LangChain memory configuration as JSON."@en ;
+    rdfs:domain chrysalis:MemorySystem ;
+    rdfs:range xsd:string .
+
+langchain:funcReference a owl:DatatypeProperty ;
+    rdfs:label "LangChain function reference"@en ;
+    rdfs:comment "Reference to LangChain tool function."@en ;
+    rdfs:domain chrysalis:Tool ;
+    rdfs:range xsd:string .
+
+# ============================================================================
+# SHACL VALIDATION SHAPES
+# ============================================================================
+# Define constraints for validating agent representations
+
+chrysalis:AgentShape a sh:NodeShape ;
+    sh:targetClass chrysalis:Agent ;
+    sh:property [
+        sh:path chrysalis:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:message "Agent must have exactly one non-empty name."
+    ] ;
+    sh:property [
+        sh:path chrysalis:hasIdentity ;
+        sh:minCount 1 ;
+        sh:message "Agent must have at least one identity."
+    ] .
+
+chrysalis:ToolShape a sh:NodeShape ;
+    sh:targetClass chrysalis:Tool ;
+    sh:property [
+        sh:path chrysalis:toolName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[a-zA-Z][a-zA-Z0-9_-]*$" ;
+        sh:message "Tool must have a valid name (alphanumeric, starting with letter)."
+    ] .
+
+chrysalis:LLMConfigShape a sh:NodeShape ;
+    sh:targetClass chrysalis:LLMConfig ;
+    sh:property [
+        sh:path chrysalis:llmProvider ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("openai" "anthropic" "google" "azure" "local" "custom") ;
+        sh:message "LLM provider must be a known provider type."
+    ] ;
+    sh:property [
+        sh:path chrysalis:temperature ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 2.0 ;
+        sh:message "Temperature must be between 0.0 and 2.0."
+    ] .
+
+chrysalis:TranslationActivityShape a sh:NodeShape ;
+    sh:targetClass chrysalis:TranslationActivity ;
+    sh:property [
+        sh:path chrysalis:fidelityScore ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:float ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        sh:message "Fidelity score must be between 0.0 and 1.0."
+    ] .
+
+# ============================================================================
+# END OF ONTOLOGY
+# ============================================================================

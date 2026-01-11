@@ -1,5 +1,5 @@
 ---
-description: Documentation and analysis of system-wide data flows between agents, memory, and frontend components
+description: Documentation specification for analyzing data flows between memory verification, family features, and frontend components
 ---
 
 # === USER INSTRUCTIONS ===
@@ -143,44 +143,88 @@ Frontend → Memory:
 - Session data persists with elder optimization
 - Memory access patterns track usage analytics
 - Timeline navigation generates verification events
-# === END USER INSTRUCTIONS ===
 
-# data-flow-architecture
-
+description: Documentation and analysis of system-wide data flows between agents, memory, and frontend components
 System-wide data flows are organized around three core components:
-
 1. Memory Verification Pipeline
 - Memory validation with Byzantine-resistant consensus requiring 2/3 node agreement 
 - Bidirectional flow between episodic and semantic memory tiers
 - CRDT-based memory synchronization for conflict-free merging
 - Custom gossip protocol for O(log N) memory propagation across nodes
 Importance Score: 90
-
 2. Family Features Data Flow
 - Multi-generational permission model using Open Policy Agent
 - Bidirectional sync between family member photo collections
 - Privacy-aware caregiver monitoring data streams
 - Cross-generation UX adaptation data transformation
 Importance Score: 85
-
 3. Frontend Data Integration
 - Elder-optimized React component data flow with persistence
 - Single-field progressive disclosure form data handling
 - Cognitive load-aware state management patterns
 - Voice interface data pipeline for aging speech patterns
 Importance Score: 80
-
 Data Flow Integration Points:
 - Memory verification results flow to family features for photo organization
 - Family permissions flow to frontend for access control
 - Frontend cognitive metrics flow to memory system for adaptation
 - Voice data flows through speech recognition to memory verification
-
 Core data transformations:
 - Raw memories → Verified memories
 - Photo collections → Family-organized albums  
 - User interactions → Cognitive load metrics
 - Speech input → Text commands
+# === END USER INSTRUCTIONS ===
+
+# data-flow-architecture
+
+Core Data Flow Components:
+
+1. Memory Verification Pipeline
+Path: src/memory/verification/pipeline.ts
+- Bidirectional data flow between memory verification system and family photo collections
+- Stream-based processing of photo metadata and memory claims
+- Integration with elder cognitive state tracking
+- Real-time verification results propagation to frontend 
+Importance Score: 85/100
+
+2. Family Features Data Bridge 
+Path: src/family/bridge/data-connector.ts
+- Multi-generational permission model data flows
+- Caregiver oversight metrics streaming
+- Family event coordination data management
+- Privacy-aware data sharing protocols between family members
+Importance Score: 90/100
+
+3. Frontend Integration Hub
+Path: src/frontend/integration/data-hub.ts
+- Elder-optimized UI state synchronization 
+- Cognitive load monitoring data streams
+- Three-choice navigation pattern state management
+- Voice interface data coordination
+Importance Score: 80/100
+
+Data Flow Patterns:
+
+1. Memory System Flows:
+- Verification results -> Frontend display
+- Photo collections -> Memory verification
+- Memory claims -> Verification engine
+- Verification status -> Family dashboard
+
+2. Family Data Flows:
+- Permission updates -> Access control
+- Family events -> Photo organization
+- Oversight metrics -> Caregiver dashboard
+- Privacy settings -> Data sharing
+
+3. Frontend Data Flows:
+- UI state -> Elder interface
+- Cognitive metrics -> Adaptive display
+- Voice data -> Interface adaption
+- Navigation state -> UI optimization
+
+The architecture implements specialized data flows optimized for elder cognitive support and family collaboration, with particular attention to privacy-respecting information sharing and memory verification feedback loops.
 
 $END$
 

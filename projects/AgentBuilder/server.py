@@ -31,6 +31,7 @@ from shared.api_core import (
     SortParams,
     process_list_request,
     json_response,
+    error_response,
     require_auth,
     authenticate_request,
     create_error_handler,
@@ -114,8 +115,7 @@ def create_agent():
                 message=f"Agent with id '{agent_id}' already exists",
                 category=ErrorCategory.CONFLICT_ERROR,
             )
-            response, status = APIResponse.error_response(error, status_code=409)
-            return jsonify(response.to_dict()), status
+            return error_response(error, status=409)
 
         # Get API keys from Authorization header (not request body)
         api_keys = _extract_api_keys_from_headers(request)
@@ -179,39 +179,28 @@ def create_agent():
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except requests.exceptions.RequestException as e:
         error = APIError(
             code=ErrorCode.UPSTREAM_ERROR,
             message=f"Failed to connect to builder service: {str(e)}",
             category=ErrorCategory.UPSTREAM_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=502)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=502)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Internal server error: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/agents/<agent_id>', methods=['GET'])
 @require_auth
 def get_agent(agent_id: str):
     """Get agent by ID."""
-    if agent_id not in agents_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Agent '{agent_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
-
-    return json_response(agents_store[agent_id]), 200
+    agent = require_resource_exists(agents_store, agent_id, "Agent")
+    return json_response(agent), 200
 
 @app.route('/api/v1/agents', methods=['GET'])
 @require_auth
@@ -240,16 +229,7 @@ def build_agent(agent_id: str):
 @require_auth
 def get_agent_capabilities(agent_id: str):
     """Get agent capabilities (skills and knowledge)."""
-    if agent_id not in agents_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Agent '{agent_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
-
-    agent = agents_store[agent_id]
+    agent = require_resource_exists(agents_store, agent_id, "Agent")
     capabilities = {
         'skills': agent.get('generated_skills', []),
         'knowledge': agent.get('generated_knowledge', []),
@@ -261,18 +241,10 @@ def get_agent_capabilities(agent_id: str):
 @require_auth
 def update_agent(agent_id: str):
     """Partially update agent."""
-    if agent_id not in agents_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Agent '{agent_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
+    agent = require_resource_exists(agents_store, agent_id, "Agent")
 
     try:
         data = request.get_json() or {}
-        agent = agents_store[agent_id]
 
         # Update allowed fields
         if 'role_model' in data:
@@ -287,8 +259,7 @@ def update_agent(agent_id: str):
                     message="role_model must be an object",
                     category=ErrorCategory.VALIDATION_ERROR,
                 )
-                response, status = APIResponse.error_response(error, status_code=422)
-                return jsonify(response.to_dict()), status
+                return error_response(error, status=422)
 
         if 'deepening_cycles' in data:
             deepening_cycles = data['deepening_cycles']
@@ -300,8 +271,7 @@ def update_agent(agent_id: str):
                     message="deepening_cycles must be an integer between 0 and 11",
                     category=ErrorCategory.VALIDATION_ERROR,
                 )
-                response, status = APIResponse.error_response(error, status_code=422)
-                return jsonify(response.to_dict()), status
+                return error_response(error, status=422)
 
         # Update timestamp
         agent['updated_at'] = datetime.now(timezone.utc).isoformat()
@@ -310,16 +280,14 @@ def update_agent(agent_id: str):
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Update failed: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/agents/<agent_id>', methods=['PUT'])
 @require_auth
@@ -351,29 +319,20 @@ def replace_agent(agent_id: str):
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Replace failed: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/agents/<agent_id>', methods=['DELETE'])
 @require_auth
 def delete_agent(agent_id: str):
     """Delete agent."""
-    if agent_id not in agents_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Agent '{agent_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
+    agent = require_resource_exists(agents_store, agent_id, "Agent")
 
     del agents_store[agent_id]
 
@@ -395,8 +354,7 @@ def build_agent_legacy():
             message="Missing 'agentId' field",
             category=ErrorCategory.VALIDATION_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=400)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=400)
 
     # Convert to new format and call new endpoint
     new_data = {

@@ -14,7 +14,7 @@ import type {
   CanvasEdge,
   Participant,
   TerminalSession
-} from '../../../src/terminal/protocols/types';
+} from '@terminal/protocols/types';
 
 // ============================================================================
 // Types

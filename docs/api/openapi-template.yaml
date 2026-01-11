@@ -1,0 +1,969 @@
+openapi: 3.0.3
+info:
+  title: Chrysalis API
+  version: 1.0.0
+  description: |
+    Chrysalis API provides comprehensive agent building capabilities through three core services:
+    - **AgentBuilder**: Orchestrates complete agent creation by coordinating KnowledgeBuilder and SkillBuilder
+    - **KnowledgeBuilder**: Generates knowledge clouds from entity identifiers
+    - **SkillBuilder**: Creates skill sets based on occupations and corpus text
+    
+    ## Architecture
+    
+    All services follow a unified API standard with:
+    - RESTful design principles
+    - Consistent error handling
+    - Standardized request/response formats
+    - Bearer token authentication
+    - Comprehensive validation
+    
+    ## Base URLs
+    
+    - AgentBuilder: `http://localhost:5000`
+    - KnowledgeBuilder: `http://localhost:5002`
+    - SkillBuilder: `http://localhost:5001`
+    
+  contact:
+    name: Chrysalis API Support
+    url: https://github.com/chrysalis/support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000
+    description: AgentBuilder Service (Development)
+  - url: http://localhost:5002
+    description: KnowledgeBuilder Service (Development)
+  - url: http://localhost:5001
+    description: SkillBuilder Service (Development)
+
+tags:
+  - name: Health
+    description: Service health check endpoints
+  - name: Agents
+    description: Agent creation and management operations
+  - name: Knowledge
+    description: Knowledge cloud generation and retrieval
+  - name: Skills
+    description: Skill set generation and management
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns service health status and basic service information
+      operationId: healthCheck
+      security: []  # No authentication required
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  value:
+                    success: true
+                    data:
+                      status: healthy
+                      service: agentbuilder
+                      version: v1
+                    meta:
+                      request_id: 550e8400-e29b-41d4-a716-446655440000
+                      timestamp: '2026-01-11T04:00:00.000Z'
+                      version: v1
+
+  /api/v1/agents:
+    post:
+      tags:
+        - Agents
+      summary: Create new agent
+      description: |
+        Creates a complete agent by orchestrating KnowledgeBuilder and SkillBuilder services.
+        
+        **Process Flow:**
+        1. Validates request parameters
+        2. Calls KnowledgeBuilder to generate knowledge cloud
+        3. Aggregates knowledge into corpus text
+        4. Calls SkillBuilder to generate skills from corpus
+        5. Stores and returns complete agent
+        
+        **Authentication:** Requires valid Bearer token
+        
+        **Rate Limits:** 100 requests per minute per API key
+      operationId: createAgent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentCreateRequest'
+            examples:
+              basic:
+                summary: Basic agent creation
+                value:
+                  agent_id: agent-bob-ross-001
+                  role_model:
+                    name: Bob Ross
+                    occupation: Artist
+                  deepening_cycles: 3
+              minimal:
+                summary: Minimal agent (no deepening)
+                value:
+                  agent_id: agent-minimal-001
+                  role_model:
+                    name: John Doe
+                    occupation: Developer
+                  deepening_cycles: 0
+      responses:
+        '201':
+          description: Agent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/AgentCreatedExample'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '502':
+          $ref: '#/components/responses/UpstreamError'
+    
+    get:
+      tags:
+        - Agents
+      summary: List agents
+      description: |
+        Retrieves a paginated list of agents with optional filtering and sorting.
+        
+        **Pagination:** Use `page` and `per_page` query parameters
+        
+        **Filtering:** Use `filter[field]` syntax (e.g., `filter[status]=completed`)
+        
+        **Sorting:** Use `sort` parameter with comma-separated fields (prefix with `-` for descending)
+      operationId: listAgents
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - $ref: '#/components/parameters/SortParam'
+        - name: filter[status]
+          in: query
+          description: Filter by agent status
+          schema:
+            type: string
+            enum: [completed, pending, failed]
+      responses:
+        '200':
+          description: List of agents retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/agents/{agent_id}:
+    get:
+      tags:
+        - Agents
+      summary: Get agent by ID
+      description: Retrieves detailed information about a specific agent
+      operationId: getAgent
+      parameters:
+        - $ref: '#/components/parameters/AgentIdParam'
+      responses:
+        '200':
+          description: Agent retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    patch:
+      tags:
+        - Agents
+      summary: Partially update agent
+      description: |
+        Updates specific fields of an existing agent without replacing the entire resource.
+        Only provided fields will be updated.
+      operationId: updateAgent
+      parameters:
+        - $ref: '#/components/parameters/AgentIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentUpdateRequest'
+            examples:
+              update_role:
+                summary: Update role model
+                value:
+                  role_model:
+                    name: Bob Ross Jr.
+              update_cycles:
+                summary: Update deepening cycles
+                value:
+                  deepening_cycles: 5
+      responses:
+        '200':
+          description: Agent updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    put:
+      tags:
+        - Agents
+      summary: Replace agent
+      description: |
+        Completely replaces an existing agent with new data.
+        All fields must be provided (full replacement).
+      operationId: replaceAgent
+      parameters:
+        - $ref: '#/components/parameters/AgentIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentReplaceRequest'
+      responses:
+        '200':
+          description: Agent replaced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    
+    delete:
+      tags:
+        - Agents
+      summary: Delete agent
+      description: Permanently deletes an agent and all associated data
+      operationId: deleteAgent
+      parameters:
+        - $ref: '#/components/parameters/AgentIdParam'
+      responses:
+        '200':
+          description: Agent deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/agents/{agent_id}/capabilities:
+    get:
+      tags:
+        - Agents
+      summary: Get agent capabilities
+      description: Retrieves the skills and knowledge associated with an agent
+      operationId: getAgentCapabilities
+      parameters:
+        - $ref: '#/components/parameters/AgentIdParam'
+      responses:
+        '200':
+          description: Capabilities retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilitiesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Bearer token authentication using API keys.
+        
+        **Format:** `Authorization: Bearer <api_key>`
+        
+        **Obtaining API Keys:**
+        1. Bootstrap initial key: `POST /auth/bootstrap`
+        2. Generate additional keys via admin interface
+        
+        **Key Format:** `<keyId>.<secret>`
+
+  parameters:
+    AgentIdParam:
+      name: agent_id
+      in: path
+      required: true
+      description: Unique agent identifier
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+        example: agent-bob-ross-001
+    
+    PageParam:
+      name: page
+      in: query
+      description: Page number for pagination (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 1
+    
+    PerPageParam:
+      name: per_page
+      in: query
+      description: Number of items per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+        example: 20
+    
+    SortParam:
+      name: sort
+      in: query
+      description: |
+        Comma-separated list of fields to sort by.
+        Prefix with `-` for descending order.
+        
+        **Examples:**
+        - `sort=created_at` - Sort by creation date ascending
+        - `sort=-created_at` - Sort by creation date descending
+        - `sort=name,-created_at` - Sort by name ascending, then date descending
+      schema:
+        type: string
+        example: -created_at
+
+  schemas:
+    # Request Schemas
+    AgentCreateRequest:
+      type: object
+      required:
+        - agent_id
+        - role_model
+      properties:
+        agent_id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Unique identifier for the agent
+          example: agent-bob-ross-001
+        role_model:
+          $ref: '#/components/schemas/RoleModel'
+        deepening_cycles:
+          type: integer
+          minimum: 0
+          maximum: 11
+          default: 0
+          description: Number of knowledge deepening iterations (0-11)
+          example: 3
+    
+    AgentUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        role_model:
+          type: object
+          description: Partial role model updates
+          additionalProperties: true
+        deepening_cycles:
+          type: integer
+          minimum: 0
+          maximum: 11
+          description: Number of knowledge deepening iterations
+    
+    AgentReplaceRequest:
+      type: object
+      required:
+        - role_model
+      properties:
+        role_model:
+          $ref: '#/components/schemas/RoleModel'
+        deepening_cycles:
+          type: integer
+          minimum: 0
+          maximum: 11
+          default: 0
+    
+    RoleModel:
+      type: object
+      required:
+        - name
+        - occupation
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Name of the role model
+          example: Bob Ross
+        occupation:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Occupation or profession
+          example: Artist
+      additionalProperties: true
+    
+    # Response Schemas
+    APIResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+        data:
+          type: object
+          description: Response data (present on success)
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    
+    HealthResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, degraded, unhealthy]
+                  example: healthy
+                service:
+                  type: string
+                  example: agentbuilder
+                version:
+                  type: string
+                  example: v1
+    
+    AgentResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Agent'
+    
+    AgentListResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Agent'
+            meta:
+              allOf:
+                - $ref: '#/components/schemas/ResponseMeta'
+                - type: object
+                  properties:
+                    pagination:
+                      $ref: '#/components/schemas/PaginationMeta'
+    
+    CapabilitiesResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                skills:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Skill'
+                knowledge:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/KnowledgeItem'
+    
+    DeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                deleted:
+                  type: boolean
+                  example: true
+                agent_id:
+                  type: string
+                  example: agent-bob-ross-001
+    
+    Agent:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          example: agent-bob-ross-001
+        role_model:
+          $ref: '#/components/schemas/RoleModel'
+        generated_skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skill'
+        generated_knowledge:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnowledgeItem'
+        status:
+          type: string
+          enum: [completed, pending, failed]
+          example: completed
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-01-11T04:00:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2026-01-11T04:00:00.000Z'
+    
+    Skill:
+      type: object
+      properties:
+        skill_id:
+          type: string
+          example: skill-001
+        name:
+          type: string
+          example: Color Theory
+        description:
+          type: string
+          example: Understanding of color relationships and harmonies
+        category:
+          type: string
+          example: Technical
+    
+    KnowledgeItem:
+      type: object
+      properties:
+        knowledge_id:
+          type: string
+          example: knowledge-001
+        entity:
+          type: object
+          properties:
+            text:
+              type: string
+              example: Bob Ross was an American painter...
+            type:
+              type: string
+              example: Person
+        source:
+          type: string
+          example: Wikipedia
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.95
+    
+    # Error Schemas
+    APIError:
+      type: object
+      required:
+        - code
+        - message
+        - category
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: VALIDATION_ERROR.REQUIRED_FIELD
+        message:
+          type: string
+          description: Human-readable error message
+          example: Field 'agent_id' is required
+        category:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+            - AUTHENTICATION_ERROR
+            - AUTHORIZATION_ERROR
+            - NOT_FOUND_ERROR
+            - CONFLICT_ERROR
+            - RATE_LIMIT_ERROR
+            - SERVICE_ERROR
+            - UPSTREAM_ERROR
+          example: VALIDATION_ERROR
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+        request_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        timestamp:
+          type: string
+          format: date-time
+          example: '2026-01-11T04:00:00.000Z'
+        documentation_url:
+          type: string
+          format: uri
+          example: https://docs.chrysalis.ai/errors/VALIDATION_ERROR.REQUIRED_FIELD
+        retry_after:
+          type: integer
+          description: Seconds to wait before retrying (for rate limit errors)
+          example: 60
+        suggestions:
+          type: array
+          items:
+            type: string
+          example:
+            - Ensure 'agent_id' field is present in request body
+            - Check API documentation for required fields
+    
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field name that caused the error
+          example: agent_id
+        code:
+          type: string
+          description: Specific error code for this field
+          example: REQUIRED_FIELD
+        message:
+          type: string
+          description: Detailed error message
+          example: This field is required
+        path:
+          type: array
+          items:
+            type: string
+          description: JSON path to the error location
+          example: ['role_model', 'name']
+    
+    # Metadata Schemas
+    ResponseMeta:
+      type: object
+      properties:
+        request_id:
+          type: string
+          format: uuid
+          description: Unique identifier for this request
+          example: 550e8400-e29b-41d4-a716-446655440000
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of the response
+          example: '2026-01-11T04:00:00.000Z'
+        version:
+          type: string
+          description: API version
+          example: v1
+        deprecated:
+          type: boolean
+          description: Indicates if this endpoint is deprecated
+        deprecation_notice:
+          type: string
+          description: Deprecation message with migration guidance
+    
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+          example: 1
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Items per page
+          example: 20
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items
+          example: 150
+        total_pages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+          example: 8
+        has_next:
+          type: boolean
+          description: Whether there is a next page
+          example: true
+        has_prev:
+          type: boolean
+          description: Whether there is a previous page
+          example: false
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid request format
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/APIError'
+          example:
+            success: false
+            error:
+              code: VALIDATION_ERROR.INVALID_FORMAT
+              message: Invalid JSON format in request body
+              category: VALIDATION_ERROR
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+              timestamp: '2026-01-11T04:00:00.000Z'
+    
+    Unauthorized:
+      description: Unauthorized - Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/APIError'
+          example:
+            success: false
+            error:
+              code: AUTHENTICATION_ERROR.MISSING_AUTHORIZATION
+              message: Authorization header is required
+              category: AUTHENTICATION_ERROR
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+              timestamp: '2026-01-11T04:00:00.000Z'
+              suggestions:
+                - Include 'Authorization: Bearer <token>' header in your request
+                - Obtain an API key from /auth/bootstrap endpoint
+    
+    NotFound:
+      description: Not found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/APIError'
+          example:
+            success: false
+            error:
+              code: NOT_FOUND_ERROR.RESOURCE_NOT_FOUND
+              message: Agent 'agent-123' not found
+              category: NOT_FOUND_ERROR
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+              timestamp: '2026-01-11T04:00:00.000Z'
+    
+    Conflict:
+      description: Conflict - Resource already exists
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/APIError'
+          example:
+            success: false
+            error:
+              code: CONFLICT_ERROR.DUPLICATE_RESOURCE
+              message: Agent with id 'agent-123' already exists
+              category: CONFLICT_ERROR
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+              timestamp: '2026-01-11T04:00:00.000Z'
+              suggestions:
+                - Use a different agent_id
+                - Update existing agent with PATCH /api/v1/agents/{agent_id}
+    
+    ValidationError:
+      description: Validation error - Invalid request data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/APIError'
+          example:
+            success: false
+            error:
+              code: VALIDATION_ERROR.REQUIRED_FIELD
+              message: Field 'agent_id' is required
+              category: VALIDATION_ERROR
+              details:
+                - field: agent_id
+                  code: REQUIRED_FIELD
+                  message: This field is required
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+              timestamp: '2026-01-11T04:00:00.000Z'
+    
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/APIError'
+          example:
+            success: false
+            error:
+              code: SERVICE_ERROR.INTERNAL_ERROR
+              message: An unexpected error occurred
+              category: SERVICE_ERROR
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+              timestamp: '2026-01-11T04:00:00.000Z'
+    
+    UpstreamError:
+      description: Upstream service error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    $ref: '#/components/schemas/APIError'
+          example:
+            success: false
+            error:
+              code: UPSTREAM_ERROR.SERVICE_UNAVAILABLE
+              message: Failed to connect to KnowledgeBuilder service
+              category: UPSTREAM_ERROR
+              request_id: 550e8400-e29b-41d4-a716-446655440000
+              timestamp: '2026-01-11T04:00:00.000Z'
+              retry_after: 30
+
+  examples:
+    AgentCreatedExample:
+      summary: Successfully created agent
+      value:
+        success: true
+        data:
+          agent_id: agent-bob-ross-001
+          role_model:
+            name: Bob Ross
+            occupation: Artist
+          generated_skills:
+            - skill_id: skill-001
+              name: Color Theory
+              description: Understanding of color relationships
+              category: Technical
+            - skill_id: skill-002
+              name: Brush Techniques
+              description: Various painting brush methods
+              category: Technical
+          generated_knowledge:
+            - knowledge_id: knowledge-001
+              entity:
+                text: Bob Ross was an American painter, art instructor, and television host.
+                type: Person
+              source: Wikipedia
+              confidence: 0.95
+          status: completed
+          created_at: '2026-01-11T04:00:00.000Z'
+        meta:
+          request_id: 550e8400-e29b-41d4-a716-446655440000
+          timestamp: '2026-01-11T04:00:00.000Z'
+          version: v1

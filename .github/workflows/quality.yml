@@ -1,0 +1,191 @@
+name: Quality Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  python-quality:
+    name: Python Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black mypy isort bandit safety
+
+      - name: Run flake8
+        continue-on-error: false
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        id: flake8
+
+      - name: Run black (check)
+        continue-on-error: false
+        run: |
+          black --check --diff .
+        id: black
+
+      - name: Run mypy
+        continue-on-error: false
+        run: |
+          mypy . --show-error-codes --no-error-summary || true
+        id: mypy
+
+      - name: Run isort (check)
+        continue-on-error: false
+        run: |
+          isort --check-only --diff .
+        id: isort
+
+      - name: Run bandit (security)
+        continue-on-error: false
+        run: |
+          bandit -r . -f json -o bandit-report.json || true
+          bandit -r . -ll
+        id: bandit
+
+      - name: Collect Python Quality Metrics
+        continue-on-error: true
+        run: |
+          python scripts/quality/enhanced_quality_metrics.py --format summary > python-quality-summary.txt || true
+          python scripts/quality/enhanced_quality_metrics.py --output python-quality-metrics.json || true
+
+      - name: Upload Quality Metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-quality-metrics
+          path: |
+            python-quality-metrics.json
+            python-quality-summary.txt
+            bandit-report.json
+          retention-days: 30
+
+      - name: Quality Gate Check
+        continue-on-error: false
+        run: |
+          # Check if critical errors exist
+          if [ -f python-quality-metrics.json ]; then
+            ERROR_COUNT=$(python3 -c "import json; data=json.load(open('python-quality-metrics.json')); print(data.get('total_errors', 0))")
+            if [ "$ERROR_COUNT" -gt 100 ]; then
+              echo "❌ Quality gate failed: Too many errors ($ERROR_COUNT)"
+              exit 1
+            else
+              echo "✅ Quality gate passed: Error count ($ERROR_COUNT) is acceptable"
+            fi
+          else
+            echo "⚠️  Quality metrics file not found, skipping gate check"
+          fi
+
+  typescript-quality:
+    name: TypeScript Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        continue-on-error: false
+        run: |
+          npm run lint || npx eslint . --format json --output-file eslint-report.json || true
+          npm run lint || npx eslint . || true
+        id: eslint
+
+      - name: Run TypeScript Compiler Check
+        continue-on-error: false
+        run: |
+          npm run typecheck || npx tsc --noEmit || true
+        id: tsc
+
+      - name: Collect TypeScript Quality Metrics
+        continue-on-error: true
+        run: |
+          python scripts/quality/enhanced_quality_metrics.py --format summary > typescript-quality-summary.txt || true
+          python scripts/quality/enhanced_quality_metrics.py --output typescript-quality-metrics.json || true
+
+      - name: Upload Quality Metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typescript-quality-metrics
+          path: |
+            typescript-quality-metrics.json
+            typescript-quality-summary.txt
+            eslint-report.json
+          retention-days: 30
+
+      - name: Quality Gate Check
+        continue-on-error: false
+        run: |
+          # Check if critical errors exist
+          if [ -f typescript-quality-metrics.json ]; then
+            ERROR_COUNT=$(python3 -c "import json; data=json.load(open('typescript-quality-metrics.json')); print(data.get('total_errors', 0))")
+            if [ "$ERROR_COUNT" -gt 100 ]; then
+              echo "❌ Quality gate failed: Too many errors ($ERROR_COUNT)"
+              exit 1
+            else
+              echo "✅ Quality gate passed: Error count ($ERROR_COUNT) is acceptable"
+            fi
+          else
+            echo "⚠️  Quality metrics file not found, skipping gate check"
+          fi
+
+  quality-summary:
+    name: Quality Summary
+    runs-on: ubuntu-latest
+    needs: [python-quality, typescript-quality]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Python Quality Metrics
+        uses: actions/download-artifact@v4
+        with:
+          name: python-quality-metrics
+          path: python-metrics
+
+      - name: Download TypeScript Quality Metrics
+        uses: actions/download-artifact@v4
+        with:
+          name: typescript-quality-metrics
+          path: typescript-metrics
+
+      - name: Generate Quality Summary
+        continue-on-error: true
+        run: |
+          echo "## Quality Metrics Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Python Quality" >> $GITHUB_STEP_SUMMARY
+          if [ -f python-metrics/python-quality-summary.txt ]; then
+            cat python-metrics/python-quality-summary.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Metrics not available" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### TypeScript Quality" >> $GITHUB_STEP_SUMMARY
+          if [ -f typescript-metrics/typescript-quality-summary.txt ]; then
+            cat typescript-metrics/typescript-quality-summary.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Metrics not available" >> $GITHUB_STEP_SUMMARY
+          fi

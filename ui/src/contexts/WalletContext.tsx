@@ -16,6 +16,7 @@ import {
   useMemo,
   ReactNode
 } from 'react';
+import { WalletCrypto, EncryptedData, PasswordStrength } from '../utils/WalletCrypto';
 
 // ============================================================================
 // Types
@@ -85,6 +86,9 @@ export interface WalletContextValue {
   getKeyForProvider: (provider: ApiKeyProvider) => string | null;
   hasKeyForProvider: (provider: ApiKeyProvider) => boolean;
   
+  // Password validation
+  validatePassword: (password: string) => PasswordStrength;
+  
   // Settings
   autoLockTimeout: number;
   setAutoLockTimeout: (minutes: number) => void;
@@ -105,44 +109,81 @@ interface StoredKey {
   id: string;
   provider: ApiKeyProvider;
   name?: string;
-  apiKey: string; // In real impl, encrypted
+  apiKey: string; // Plaintext - only exists in memory when unlocked
   isDefault: boolean;
   createdAt: number;
   lastUsed?: number;
   usageCount: number;
 }
 
-const STORAGE_KEY = 'chrysalis_wallet';
+interface EncryptedStoredKey {
+  id: string;
+  provider: ApiKeyProvider;
+  name?: string;
+  encryptedApiKey: EncryptedData; // Encrypted with wallet password
+  isDefault: boolean;
+  createdAt: number;
+  lastUsed?: number;
+  usageCount: number;
+}
 
-function loadFromStorage(): { keys: StoredKey[]; passwordHash?: string } {
+interface WalletStorage {
+  keys: EncryptedStoredKey[];
+  passwordHash: string;
+  version: number;
+  createdAt: number;
+  lastModified: number;
+}
+
+interface LegacyStorage {
+  keys: StoredKey[];
+  passwordHash?: string;
+}
+
+const STORAGE_KEY = 'chrysalis_wallet';
+const STORAGE_VERSION = 2; // v2 = encrypted, v1/undefined = legacy plaintext
+
+function loadFromStorage(): WalletStorage | LegacyStorage | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      return parsed;
     }
-  } catch {
-    // Ignore storage errors
+  } catch (error) {
+    console.error('Failed to load wallet from storage:', error);
   }
-  return { keys: [] };
+  return null;
 }
 
-function saveToStorage(data: { keys: StoredKey[]; passwordHash?: string }) {
+function saveToStorage(data: WalletStorage) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {
-    // Ignore storage errors
+  } catch (error) {
+    console.error('Failed to save wallet to storage:', error);
+    throw new Error('Failed to save wallet - storage may be full or disabled');
   }
 }
 
-// Simple hash for demo (in real impl use proper crypto)
-function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return hash.toString(16);
+function isLegacyStorage(storage: unknown): storage is LegacyStorage {
+  if (!storage || typeof storage !== 'object') return false;
+  const obj = storage as Record<string, unknown>;
+  return (
+    'version' in obj === false &&
+    Array.isArray(obj.keys) &&
+    obj.keys.every(k => typeof k === 'object' && 'apiKey' in k && typeof k.apiKey === 'string')
+  );
+}
+
+function isEncryptedStorage(storage: unknown): storage is WalletStorage {
+  if (!storage || typeof storage !== 'object') return false;
+  const obj = storage as Record<string, unknown>;
+  return (
+    typeof obj.version === 'number' &&
+    obj.version === STORAGE_VERSION &&
+    Array.isArray(obj.keys) &&
+    obj.keys.every(k => typeof k === 'object' && 'encryptedApiKey' in k)
+  );
 }
 
 function getKeyPrefix(key: string): string {
@@ -163,23 +204,48 @@ export interface WalletProviderProps {
 export function WalletProvider({ children, onReady }: WalletProviderProps) {
   // State
   const [state, setState] = useState<WalletState>('uninitialized');
-  const [keys, setKeys] = useState<StoredKey[]>([]);
+  const [keys, setKeys] = useState<StoredKey[]>([]); // Plaintext keys in memory (only when unlocked)
   const [passwordHash, setPasswordHash] = useState<string | undefined>();
+  const [currentPassword, setCurrentPassword] = useState<string | undefined>(); // Cached password while unlocked
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [autoLockTimeout, setAutoLockTimeoutState] = useState(30);
   const [lastActivity, setLastActivity] = useState(Date.now());
+  const [needsMigration, setNeedsMigration] = useState(false);
+
+  // Check Web Crypto API support
+  useEffect(() => {
+    if (!WalletCrypto.isSupported()) {
+      console.error('Web Crypto API not supported - wallet encryption unavailable');
+    }
+  }, []);
 
   // Load from storage on mount
   useEffect(() => {
     const stored = loadFromStorage();
-    if (stored.passwordHash) {
+    
+    if (!stored) {
+      // No wallet exists
+      setState('uninitialized');
+      return;
+    }
+
+    if (isEncryptedStorage(stored)) {
+      // Modern encrypted storage
       setPasswordHash(stored.passwordHash);
-      setKeys(stored.keys);
       setState('locked');
-    } else if (stored.keys.length > 0) {
-      // Legacy: keys without password
-      setKeys(stored.keys);
-      setState('unlocked');
+    } else if (isLegacyStorage(stored)) {
+      // Legacy plaintext storage - needs migration
+      console.warn('Legacy plaintext wallet detected - migration required on next unlock');
+      setNeedsMigration(true);
+      
+      if (stored.passwordHash) {
+        // Had password but keys not encrypted (shouldn't happen, but handle it)
+        setPasswordHash(stored.passwordHash);
+        setState('locked');
+      } else {
+        // No password - treat as uninitialized and require password setup
+        setState('uninitialized');
+      }
     }
   }, []);
 
@@ -216,39 +282,142 @@ export function WalletProvider({ children, onReady }: WalletProviderProps) {
 
   // Initialize wallet with password
   const initializeWallet = useCallback(async (password: string) => {
-    const hash = simpleHash(password);
-    setPasswordHash(hash);
-    setState('unlocked');
-    saveToStorage({ keys, passwordHash: hash });
-  }, [keys]);
+    try {
+      // Hash password for verification
+      const hash = await WalletCrypto.hashPassword(password);
+      setPasswordHash(hash);
+      setCurrentPassword(password); // Cache password while unlocked
+      setState('unlocked');
+      
+      // Save encrypted wallet (initially empty)
+      const walletStorage: WalletStorage = {
+        keys: [],
+        passwordHash: hash,
+        version: STORAGE_VERSION,
+        createdAt: Date.now(),
+        lastModified: Date.now()
+      };
+      saveToStorage(walletStorage);
+      
+      setNeedsMigration(false);
+    } catch (error) {
+      console.error('Failed to initialize wallet:', error);
+      throw new Error('Failed to initialize wallet');
+    }
+  }, []);
 
-  // Unlock wallet
+  // Unlock wallet and decrypt keys
   const unlockWallet = useCallback(async (password: string): Promise<boolean> => {
-    updateActivity();
-    if (!passwordHash) {
-      // No password set, just unlock
-      setState('unlocked');
-      return true;
-    }
-    const hash = simpleHash(password);
-    if (hash === passwordHash) {
-      setState('unlocked');
-      return true;
-    }
-    return false;
-  }, [passwordHash, updateActivity]);
+    try {
+      updateActivity();
+      
+      if (!passwordHash) {
+        // No password set - shouldn't happen
+        return false;
+      }
 
-  // Lock wallet
+      // Verify password
+      const hash = await WalletCrypto.hashPassword(password);
+      if (!WalletCrypto.secureCompare(hash, passwordHash)) {
+        return false;
+      }
+
+      // Load and decrypt keys
+      const stored = loadFromStorage();
+      
+      if (!stored) {
+        setState('unlocked');
+        return true;
+      }
+
+      // Handle migration from legacy storage
+      if (needsMigration && isLegacyStorage(stored)) {
+        console.log('Migrating legacy plaintext wallet to encrypted storage');
+        
+        // Encrypt all legacy keys
+        const encryptedKeys: EncryptedStoredKey[] = [];
+        for (const legacyKey of stored.keys) {
+          const encryptedApiKey = await WalletCrypto.encrypt(legacyKey.apiKey, password);
+          encryptedKeys.push({
+            id: legacyKey.id,
+            provider: legacyKey.provider,
+            name: legacyKey.name,
+            encryptedApiKey,
+            isDefault: legacyKey.isDefault,
+            createdAt: legacyKey.createdAt,
+            lastUsed: legacyKey.lastUsed,
+            usageCount: legacyKey.usageCount
+          });
+        }
+
+        // Save encrypted wallet
+        const walletStorage: WalletStorage = {
+          keys: encryptedKeys,
+          passwordHash: hash,
+          version: STORAGE_VERSION,
+          createdAt: Date.now(),
+          lastModified: Date.now()
+        };
+        saveToStorage(walletStorage);
+        
+        // Load plaintext keys into memory
+        setKeys(stored.keys);
+        setNeedsMigration(false);
+        
+        console.log('Migration complete - wallet is now encrypted');
+      } else if (isEncryptedStorage(stored)) {
+        // Decrypt keys into memory
+        const decryptedKeys: StoredKey[] = [];
+        
+        for (const encryptedKey of stored.keys) {
+          try {
+            const apiKey = await WalletCrypto.decrypt(encryptedKey.encryptedApiKey, password);
+            decryptedKeys.push({
+              id: encryptedKey.id,
+              provider: encryptedKey.provider,
+              name: encryptedKey.name,
+              apiKey,
+              isDefault: encryptedKey.isDefault,
+              createdAt: encryptedKey.createdAt,
+              lastUsed: encryptedKey.lastUsed,
+              usageCount: encryptedKey.usageCount
+            });
+          } catch (error) {
+            console.error(`Failed to decrypt key ${encryptedKey.id}:`, error);
+            // Skip corrupted keys
+          }
+        }
+        
+        setKeys(decryptedKeys);
+      }
+
+      setState('unlocked');
+      setCurrentPassword(password); // Cache password for encryption operations
+      return true;
+    } catch (error) {
+      console.error('Failed to unlock wallet:', error);
+      return false;
+    }
+  }, [passwordHash, updateActivity, needsMigration]);
+
+  // Lock wallet and clear plaintext keys from memory
   const lockWallet = useCallback(() => {
+    // Clear sensitive data from memory
+    setKeys([]);
+    setCurrentPassword(undefined); // Clear cached password
     setState('locked');
   }, []);
 
-  // Add key
+  // Add key (encrypt before storage)
   const addKey = useCallback(async (
     provider: ApiKeyProvider,
     apiKey: string,
     options?: { name?: string; isDefault?: boolean }
   ): Promise<string> => {
+    if (state !== 'unlocked' || !currentPassword) {
+      throw new Error('Wallet must be unlocked to add keys');
+    }
+
     updateActivity();
     const id = `key_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -277,14 +446,65 @@ export function WalletProvider({ children, onReady }: WalletProviderProps) {
     }
 
     const finalKeys = [...updatedKeys, newKey];
-    setKeys(finalKeys);
-    saveToStorage({ keys: finalKeys, passwordHash });
 
-    return id;
-  }, [keys, passwordHash, updateActivity]);
+    // Encrypt and save to storage
+    try {
+      // Load current storage
+      const stored = loadFromStorage();
+      let walletStorage: WalletStorage;
+      
+      if (isEncryptedStorage(stored)) {
+        walletStorage = stored;
+      } else {
+        // Initialize new encrypted storage
+        walletStorage = {
+          keys: [],
+          passwordHash: passwordHash!,
+          version: STORAGE_VERSION,
+          createdAt: Date.now(),
+          lastModified: Date.now()
+        };
+      }
 
-  // Remove key
+      // Encrypt the new key
+      const encryptedApiKey = await WalletCrypto.encrypt(apiKey, currentPassword);
+      const encryptedKey: EncryptedStoredKey = {
+        id: newKey.id,
+        provider: newKey.provider,
+        name: newKey.name,
+        encryptedApiKey,
+        isDefault: newKey.isDefault,
+        createdAt: newKey.createdAt,
+        usageCount: newKey.usageCount
+      };
+
+      // Update encrypted keys in storage
+      if (options?.isDefault) {
+        walletStorage.keys = walletStorage.keys.map(k => 
+          k.provider === provider ? { ...k, isDefault: false } : k
+        );
+      }
+      
+      walletStorage.keys.push(encryptedKey);
+      walletStorage.lastModified = Date.now();
+      saveToStorage(walletStorage);
+
+      // Update plaintext keys in memory
+      setKeys(finalKeys);
+
+      return id;
+    } catch (error) {
+      console.error('Failed to save encrypted key:', error);
+      throw new Error('Failed to encrypt and save key');
+    }
+  }, [state, keys, currentPassword, passwordHash, updateActivity]);
+
+  // Remove key (update encrypted storage)
   const removeKey = useCallback((keyId: string): boolean => {
+    if (state !== 'unlocked') {
+      return false;
+    }
+
     updateActivity();
     const keyToRemove = keys.find(k => k.id === keyId);
     if (!keyToRemove) return false;
@@ -302,12 +522,28 @@ export function WalletProvider({ children, onReady }: WalletProviderProps) {
     }
 
     setKeys(updatedKeys);
-    saveToStorage({ keys: updatedKeys, passwordHash });
+    
+    // Update storage (remove from encrypted keys)
+    try {
+      const stored = loadFromStorage();
+      if (isEncryptedStorage(stored)) {
+        stored.keys = stored.keys.filter(k => k.id !== keyId);
+        stored.lastModified = Date.now();
+        saveToStorage(stored);
+      }
+    } catch (error) {
+      console.error('Failed to update storage after key removal:', error);
+    }
+    
     return true;
-  }, [keys, passwordHash, updateActivity]);
+  }, [state, keys, updateActivity]);
 
-  // Set default key
+  // Set default key (update encrypted storage)
   const setDefaultKey = useCallback((keyId: string) => {
+    if (state !== 'unlocked') {
+      return;
+    }
+
     updateActivity();
     const key = keys.find(k => k.id === keyId);
     if (!key) return;
@@ -318,8 +554,22 @@ export function WalletProvider({ children, onReady }: WalletProviderProps) {
     }));
 
     setKeys(updatedKeys);
-    saveToStorage({ keys: updatedKeys, passwordHash });
-  }, [keys, passwordHash, updateActivity]);
+    
+    // Update storage
+    try {
+      const stored = loadFromStorage();
+      if (isEncryptedStorage(stored)) {
+        stored.keys = stored.keys.map(k => ({
+          ...k,
+          isDefault: k.id === keyId ? true : (k.provider === key.provider ? false : k.isDefault)
+        }));
+        stored.lastModified = Date.now();
+        saveToStorage(stored);
+      }
+    } catch (error) {
+      console.error('Failed to update storage after setting default:', error);
+    }
+  }, [state, keys, updateActivity]);
 
   // Get key for provider
   const getKeyForProvider = useCallback((provider: ApiKeyProvider): string | null => {
@@ -367,6 +617,11 @@ export function WalletProvider({ children, onReady }: WalletProviderProps) {
     }));
   }, [keys]);
 
+  // Password validation
+  const validatePassword = useCallback((password: string): PasswordStrength => {
+    return WalletCrypto.validatePasswordStrength(password);
+  }, []);
+
   // Context value
   const value: WalletContextValue = useMemo(() => ({
     state,
@@ -390,6 +645,8 @@ export function WalletProvider({ children, onReady }: WalletProviderProps) {
     getKeyForProvider,
     hasKeyForProvider,
     
+    validatePassword,
+    
     autoLockTimeout,
     setAutoLockTimeout: setAutoLockTimeoutState
   }), [
@@ -405,6 +662,7 @@ export function WalletProvider({ children, onReady }: WalletProviderProps) {
     setDefaultKey,
     getKeyForProvider,
     hasKeyForProvider,
+    validatePassword,
     autoLockTimeout
   ]);
 

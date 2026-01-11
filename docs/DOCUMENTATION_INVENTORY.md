@@ -34,8 +34,8 @@ This inventory was generated through systematic discovery:
 |------|---------|----------|--------|--------|
 | [`README.md`](../README.md) | Project overview, quick start | All users | Current | Needs verification against codebase |
 | [`ARCHITECTURE.md`](../ARCHITECTURE.md) | System architecture specification | Developers, architects | Current | Contains diagrams, needs verification |
-| [`IMPLEMENTATION_STATUS.md`](../IMPLEMENTATION_STATUS.md) | High-priority implementation tracking | Developers, PM | Current | May duplicate other status docs |
-| [`QUICK_WINS_IMPLEMENTATION_SUMMARY.md`](../QUICK_WINS_IMPLEMENTATION_SUMMARY.md) | Quick wins completion report | Developers, PM | Historical | Should be archived |
+| ~~[`IMPLEMENTATION_STATUS.md`](../IMPLEMENTATION_STATUS.md)~~ | **ARCHIVED** → [`docs/archive/legacy/IMPLEMENTATION_STATUS_2026-01-09.md`](archive/legacy/IMPLEMENTATION_STATUS_2026-01-09.md) | Developers, PM | Archived | Consolidated into docs/current/STATUS.md |
+| [`QUICK_WINS_IMPLEMENTATION_SUMMARY.md`](../archive/2026-01-quick-wins/QUICK_WINS_IMPLEMENTATION_SUMMARY.md) | Quick wins completion report | Developers, PM | Archived | Archived 2026-01-11 |
 | [`REVIEW_COMPLETE_SUMMARY.md`](../REVIEW_COMPLETE_SUMMARY.md) | Code review completion summary | Developers, PM | Historical | Should be archived |
 | [`builder_pipeline_report.md`](../builder_pipeline_report.md) | Builder pipeline execution report | Developers | Historical | Should be archived |
 | [`PULL_REQUEST_TEMPLATE.md`](../PULL_REQUEST_TEMPLATE.md) | PR template | Contributors | Current | Active template |
@@ -46,8 +46,8 @@ This inventory was generated through systematic discovery:
 
 | File | Purpose | Status | Classification |
 |------|---------|--------|----------------|
-| [`docs/README.md`](../docs/README.md) | Documentation index | Current | Navigation |
-| [`docs/index.md`](../docs/index.md) | Alternative index | Current | Potential duplicate |
+| [`docs/README.md`](../docs/README.md) | Documentation index | Current | **Primary navigation hub** |
+| ~~[`docs/index.md`]~~ | **REMOVED** - Duplicate of docs/README.md | N/A | Removed in previous session |
 | [`docs/API.md`](../docs/API.md) | API documentation | Current | Technical spec |
 | [`docs/CONFIGURATION.md`](../docs/CONFIGURATION.md) | Configuration guide | Current | Technical spec |
 | [`docs/DATA_MODELS.md`](../docs/DATA_MODELS.md) | Data model specifications | Current | Technical spec |

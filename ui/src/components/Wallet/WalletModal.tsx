@@ -9,8 +9,9 @@
  * - Lock/unlock wallet
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useWallet, ApiKeyProvider, ApiKeyInfo } from '../../contexts/WalletContext';
+import { PasswordStrength } from '../../utils/WalletCrypto';
 import styles from './WalletModal.module.css';
 
 // ============================================================================
@@ -168,13 +169,25 @@ function UnlockView({ onUnlock, onCancel }: UnlockViewProps) {
 interface SetupViewProps {
   onSetup: (password: string) => Promise<void>;
   onSkip: () => void;
+  validatePassword: (password: string) => PasswordStrength;
 }
 
-function SetupView({ onSetup, onSkip }: SetupViewProps) {
+function SetupView({ onSetup, onSkip, validatePassword }: SetupViewProps) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength | null>(null);
+
+  // Update password strength as user types
+  useEffect(() => {
+    if (password.length > 0) {
+      const strength = validatePassword(password);
+      setPasswordStrength(strength);
+    } else {
+      setPasswordStrength(null);
+    }
+  }, [password, validatePassword]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,31 +197,75 @@ function SetupView({ onSetup, onSkip }: SetupViewProps) {
       return;
     }
     
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+    const strength = validatePassword(password);
+    if (!strength.isValid) {
+      setError(strength.feedback.join('. '));
       return;
     }
     
     setLoading(true);
-    await onSetup(password);
-    setLoading(false);
+    try {
+      await onSetup(password);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to setup wallet');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get strength indicator color
+  const getStrengthColor = (score: number): string => {
+    if (score >= 80) return styles.strengthGood;
+    if (score >= 60) return styles.strengthMedium;
+    return styles.strengthWeak;
+  };
+
+  const getStrengthLabel = (score: number): string => {
+    if (score >= 80) return 'Strong';
+    if (score >= 60) return 'Good';
+    return 'Weak';
   };
 
   return (
     <div className={styles.setupView}>
       <div className={styles.setupIcon}>🔐</div>
       <h3>Setup Wallet</h3>
-      <p>Create a password to protect your API keys</p>
+      <p>Create a strong password to protect your API keys with AES-256-GCM encryption</p>
       
       <form onSubmit={handleSubmit}>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password (min 8 characters)"
-          className={styles.passwordInput}
-          autoFocus
-        />
+        <div className={styles.passwordField}>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password (min 12 characters)"
+            className={styles.passwordInput}
+            autoFocus
+          />
+          {passwordStrength && (
+            <div className={styles.passwordStrength}>
+              <div className={styles.strengthBar}>
+                <div 
+                  className={`${styles.strengthFill} ${getStrengthColor(passwordStrength.score)}`}
+                  style={{ width: `${passwordStrength.score}%` }}
+                />
+              </div>
+              <div className={styles.strengthLabel}>
+                {getStrengthLabel(passwordStrength.score)} ({passwordStrength.score}/100)
+              </div>
+              {passwordStrength.feedback.length > 0 && (
+                <div className={styles.strengthFeedback}>
+                  {passwordStrength.feedback.map((msg, i) => (
+                    <div key={i} className={styles.feedbackItem}>
+                      {passwordStrength.isValid ? '✓' : '•'} {msg}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
         <input
           type="password"
           value={confirmPassword}
@@ -216,21 +273,28 @@ function SetupView({ onSetup, onSkip }: SetupViewProps) {
           placeholder="Confirm password"
           className={styles.passwordInput}
         />
+        
         {error && <div className={styles.error}>{error}</div>}
+        
+        <div className={styles.securityNote}>
+          <strong>Security:</strong> Uses PBKDF2 with 600,000 iterations (NIST standard)
+        </div>
+        
         <div className={styles.buttonGroup}>
           <button 
             type="button" 
             onClick={onSkip} 
             className={styles.skipButton}
+            disabled={loading}
           >
-            Skip (No Password)
+            Skip (Not Recommended)
           </button>
           <button 
             type="submit" 
             className={styles.setupButton}
-            disabled={loading || !password || !confirmPassword}
+            disabled={loading || !password || !confirmPassword || !passwordStrength?.isValid}
           >
-            {loading ? 'Setting up...' : 'Create Wallet'}
+            {loading ? 'Encrypting...' : 'Create Wallet'}
           </button>
         </div>
       </form>
@@ -432,7 +496,11 @@ export function WalletModal() {
         
         <div className={styles.content}>
           {view === 'setup' && (
-            <SetupView onSetup={handleSetup} onSkip={handleSkipSetup} />
+            <SetupView 
+              onSetup={handleSetup} 
+              onSkip={handleSkipSetup}
+              validatePassword={wallet.validatePassword}
+            />
           )}
           
           {view === 'unlock' && (

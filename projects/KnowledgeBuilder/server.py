@@ -29,6 +29,9 @@ from shared.api_core import (
     FilterParams,
     SortParams,
     process_list_request,
+    json_response,
+    error_response,
+    require_resource_exists,
     require_auth,
     authenticate_request,
     create_error_handler,
@@ -127,42 +130,30 @@ def create_knowledge():
         }
 
         # Return standardized response
-        response = APIResponse.success_response({
+        return json_response({
             'knowledge_id': knowledge_id,
             'identifier': identifier,
             'entity_type': entity_type,
             'knowledge_items': results,
         })
-        return jsonify(response.to_dict()), 201
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Internal server error: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/knowledge/<knowledge_id>', methods=['GET'])
 @require_auth
 def get_knowledge(knowledge_id: str):
     """Get knowledge entry by ID."""
-    if knowledge_id not in knowledge_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Knowledge entry '{knowledge_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
-
-    response = APIResponse.success_response(knowledge_store[knowledge_id])
-    return jsonify(response.to_dict()), 200
+    knowledge = require_resource_exists(knowledge_store, knowledge_id, "Knowledge")
+    return json_response(knowledge)
 
 @app.route('/api/v1/knowledge', methods=['GET'])
 @require_auth
@@ -174,11 +165,8 @@ def list_knowledge():
     # Apply filters, sorting, and pagination
     knowledge_page, pagination_meta = process_list_request(all_knowledge)
 
-    response = APIResponse.success_response(
-        knowledge_page,
-        pagination=pagination_meta
-    )
-    return jsonify(response.to_dict()), 200
+    return json_response(knowledge_page,
+        pagination=pagination_meta)
 
 @app.route('/api/v1/knowledge/search', methods=['POST'])
 @require_auth
@@ -195,24 +183,21 @@ def search_knowledge():
         pipeline = SimplePipeline()
         results = pipeline.search(query, k=limit, entity_type=entity_type)
 
-        response = APIResponse.success_response({
+        return json_response({
             'query': query,
             'results': results,
         })
-        return jsonify(response.to_dict()), 200
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Search failed: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/knowledge/entities/<entity_id>', methods=['GET'])
 @require_auth
@@ -230,28 +215,18 @@ def get_knowledge_by_entity(entity_id: str):
             message=f"No knowledge found for entity '{entity_id}'",
             category=ErrorCategory.NOT_FOUND_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=404)
 
-    response = APIResponse.success_response(matching_knowledge[0] if len(matching_knowledge) == 1 else matching_knowledge)
-    return jsonify(response.to_dict()), 200
+    return json_response(matching_knowledge[0] if len(matching_knowledge) == 1 else matching_knowledge)
 
 @app.route('/api/v1/knowledge/<knowledge_id>', methods=['PATCH'])
 @require_auth
 def update_knowledge(knowledge_id: str):
     """Partially update knowledge entry."""
-    if knowledge_id not in knowledge_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Knowledge entry '{knowledge_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
+    knowledge = require_resource_exists(knowledge_store, knowledge_id, "Knowledge")
 
     try:
         data = request.get_json() or {}
-        knowledge = knowledge_store[knowledge_id]
 
         # Update allowed fields
         if 'identifier' in data:
@@ -269,8 +244,7 @@ def update_knowledge(knowledge_id: str):
                     message="knowledge_items must be a list",
                     category=ErrorCategory.VALIDATION_ERROR,
                 )
-                response, status = APIResponse.error_response(error, status_code=422)
-                return jsonify(response.to_dict()), status
+                return error_response(error, status=422)
 
         if 'deepening_cycles' in data:
             deepening_cycles = data['deepening_cycles']
@@ -282,27 +256,23 @@ def update_knowledge(knowledge_id: str):
                     message="deepening_cycles must be a non-negative integer",
                     category=ErrorCategory.VALIDATION_ERROR,
                 )
-                response, status = APIResponse.error_response(error, status_code=422)
-                return jsonify(response.to_dict()), status
+                return error_response(error, status=422)
 
         # Update timestamp
         knowledge['updated_at'] = datetime.now(timezone.utc).isoformat()
 
-        response = APIResponse.success_response(knowledge)
-        return jsonify(response.to_dict()), 200
+        return json_response(knowledge)
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Update failed: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/knowledge/<knowledge_id>', methods=['PUT'])
 @require_auth
@@ -332,39 +302,28 @@ def replace_knowledge(knowledge_id: str):
             'updated_at': datetime.now(timezone.utc).isoformat(),
         }
 
-        response = APIResponse.success_response(knowledge_store[knowledge_id])
-        return jsonify(response.to_dict()), 200
+        return json_response(knowledge_store[knowledge_id])
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Replace failed: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/knowledge/<knowledge_id>', methods=['DELETE'])
 @require_auth
 def delete_knowledge(knowledge_id: str):
     """Delete knowledge entry."""
-    if knowledge_id not in knowledge_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Knowledge entry '{knowledge_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
+    knowledge = require_resource_exists(knowledge_store, knowledge_id, "Knowledge")
 
     del knowledge_store[knowledge_id]
 
-    response = APIResponse.success_response({'deleted': True, 'knowledge_id': knowledge_id})
-    return jsonify(response.to_dict()), 200
+    return json_response({'deleted': True, 'knowledge_id': knowledge_id})
 
 # Backwards compatibility endpoint (deprecated)
 @app.route('/knowledge', methods=['POST'])
@@ -379,8 +338,7 @@ def create_knowledge_legacy():
             message="Missing 'identifier' field",
             category=ErrorCategory.VALIDATION_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=400)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=400)
 
     # Convert to new format and call new endpoint
     new_data = {

@@ -1,9 +1,16 @@
 # Chrysalis Documentation
 
-**Version**: 1.0.0  
-**Last Updated**: January 9, 2026
+**Version**: 1.1.0
+**Last Updated**: January 11, 2026
+**Status**: Phase 1 Consolidation Complete
 
 Welcome to the Chrysalis documentation. This page serves as the central navigation hub for all documentation resources.
+
+> **Recent Updates** (2026-01-11):
+> - ✅ Status documentation consolidated into [`docs/current/STATUS.md`](current/STATUS.md)
+> - ✅ Documentation cross-references validated and updated
+> - ✅ Archive structure enhanced with `legacy/` directory
+> - ✅ Link validation report generated
 
 ## 🚀 Getting Started
 

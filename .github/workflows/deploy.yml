@@ -1,0 +1,121 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+
+jobs:
+  # Job 1: Build and Test
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov Flask
+          if [ -f shared/api_core/requirements.txt ]; then
+            pip install -r shared/api_core/requirements.txt
+          fi
+
+      - name: Run tests
+        run: |
+          pytest shared/api_core/tests/ -v --cov=shared/api_core --cov-report=xml
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: coverage.xml
+
+  # Job 2: Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety bandit
+          if [ -f shared/api_core/requirements.txt ]; then
+            pip install -r shared/api_core/requirements.txt
+          fi
+
+      - name: Run Safety check
+        run: safety check
+        continue-on-error: true
+
+      - name: Run Bandit security scan
+        run: bandit -r shared/api_core/
+        continue-on-error: true
+
+  # Job 3: Build Docker Images (if Dockerfiles exist)
+  build-docker:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            chrysalis/api-core:latest
+            chrysalis/api-core:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+        continue-on-error: true
+
+  # Job 4: Deploy (placeholder - customize for your deployment target)
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [build-and-test, security-scan]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://api.chrysalis.dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "Deploy to production (customize for your deployment target)"
+          # Examples:
+          # - Deploy to AWS, GCP, Azure
+          # - Deploy via Kubernetes
+          # - Deploy via Docker Compose
+          # - Deploy via serverless framework
+        continue-on-error: true

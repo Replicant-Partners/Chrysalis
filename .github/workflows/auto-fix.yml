@@ -1,0 +1,124 @@
+name: Auto-Fix Quality Issues
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  auto-fix-python:
+    name: Auto-Fix Python Code
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort
+
+      - name: Run black (auto-fix)
+        continue-on-error: true
+        run: |
+          black . --line-length 127 || true
+        id: black-fix
+
+      - name: Run isort (auto-fix)
+        continue-on-error: true
+        run: |
+          isort . --profile black --line-length 127 || true
+        id: isort-fix
+
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit fixes
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git commit -m "chore: auto-fix Python code formatting (black, isort)" || exit 0
+          git push || exit 0
+        continue-on-error: true
+
+  auto-fix-typescript:
+    name: Auto-Fix TypeScript Code
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint (auto-fix)
+        continue-on-error: true
+        run: |
+          npm run lint:fix || npx eslint . --fix || true
+        id: eslint-fix
+
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit fixes
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git commit -m "chore: auto-fix TypeScript code formatting (ESLint)" || exit 0
+          git push || exit 0
+        continue-on-error: true
+
+  auto-fix-summary:
+    name: Auto-Fix Summary
+    runs-on: ubuntu-latest
+    needs: [auto-fix-python, auto-fix-typescript]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "## Auto-Fix Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Python Auto-Fix" >> $GITHUB_STEP_SUMMARY
+          echo "- Black: ✅ Run" >> $GITHUB_STEP_SUMMARY
+          echo "- isort: ✅ Run" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### TypeScript Auto-Fix" >> $GITHUB_STEP_SUMMARY
+          echo "- ESLint: ✅ Run" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Auto-fix commits are automatically created when fixes are applied." >> $GITHUB_STEP_SUMMARY

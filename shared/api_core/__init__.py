@@ -247,3 +247,77 @@ try:
 except ImportError:
     # flasgger may not be installed, that's ok
     pass
+
+# Monitoring (optional - may not be available if Flask is not installed)
+try:
+    from .monitoring import (
+        HealthStatus,
+        HealthCheck,
+        HealthRegistry,
+        create_health_check_middleware,
+        register_health_check,
+        MetricsCollector,
+        create_metrics_middleware,
+    )
+    __all__.extend([
+        'HealthStatus',
+        'HealthCheck',
+        'HealthRegistry',
+        'create_health_check_middleware',
+        'register_health_check',
+        'MetricsCollector',
+        'create_metrics_middleware',
+    ])
+except (ImportError, RuntimeError):
+    # Monitoring not available (Flask not installed)
+    pass
+
+# Security headers (optional - may not be available if Flask is not installed)
+try:
+    from .security_headers import (
+        SecurityHeadersConfig,
+        create_security_headers_middleware,
+    )
+    __all__.extend([
+        'SecurityHeadersConfig',
+        'create_security_headers_middleware',
+    ])
+except (ImportError, RuntimeError):
+    # Security headers not available (Flask not installed)
+    pass
+
+# Error tracking (optional - may not be available if Flask is not installed)
+try:
+    from .error_tracking import (
+        ErrorTrackingConfig,
+        create_error_tracking_middleware,
+        capture_message,
+        capture_exception,
+    )
+    __all__.extend([
+        'ErrorTrackingConfig',
+        'create_error_tracking_middleware',
+        'capture_message',
+        'capture_exception',
+    ])
+except (ImportError, RuntimeError):
+    # Error tracking not available (Flask not installed)
+    pass
+
+# Audit logging (optional - may not be available if Flask is not installed)
+try:
+    from .audit_logging import (
+        AuditEvent,
+        AuditLogger,
+        create_audit_logging_middleware,
+        get_audit_logger,
+    )
+    __all__.extend([
+        'AuditEvent',
+        'AuditLogger',
+        'create_audit_logging_middleware',
+        'get_audit_logger',
+    ])
+except (ImportError, RuntimeError):
+    # Audit logging not available (Flask not installed)
+    pass

@@ -1,0 +1,27 @@
+apiVersion: v2
+name: chrysalis-bridge
+description: Chrysalis Universal Agent Bridge - Cross-framework agent translation service
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.25.0"
+keywords:
+  - chrysalis
+  - agent
+  - bridge
+  - translator
+  - multi-agent
+  - lmos
+  - usa
+  - mcp
+  - langchain
+home: https://chrysalis.io
+sources:
+  - https://github.com/chrysalis-project/chrysalis
+maintainers:
+  - name: Chrysalis Team
+    email: team@chrysalis.io
+annotations:
+  artifacthub.io/license: MIT
+  artifacthub.io/category: integration
+dependencies: []

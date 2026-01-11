@@ -11,7 +11,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
-import type { ChatMessage } from '../../../../src/terminal/protocols/types';
+import type { ChatMessage } from '@terminal/protocols/types';
 import { useWallet } from '../../contexts/WalletContext';
 import styles from './ChatPane.module.css';
 

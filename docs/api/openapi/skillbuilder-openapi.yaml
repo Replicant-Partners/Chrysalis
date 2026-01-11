@@ -1,0 +1,927 @@
+openapi: 3.0.3
+info:
+  title: SkillBuilder API
+  version: 1.0.0
+  description: |
+    SkillBuilder generates agent skills from occupation and corpus text using exemplar-driven 
+    research. It provides RESTful endpoints for creating, managing, and retrieving skill sets 
+    with support for deepening cycles to enhance skill quality.
+    
+    ## Key Features
+    - **Occupation-based skill generation**: Generate skills from occupation descriptions
+    - **Corpus text integration**: Enhance skills with custom corpus text
+    - **Deepening cycles**: Iterative refinement (0-11 cycles)
+    - **Skill embeddings**: Vector representations for semantic search
+    - **Mode management**: Query available skill generation modes
+    - **Full CRUD operations**: Create, read, update, and delete skill sets
+    
+    ## Architecture
+    SkillBuilder uses the unified API standard with standardized request/response formats,
+    Bearer token authentication, comprehensive error handling, pagination, filtering, sorting,
+    rate limiting, and monitoring.
+    
+  contact:
+    name: Chrysalis API Support
+    url: https://docs.chrysalis.dev
+    email: support@chrysalis.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5001
+    description: Development server
+  - url: https://api.chrysalis.dev/skillbuilder
+    description: Production server
+
+tags:
+  - name: Health
+    description: Service health check endpoints
+  - name: Skills
+    description: Skill set creation and management operations
+  - name: Modes
+    description: Skill generation mode registry operations
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns service health status and basic service information
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/APIResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [healthy, degraded, unhealthy]
+                            example: healthy
+                          service:
+                            type: string
+                            example: skillbuilder
+                          version:
+                            type: string
+                            example: v1
+
+  /api/v1/skills:
+    post:
+      tags:
+        - Skills
+      summary: Create skills
+      description: |
+        Generates skills for a specified occupation with optional corpus text and deepening cycles.
+        
+        **Process Flow:**
+        1. Validates request parameters
+        2. Creates FrontendSpec with occupation and configuration
+        3. Runs skill generation pipeline
+        4. Generates skill embeddings for semantic search
+        5. Stores skills with unique ID
+        6. Returns complete skill set with embeddings
+        
+        **Rate Limits:** 10 requests per minute per API key
+      operationId: createSkills
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillCreateRequest'
+            examples:
+              basic:
+                summary: Basic skill generation
+                value:
+                  occupation: Software Engineer
+                  deepening_cycles: 3
+              with_corpus:
+                summary: With corpus text
+                value:
+                  occupation: Data Scientist
+                  deepening_cycles: 5
+                  corpus_text: "Focus on machine learning and statistical analysis"
+      responses:
+        '201':
+          description: Skills created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/APIResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SkillSet'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/ServiceError'
+    
+    get:
+      tags:
+        - Skills
+      summary: List skills
+      description: |
+        Retrieves a paginated list of all skill sets with optional filtering and sorting.
+        
+        **Rate Limits:** 100 requests per minute per API key
+      operationId: listSkills
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+        - $ref: '#/components/parameters/SortParam'
+        - name: filter[occupation]
+          in: query
+          description: Filter by occupation
+          schema:
+            type: string
+        - name: filter[deepening_cycles]
+          in: query
+          description: Filter by deepening cycles
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 11
+      responses:
+        '200':
+          description: List of skills retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/APIResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SkillSet'
+                      meta:
+                        allOf:
+                          - $ref: '#/components/schemas/ResponseMeta'
+                          - type: object
+                            properties:
+                              pagination:
+                                $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServiceError'
+
+  /api/v1/skills/{skill_id}:
+    get:
+      tags:
+        - Skills
+      summary: Get skills by ID
+      description: Retrieves a specific skill set by its unique identifier
+      operationId: getSkills
+      parameters:
+        - $ref: '#/components/parameters/SkillIdParam'
+      responses:
+        '200':
+          description: Skill set retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/APIResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SkillSet'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServiceError'
+    
+    patch:
+      tags:
+        - Skills
+      summary: Partially update skills
+      description: |
+        Updates specific fields of an existing skill set without replacing the entire resource.
+        Only provided fields will be updated.
+      operationId: updateSkills
+      parameters:
+        - $ref: '#/components/parameters/SkillIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillUpdateRequest'
+            examples:
+              update_occupation:
+                summary: Update occupation
+                value:
+                  occupation: Senior Software Engineer
+              update_cycles:
+                summary: Update deepening cycles
+                value:
+                  deepening_cycles: 5
+      responses:
+        '200':
+          description: Skill set updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/APIResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SkillSet'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/ServiceError'
+    
+    put:
+      tags:
+        - Skills
+      summary: Replace skills
+      description: |
+        Completely replaces an existing skill set with new data.
+        All required fields must be provided.
+      operationId: replaceSkills
+      parameters:
+        - $ref: '#/components/parameters/SkillIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillReplaceRequest'
+      responses:
+        '200':
+          description: Skill set replaced successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/APIResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SkillSet'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/ServiceError'
+    
+    delete:
+      tags:
+        - Skills
+      summary: Delete skills
+      description: Permanently deletes a skill set
+      operationId: deleteSkills
+      parameters:
+        - $ref: '#/components/parameters/SkillIdParam'
+      responses:
+        '200':
+          description: Skill set deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/APIResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          deleted:
+                            type: boolean
+                            example: true
+                          skill_id:
+                            type: string
+                            format: uuid
+                            example: 550e8400-e29b-41d4-a716-446655440000
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServiceError'
+
+  /api/v1/skills/modes:
+    get:
+      tags:
+        - Modes
+      summary: List skill modes
+      description: |
+        Retrieves available skill generation modes from the mode registry.
+        
+        **Note:** Currently returns empty list. Mode registry integration is planned for future release.
+      operationId: listSkillModes
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PerPageParam'
+      responses:
+        '200':
+          description: List of modes retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/APIResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SkillMode'
+                      meta:
+                        allOf:
+                          - $ref: '#/components/schemas/ResponseMeta'
+                          - type: object
+                            properties:
+                              pagination:
+                                $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServiceError'
+
+  /api/v1/skills/modes/{mode_id}:
+    get:
+      tags:
+        - Modes
+      summary: Get skill mode by ID
+      description: |
+        Retrieves a specific skill mode configuration.
+        
+        **Note:** Mode registry integration is planned. Currently always returns 404.
+      operationId: getSkillMode
+      parameters:
+        - $ref: '#/components/parameters/ModeIdParam'
+      responses:
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /skills:
+    post:
+      tags:
+        - Skills
+      summary: Legacy create endpoint (deprecated)
+      description: |
+        **⚠️ DEPRECATED**: Use POST /api/v1/skills instead.
+        
+        This endpoint will be removed in v2.0.
+        
+        **Migration Guide:**
+        1. Remove `apiKeys` from request body
+        2. Add `Authorization: Bearer <api_key>` header
+        3. Use `/api/v1/skills` endpoint
+        4. Handle standardized response format
+      operationId: legacyCreateSkills
+      deprecated: true
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - occupation
+              properties:
+                occupation:
+                  type: string
+                deepening_cycles:
+                  type: integer
+                  minimum: 0
+                  maximum: 11
+                corpus_text:
+                  type: string
+                apiKeys:
+                  type: object
+                  properties:
+                    OPENAI_API_KEY:
+                      type: string
+                    ANTHROPIC_API_KEY:
+                      type: string
+      responses:
+        '201':
+          description: Skills created (with deprecation warning)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+                    properties:
+                      deprecated:
+                        type: boolean
+                        example: true
+                      deprecation_notice:
+                        type: string
+                        example: Use POST /api/v1/skills instead
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Bearer token authentication using API keys or JWT tokens.
+        
+        **Format:** `Authorization: Bearer <token>`
+        
+        **API Key Format:** `<keyId>.<secret>`
+
+  parameters:
+    SkillIdParam:
+      name: skill_id
+      in: path
+      required: true
+      description: Unique skill set identifier (UUID)
+      schema:
+        type: string
+        format: uuid
+        example: 550e8400-e29b-41d4-a716-446655440000
+    
+    ModeIdParam:
+      name: mode_id
+      in: path
+      required: true
+      description: Unique mode identifier
+      schema:
+        type: string
+        example: mode-123
+    
+    PageParam:
+      name: page
+      in: query
+      description: Page number for pagination (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    
+    PerPageParam:
+      name: per_page
+      in: query
+      description: Number of items per page (max 100)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    
+    SortParam:
+      name: sort
+      in: query
+      description: |
+        Comma-separated list of fields to sort by.
+        Prefix with `-` for descending order.
+        
+        **Examples:**
+        - `occupation` - Sort by occupation ascending
+        - `-total_skills` - Sort by skill count descending
+        - `occupation,-total_skills` - Multi-field sort
+      schema:
+        type: string
+        example: -total_skills
+
+  schemas:
+    # Request Schemas
+    SkillCreateRequest:
+      type: object
+      required:
+        - occupation
+      properties:
+        occupation:
+          type: string
+          minLength: 1
+          description: Occupation or profession for skill generation
+          example: Software Engineer
+        deepening_cycles:
+          type: integer
+          minimum: 0
+          maximum: 11
+          default: 0
+          description: Number of iterative refinement cycles
+          example: 3
+        corpus_text:
+          type: string
+          description: Additional text to inform skill generation
+          example: Focus on distributed systems and cloud architecture
+    
+    SkillUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        occupation:
+          type: string
+          minLength: 1
+          description: Updated occupation
+        skills:
+          type: array
+          description: Updated skills list
+          items:
+            $ref: '#/components/schemas/SkillItem'
+        deepening_cycles:
+          type: integer
+          minimum: 0
+          maximum: 11
+          description: Updated cycle count
+    
+    SkillReplaceRequest:
+      type: object
+      required:
+        - occupation
+        - skills
+      properties:
+        occupation:
+          type: string
+          minLength: 1
+          description: Occupation name
+        skills:
+          type: array
+          description: Complete skills array
+          items:
+            $ref: '#/components/schemas/SkillItem'
+        deepening_cycles:
+          type: integer
+          minimum: 0
+          maximum: 11
+          default: 0
+          description: Deepening cycles
+    
+    # Response Schemas
+    APIResponse:
+      type: object
+      required:
+        - success
+        - meta
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+        data:
+          description: Response data (present on success)
+        error:
+          $ref: '#/components/schemas/APIError'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    
+    SkillSet:
+      type: object
+      properties:
+        skill_id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        occupation:
+          type: string
+          example: Software Engineer
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkillItem'
+        deepening_cycles:
+          type: integer
+          minimum: 0
+          maximum: 11
+          example: 3
+        total_skills:
+          type: integer
+          minimum: 0
+          example: 15
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-01-11T04:00:00.000Z'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2026-01-11T05:00:00.000Z'
+    
+    SkillItem:
+      type: object
+      required:
+        - skill
+        - embedding
+      properties:
+        skill:
+          type: string
+          description: YAML-formatted skill definition
+          example: |
+            name: Algorithm Design
+            description: Design and implement efficient algorithms for complex problems
+            category: Technical
+            proficiency: Expert
+            examples:
+              - Dynamic programming solutions
+              - Graph algorithms
+              - Optimization techniques
+        embedding:
+          type: array
+          description: Vector representation for semantic search
+          items:
+            type: number
+            format: float
+          example: [0.123, 0.456, 0.789, 0.012]
+    
+    SkillMode:
+      type: object
+      properties:
+        mode_id:
+          type: string
+          example: mode-123
+        name:
+          type: string
+          example: Standard Mode
+        description:
+          type: string
+          example: Default skill generation mode
+        configuration:
+          type: object
+          additionalProperties: true
+    
+    # Error Schemas
+    APIError:
+      type: object
+      required:
+        - code
+        - message
+        - category
+        - timestamp
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: VALIDATION_ERROR.REQUIRED_FIELD
+        message:
+          type: string
+          description: Human-readable error message
+          example: Field 'occupation' is required
+        category:
+          type: string
+          description: Error category for programmatic handling
+          enum:
+            - VALIDATION_ERROR
+            - AUTHENTICATION_ERROR
+            - AUTHORIZATION_ERROR
+            - NOT_FOUND_ERROR
+            - CONFLICT_ERROR
+            - RATE_LIMIT_ERROR
+            - SERVICE_ERROR
+            - UPSTREAM_ERROR
+        details:
+          type: array
+          description: Field-level error details
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request identifier for support
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+        documentation_url:
+          type: string
+          format: uri
+          description: Link to relevant documentation
+        retry_after:
+          type: integer
+          description: Seconds to wait before retrying (for rate limits)
+        suggestions:
+          type: array
+          description: Actionable suggestions for resolution
+          items:
+            type: string
+    
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field name that caused the error
+          example: occupation
+        code:
+          type: string
+          description: Field-specific error code
+          example: REQUIRED_FIELD
+        message:
+          type: string
+          description: Field-specific error message
+          example: This field is required
+        path:
+          type: array
+          description: JSON path to the field
+          items:
+            type: string
+    
+    # Metadata Schemas
+    ResponseMeta:
+      type: object
+      required:
+        - request_id
+        - timestamp
+        - version
+      properties:
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request identifier
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+        version:
+          type: string
+          description: API version
+          example: v1
+        deprecated:
+          type: boolean
+          description: Indicates if endpoint is deprecated
+        deprecation_notice:
+          type: string
+          description: Deprecation message
+    
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - per_page
+        - total
+        - total_pages
+        - has_next
+        - has_prev
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number (1-indexed)
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Items per page
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items
+        total_pages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+        has_next:
+          type: boolean
+          description: Whether there is a next page
+        has_prev:
+          type: boolean
+          description: Whether there is a previous page
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: AUTHENTICATION_ERROR.MISSING_AUTHORIZATION
+                      message:
+                        type: string
+                        example: Missing Authorization header
+                      category:
+                        type: string
+                        example: AUTHENTICATION_ERROR
+    
+    NotFound:
+      description: Not found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: NOT_FOUND_ERROR.RESOURCE_NOT_FOUND
+                      message:
+                        type: string
+                        example: Skill set not found
+                      category:
+                        type: string
+                        example: NOT_FOUND_ERROR
+    
+    ValidationError:
+      description: Validation error - Invalid request data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: VALIDATION_ERROR.INVALID_RANGE
+                      message:
+                        type: string
+                        example: deepening_cycles must be between 0 and 11
+                      category:
+                        type: string
+                        example: VALIDATION_ERROR
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            field:
+                              type: string
+                              example: deepening_cycles
+                            code:
+                              type: string
+                              example: INVALID_RANGE
+                            message:
+                              type: string
+                              example: Value must be between 0 and 11
+    
+    ServiceError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/APIResponse'
+              - type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: SERVICE_ERROR.PIPELINE_ERROR
+                      message:
+                        type: string
+                        example: Skill generation pipeline failure
+                      category:
+                        type: string
+                        example: SERVICE_ERROR

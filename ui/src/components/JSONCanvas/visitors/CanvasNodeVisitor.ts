@@ -24,7 +24,7 @@ import type {
   GroupNode,
   WidgetNode,
   CanvasNode
-} from '../../../terminal/protocols/types';
+} from '@terminal/protocols/types';
 
 /**
  * Visitor interface for canvas node operations.

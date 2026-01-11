@@ -1,0 +1,253 @@
+# Chrysalis Universal Agent Bridge - Helm Chart Values
+# Default values - override in environment-specific values files
+
+# =============================================================================
+# Image Configuration
+# =============================================================================
+image:
+  repository: chrysalis/bridge
+  tag: "latest"
+  pullPolicy: Always
+  pullSecrets: []
+
+# =============================================================================
+# Replica Configuration
+# =============================================================================
+replicaCount: 3
+
+# =============================================================================
+# Service Account
+# =============================================================================
+serviceAccount:
+  create: true
+  name: chrysalis-bridge
+  annotations: {}
+
+# =============================================================================
+# Pod Configuration
+# =============================================================================
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9090"
+  prometheus.io/path: "/metrics"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Service Configuration
+# =============================================================================
+service:
+  type: ClusterIP
+  http:
+    port: 80
+    targetPort: 3100
+  grpc:
+    port: 3101
+    targetPort: 3101
+  metrics:
+    port: 9090
+    targetPort: 9090
+
+# =============================================================================
+# Ingress Configuration
+# =============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: bridge.chrysalis.io
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: chrysalis-bridge-tls
+      hosts:
+        - bridge.chrysalis.io
+
+# gRPC Ingress (separate)
+grpcIngress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: grpc.bridge.chrysalis.io
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: chrysalis-bridge-grpc-tls
+      hosts:
+        - grpc.bridge.chrysalis.io
+
+# =============================================================================
+# Resource Limits
+# =============================================================================
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# =============================================================================
+# Autoscaling
+# =============================================================================
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+
+# =============================================================================
+# Pod Disruption Budget
+# =============================================================================
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# =============================================================================
+# Health Probes
+# =============================================================================
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# =============================================================================
+# Environment Variables
+# =============================================================================
+env:
+  NODE_ENV: production
+  BRIDGE_PORT: "3100"
+  BRIDGE_HOST: "0.0.0.0"
+
+# ConfigMap values
+config:
+  logLevel: info
+  healthCheckInterval: "60000"
+  maxEventHistory: "1000"
+
+# =============================================================================
+# Node Selection & Tolerations
+# =============================================================================
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - chrysalis-bridge
+          topologyKey: kubernetes.io/hostname
+
+# =============================================================================
+# Network Policy
+# =============================================================================
+networkPolicy:
+  enabled: true
+  ingressRules:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3100
+        - protocol: TCP
+          port: 3101
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 3100
+        - protocol: TCP
+          port: 3101
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9090
+
+# =============================================================================
+# Monitoring
+# =============================================================================
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  labels: {}
+
+# =============================================================================
+# Additional Volumes
+# =============================================================================
+extraVolumes:
+  - name: tmp
+    emptyDir: {}
+  - name: cache
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: tmp
+    mountPath: /tmp
+  - name: cache
+    mountPath: /app/.cache
+
+# =============================================================================
+# Termination
+# =============================================================================
+terminationGracePeriodSeconds: 30

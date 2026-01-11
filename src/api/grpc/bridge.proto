@@ -1,0 +1,390 @@
+// Chrysalis Universal Agent Bridge gRPC Service
+// Protocol Buffer definitions for high-performance agent translation
+
+syntax = "proto3";
+
+package chrysalis.bridge.v1;
+
+option go_package = "github.com/chrysalis-project/bridge/api/grpc/v1";
+option java_package = "io.chrysalis.bridge.grpc.v1";
+option java_multiple_files = true;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+// =============================================================================
+// Bridge Service Definition
+// =============================================================================
+
+// BridgeService provides agent translation and management operations
+service BridgeService {
+  // Health check
+  rpc Health(HealthRequest) returns (HealthResponse);
+  
+  // Get service statistics
+  rpc GetStats(StatsRequest) returns (StatsResponse);
+  
+  // Translate a single agent between frameworks
+  rpc Translate(TranslateRequest) returns (TranslateResponse);
+  
+  // Translate multiple agents in batch
+  rpc BatchTranslate(BatchTranslateRequest) returns (BatchTranslateResponse);
+  
+  // Stream translation for large batches
+  rpc StreamTranslate(stream TranslateRequest) returns (stream TranslateResponse);
+  
+  // Ingest an agent into canonical form
+  rpc Ingest(IngestRequest) returns (IngestResponse);
+  
+  // List registered adapters
+  rpc ListAdapters(ListAdaptersRequest) returns (ListAdaptersResponse);
+  
+  // Get adapter details
+  rpc GetAdapter(GetAdapterRequest) returns (GetAdapterResponse);
+  
+  // List stored agents
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse);
+  
+  // Get agent by URI
+  rpc GetAgent(GetAgentRequest) returns (GetAgentResponse);
+  
+  // Delete agent by URI
+  rpc DeleteAgent(DeleteAgentRequest) returns (DeleteAgentResponse);
+  
+  // Get agent version history
+  rpc GetAgentVersions(GetAgentVersionsRequest) returns (GetAgentVersionsResponse);
+  
+  // List translation history
+  rpc ListTranslations(ListTranslationsRequest) returns (ListTranslationsResponse);
+  
+  // Subscribe to bridge events (streaming)
+  rpc SubscribeEvents(SubscribeEventsRequest) returns (stream BridgeEvent);
+  
+  // Get framework compatibility matrix
+  rpc GetCompatibility(GetCompatibilityRequest) returns (GetCompatibilityResponse);
+}
+
+// =============================================================================
+// Common Types
+// =============================================================================
+
+// AgentFramework enum representing supported frameworks
+enum AgentFramework {
+  AGENT_FRAMEWORK_UNSPECIFIED = 0;
+  AGENT_FRAMEWORK_USA = 1;        // Uniform Semantic Agent
+  AGENT_FRAMEWORK_LMOS = 2;       // Language Model Operating System
+  AGENT_FRAMEWORK_MCP = 3;        // Model Context Protocol
+  AGENT_FRAMEWORK_LANGCHAIN = 4;  // LangChain
+  AGENT_FRAMEWORK_OPENAI = 5;     // OpenAI Assistants
+  AGENT_FRAMEWORK_CREWAI = 6;     // CrewAI
+  AGENT_FRAMEWORK_AUTOGEN = 7;    // AutoGen
+}
+
+// HealthStatus enum
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_HEALTHY = 1;
+  HEALTH_STATUS_DEGRADED = 2;
+  HEALTH_STATUS_UNHEALTHY = 3;
+}
+
+// NativeAgent represents an agent in its native framework format
+message NativeAgent {
+  AgentFramework framework = 1;
+  google.protobuf.Struct data = 2;
+  string version = 3;
+  map<string, string> metadata = 4;
+}
+
+// CanonicalSummary represents summary of canonical form
+message CanonicalSummary {
+  string uri = 1;
+  int32 quads_count = 2;
+  int32 extensions_count = 3;
+  double fidelity_score = 4;
+}
+
+// StoredAgent represents a persisted agent
+message StoredAgent {
+  string uri = 1;
+  string agent_id = 2;
+  string name = 3;
+  AgentFramework framework = 4;
+  string version_id = 5;
+  string graph_uri = 6;
+  double fidelity_score = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  map<string, string> metadata = 10;
+}
+
+// AgentVersion represents a version in history
+message AgentVersion {
+  string version_id = 1;
+  string agent_uri = 2;
+  string graph_uri = 3;
+  google.protobuf.Timestamp valid_from = 4;
+  google.protobuf.Timestamp valid_to = 5;
+  double fidelity_score = 6;
+  string change_type = 7;  // create, update, translation
+  map<string, string> change_metadata = 8;
+}
+
+// TranslationRecord represents a historical translation
+message TranslationRecord {
+  string id = 1;
+  AgentFramework source_framework = 2;
+  AgentFramework target_framework = 3;
+  double fidelity_score = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  string canonical_uri = 6;
+  string source_uri = 7;
+  string target_uri = 8;
+  repeated string warnings = 9;
+  int64 duration_ms = 10;
+}
+
+// AdapterInfo represents adapter information
+message AdapterInfo {
+  AgentFramework framework = 1;
+  string name = 2;
+  string version = 3;
+  HealthStatus health_status = 4;
+  google.protobuf.Timestamp last_health_check = 5;
+  google.protobuf.Timestamp registered_at = 6;
+}
+
+// BridgeEvent represents a bridge event
+message BridgeEvent {
+  string event_id = 1;
+  string type = 2;
+  string primitive = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Struct payload = 5;
+}
+
+// Pagination for list requests
+message Pagination {
+  int32 page = 1;
+  int32 per_page = 2;
+}
+
+// PaginationMeta for list responses
+message PaginationMeta {
+  int32 page = 1;
+  int32 per_page = 2;
+  int32 total = 3;
+  int32 total_pages = 4;
+  bool has_next = 5;
+  bool has_prev = 6;
+}
+
+// =============================================================================
+// Health & Stats
+// =============================================================================
+
+message HealthRequest {}
+
+message HealthResponse {
+  HealthStatus status = 1;
+  map<string, bool> components = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message StatsRequest {}
+
+message StatsResponse {
+  DiscoveryStats discovery = 1;
+  EventStats events = 2;
+  PersistenceStats persistence = 3;
+}
+
+message DiscoveryStats {
+  int32 adapter_count = 1;
+  int32 healthy_adapters = 2;
+  repeated AgentFramework frameworks = 3;
+}
+
+message EventStats {
+  int32 total_events = 1;
+  int32 subscription_count = 2;
+  int32 recent_events = 3;
+}
+
+message PersistenceStats {
+  int32 total_agents = 1;
+  int32 total_versions = 2;
+  int32 total_translations = 3;
+  double avg_fidelity = 4;
+}
+
+// =============================================================================
+// Translation Operations
+// =============================================================================
+
+message TranslateRequest {
+  NativeAgent agent = 1;
+  AgentFramework target_framework = 2;
+  string correlation_id = 3;
+  map<string, string> metadata = 4;
+}
+
+message TranslateResponse {
+  bool success = 1;
+  AgentFramework source_framework = 2;
+  AgentFramework target_framework = 3;
+  double fidelity_score = 4;
+  google.protobuf.Struct result = 5;
+  CanonicalSummary canonical = 6;
+  repeated string warnings = 7;
+  int64 duration_ms = 8;
+  StoredAgent stored = 9;
+  repeated string errors = 10;
+}
+
+message BatchTranslateRequest {
+  repeated NativeAgent agents = 1;
+  AgentFramework target_framework = 2;
+  string correlation_id = 3;
+  bool stop_on_error = 4;
+}
+
+message BatchTranslateResponse {
+  int32 total = 1;
+  int32 succeeded = 2;
+  int32 failed = 3;
+  repeated BatchTranslationResult results = 4;
+  double average_fidelity = 5;
+  int64 total_duration_ms = 6;
+}
+
+message BatchTranslationResult {
+  int32 index = 1;
+  bool success = 2;
+  double fidelity_score = 3;
+  string error = 4;
+}
+
+// =============================================================================
+// Ingestion Operations
+// =============================================================================
+
+message IngestRequest {
+  NativeAgent agent = 1;
+  string correlation_id = 2;
+  map<string, string> metadata = 3;
+}
+
+message IngestResponse {
+  CanonicalSummary canonical = 1;
+  StoredAgent stored = 2;
+  string event_id = 3;
+}
+
+// =============================================================================
+// Adapter Operations
+// =============================================================================
+
+message ListAdaptersRequest {}
+
+message ListAdaptersResponse {
+  repeated AdapterInfo adapters = 1;
+  int32 count = 2;
+}
+
+message GetAdapterRequest {
+  AgentFramework framework = 1;
+}
+
+message GetAdapterResponse {
+  AdapterInfo adapter = 1;
+}
+
+// =============================================================================
+// Agent Management
+// =============================================================================
+
+message ListAgentsRequest {
+  Pagination pagination = 1;
+  AgentFramework framework = 2;
+  string name = 3;
+  double min_fidelity = 4;
+}
+
+message ListAgentsResponse {
+  repeated StoredAgent agents = 1;
+  PaginationMeta pagination = 2;
+}
+
+message GetAgentRequest {
+  string uri = 1;
+}
+
+message GetAgentResponse {
+  StoredAgent agent = 1;
+  int32 version_count = 2;
+  repeated AgentVersion versions = 3;
+}
+
+message DeleteAgentRequest {
+  string uri = 1;
+}
+
+message DeleteAgentResponse {
+  bool deleted = 1;
+  string uri = 2;
+}
+
+message GetAgentVersionsRequest {
+  string uri = 1;
+  int32 limit = 2;
+}
+
+message GetAgentVersionsResponse {
+  repeated AgentVersion versions = 1;
+  int32 count = 2;
+}
+
+// =============================================================================
+// Translation History
+// =============================================================================
+
+message ListTranslationsRequest {
+  AgentFramework source_framework = 1;
+  AgentFramework target_framework = 2;
+  double min_fidelity = 3;
+  int32 limit = 4;
+}
+
+message ListTranslationsResponse {
+  repeated TranslationRecord translations = 1;
+  int32 count = 2;
+}
+
+// =============================================================================
+// Event Subscription
+// =============================================================================
+
+message SubscribeEventsRequest {
+  repeated string event_types = 1;    // Filter by event types
+  repeated string primitives = 2;     // Filter by primitives
+  google.protobuf.Timestamp since = 3; // Start from timestamp
+}
+
+// =============================================================================
+// Compatibility Matrix
+// =============================================================================
+
+message GetCompatibilityRequest {}
+
+message GetCompatibilityResponse {
+  repeated AgentFramework frameworks = 1;
+  repeated CompatibilityEntry compatibility = 2;
+}
+
+message CompatibilityEntry {
+  AgentFramework source = 1;
+  AgentFramework target = 2;
+  bool supported = 3;
+  double fidelity_estimate = 4;
+}

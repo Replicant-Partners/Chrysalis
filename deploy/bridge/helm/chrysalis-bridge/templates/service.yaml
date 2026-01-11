@@ -1,0 +1,43 @@
+{{- $fullName := include "chrysalis-bridge.fullname" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chrysalis-bridge.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.http.port }}
+      targetPort: {{ .Values.service.http.targetPort }}
+      protocol: TCP
+    - name: grpc
+      port: {{ .Values.service.grpc.port }}
+      targetPort: {{ .Values.service.grpc.targetPort }}
+      protocol: TCP
+    - name: metrics
+      port: {{ .Values.service.metrics.port }}
+      targetPort: {{ .Values.service.metrics.targetPort }}
+      protocol: TCP
+  selector:
+    {{- include "chrysalis-bridge.selectorLabels" . | nindent 4 }}
+---
+# Headless service for gRPC/StatefulSet
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-headless
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chrysalis-bridge.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: grpc
+      port: {{ .Values.service.grpc.port }}
+      targetPort: {{ .Values.service.grpc.targetPort }}
+  selector:
+    {{- include "chrysalis-bridge.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,1034 @@
+openapi: '3.1.0'
+info:
+  title: Chrysalis Universal Agent Bridge API
+  description: |
+    REST API for translating agents between different AI frameworks.
+    
+    The Bridge API enables seamless interoperability between heterogeneous agent ecosystems
+    including USA (Uniform Semantic Agent), LMOS (Language Model Operating System), 
+    MCP (Model Context Protocol), LangChain, and more.
+    
+    ## Key Features
+    - **Translation**: Convert agents between any supported frameworks
+    - **Ingestion**: Store agents in canonical RDF representation
+    - **Discovery**: Find and query registered adapters
+    - **Persistence**: Store and retrieve agent definitions with version history
+    - **Events**: Track translation and ingestion operations
+    
+    ## Semantic Preservation
+    All translations preserve semantic fidelity through a canonical RDF representation
+    based on the Chrysalis Agent Ontology.
+  version: '1.0.0'
+  contact:
+    name: Chrysalis Team
+    url: https://github.com/chrysalis-project
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3100/api/v1/bridge
+    description: Local development server
+  - url: https://bridge.chrysalis.io/api/v1/bridge
+    description: Production server
+
+tags:
+  - name: Health
+    description: Service health and statistics
+  - name: Translation
+    description: Translate agents between frameworks
+  - name: Ingestion
+    description: Ingest agents into canonical form
+  - name: Adapters
+    description: Adapter discovery and information
+  - name: Agents
+    description: Stored agent management
+  - name: Events
+    description: Bridge event history
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Check the health status of the bridge service and its components
+      operationId: getHealth
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '207':
+          description: Service is degraded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /stats:
+    get:
+      summary: Service statistics
+      description: Get comprehensive statistics about the bridge service
+      operationId: getStats
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsResponse'
+
+  /translate:
+    post:
+      summary: Translate agent
+      description: |
+        Translate an agent from one framework to another.
+        
+        The agent is first converted to canonical RDF representation,
+        then translated to the target framework format.
+      operationId: translateAgent
+      tags:
+        - Translation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslateRequest'
+            examples:
+              usa-to-lmos:
+                summary: USA to LMOS
+                value:
+                  agent:
+                    framework: usa
+                    data:
+                      metadata:
+                        name: Assistant Agent
+                        version: '1.0.0'
+                        usa_version: '2.0'
+                      persona:
+                        role: assistant
+                        description: A helpful assistant
+                      capabilities:
+                        tools:
+                          - name: search
+                            description: Search capability
+                  targetFramework: lmos
+              lmos-to-usa:
+                summary: LMOS to USA
+                value:
+                  agent:
+                    framework: lmos
+                    data:
+                      name: Analysis Agent
+                      description: An LMOS analysis agent
+                      version: '1.0.0'
+                      providedCapabilities:
+                        - name: analyze
+                          description: Analysis capability
+                          version: '1.0.0'
+                  targetFramework: usa
+      responses:
+        '200':
+          description: Translation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Translation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /translate/batch:
+    post:
+      summary: Batch translate agents
+      description: Translate multiple agents in a single request
+      operationId: batchTranslateAgents
+      tags:
+        - Translation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchTranslateRequest'
+      responses:
+        '200':
+          description: Batch translation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchTranslationResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /ingest:
+    post:
+      summary: Ingest agent
+      description: |
+        Ingest an agent into canonical RDF form and store it.
+        
+        This operation converts the agent to canonical representation
+        without translating to a specific target framework.
+      operationId: ingestAgent
+      tags:
+        - Ingestion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestRequest'
+      responses:
+        '201':
+          description: Agent ingested successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Ingestion failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /adapters:
+    get:
+      summary: List adapters
+      description: List all registered framework adapters
+      operationId: listAdapters
+      tags:
+        - Adapters
+      responses:
+        '200':
+          description: Adapters retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdaptersResponse'
+
+  /adapters/{framework}:
+    get:
+      summary: Get adapter details
+      description: Get detailed information about a specific adapter
+      operationId: getAdapter
+      tags:
+        - Adapters
+      parameters:
+        - name: framework
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AgentFramework'
+      responses:
+        '200':
+          description: Adapter found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdapterResponse'
+        '404':
+          description: Adapter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /agents:
+    get:
+      summary: List stored agents
+      description: Query stored agents with optional filters and pagination
+      operationId: listAgents
+      tags:
+        - Agents
+      parameters:
+        - name: framework
+          in: query
+          description: Filter by source framework
+          schema:
+            $ref: '#/components/schemas/AgentFramework'
+        - name: name
+          in: query
+          description: Filter by agent name (partial match)
+          schema:
+            type: string
+        - name: minFidelity
+          in: query
+          description: Minimum fidelity score filter
+          schema:
+            type: number
+            minimum: 0
+            maximum: 1
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Agents retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentsResponse'
+
+  /agents/{uri}:
+    get:
+      summary: Get agent by URI
+      description: Get a stored agent by its canonical URI
+      operationId: getAgent
+      tags:
+        - Agents
+      parameters:
+        - name: uri
+          in: path
+          required: true
+          description: URL-encoded agent URI
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDetailResponse'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete agent
+      description: Delete a stored agent by its canonical URI
+      operationId: deleteAgent
+      tags:
+        - Agents
+      parameters:
+        - name: uri
+          in: path
+          required: true
+          description: URL-encoded agent URI
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /translations:
+    get:
+      summary: List translations
+      description: Query translation history
+      operationId: listTranslations
+      tags:
+        - Events
+      parameters:
+        - name: sourceFramework
+          in: query
+          schema:
+            $ref: '#/components/schemas/AgentFramework'
+        - name: targetFramework
+          in: query
+          schema:
+            $ref: '#/components/schemas/AgentFramework'
+        - name: minFidelity
+          in: query
+          schema:
+            type: number
+            minimum: 0
+            maximum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+      responses:
+        '200':
+          description: Translations retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationsResponse'
+
+  /events:
+    get:
+      summary: List bridge events
+      description: Query bridge event history
+      operationId: listEvents
+      tags:
+        - Events
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - AgentTranslated
+              - AgentIngested
+              - AgentStored
+              - AdapterRegistered
+              - TranslationFailed
+        - name: primitive
+          in: query
+          schema:
+            type: string
+            enum:
+              - translation
+              - adapter
+              - agent
+              - canonical
+        - name: since
+          in: query
+          description: ISO 8601 timestamp
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+      responses:
+        '200':
+          description: Events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResponse'
+
+  /compatibility:
+    get:
+      summary: Get compatibility matrix
+      description: Get the framework compatibility matrix showing which translations are supported
+      operationId: getCompatibility
+      tags:
+        - Adapters
+      responses:
+        '200':
+          description: Compatibility matrix retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompatibilityResponse'
+
+components:
+  schemas:
+    AgentFramework:
+      type: string
+      enum:
+        - usa
+        - lmos
+        - mcp
+        - langchain
+        - openai
+        - crewai
+        - autogen
+      description: Supported agent frameworks
+
+    NativeAgent:
+      type: object
+      required:
+        - framework
+        - data
+      properties:
+        framework:
+          $ref: '#/components/schemas/AgentFramework'
+        data:
+          type: object
+          description: Framework-specific agent data
+        version:
+          type: string
+          description: Agent version
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata
+
+    TranslateRequest:
+      type: object
+      required:
+        - agent
+        - targetFramework
+      properties:
+        agent:
+          $ref: '#/components/schemas/NativeAgent'
+        targetFramework:
+          $ref: '#/components/schemas/AgentFramework'
+        options:
+          type: object
+          properties:
+            correlationId:
+              type: string
+            metadata:
+              type: object
+              additionalProperties: true
+
+    BatchTranslateRequest:
+      type: object
+      required:
+        - agents
+        - targetFramework
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/NativeAgent'
+          minItems: 1
+        targetFramework:
+          $ref: '#/components/schemas/AgentFramework'
+        options:
+          type: object
+          properties:
+            correlationId:
+              type: string
+            stopOnError:
+              type: boolean
+              default: false
+
+    IngestRequest:
+      type: object
+      required:
+        - agent
+      properties:
+        agent:
+          $ref: '#/components/schemas/NativeAgent'
+        options:
+          type: object
+          properties:
+            correlationId:
+              type: string
+            metadata:
+              type: object
+              additionalProperties: true
+
+    TranslationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+            sourceFramework:
+              $ref: '#/components/schemas/AgentFramework'
+            targetFramework:
+              $ref: '#/components/schemas/AgentFramework'
+            fidelityScore:
+              type: number
+              minimum: 0
+              maximum: 1
+            result:
+              type: object
+              description: Translated agent data
+            canonical:
+              type: object
+              properties:
+                uri:
+                  type: string
+                quadsCount:
+                  type: integer
+                extensionsCount:
+                  type: integer
+            warnings:
+              type: array
+              items:
+                type: string
+            durationMs:
+              type: integer
+            stored:
+              $ref: '#/components/schemas/StoredAgent'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    BatchTranslationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+            succeeded:
+              type: integer
+            failed:
+              type: integer
+            results:
+              type: array
+              items:
+                type: object
+                properties:
+                  index:
+                    type: integer
+                  success:
+                    type: boolean
+                  fidelityScore:
+                    type: number
+                  error:
+                    type: string
+            averageFidelity:
+              type: number
+            totalDurationMs:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    IngestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            canonical:
+              type: object
+              properties:
+                uri:
+                  type: string
+                quadsCount:
+                  type: integer
+                extensionsCount:
+                  type: integer
+                fidelityScore:
+                  type: number
+            stored:
+              $ref: '#/components/schemas/StoredAgent'
+            eventId:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    StoredAgent:
+      type: object
+      properties:
+        uri:
+          type: string
+        agentId:
+          type: string
+        name:
+          type: string
+        framework:
+          $ref: '#/components/schemas/AgentFramework'
+        versionId:
+          type: string
+        graphUri:
+          type: string
+        fidelityScore:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+
+    AdapterInfo:
+      type: object
+      properties:
+        framework:
+          $ref: '#/components/schemas/AgentFramework'
+        name:
+          type: string
+        version:
+          type: string
+        healthStatus:
+          type: string
+          enum:
+            - healthy
+            - degraded
+            - unhealthy
+        lastHealthCheck:
+          type: string
+          format: date-time
+        registeredAt:
+          type: string
+          format: date-time
+
+    HealthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - healthy
+                - degraded
+                - unhealthy
+            components:
+              type: object
+              properties:
+                orchestrator:
+                  type: boolean
+                discovery:
+                  type: boolean
+                events:
+                  type: boolean
+                persistence:
+                  type: boolean
+            timestamp:
+              type: string
+              format: date-time
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    StatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            discovery:
+              type: object
+              properties:
+                adapterCount:
+                  type: integer
+                healthyAdapters:
+                  type: integer
+                frameworks:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AgentFramework'
+            events:
+              type: object
+              properties:
+                totalEvents:
+                  type: integer
+                subscriptionCount:
+                  type: integer
+                recentEvents:
+                  type: integer
+            persistence:
+              type: object
+              properties:
+                totalAgents:
+                  type: integer
+                totalVersions:
+                  type: integer
+                totalTranslations:
+                  type: integer
+                avgFidelity:
+                  type: number
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    AdaptersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            adapters:
+              type: array
+              items:
+                $ref: '#/components/schemas/AdapterInfo'
+            count:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    AdapterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/AdapterInfo'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    AgentsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/StoredAgent'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    AgentDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            agent:
+              $ref: '#/components/schemas/StoredAgent'
+            versionCount:
+              type: integer
+            versions:
+              type: array
+              items:
+                type: object
+                properties:
+                  versionId:
+                    type: string
+                  agentUri:
+                    type: string
+                  graphUri:
+                    type: string
+                  validFrom:
+                    type: string
+                    format: date-time
+                  validTo:
+                    type: string
+                    format: date-time
+                  fidelityScore:
+                    type: number
+                  changeType:
+                    type: string
+                    enum:
+                      - create
+                      - update
+                      - translation
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    DeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+            uri:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    TranslationsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            translations:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  sourceFramework:
+                    $ref: '#/components/schemas/AgentFramework'
+                  targetFramework:
+                    $ref: '#/components/schemas/AgentFramework'
+                  fidelityScore:
+                    type: number
+                  timestamp:
+                    type: string
+                    format: date-time
+                  canonicalUri:
+                    type: string
+                  sourceUri:
+                    type: string
+                  targetUri:
+                    type: string
+                  warnings:
+                    type: array
+                    items:
+                      type: string
+                  durationMs:
+                    type: integer
+            count:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    EventsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            events:
+              type: array
+              items:
+                type: object
+                properties:
+                  eventId:
+                    type: string
+                  type:
+                    type: string
+                  primitive:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                  payload:
+                    type: object
+                    additionalProperties: true
+            count:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    CompatibilityResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            frameworks:
+              type: array
+              items:
+                $ref: '#/components/schemas/AgentFramework'
+            compatibility:
+              type: array
+              items:
+                type: object
+                properties:
+                  source:
+                    $ref: '#/components/schemas/AgentFramework'
+                  target:
+                    $ref: '#/components/schemas/AgentFramework'
+                  supported:
+                    type: boolean
+                  fidelityEstimate:
+                    type: number
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            category:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  code:
+                    type: string
+                  message:
+                    type: string
+            request_id:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    ResponseMeta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            per_page:
+              type: integer
+            total:
+              type: integer
+            total_pages:
+              type: integer
+            has_next:
+              type: boolean
+            has_prev:
+              type: boolean

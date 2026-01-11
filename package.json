@@ -76,5 +76,9 @@
     "example": "examples",
     "test": "tests"
   },
-  "type": "commonjs"
+  "type": "commonjs",
+  "workspaces": [
+    "packages/*",
+    "ui"
+  ]
 }

@@ -234,6 +234,38 @@ def create_all_middleware(
         except ImportError:
             logger.warning("Rate limiting not available - skipping")
 
-    create_request_id_middleware(app)
     create_cors_middleware(app)
     create_response_headers_middleware(app, api_version=api_version)
+    
+    # Health checks and metrics (optional, at end)
+    try:
+        from .monitoring import create_health_check_middleware, create_metrics_middleware
+        create_health_check_middleware(app)
+        create_metrics_middleware(app)
+    except (ImportError, RuntimeError):
+        # Monitoring not available or Flask not installed
+        pass
+    
+    # Security headers (should be after all other middleware)
+    try:
+        from .security_headers import create_security_headers_middleware, SecurityHeadersConfig
+        create_security_headers_middleware(app, SecurityHeadersConfig())
+    except (ImportError, RuntimeError):
+        # Security headers not available or Flask not installed
+        pass
+
+    # Error tracking (should be last, after all middleware setup)
+    try:
+        from .error_tracking import create_error_tracking_middleware, ErrorTrackingConfig
+        create_error_tracking_middleware(app, ErrorTrackingConfig())
+    except (ImportError, RuntimeError):
+        # Error tracking not available or Flask not installed
+        pass
+
+    # Audit logging (for security events)
+    try:
+        from .audit_logging import create_audit_logging_middleware
+        create_audit_logging_middleware(app)
+    except (ImportError, RuntimeError):
+        # Audit logging not available or Flask not installed
+        pass

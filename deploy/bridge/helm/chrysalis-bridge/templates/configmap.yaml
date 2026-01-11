@@ -1,0 +1,12 @@
+{{- $fullName := include "chrysalis-bridge.fullname" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chrysalis-bridge.labels" . | nindent 4 }}
+data:
+  log_level: {{ .Values.config.logLevel | quote }}
+  health_check_interval: {{ .Values.config.healthCheckInterval | quote }}
+  max_event_history: {{ .Values.config.maxEventHistory | quote }}

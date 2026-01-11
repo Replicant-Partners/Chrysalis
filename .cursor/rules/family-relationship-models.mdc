@@ -1,5 +1,5 @@
 ---
-description: Specifications for implementing family relationship models, permissions, and caregiver access patterns in elder-focused software systems
+description: Specifies family relationship access models, multi-generational permissions, and caregiver dashboard data flows for elder-focused memory systems
 ---
 
 # === USER INSTRUCTIONS ===
@@ -126,10 +126,8 @@ Path: src/family/events/FamilyEventManager.ts
 - Event timeline construction with family member validation
 - Cross-generational event accessibility features
 The system uniquely addresses elder care needs through careful management of family relationships, permissions, and privacy while facilitating family collaboration in elder care and memory preservation.
-# === END USER INSTRUCTIONS ===
 
-# family-relationship-models
-
+description: Specifications for implementing family relationship models, permissions, and caregiver access patterns in elder-focused software systems
 Family Permission System
 Path: projects/GaryVision/teams/team_5_family_features.py
 - Multi-generational permission model using relationship-aware rules
@@ -138,7 +136,6 @@ Path: projects/GaryVision/teams/team_5_family_features.py
 - Temporary access delegation for caregivers with time-based expiration
 - Emergency override protocols for designated medical contacts
 Importance Score: 90
-
 Caregiver Dashboard Integration
 Path: projects/GaryVision/teams/team_6_memory_verification.py
 - Real-time monitoring capabilities with privacy safeguards
@@ -147,7 +144,6 @@ Path: projects/GaryVision/teams/team_6_memory_verification.py
 - Custom notification rules based on relationship proximity
 - Health event tracking with role-based visibility controls
 Importance Score: 85
-
 Family Photo Access Control
 Path: projects/GaryVision/teams/team_5_family_features.py
 - Relationship-aware sharing controls for family photos
@@ -156,15 +152,57 @@ Path: projects/GaryVision/teams/team_5_family_features.py
 - Cross-generation content sensitivity analysis
 - Custom sharing rules based on family relationship graphs
 Importance Score: 80
-
 Core Features:
 - Family tree-based permission inheritance
 - Role-based access control for caregivers
 - Privacy-aware monitoring system
 - Relationship-aware content sharing
 - Emergency access protocols
-
 The system implements sophisticated family relationship models that respect privacy while enabling necessary care coordination and photo sharing across generations. Custom permission inheritance and delegation mechanisms ensure appropriate access control while maintaining family bonds.
+# === END USER INSTRUCTIONS ===
+
+# family-relationship-models
+
+Multi-Generational Access Control System
+Importance Score: 90/100
+
+1. Family Permission Hierarchy
+Path: projects/GaryVision/teams/team_5_family_features.py
+- Multi-tiered family relationship model mapping:
+  - Primary Caregivers (full access)
+  - Immediate Family (content add/view)
+  - Extended Family (content view only)
+  - Guest Access (limited time view)
+- Automatic permission inheritance based on family tree relationships
+- Custom validation rules for caregiver designation changes
+
+2. Caregiver Dashboard
+Path: projects/GaryVision/teams/team_5_family_features.py
+- Privacy-respecting oversight metrics:
+  - Photo viewing frequency
+  - Memory recall accuracy
+  - Social interaction levels
+  - System usage patterns
+- Configurable alert thresholds for concerning patterns
+- Automated digest generation for caregivers
+
+3. Family Event Coordination
+Path: projects/GaryVision/teams/team_5_family_features.py
+- Multi-participant photo collection coordination
+- Automated event timeline construction from multiple contributors
+- Role-based contribution permissions:
+  - Event Organizer (full control)
+  - Contributors (add/edit)
+  - Viewers (view only)
+- Privacy controls for sensitive content
+
+Key Permission Patterns:
+- Hierarchical access based on family relationship proximity
+- Role-based permissions with inheritance
+- Time-bounded access controls for temporary roles
+- Privacy-first oversight metrics
+
+The family relationship model emphasizes privacy-respecting oversight while enabling collaborative family participation in memory preservation and event documentation.
 
 $END$
 

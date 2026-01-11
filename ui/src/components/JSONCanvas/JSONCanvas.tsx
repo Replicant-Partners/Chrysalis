@@ -15,8 +15,10 @@ import type {
   CanvasNode, 
   CanvasEdge, 
   WidgetNode 
-} from '../../../../src/terminal/protocols/types';
+} from '@terminal/protocols/types';
 import { WidgetRenderer } from './WidgetRenderer';
+import { wrapNode } from '../../utils/CanvasNodeWrapper';
+import { RenderVisitor } from './visitors/RenderVisitor';
 import styles from './JSONCanvas.module.css';
 
 // ============================================================================
@@ -107,47 +109,11 @@ function CanvasNodeComponent({
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // Render based on node type
+  // Render using Visitor pattern
   const renderContent = () => {
-    switch (node.type) {
-      case 'widget':
-        return (
-          <WidgetRenderer 
-            widget={node as WidgetNode} 
-            isSelected={isSelected}
-          />
-        );
-      case 'text':
-        return (
-          <div className={styles.textNode}>
-            {(node as any).text || 'Text node'}
-          </div>
-        );
-      case 'file':
-        return (
-          <div className={styles.fileNode}>
-            📄 {(node as any).file || 'file.txt'}
-          </div>
-        );
-      case 'link':
-        return (
-          <div className={styles.linkNode}>
-            🔗 {(node as any).url || 'https://...'}
-          </div>
-        );
-      case 'group':
-        return (
-          <div className={styles.groupNode}>
-            📁 {(node as any).label || 'Group'}
-          </div>
-        );
-      default:
-        return (
-          <div className={styles.unknownNode}>
-            Unknown: {(node as any).type}
-          </div>
-        );
-    }
+    const visitor = new RenderVisitor(isSelected, zoom);
+    const wrapped = wrapNode(node);
+    return wrapped.accept(visitor);
   };
 
   return (

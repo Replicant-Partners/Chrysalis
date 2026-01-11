@@ -30,6 +30,9 @@ from shared.api_core import (
     FilterParams,
     SortParams,
     process_list_request,
+    json_response,
+    error_response,
+    require_resource_exists,
     require_auth,
     authenticate_request,
     create_error_handler,
@@ -128,9 +131,9 @@ def create_skills():
         result = run_pipeline(spec)
 
         # Combine skills and their embeddings
-        response_skills = []
+        response_skill = []
         for skill, embedding in zip(result.skills, result.embeddings):
-            response_skills.append({
+            response_skill.append({
                 "skill": skill.to_yaml_block(),
                 "embedding": embedding
             })
@@ -146,124 +149,98 @@ def create_skills():
         }
 
         # Return standardized response
-        response = APIResponse.success_response({
+        return json_response({
             'skill_id': skill_id,
             'occupation': occupation,
             'skills': response_skills,
             'total_skills': len(response_skills),
-        })
-        return jsonify(response.to_dict()), 201
+        }, status=201)
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Failed to generate skills: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/skills/<skill_id>', methods=['GET'])
 @require_auth
 def get_skills(skill_id: str):
     """Get skills by ID."""
-    if skill_id not in skills_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Skills entry '{skill_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
-
-    response = APIResponse.success_response(skills_store[skill_id])
-    return jsonify(response.to_dict()), 200
+    skill = require_resource_exists(skills_store, skill_id, "Skill")
+    return json_response(skill)
 
 @app.route('/api/v1/skills', methods=['GET'])
 @require_auth
 def list_skills():
     """List all skills entries."""
     # Get all skills entries
-    all_skills = list(skills_store.values())
+    all_skill = list(skills_store.values())
 
     # Apply filters, sorting, and pagination
     skills_page, pagination_meta = process_list_request(all_skills)
 
-    response = APIResponse.success_response(
+    return json_response(
         skills_page,
         pagination=pagination_meta
     )
-    return jsonify(response.to_dict()), 200
 
 @app.route('/api/v1/skills/<skill_id>', methods=['PATCH'])
 @require_auth
 def update_skills(skill_id: str):
     """Partially update skills entry."""
-    if skill_id not in skills_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Skills entry '{skill_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
+    skill = require_resource_exists(skills_store, skill_id, "Skill")
 
     try:
         data = request.get_json() or {}
-        skills = skills_store[skill_id]
 
         # Update allowed fields
         if 'occupation' in data:
-            skills['occupation'] = RequestValidator.require_string(data, 'occupation', min_length=1)
+            skill['occupation'] = RequestValidator.require_string(data, 'occupation', min_length=1)
 
         if 'skills' in data:
             if isinstance(data['skills'], list):
-                skills['skills'] = data['skills']
-                skills['total_skills'] = len(data['skills'])
+                skill['skills'] = data['skills']
+                skill['total_skills'] = len(data['skills'])
             else:
                 error = APIError(
                     code=ErrorCode.INVALID_TYPE,
                     message="skills must be a list",
                     category=ErrorCategory.VALIDATION_ERROR,
                 )
-                response, status = APIResponse.error_response(error, status_code=422)
-                return jsonify(response.to_dict()), status
+                return error_response(error, status=422)
 
         if 'deepening_cycles' in data:
             deepening_cycles = data['deepening_cycles']
             if isinstance(deepening_cycles, int) and 0 <= deepening_cycles <= 11:
-                skills['deepening_cycles'] = deepening_cycles
+                skill['deepening_cycles'] = deepening_cycles
             else:
                 error = APIError(
                     code=ErrorCode.INVALID_RANGE,
                     message="deepening_cycles must be an integer between 0 and 11",
                     category=ErrorCategory.VALIDATION_ERROR,
                 )
-                response, status = APIResponse.error_response(error, status_code=422)
-                return jsonify(response.to_dict()), status
+                return error_response(error, status=422)
 
         # Update timestamp
-        skills['updated_at'] = datetime.now(timezone.utc).isoformat()
+        skill['updated_at'] = datetime.now(timezone.utc).isoformat()
 
-        response = APIResponse.success_response(skills)
-        return jsonify(response.to_dict()), 200
+        return json_response(skill)
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Update failed: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/skills/<skill_id>', methods=['PUT'])
 @require_auth
@@ -292,39 +269,27 @@ def replace_skills(skill_id: str):
             'updated_at': datetime.now(timezone.utc).isoformat(),
         }
 
-        response = APIResponse.success_response(skills_store[skill_id])
-        return jsonify(response.to_dict()), 200
+        return json_response(skills_store[skill_id])
 
     except ValidationError as e:
         error = APIError.from_exception(e)
-        response, status = APIResponse.error_response(error, status_code=422)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=422)
     except Exception as e:
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
             message=f"Replace failed: {str(e)}",
             category=ErrorCategory.SERVICE_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=500)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=500)
 
 @app.route('/api/v1/skills/<skill_id>', methods=['DELETE'])
 @require_auth
 def delete_skills(skill_id: str):
     """Delete skills entry."""
-    if skill_id not in skills_store:
-        error = APIError(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message=f"Skills entry '{skill_id}' not found",
-            category=ErrorCategory.NOT_FOUND_ERROR,
-        )
-        response, status = APIResponse.error_response(error, status_code=404)
-        return jsonify(response.to_dict()), status
-
+    skill = require_resource_exists(skills_store, skill_id, "Skill")
     del skills_store[skill_id]
 
-    response = APIResponse.success_response({'deleted': True, 'skill_id': skill_id})
-    return jsonify(response.to_dict()), 200
+    return json_response({'deleted': True, 'skill_id': skill_id})
 
 @app.route('/api/v1/skills/modes', methods=['GET'])
 @require_auth
@@ -344,11 +309,10 @@ def list_modes():
 
     pagination_meta = PaginationMeta.create(pagination, total)
 
-    response = APIResponse.success_response(
+    return json_response(
         modes_page,
         pagination=pagination_meta
     )
-    return jsonify(response.to_dict()), 200
 
 @app.route('/api/v1/skills/modes/<mode_id>', methods=['GET'])
 @require_auth
@@ -361,8 +325,7 @@ def get_mode(mode_id: str):
         message=f"Mode '{mode_id}' not found",
         category=ErrorCategory.NOT_FOUND_ERROR,
     )
-    response, status = APIResponse.error_response(error, status_code=404)
-    return jsonify(response.to_dict()), status
+    return error_response(error, status=404)
 
 # Backwards compatibility endpoint (deprecated)
 @app.route('/skills', methods=['POST'])
@@ -377,8 +340,7 @@ def create_skills_legacy():
             message="Missing 'occupation' field",
             category=ErrorCategory.VALIDATION_ERROR,
         )
-        response, status = APIResponse.error_response(error, status_code=400)
-        return jsonify(response.to_dict()), status
+        return error_response(error, status=400)
 
     # Convert to new format and call new endpoint
     new_data = {

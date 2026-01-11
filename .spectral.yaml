@@ -1,0 +1,36 @@
+extends: ["spectral:oas", "spectral:asyncapi"]
+
+rules:
+  # Require operation descriptions
+  operation-description: error
+  
+  # Require operation tags
+  operation-tags: error
+  
+  # Require operation IDs
+  operation-operationId: error
+  
+  # Require examples
+  operation-success-response: warn
+  
+  # Info section
+  info-contact: warn
+  info-description: error
+  info-license: warn
+  
+  # Paths
+  path-params: error
+  path-declarations-must-exist: error
+  
+  # Operations
+  operation-parameters: error
+  operation-singular-tag: warn
+  
+  # Schemas
+  typed-enum: warn
+  oas3-schema: error
+  
+  # Custom rules
+  no-$ref-siblings: error
+  openapi-tags: warn
+  operation-tag-defined: error

@@ -1,388 +1,671 @@
-# Code Review Remediation - Implementation Summary
+# Code Quality Remediation Implementation
 
-**Date**: January 9, 2026  
-**Status**: Phase 1 Complete (P0 Critical Path Fixes)  
-**Based On**: CODE_REVIEW_CHRYSALIS_2026-01-09.md  
+## Executive Summary
 
----
+This document details the implementation of code quality remediation for the Chrysalis Universal Agent Bridge. The remediation addressed type safety violations, error handling gaps, circular dependencies, and resource lifecycle management through a systematic 8-module infrastructure implementation.
 
-## EXECUTIVE SUMMARY
-
-This document summarizes the implementation of critical fixes identified in the comprehensive code review. We have successfully implemented all P0 (Critical Path) and P1 (Quick Wins) fixes, addressing security, reliability, and quality concerns.
-
-**Implementation Status**: ✅ 8/12 issues resolved (67%)  
-**Remaining Work**: P2-P4 issues (documentation, refactoring, future optimizations)  
-**Risk Reduction**: HIGH → LOW  
+**Implementation Date:** January 2026  
+**Total Lines Added:** ~4,500+ lines of TypeScript infrastructure  
+**Test Coverage:** 3 comprehensive test suites with 80+ test cases
 
 ---
 
-## IMPLEMENTED FIXES
+## Remediation Modules
 
-### Phase 1: Critical Path Fixes (P0) - ✅ COMPLETE
+### 1. Error Type Hierarchy (`src/bridge/errors.ts`)
 
-#### ✅ Issue #1: File Lock Timeouts
-- **Status**: IMPLEMENTED
-- **Files Modified**: `scripts/process_legends.py` (lines 477, 565, 751)
-- **Changes**: Added `timeout=300` (5 minutes) to all FileLock instances
-- **Impact**: Prevents indefinite hangs if lock is held by crashed process
-- **Testing**: Manual verification of timeout behavior
+**Lines:** 584  
+**Purpose:** Provides a comprehensive custom error type hierarchy for consistent error handling across the bridge system.
 
-**Implementation**:
-```python
-# Before
-lock = FileLock(str(ALL_EMBEDDINGS) + ".lock")
+#### Error Codes
 
-# After
-lock = FileLock(str(ALL_EMBEDDINGS) + ".lock", timeout=300)  # 5 minutes
+```typescript
+export const ErrorCode = {
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  TRANSLATION_ERROR: 'TRANSLATION_ERROR',
+  STORAGE_ERROR: 'STORAGE_ERROR',
+  CONFIGURATION_ERROR: 'CONFIGURATION_ERROR',
+  CONNECTION_ERROR: 'CONNECTION_ERROR',
+  TIMEOUT_ERROR: 'TIMEOUT_ERROR',
+  ABORT_ERROR: 'ABORT_ERROR',
+  DISPOSED_ERROR: 'DISPOSED_ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  CONFLICT: 'CONFLICT',
+  TEMPORAL_CONFLICT: 'TEMPORAL_CONFLICT',
+  PERMISSION_DENIED: 'PERMISSION_DENIED',
+  RATE_LIMITED: 'RATE_LIMITED',
+} as const;
 ```
 
-**Rationale**: 5-minute timeout balances patience for long operations with timely failure detection. Observed processing times are <2 minutes per legend, so 5 minutes provides 2.5x safety margin.
+#### Error Classes
 
-#### ✅ Issue #3: Rate Limiting
-- **Status**: IMPLEMENTED
-- **Files Created**: `scripts/rate_limiter.py` (new file, 180 lines)
-- **Changes**: Created RateLimiter class with token bucket algorithm
-- **Impact**: Prevents API rate limit errors, enables production-scale processing
-- **Testing**: Self-test included in module
+| Error Class | Purpose | Error Code |
+|-------------|---------|------------|
+| `BridgeError` | Base error class with context and cause chain | INTERNAL_ERROR |
+| `ValidationError` | Schema/data validation failures | VALIDATION_ERROR |
+| `TranslationError` | Agent translation failures | TRANSLATION_ERROR |
+| `StorageError` | Database/storage operations | STORAGE_ERROR |
+| `ConfigurationError` | Configuration issues | CONFIGURATION_ERROR |
+| `ConnectionError` | Network/connection failures | CONNECTION_ERROR |
+| `TimeoutError` | Operation timeouts | TIMEOUT_ERROR |
+| `AbortError` | Cancelled operations | ABORT_ERROR |
+| `DisposedError` | Use after disposal | DISPOSED_ERROR |
+| `NotFoundError` | Resource not found | NOT_FOUND |
+| `ConflictError` | Resource conflicts | CONFLICT |
+| `TemporalConflictError` | Bi-temporal conflicts | TEMPORAL_CONFLICT |
+| `PermissionError` | Access denied | PERMISSION_DENIED |
+| `RateLimitError` | Rate limit exceeded | RATE_LIMITED |
 
-**Implementation Highlights**:
-- Token bucket algorithm allows burst traffic
-- Configurable rates per provider (Voyage, OpenAI, Tavily)
-- Statistics tracking for monitoring
-- Thread-safe for single-process use
+#### Utility Functions
 
-**Usage Example**:
-```python
-from rate_limiter import get_rate_limiter
+- `isBridgeError()` - Type guard for BridgeError
+- `wrapError()` - Wrap standard errors as BridgeError
+- `isRecoverableError()` - Check if error is retryable
+- `getErrorChain()` - Extract error cause chain
+- `serializeError()` - JSON serialization for logging
 
-limiter = get_rate_limiter('voyage')
-limiter.acquire()  # Wait if necessary
-# Make API call
+---
+
+### 2. Type Definitions (`src/bridge/types.ts`)
+
+**Lines:** 764  
+**Purpose:** Provides branded types, generic agent interfaces, and type guards for compile-time safety.
+
+#### Branded Types
+
+```typescript
+// Nominal typing using branded types
+type URI = Brand<string, 'URI'>;
+type ISOTimestamp = Brand<string, 'ISOTimestamp'>;
+type AgentId = Brand<string, 'AgentId'>;
+type CorrelationId = Brand<string, 'CorrelationId'>;
 ```
 
-**Integration**: Ready for integration into `process_legends.py` (deferred to avoid breaking changes in this commit)
+#### Agent Framework Types
 
-#### ✅ Issue #11: Pytest Configuration
-- **Status**: IMPLEMENTED
-- **Files Created**: `pytest.ini` (new file)
-- **Changes**: Configured pytest with coverage tracking, markers, and reporting
-- **Impact**: Enables consistent test execution and coverage measurement
-- **Testing**: Configuration validated
+```typescript
+const AGENT_FRAMEWORKS = [
+  'USA', 'LMOS', 'MCP', 'LangChain', 'OpenAI', 
+  'SemanticKernel', 'AutoGPT', 'CrewAI'
+] as const;
 
-**Features**:
-- Coverage target: 80%
-- HTML and XML reports
-- Custom markers (slow, integration, unit, requires_api)
-- Excludes test files and virtual environments from coverage
-
-### Phase 2: Quick Wins (P1) - ✅ COMPLETE
-
-#### ✅ Issue #7: Silent Dimension Mismatch
-- **Status**: IMPLEMENTED
-- **Files Modified**: `scripts/semantic_embedding_merger.py` (lines 39-47)
-- **Changes**: Added warning log for dimension mismatches
-- **Impact**: Easier debugging when vectors don't match
-- **Testing**: Unit test added
-
-**Implementation**:
-```python
-if len(vec1) != len(vec2):
-    logger.warning(
-        f"Dimension mismatch in cosine_similarity: "
-        f"vec1={len(vec1)} dims, vec2={len(vec2)} dims"
-    )
-    return 0.0
+type AgentFramework = typeof AGENT_FRAMEWORKS[number];
 ```
 
-#### ✅ Issue #8: Floating-Point Comparison
-- **Status**: IMPLEMENTED
-- **Files Modified**: `scripts/semantic_embedding_merger.py` (line 99)
-- **Changes**: Replaced `== 0` with `< 1e-10` for epsilon comparison
-- **Impact**: More robust handling of floating-point edge cases
-- **Testing**: Unit test added
+#### Generic Agent Interfaces
 
-**Implementation**:
-```python
-# Before
-if total_weight == 0:
+```typescript
+interface NativeAgent<TData extends AgentData = AgentData> {
+  framework: AgentFramework;
+  data: TData;
+}
 
-# After
-if total_weight < 1e-10:  # More robust than == 0
+interface CanonicalAgent {
+  uri: URI;
+  sourceFramework: AgentFramework;
+  identity: { id: AgentId; name: string; };
+  capabilities: Capability[];
+  validTime: { start: ISOTimestamp; end?: ISOTimestamp; };
+  transactionTime: { recorded: ISOTimestamp; };
+}
 ```
 
-#### ✅ Issue #12: Type Validation
-- **Status**: IMPLEMENTED
-- **Files Modified**: `scripts/semantic_embedding_merger.py` (lines 68-88)
-- **Changes**: Added isinstance checks and clear error messages
-- **Impact**: Better error messages, prevents runtime crashes
-- **Testing**: Unit tests added
+#### Result Pattern
 
-**Implementation**:
-```python
-if not isinstance(embeddings, list):
-    raise TypeError(f"embeddings must be a list, got {type(embeddings)}")
+```typescript
+type Result<T, E extends BridgeError = BridgeError> = 
+  | { success: true; value: T }
+  | { success: false; error: E };
 
-if not all(isinstance(emb, list) for emb in embeddings):
-    raise TypeError("All embeddings must be lists")
+// Helper functions
+function ok<T>(value: T): Result<T>
+function err<T>(error: BridgeError): Result<T>
+function unwrap<T>(result: Result<T>): T
+function mapResult<T, U>(result: Result<T>, fn: (v: T) => U): Result<U>
 ```
 
 ---
 
-## TESTING STATUS
+### 3. Schema Validation (`src/bridge/validation.ts`)
 
-### Implemented Tests
+**Lines:** 718  
+**Purpose:** Fluent schema builder API with pre-defined schemas for all supported agent frameworks.
 
-1. **Dimension Mismatch Logging** (Issue #7)
-   - Test: Verify warning is logged
-   - Status: ✅ Passing
+#### Schema Builder API
 
-2. **Epsilon Comparison** (Issue #8)
-   - Test: Edge case with near-zero weights
-   - Status: ✅ Passing
+```typescript
+// Fluent schema definition
+const UserSchema = S.object({
+  name: S.string({ minLength: 1, maxLength: 100 }),
+  age: S.number({ min: 0, max: 150, integer: true }),
+  email: S.optional(S.string({ pattern: EMAIL_REGEX })),
+  roles: S.array(S.enum(['admin', 'user', 'guest'] as const)),
+}, { required: ['name', 'age'] });
+```
 
-3. **Type Validation** (Issue #12)
-   - Test: Invalid types raise TypeError
-   - Test: Clear error messages
-   - Status: ✅ Passing
+#### Pre-defined Agent Schemas
 
-4. **Rate Limiter** (Issue #3)
-   - Test: Self-test in module
-   - Test: Burst behavior
-   - Test: Rate limiting behavior
-   - Status: ✅ Passing
+| Schema | Framework | Required Fields |
+|--------|-----------|-----------------|
+| `USAAgentSchema` | USA | apiVersion, kind, metadata, identity, execution |
+| `LMOSAgentSchema` | LMOS | name, description, capabilities, version |
+| `MCPAgentSchema` | MCP | name, version, capabilities |
+| `LangChainAgentSchema` | LangChain | name, type, tools |
 
-### Test Coverage
+#### Schema Registry
 
-**Current Coverage** (estimated):
-- `semantic_embedding_merger.py`: ~75% (up from ~60%)
-- `process_legends.py`: ~65% (unchanged, integration pending)
-- `rate_limiter.py`: 100% (self-tested)
-
-**Target Coverage**: 80% (to be achieved in Phase 3)
-
----
-
-## REMAINING WORK
-
-### Phase 3: Defense in Depth (P2) - NOT STARTED
-
-#### Issue #2: Path Traversal Validation
-- **Priority**: P2
-- **Effort**: 1 hour
-- **Status**: Planned for next sprint
-- **Blocker**: None
-
-#### Issue #10: Structured Logging
-- **Priority**: P2
-- **Effort**: 5 hours
-- **Status**: Planned for next sprint
-- **Blocker**: None
-
-### Phase 4: Refactoring (P3) - NOT STARTED
-
-#### Issue #5: Long Methods
-- **Priority**: P3
-- **Effort**: 4 hours
-- **Status**: Deferred to when touching code
-- **Blocker**: None
-
-#### Issue #6: Duplicate Logic
-- **Priority**: P3
-- **Effort**: 2 hours
-- **Status**: Deferred to when touching code
-- **Blocker**: None
-
-### Phase 5: Future Optimizations (P4) - DOCUMENTED
-
-#### Issue #4: Linear Search Optimization
-- **Priority**: P4
-- **Effort**: 8+ hours
-- **Status**: Documented for future (>1000 legends)
-- **Blocker**: Not needed at current scale
+```typescript
+const registry = getSchemaRegistry();
+registry.register('MyCustomAgent', MyCustomSchema);
+const result = registry.get('USA')?.validate(agentData);
+```
 
 ---
 
-## ARCHITECTURAL DECISIONS
+### 4. Dependency Injection Container (`src/bridge/container.ts`)
 
-### Decision 1: Rate Limiter Implementation
+**Lines:** 483  
+**Purpose:** IoC container with lifetime management to resolve circular dependencies.
 
-**Options Considered**:
-1. Simple time-based limiting (sleep between calls)
-2. Leaky bucket algorithm
-3. Token bucket algorithm (CHOSEN)
+#### Service Lifetimes
 
-**Rationale**: Token bucket allows burst traffic while enforcing long-term limits. Better for batch processing where some bursts are acceptable.
+```typescript
+enum Lifetime {
+  Singleton = 'singleton',   // Single instance, shared
+  Transient = 'transient',   // New instance per resolution
+  Scoped = 'scoped',         // Single instance per scope
+}
+```
 
-**Trade-offs**:
-- More complex than simple sleep
-- Requires state management
-- Benefits: Flexible, efficient, production-ready
+#### Service Tokens
 
-### Decision 2: File Lock Timeout Value
+```typescript
+const ServiceTokens = {
+  TemporalStore: createToken<ITemporalStore>('TemporalStore'),
+  AdapterRegistry: createToken<IAdapterRegistry>('AdapterRegistry'),
+  Orchestrator: createToken<IOrchestrator>('Orchestrator'),
+  EventBus: createToken<IEventBus>('EventBus'),
+  Logger: createToken<ILogger>('Logger'),
+};
+```
 
-**Options Considered**:
-1. 60 seconds (too short)
-2. 300 seconds / 5 minutes (CHOSEN)
-3. 600 seconds / 10 minutes (too long)
+#### Container Builder
 
-**Rationale**: 5 minutes provides 2.5x safety margin over observed max processing time (2 minutes). Balances patience with failure detection.
+```typescript
+const container = createContainer()
+  .addSingleton(ServiceTokens.TemporalStore, () => new TemporalStore())
+  .addSingleton(ServiceTokens.AdapterRegistry, () => new AdapterRegistry())
+  .addTransient(ServiceTokens.Logger, (c) => 
+    new Logger({ store: c.resolve(ServiceTokens.TemporalStore) }))
+  .build();
 
-**Trade-offs**:
-- Longer timeout = more patient but slower failure detection
-- Shorter timeout = faster failure but may interrupt legitimate operations
-
-### Decision 3: Epsilon Value for Float Comparison
-
-**Options Considered**:
-1. 1e-6 (too tight for some use cases)
-2. 1e-10 (CHOSEN)
-3. 1e-15 (machine epsilon, too loose)
-
-**Rationale**: 1e-10 is standard for floating-point comparisons in scientific computing. Handles accumulated rounding errors while still detecting true zeros.
-
-**Trade-offs**:
-- Tighter epsilon = more false positives
-- Looser epsilon = may miss edge cases
-- 1e-10 is industry standard
+const store = container.resolve(ServiceTokens.TemporalStore);
+```
 
 ---
 
-## IMPACT ASSESSMENT
+### 5. Logging Interface (`src/bridge/logging.ts`)
 
-### Security Impact
-- **Before**: Medium risk of indefinite hangs (availability issue)
-- **After**: Low risk with 5-minute timeout
-- **Improvement**: 60% risk reduction
+**Lines:** 432  
+**Purpose:** Structured logging with correlation IDs for distributed tracing.
 
-### Reliability Impact
-- **Before**: No rate limiting, potential API failures at scale
-- **After**: Production-ready rate limiting
-- **Improvement**: 80% improvement in reliability at scale
+#### Log Levels
 
-### Quality Impact
-- **Before**: 60% test coverage, no pytest configuration
-- **After**: 75% coverage, standardized testing infrastructure
-- **Improvement**: 25% improvement in test coverage
+```typescript
+const LogLevel = {
+  DEBUG: 0,
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+  FATAL: 4,
+  SILENT: 5,
+} as const;
+```
 
-### Maintainability Impact
-- **Before**: Silent failures, unclear error messages
-- **After**: Explicit logging, clear type errors
-- **Improvement**: 40% reduction in debugging time (estimated)
+#### Logger Interface
 
----
+```typescript
+interface ILogger {
+  debug(message: string, context?: LogContext): void;
+  info(message: string, context?: LogContext): void;
+  warn(message: string, context?: LogContext): void;
+  error(message: string, error?: Error, context?: LogContext): void;
+  fatal(message: string, error?: Error, context?: LogContext): void;
+  child(context: LogContext): ILogger;
+  startTimer(operation: string): LogTimer;
+}
+```
 
-## METRICS
+#### Correlation Context
 
-### Code Changes
-- **Files Modified**: 3
-- **Files Created**: 3
-- **Lines Added**: ~350
-- **Lines Modified**: ~30
-- **Net Change**: +380 lines
-
-### Issue Resolution
-- **P0 Issues**: 3/3 resolved (100%)
-- **P1 Issues**: 3/4 resolved (75%)
-- **P2 Issues**: 0/2 resolved (0%)
-- **P3 Issues**: 0/2 resolved (0%)
-- **P4 Issues**: 0/1 documented (100%)
-
-### Test Coverage
-- **Before**: ~60%
-- **After**: ~75%
-- **Target**: 80%
-- **Progress**: 75% of target achieved
+```typescript
+// Automatic correlation ID propagation
+correlationContext.run(generateCorrelationId(), () => {
+  logger.info('Processing request');
+  // All nested log calls inherit the correlation ID
+});
+```
 
 ---
 
-## DEPLOYMENT CHECKLIST
+### 6. Resource Lifecycle Management (`src/bridge/lifecycle.ts`)
 
-### Pre-Deployment
-- [x] All P0 fixes implemented
-- [x] All P1 fixes implemented
-- [x] Self-tests passing
-- [x] Documentation updated
-- [ ] Integration tests with rate limiter (deferred)
-- [ ] Full test suite run with pytest
-- [ ] Code review by second engineer
+**Lines:** 456  
+**Purpose:** Implements `Symbol.asyncDispose` patterns for deterministic resource cleanup.
 
-### Deployment
-- [ ] Backup current production data
-- [ ] Deploy to staging environment
-- [ ] Run smoke tests
-- [ ] Monitor for 24 hours
-- [ ] Deploy to production
-- [ ] Monitor for 48 hours
+#### Disposable Patterns
 
-### Post-Deployment
-- [ ] Verify rate limiter statistics
-- [ ] Check for timeout occurrences
-- [ ] Review logs for dimension mismatches
-- [ ] Measure test coverage
-- [ ] Document any issues
+```typescript
+// Managed resource with automatic cleanup
+const conn = managed(createConnection(), (c) => c.close());
 
----
+// Using block for automatic disposal
+await using(resource, async (r) => {
+  // Use resource
+}); // Automatically disposed
 
-## LESSONS LEARNED
+// Disposable stack for multiple resources
+const stack = new DisposableStack();
+stack.use(resource1);
+stack.use(resource2);
+stack.defer(() => cleanup());
+await stack[Symbol.asyncDispose]();
+```
 
-### What Went Well
-1. **Systematic Approach**: Prioritization matrix helped focus on critical issues
-2. **Clear Documentation**: Detailed rationale for each decision
-3. **Incremental Implementation**: P0/P1 fixes without breaking changes
-4. **Self-Testing**: Rate limiter includes self-test for confidence
+#### Resource Pool
 
-### What Could Be Improved
-1. **Test Coverage**: Should have written tests before implementation
-2. **Integration**: Rate limiter not yet integrated (deferred to avoid risk)
-3. **Documentation**: Could have more inline comments
+```typescript
+const pool = new ResourcePool<Connection>({
+  create: () => createConnection(),
+  destroy: (conn) => conn.close(),
+  validate: (conn) => conn.isAlive(),
+  min: 2,
+  max: 10,
+  idleTimeoutMs: 30000,
+});
 
-### Recommendations for Future
-1. **Test-Driven Development**: Write tests first for new features
-2. **Smaller Commits**: Break large changes into smaller, reviewable commits
-3. **Continuous Integration**: Automate test runs on every commit
-4. **Performance Benchmarks**: Establish baselines before optimization
+const pooled = await pool.acquire();
+// Use pooled.value
+pooled.release();
+```
 
----
+#### Graceful Shutdown
 
-## NEXT STEPS
-
-### Immediate (This Sprint)
-1. ✅ Commit and push all changes
-2. ✅ Update documentation
-3. [ ] Run full test suite with pytest
-4. [ ] Integrate rate limiter into process_legends.py
-5. [ ] Expand test coverage to 80%
-
-### Short Term (Next Sprint)
-1. [ ] Implement Issue #2 (Path Traversal)
-2. [ ] Implement Issue #10 (Structured Logging)
-3. [ ] Complete Issue #9 (Test Coverage to 80%)
-4. [ ] Code review and feedback incorporation
-
-### Long Term (Future Sprints)
-1. [ ] Refactor long methods (Issue #5)
-2. [ ] Eliminate duplicate logic (Issue #6)
-3. [ ] Document FAISS optimization path (Issue #4)
-4. [ ] Performance benchmarking
-5. [ ] Load testing at scale
+```typescript
+const shutdown = getShutdownManager();
+shutdown.register({
+  name: 'Database',
+  priority: 10,
+  handler: () => db.close(),
+});
+shutdown.listenForSignals(['SIGTERM', 'SIGINT']);
+```
 
 ---
 
-## CONCLUSION
+### 7. Guard Utilities (`src/bridge/guards.ts`)
 
-We have successfully implemented all critical (P0) and most quick-win (P1) fixes from the code review. The system is now more robust, reliable, and maintainable. Key improvements include:
+**Lines:** 389  
+**Purpose:** Defensive programming utilities for null safety and type narrowing.
 
-- **Security**: File lock timeouts prevent indefinite hangs
-- **Reliability**: Rate limiting prevents API failures
-- **Quality**: Pytest configuration enables consistent testing
-- **Maintainability**: Better error messages and logging
+#### Assertion Guards
 
-The remaining P2-P4 issues are lower priority and can be addressed in future sprints without blocking production deployment.
+```typescript
+assertDefined(value, 'fieldName');     // Throws if null/undefined
+assertNonEmptyString(value, 'name');   // Throws if empty string
+assertNumber(value, 'age');            // Throws if not number
+assertInRange(value, 0, 100, 'score'); // Throws if out of range
+assertArray(value, 'items');           // Throws if not array
+```
 
-**Overall Assessment**: ✅ **READY FOR PRODUCTION** (with monitoring)
+#### Safe Property Access
+
+```typescript
+// Get with default
+const name = get(obj, 'user.profile.name', 'Unknown');
+
+// Get or throw
+const id = getOrThrow<string>(obj, 'user.id');
+
+// Has with type check
+if (hasTyped(obj, 'count', isNumber)) {
+  // obj.count is narrowed to number
+}
+```
+
+#### Utility Functions
+
+```typescript
+coalesce(a, b, c);           // First non-nullish value
+withDefault(value, 'default'); // Default for null/undefined
+invariant(condition, 'msg');   // Assert invariant
+unreachable(value);            // Exhaustive switch check
+pickDefined({ a: 1, b: undefined }); // { a: 1 }
+filterNullish([1, null, 2]);   // [1, 2]
+```
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: January 9, 2026  
-**Next Review**: After Phase 3 completion
+### 8. Barrel Export (`src/bridge/index.ts`)
+
+**Lines:** 171  
+**Purpose:** Clean public API surface for the bridge infrastructure.
+
+All modules are re-exported through a single entry point:
+
+```typescript
+import {
+  // Errors
+  BridgeError, ValidationError, ErrorCode,
+  
+  // Types
+  URI, AgentId, NativeAgent, CanonicalAgent, Result,
+  
+  // Validation
+  S, SchemaRegistry, USAAgentSchema,
+  
+  // Container
+  Container, ServiceTokens, createContainer,
+  
+  // Logging
+  Logger, LogLevel, createLogger,
+  
+  // Lifecycle
+  managed, using, DisposableStack, ResourcePool,
+  
+  // Guards
+  assertDefined, get, invariant, filterNullish,
+} from './bridge';
+```
+
+---
+
+## Test Coverage
+
+### Test Files
+
+| File | Tests | Coverage Focus |
+|------|-------|----------------|
+| `tests/bridge/errors.test.ts` | 35 | Error construction, serialization, utilities |
+| `tests/bridge/types.test.ts` | 25 | Branded types, type guards, Result pattern |
+| `tests/bridge/validation.test.ts` | 22 | Schema builder, pre-defined schemas, registry |
+
+### Key Test Scenarios
+
+1. **Error Handling**
+   - Error construction with context and cause
+   - Error chain extraction
+   - Recoverable error detection
+   - JSON serialization
+
+2. **Type Safety**
+   - Branded type factory functions
+   - Agent framework type guards
+   - Native/Canonical agent narrowing
+   - Result pattern operations
+
+3. **Schema Validation**
+   - Primitive type validation
+   - Object schema with required fields
+   - Array validation with item types
+   - Union and optional types
+   - Framework-specific agent schemas
+
+---
+
+## Usage Examples
+
+### Error Handling
+
+```typescript
+import { ValidationError, wrapError, isRecoverableError } from './bridge';
+
+function processAgent(data: unknown): Result<Agent> {
+  try {
+    const validated = parseAgentData('USA', data);
+    return ok(validated);
+  } catch (error) {
+    if (isBridgeError(error)) {
+      return err(error);
+    }
+    return err(wrapError(error, 'Failed to process agent'));
+  }
+}
+
+// Retry recoverable errors
+const result = await processWithRetry(async () => {
+  const result = await fetchAgent(id);
+  if (isErr(result) && isRecoverableError(result.error)) {
+    throw result.error; // Will be retried
+  }
+  return result;
+});
+```
+
+### Type-Safe Agent Handling
+
+```typescript
+import { 
+  NativeAgent, isUSAAgent, isLMOSAgent, 
+  uri, agentId, isoTimestamp 
+} from './bridge';
+
+function translateAgent(agent: NativeAgent): CanonicalAgent {
+  if (isUSAAgent(agent)) {
+    return {
+      uri: uri(`urn:chrysalis:agent:${agent.data.identity.id}`),
+      sourceFramework: 'USA',
+      identity: {
+        id: agentId(agent.data.identity.id),
+        name: agent.data.identity.name,
+      },
+      capabilities: [],
+      validTime: { start: isoTimestamp() },
+      transactionTime: { recorded: isoTimestamp() },
+    };
+  }
+  
+  if (isLMOSAgent(agent)) {
+    // Handle LMOS-specific translation
+  }
+  
+  throw new TranslationError('Unsupported framework', {
+    framework: agent.framework,
+  });
+}
+```
+
+### Dependency Injection
+
+```typescript
+import { createContainer, ServiceTokens, Lifetime } from './bridge';
+
+// Bootstrap application
+const container = createContainer()
+  .addSingleton(ServiceTokens.TemporalStore, () => 
+    new BiTemporalRDFStore(config))
+  .addSingleton(ServiceTokens.AdapterRegistry, (c) => {
+    const registry = new AdapterRegistry();
+    registry.register('USA', new USAAdapter(c.resolve(ServiceTokens.TemporalStore)));
+    return registry;
+  })
+  .addSingleton(ServiceTokens.Orchestrator, (c) => 
+    new BridgeOrchestrator(
+      c.resolve(ServiceTokens.TemporalStore),
+      c.resolve(ServiceTokens.AdapterRegistry)
+    ))
+  .build();
+
+// Use in application
+const orchestrator = container.resolve(ServiceTokens.Orchestrator);
+await orchestrator.translateAgent(nativeAgent);
+```
+
+### Resource Management
+
+```typescript
+import { using, DisposableStack, ResourcePool } from './bridge';
+
+// Single resource
+await using(createConnection(), async (conn) => {
+  await conn.query('SELECT ...');
+}); // Connection automatically closed
+
+// Multiple resources
+const stack = new DisposableStack();
+const db = stack.use(await createDatabase());
+const cache = stack.use(await createCache());
+stack.defer(() => logger.info('Cleanup complete'));
+
+try {
+  await processData(db, cache);
+} finally {
+  await stack[Symbol.asyncDispose]();
+}
+
+// Connection pooling
+const pool = new ResourcePool({
+  create: () => createDatabaseConnection(),
+  destroy: (conn) => conn.close(),
+  min: 2,
+  max: 20,
+});
+
+const conn = await pool.acquire();
+try {
+  await conn.value.query('...');
+} finally {
+  conn.release();
+}
+```
+
+---
+
+## Architecture Decisions
+
+### Decision 1: Branded Types Over Type Aliases
+
+**Rationale:** Prevent accidental mixing of semantically different strings.
+
+```typescript
+// Without branded types - compiles but wrong!
+const agentId: string = 'agent-123';
+const correlationId: string = agentId; // No error
+
+// With branded types - compile error!
+const agentId: AgentId = agentId('agent-123');
+const correlationId: CorrelationId = agentId; // Type error!
+```
+
+### Decision 2: Result Pattern Over Exceptions
+
+**Rationale:** Make error handling explicit at call sites.
+
+```typescript
+// Caller must handle both cases
+const result = await translateAgent(agent);
+if (isErr(result)) {
+  logger.error('Translation failed', result.error);
+  return;
+}
+const canonical = result.value; // Type narrowed
+```
+
+### Decision 3: Schema Builder Over JSON Schema
+
+**Rationale:** Better TypeScript integration, fluent API, compile-time type inference.
+
+```typescript
+// Type is inferred from schema definition
+const UserSchema = S.object({
+  name: S.string(),
+  age: S.number(),
+});
+
+type User = SchemaType<typeof UserSchema>;
+// { name: string; age: number }
+```
+
+### Decision 4: DI Container Over Module Singletons
+
+**Rationale:** Testability, explicit dependencies, lifetime control.
+
+```typescript
+// Testable - inject mocks
+const testContainer = createContainer()
+  .addSingleton(ServiceTokens.TemporalStore, () => mockStore)
+  .build();
+
+// Production - real implementations
+const prodContainer = createContainer()
+  .addSingleton(ServiceTokens.TemporalStore, () => new BiTemporalStore())
+  .build();
+```
+
+---
+
+## Migration Guide
+
+### From `any` to Typed Generics
+
+```typescript
+// Before
+function processAgent(agent: any): any { ... }
+
+// After
+function processAgent<TData extends AgentData>(
+  agent: NativeAgent<TData>
+): Result<CanonicalAgent> { ... }
+```
+
+### From Thrown Errors to Result Pattern
+
+```typescript
+// Before
+try {
+  const result = await riskyOperation();
+} catch (e) {
+  // Handle error
+}
+
+// After
+const result = await riskyOperation();
+if (isErr(result)) {
+  // Handle error with full type information
+  logger.error('Failed', result.error);
+}
+```
+
+### From Global Singletons to DI
+
+```typescript
+// Before
+import { temporalStore } from './temporal-store';
+temporalStore.store(agent);
+
+// After
+constructor(
+  private readonly temporalStore: ITemporalStore
+) {}
+
+async store(agent: CanonicalAgent) {
+  await this.temporalStore.store(agent);
+}
+```
+
+---
+
+## Conclusion
+
+The code quality remediation establishes a robust foundation for the Chrysalis Universal Agent Bridge with:
+
+1. **Type Safety:** Branded types, generics, and type guards eliminate runtime type errors
+2. **Error Handling:** Custom error hierarchy with context propagation and recoverable error detection
+3. **Validation:** Fluent schema builder with framework-specific agent schemas
+4. **Dependency Management:** IoC container resolves circular dependencies and improves testability
+5. **Observability:** Structured logging with correlation IDs for distributed tracing
+6. **Resource Management:** `Symbol.asyncDispose` patterns ensure deterministic cleanup
+7. **Defensive Programming:** Guard utilities prevent null reference errors
+
+The implementation follows SOLID principles, provides clear migration paths from legacy patterns, and establishes patterns that can be extended as new agent frameworks are supported.
