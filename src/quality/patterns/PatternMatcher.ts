@@ -148,7 +148,7 @@ export class PatternMatcher {
         value: string | number
     ): boolean {
         const valueStr = String(value).toLowerCase();
-        
+
         let matches = false;
 
         switch (condition.operator) {

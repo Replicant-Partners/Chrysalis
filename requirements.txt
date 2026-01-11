@@ -1,0 +1,38 @@
+# Chrysalis Project - Consolidated Python Dependencies
+# Python >= 3.10 required
+# Generated: 2026-01-11
+
+# Web Framework
+Flask==3.0.0
+httpx==0.28.1
+flasgger==0.9.7.1
+
+# Configuration & Validation
+python-dotenv==1.1.1
+pydantic==2.11.9
+PyYAML==6.0.3
+
+# AI Providers
+anthropic==0.75.0
+openai==1.83.0  # pinned for crewai compatibility
+
+# Data & Storage
+lancedb==0.26.1
+pandas==2.3.3
+
+# CLI & Logging
+click==8.1.7
+rich==14.2.0
+loguru==0.7.3
+
+# Security
+cryptography==46.0.3
+
+# Development
+pytest==9.0.2
+pytest-cov==7.0.0
+pytest-xdist==3.8.0
+ruff==0.14.11
+mypy==1.19.1
+bandit==1.9.2
+pre-commit==4.5.1

@@ -109,6 +109,41 @@ export {
 } from './adaptation-pipeline';
 
 // ============================================================================
+// Cross-cutting AI Adaptation Integration
+// ============================================================================
+
+export {
+  // Controllers and Managers
+  CrossCuttingController,
+  PatternDetectionInstrumentor,
+  ChangePropagationSystem,
+  SelfModificationInterface,
+  
+  // Global instances
+  crossCuttingController,
+  patternDetectionInstrumentor,
+  changePropagationSystem,
+  selfModificationInterface,
+  
+  // Types
+  type PatternType,
+  type AdaptationConcern,
+  type InstrumentationPoint,
+  type PropagationChannel,
+  type ModificationLevel,
+  type ProposalType,
+  type InstrumentationConfig,
+  type InstrumentationData,
+  type PropagationMessage,
+  type ModificationRequest,
+  type ModificationChange,
+  type RollbackPlan,
+  type RollbackStep,
+  type AdaptiveHealth,
+  type ModificationProposal,
+} from './cross-cutting-integration';
+
+// ============================================================================
 // Default Export
 // ============================================================================
 
