@@ -148,36 +148,50 @@ export class PatternMatcher {
         value: string | number
     ): boolean {
         const valueStr = String(value).toLowerCase();
-        const conditionValue = typeof condition.value === 'string'
-            ? condition.value.toLowerCase()
-            : condition.value;
-
+        
         let matches = false;
 
         switch (condition.operator) {
-            case 'equals':
+            case 'equals': {
+                const conditionValue = typeof condition.value === 'string'
+                    ? condition.value.toLowerCase()
+                    : String(condition.value).toLowerCase();
                 matches = valueStr === conditionValue;
                 break;
-            case 'contains':
+            }
+            case 'contains': {
+                const conditionValue = typeof condition.value === 'string'
+                    ? condition.value.toLowerCase()
+                    : String(condition.value).toLowerCase();
                 matches = valueStr.includes(conditionValue);
                 break;
-            case 'starts_with':
+            }
+            case 'starts_with': {
+                const conditionValue = typeof condition.value === 'string'
+                    ? condition.value.toLowerCase()
+                    : String(condition.value).toLowerCase();
                 matches = valueStr.startsWith(conditionValue);
                 break;
-            case 'ends_with':
+            }
+            case 'ends_with': {
+                const conditionValue = typeof condition.value === 'string'
+                    ? condition.value.toLowerCase()
+                    : String(condition.value).toLowerCase();
                 matches = valueStr.endsWith(conditionValue);
                 break;
+            }
             case 'matches':
-            case 'regex':
+            case 'regex': {
                 try {
                     const regex = condition.value instanceof RegExp
                         ? condition.value
-                        : new RegExp(conditionValue, 'i');
+                        : new RegExp(String(condition.value), 'i');
                     matches = regex.test(String(value));
                 } catch {
                     matches = false;
                 }
                 break;
+            }
             default:
                 matches = false;
         }

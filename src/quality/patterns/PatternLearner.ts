@@ -267,7 +267,7 @@ export class PatternLearner {
 
         for (const messageWords of words) {
             const uniqueWords = new Set(messageWords);
-            for (const word of uniqueWords) {
+            for (const word of Array.from(uniqueWords)) {
                 wordCounts[word] = (wordCounts[word] || 0) + 1;
             }
         }

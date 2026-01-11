@@ -12,10 +12,9 @@
 import { EventEmitter } from 'events';
 import { AgentFramework } from '../adapters/protocol-types';
 import { UnifiedAdapter, AdapterHealth, AdapterStatus } from '../adapters/unified-adapter';
-import { UniversalMessage } from '../adapters/protocol-messages';
 import { ProtocolCapability } from '../adapters/protocol-capabilities';
 import {
-  AdaptationHook,
+  AdaptationHookFn,
   AdaptationHookType,
   HookContext,
   HookResult,
@@ -23,35 +22,28 @@ import {
   patternSensorManager,
   extensibilityManager,
   versionNegotiator,
-  createPreConversionHook,
-  createPostConversionHook,
-  createErrorRecoveryHook
+  PatternDetectionFn,
+  SensorContext,
+  SensorReading,
+  createErrorHook
 } from '../adapters/adaptation-hooks';
-import {
-  EvolutionaryPattern,
-  PatternType,
-  evolutionaryPatternRegistry,
-  PatternTrigger,
-  PatternMatchResult
-} from './evolutionary-patterns';
-import {
-  AdaptationPipeline,
-  AdaptationPipelineConfig,
-  PipelineStatus
-} from './adaptation-pipeline';
-import {
-  SemanticDiffAnalyzer,
-  SemanticDiff,
-  ChangeImpact
-} from './semantic-diff-analyzer';
-import {
-  ModificationProposal,
-  ProposalType
-} from './adapter-modification-generator';
+import { PatternMatchContext, matchPatterns } from './evolutionary-patterns';
+import { PatternCategory, PatternSeverity, PatternMatch } from './types';
 
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
+
+/**
+ * Pattern type for detection.
+ */
+export type PatternType = 
+  | 'breaking-change'
+  | 'deprecation'
+  | 'enhancement'
+  | 'security'
+  | 'optimization'
+  | 'schema-migration';
 
 /**
  * Cross-cutting concern type for AI adaptation.
@@ -100,6 +92,17 @@ export type ModificationLevel =
   | 'behavior'       // Behavior modifications
   | 'structural'     // Structural changes
   | 'full';          // Complete self-modification
+
+/**
+ * Proposal type for modifications.
+ */
+export type ProposalType =
+  | 'type-update'
+  | 'mapping-update'
+  | 'new-handler'
+  | 'deprecation-wrapper'
+  | 'security-patch'
+  | 'breaking-change-migration';
 
 /**
  * Instrumentation configuration.
@@ -208,15 +211,73 @@ export interface AdaptiveHealth extends AdapterHealth {
   adaptationStatus: 'idle' | 'adapting' | 'recovering' | 'evolving';
 }
 
+/**
+ * Modification proposal for cross-cutting.
+ */
+export interface ModificationProposal {
+  id: string;
+  protocol: AgentFramework;
+  type: ProposalType;
+  description: string;
+  confidence: number;
+}
+
 // ============================================================================
 // Pattern Detection Instrumentation
 // ============================================================================
 
 /**
+ * Pattern detection result.
+ */
+interface PatternDetection {
+  id: string;
+  timestamp: string;
+  protocol: AgentFramework;
+  patternType: PatternType;
+  description: string;
+  confidence: number;
+  evidence: Record<string, unknown>;
+  suggestedAction: string;
+}
+
+/**
+ * Pattern detection configuration.
+ */
+interface PatternDetectionConfig {
+  enabled: boolean;
+  historySize: number;
+  detectionThreshold: number;
+  patternTypes: PatternType[];
+  autoReact: boolean;
+  reactionDelay: number;
+}
+
+/**
+ * Pattern sensor for internal use.
+ */
+interface InternalPatternSensor {
+  id: string;
+  type: string;
+  protocol: AgentFramework;
+  enabled: boolean;
+  detect: (context: InternalSensorContext) => Promise<PatternDetection | null>;
+}
+
+/**
+ * Internal sensor context.
+ */
+interface InternalSensorContext {
+  point: InstrumentationPoint;
+  timestamp: string;
+  data: unknown;
+  metadata: Record<string, unknown>;
+}
+
+/**
  * Instruments adapters with pattern detection sensors.
  */
 export class PatternDetectionInstrumentor {
-  private sensors: Map<AgentFramework, PatternSensor[]> = new Map();
+  private sensors: Map<AgentFramework, InternalPatternSensor[]> = new Map();
   private detectionHistory: PatternDetection[] = [];
   private config: PatternDetectionConfig;
   private emitter: EventEmitter = new EventEmitter();
@@ -238,7 +299,7 @@ export class PatternDetectionInstrumentor {
    */
   installSensors(adapter: UnifiedAdapter): void {
     const protocol = adapter.protocol;
-    const sensors: PatternSensor[] = [];
+    const sensors: InternalPatternSensor[] = [];
 
     // API Surface Sensor - detects capability changes
     sensors.push({
@@ -246,7 +307,7 @@ export class PatternDetectionInstrumentor {
       type: 'api-surface',
       protocol,
       enabled: true,
-      detect: async (context: SensorContext) => {
+      detect: async (context: InternalSensorContext) => {
         const capabilities = adapter.getCapabilities();
         const versionInfo = adapter.getVersionInfo();
         return this.analyzeApiSurface(capabilities, versionInfo, context);
@@ -259,7 +320,7 @@ export class PatternDetectionInstrumentor {
       type: 'behavior',
       protocol,
       enabled: true,
-      detect: async (context: SensorContext) => {
+      detect: async (context: InternalSensorContext) => {
         const health = await adapter.getHealth();
         return this.analyzeBehavior(health, context);
       }
@@ -271,7 +332,7 @@ export class PatternDetectionInstrumentor {
       type: 'version',
       protocol,
       enabled: true,
-      detect: async (context: SensorContext) => {
+      detect: async (context: InternalSensorContext) => {
         const versionInfo = adapter.getVersionInfo();
         return this.analyzeVersionDrift(versionInfo, context);
       }
@@ -283,7 +344,7 @@ export class PatternDetectionInstrumentor {
       type: 'error-pattern',
       protocol,
       enabled: true,
-      detect: async (context: SensorContext) => {
+      detect: async (context: InternalSensorContext) => {
         const health = await adapter.getHealth();
         return this.analyzeErrorPatterns(health, context);
       }
@@ -294,10 +355,28 @@ export class PatternDetectionInstrumentor {
 
     // Register with global pattern sensor manager
     for (const sensor of sensors) {
-      patternSensorManager.registerSensor(protocol, {
-        sensorType: sensor.type,
-        detect: sensor.detect
-      });
+      const detectionFn: PatternDetectionFn = async (ctx: SensorContext): Promise<SensorReading> => {
+        const internalCtx: InternalSensorContext = {
+          point: 'health-check',
+          timestamp: new Date().toISOString(),
+          data: ctx.data,
+          metadata: { metrics: ctx.metrics }
+        };
+        const detection = await sensor.detect(internalCtx);
+        return {
+          detected: detection !== null,
+          patternId: detection?.patternType || sensor.type,
+          confidence: detection?.confidence || 0,
+          evidence: detection ? [detection.description] : [],
+          recommendedAction: detection?.suggestedAction
+        };
+      };
+      
+      patternSensorManager.registerSensor(
+        `${protocol}-${sensor.type}`,
+        detectionFn,
+        { protocols: [protocol] }
+      );
     }
 
     // Install adaptation hooks
@@ -309,37 +388,28 @@ export class PatternDetectionInstrumentor {
    */
   private installDetectionHooks(protocol: AgentFramework): void {
     // Pre-conversion hook for input pattern detection
-    hookExecutor.registerHook(createPreConversionHook(
-      `${protocol}-pre-conversion-sensor`,
-      async (ctx) => {
-        await this.runSensorCheck(protocol, 'pre-conversion', ctx);
-        return { success: true, data: ctx.data };
-      },
-      { protocols: [protocol] }
-    ));
+    const preConversionFn: AdaptationHookFn = async (ctx: HookContext): Promise<HookResult> => {
+      await this.runSensorCheck(protocol, 'pre-conversion', ctx);
+      return { continueChain: true, executionTimeMs: 0 };
+    };
+    hookExecutor.registerHook('pre-conversion', preConversionFn, { protocols: [protocol] });
 
     // Post-conversion hook for output pattern detection
-    hookExecutor.registerHook(createPostConversionHook(
-      `${protocol}-post-conversion-sensor`,
-      async (ctx) => {
-        await this.runSensorCheck(protocol, 'post-conversion', ctx);
-        return { success: true, data: ctx.data };
-      },
-      { protocols: [protocol] }
-    ));
+    const postConversionFn: AdaptationHookFn = async (ctx: HookContext): Promise<HookResult> => {
+      await this.runSensorCheck(protocol, 'post-conversion', ctx);
+      return { continueChain: true, executionTimeMs: 0 };
+    };
+    hookExecutor.registerHook('post-conversion', postConversionFn, { protocols: [protocol] });
 
     // Error hook for failure pattern detection
-    hookExecutor.registerHook(createErrorRecoveryHook(
-      `${protocol}-error-sensor`,
-      async (ctx) => {
-        const detection = await this.detectErrorPattern(protocol, ctx);
-        if (detection && this.config.autoReact) {
-          await this.triggerAutoReaction(detection);
-        }
-        return { success: true, recovered: false };
-      },
-      { protocols: [protocol] }
-    ));
+    const errorFn: AdaptationHookFn = async (ctx: HookContext): Promise<HookResult> => {
+      const detection = await this.detectErrorPattern(protocol, ctx);
+      if (detection && this.config.autoReact) {
+        await this.triggerAutoReaction(detection);
+      }
+      return { continueChain: true, executionTimeMs: 0 };
+    };
+    hookExecutor.registerHook('on-error', errorFn, { protocols: [protocol] });
   }
 
   /**
@@ -351,11 +421,11 @@ export class PatternDetectionInstrumentor {
     context: HookContext
   ): Promise<void> {
     const sensors = this.sensors.get(protocol) || [];
-    const sensorContext: SensorContext = {
+    const sensorContext: InternalSensorContext = {
       point,
       timestamp: new Date().toISOString(),
-      data: context.data,
-      metadata: context.metadata
+      data: context.inputMessage || context.outputMessage,
+      metadata: context.additional || {}
     };
 
     for (const sensor of sensors) {
@@ -379,7 +449,7 @@ export class PatternDetectionInstrumentor {
   private analyzeApiSurface(
     capabilities: ProtocolCapability,
     versionInfo: unknown,
-    context: SensorContext
+    context: InternalSensorContext
   ): PatternDetection | null {
     // Check for capability changes that might indicate API evolution
     const features = capabilities.features;
@@ -407,7 +477,7 @@ export class PatternDetectionInstrumentor {
    */
   private analyzeBehavior(
     health: AdapterHealth,
-    context: SensorContext
+    context: InternalSensorContext
   ): PatternDetection | null {
     // Check for behavioral anomalies
     if (health.recentErrors > 10 || health.healthScore < 50) {
@@ -435,7 +505,7 @@ export class PatternDetectionInstrumentor {
    */
   private analyzeVersionDrift(
     versionInfo: unknown,
-    context: SensorContext
+    context: InternalSensorContext
   ): PatternDetection | null {
     // Implementation would compare versions with upstream
     return null;
@@ -446,7 +516,7 @@ export class PatternDetectionInstrumentor {
    */
   private analyzeErrorPatterns(
     health: AdapterHealth,
-    context: SensorContext
+    context: InternalSensorContext
   ): PatternDetection | null {
     if (health.lastError) {
       const errorCode = health.lastError.code;
@@ -486,12 +556,13 @@ export class PatternDetectionInstrumentor {
     context: HookContext
   ): Promise<PatternDetection | null> {
     if (context.error) {
+      const errorMsg = context.error instanceof Error ? context.error.message : String(context.error);
       return {
         id: `error-${Date.now()}`,
         timestamp: new Date().toISOString(),
         protocol,
         patternType: 'breaking-change',
-        description: `Error detected: ${context.error.message}`,
+        description: `Error detected: ${errorMsg}`,
         confidence: 0.7,
         evidence: { error: context.error },
         suggestedAction: 'Analyze error and determine if adaptation is needed'
@@ -543,56 +614,60 @@ export class PatternDetectionInstrumentor {
   }
 }
 
-/**
- * Pattern sensor interface.
- */
-interface PatternSensor {
-  id: string;
-  type: string;
-  protocol: AgentFramework;
-  enabled: boolean;
-  detect: (context: SensorContext) => Promise<PatternDetection | null>;
-}
-
-/**
- * Sensor context for detection.
- */
-interface SensorContext {
-  point: InstrumentationPoint;
-  timestamp: string;
-  data: unknown;
-  metadata: Record<string, unknown>;
-}
-
-/**
- * Pattern detection result.
- */
-interface PatternDetection {
-  id: string;
-  timestamp: string;
-  protocol: AgentFramework;
-  patternType: PatternType;
-  description: string;
-  confidence: number;
-  evidence: Record<string, unknown>;
-  suggestedAction: string;
-}
-
-/**
- * Pattern detection configuration.
- */
-interface PatternDetectionConfig {
-  enabled: boolean;
-  historySize: number;
-  detectionThreshold: number;
-  patternTypes: PatternType[];
-  autoReact: boolean;
-  reactionDelay: number;
-}
-
 // ============================================================================
 // Change Propagation System
 // ============================================================================
+
+/**
+ * Channel handler interface.
+ */
+interface ChannelHandler {
+  channel: PropagationChannel;
+  send: (message: PropagationMessage) => Promise<void>;
+}
+
+/**
+ * Propagation subscription.
+ */
+interface PropagationSubscription {
+  id: string;
+  protocol: AgentFramework;
+  handler: (message: PropagationMessage) => Promise<void>;
+  filter?: (message: PropagationMessage) => boolean;
+  priority: number;
+}
+
+/**
+ * Subscription options.
+ */
+interface SubscriptionOptions {
+  filter: (message: PropagationMessage) => boolean;
+  priority: number;
+}
+
+/**
+ * Propagation options.
+ */
+interface PropagationOptions {
+  channel: PropagationChannel;
+  source: AgentFramework | 'system';
+  targets: AgentFramework[] | 'all';
+  priority: number;
+  ttl: number;
+  requiresAck: boolean;
+}
+
+/**
+ * Propagation configuration.
+ */
+interface PropagationConfig {
+  enabled: boolean;
+  defaultChannel: PropagationChannel;
+  maxQueueSize: number;
+  processingIntervalMs: number;
+  retryAttempts: number;
+  ackTimeoutMs: number;
+}
 
 /**
  * Manages change propagation across adapters.
@@ -603,6 +678,7 @@ export class ChangePropagationSystem {
   private messageQueue: PropagationMessage[] = [];
   private emitter: EventEmitter = new EventEmitter();
   private config: PropagationConfig;
+  private processingInterval?: NodeJS.Timeout;
 
   constructor(config: Partial<PropagationConfig> = {}) {
     this.config = {
@@ -697,9 +773,18 @@ export class ChangePropagationSystem {
    * Start message processing loop.
    */
   private startProcessing(): void {
-    setInterval(() => {
+    this.processingInterval = setInterval(() => {
       this.processQueue();
     }, this.config.processingIntervalMs);
+  }
+
+  /**
+   * Stop message processing.
+   */
+  stopProcessing(): void {
+    if (this.processingInterval) {
+      clearInterval(this.processingInterval);
+    }
   }
 
   /**
@@ -757,7 +842,7 @@ export class ChangePropagationSystem {
    * Unsubscribe from changes.
    */
   unsubscribe(subscriptionId: string): boolean {
-    for (const [protocol, subs] of this.subscribers) {
+    for (const [, subs] of Array.from(this.subscribers.entries())) {
       const index = subs.findIndex(s => s.id === subscriptionId);
       if (index >= 0) {
         subs.splice(index, 1);
@@ -861,7 +946,7 @@ export class ChangePropagationSystem {
    */
   private getAllSubscribers(): PropagationSubscription[] {
     const all: PropagationSubscription[] = [];
-    for (const subs of this.subscribers.values()) {
+    for (const subs of Array.from(this.subscribers.values())) {
       all.push(...subs);
     }
     return all;
@@ -895,60 +980,45 @@ export class ChangePropagationSystem {
   }
 }
 
-/**
- * Channel handler interface.
- */
-interface ChannelHandler {
-  channel: PropagationChannel;
-  send: (message: PropagationMessage) => Promise<void>;
-}
-
-/**
- * Propagation subscription.
- */
-interface PropagationSubscription {
-  id: string;
-  protocol: AgentFramework;
-  handler: (message: PropagationMessage) => Promise<void>;
-  filter?: (message: PropagationMessage) => boolean;
-  priority: number;
-}
-
-/**
- * Subscription options.
- */
-interface SubscriptionOptions {
-  filter: (message: PropagationMessage) => boolean;
-  priority: number;
-}
-
-/**
- * Propagation options.
- */
-interface PropagationOptions {
-  channel: PropagationChannel;
-  source: AgentFramework | 'system';
-  targets: AgentFramework[] | 'all';
-  priority: number;
-  ttl: number;
-  requiresAck: boolean;
-}
-
-/**
- * Propagation configuration.
- */
-interface PropagationConfig {
-  enabled: boolean;
-  defaultChannel: PropagationChannel;
-  maxQueueSize: number;
-  processingIntervalMs: number;
-  retryAttempts: number;
-  ackTimeoutMs: number;
-}
-
 // ============================================================================
 // Self-Modification Interface
 // ============================================================================
+
+/**
+ * Modification execution record.
+ */
+interface ModificationExecution {
+  requestId: string;
+  protocol: AgentFramework;
+  startTime: string;
+  endTime: string;
+  status: 'in-progress' | 'completed' | 'failed' | 'rolled-back';
+  changesApplied: number;
+  changesFailed: number;
+  rollbackPerformed: boolean;
+  error?: string;
+}
+
+/**
+ * Modification request options.
+ */
+interface ModificationRequestOptions {
+  approvalRequired: boolean;
+  confidence: number;
+}
+
+/**
+ * Self-modification configuration.
+ */
+interface SelfModificationConfig {
+  enabled: boolean;
+  maxConcurrentModifications: number;
+  requireApproval: boolean;
+  autoRollbackOnFailure: boolean;
+  rollbackTimeoutMs: number;
+  validationRequired: boolean;
+  historySize: number;
+}
 
 /**
  * Manages self-modification capabilities for adapters.
@@ -1232,45 +1302,20 @@ export class SelfModificationInterface {
   }
 }
 
-/**
- * Modification execution record.
- */
-interface ModificationExecution {
-  requestId: string;
-  protocol: AgentFramework;
-  startTime: string;
-  endTime: string;
-  status: 'in-progress' | 'completed' | 'failed' | 'rolled-back';
-  changesApplied: number;
-  changesFailed: number;
-  rollbackPerformed: boolean;
-  error?: string;
-}
-
-/**
- * Modification request options.
- */
-interface ModificationRequestOptions {
-  approvalRequired: boolean;
-  confidence: number;
-}
-
-/**
- * Self-modification configuration.
- */
-interface SelfModificationConfig {
-  enabled: boolean;
-  maxConcurrentModifications: number;
-  requireApproval: boolean;
-  autoRollbackOnFailure: boolean;
-  rollbackTimeoutMs: number;
-  validationRequired: boolean;
-  historySize: number;
-}
-
 // ============================================================================
 // Integrated Cross-Cutting Controller
 // ============================================================================
+
+/**
+ * Cross-cutting controller configuration.
+ */
+interface CrossCuttingConfig {
+  enabled: boolean;
+  autoInstrument: boolean;
+  autoPropagate: boolean;
+  autoModify: boolean;
+  healthCheckIntervalMs: number;
+}
 
 /**
  * Central controller integrating all cross-cutting AI adaptation concerns.
@@ -1279,7 +1324,6 @@ export class CrossCuttingController {
   private patternDetector: PatternDetectionInstrumentor;
   private propagationSystem: ChangePropagationSystem;
   private selfModification: SelfModificationInterface;
-  private adaptationPipeline?: AdaptationPipeline;
   private instrumentedAdapters: Map<AgentFramework, UnifiedAdapter> = new Map();
   private emitter: EventEmitter = new EventEmitter();
   private config: CrossCuttingConfig;
@@ -1358,19 +1402,6 @@ export class CrossCuttingController {
     this.instrumentedAdapters.set(protocol, adapter);
 
     this.emitter.emit('adapter-instrumented', { protocol });
-  }
-
-  /**
-   * Connect to adaptation pipeline.
-   */
-  connectPipeline(pipeline: AdaptationPipeline): void {
-    this.adaptationPipeline = pipeline;
-    
-    // Forward pattern detections to pipeline
-    this.patternDetector.onPatternDetected(async (detection) => {
-      // Pipeline integration point
-      this.emitter.emit('pipeline-input', detection);
-    });
   }
 
   /**
@@ -1501,7 +1532,7 @@ export class CrossCuttingController {
   async getAdaptiveHealth(): Promise<Map<AgentFramework, AdaptiveHealth>> {
     const healthMap = new Map<AgentFramework, AdaptiveHealth>();
 
-    for (const [protocol, adapter] of this.instrumentedAdapters) {
+    for (const [protocol, adapter] of Array.from(this.instrumentedAdapters.entries())) {
       const baseHealth = await adapter.getHealth();
       const detections = this.patternDetector.getDetectionHistory(protocol);
       const modifications = this.selfModification.getHistory(protocol);
@@ -1597,17 +1628,13 @@ export class CrossCuttingController {
       selfModification: this.selfModification
     };
   }
-}
 
-/**
- * Cross-cutting controller configuration.
- */
-interface CrossCuttingConfig {
-  enabled: boolean;
-  autoInstrument: boolean;
-  autoPropagate: boolean;
-  autoModify: boolean;
-  healthCheckIntervalMs: number;
+  /**
+   * Stop the controller.
+   */
+  stop(): void {
+    this.propagationSystem.stopProcessing();
+  }
 }
 
 // ============================================================================

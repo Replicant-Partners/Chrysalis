@@ -682,6 +682,323 @@ export abstract class BaseAdapter {
   }
 
   // ==========================================================================
+  // Quad Creation Helpers (P1 Extraction from CODE_QUALITY_REVIEW)
+  // ==========================================================================
+
+  /**
+   * Create a quad and track the mapped field in a single operation.
+   * Reduces boilerplate in toCanonical() implementations.
+   *
+   * @param quads - Array to push the quad to
+   * @param mappedFields - Array to track mapped field paths
+   * @param subject - Quad subject
+   * @param predicate - Quad predicate
+   * @param object - Quad object
+   * @param fieldPath - Source field path for tracking
+   */
+  protected addQuadWithTracking(
+    quads: Quad[],
+    mappedFields: string[],
+    subject: Subject,
+    predicate: NamedNode,
+    object: QuadObject,
+    fieldPath: string
+  ): void {
+    quads.push(this.quad(subject, predicate, object));
+    mappedFields.push(fieldPath);
+  }
+
+  /**
+   * Conditionally add a literal quad if value exists.
+   * Returns true if quad was added, false otherwise.
+   *
+   * @param quads - Array to push the quad to
+   * @param mappedFields - Array to track mapped field paths
+   * @param subject - Quad subject
+   * @param predicate - Quad predicate
+   * @param value - Value to create literal from (if truthy)
+   * @param fieldPath - Source field path for tracking
+   * @param datatype - Optional XSD datatype URI
+   * @returns true if quad was added
+   */
+  protected addOptionalLiteral(
+    quads: Quad[],
+    mappedFields: string[],
+    subject: Subject,
+    predicate: NamedNode,
+    value: string | number | boolean | undefined | null,
+    fieldPath: string,
+    datatype?: string
+  ): boolean {
+    if (value === undefined || value === null || value === '') {
+      return false;
+    }
+    quads.push(this.quad(subject, predicate, this.literal(value, datatype)));
+    mappedFields.push(fieldPath);
+    return true;
+  }
+
+  /**
+   * Conditionally add a URI quad if value exists.
+   * Returns true if quad was added, false otherwise.
+   *
+   * @param quads - Array to push the quad to
+   * @param mappedFields - Array to track mapped field paths
+   * @param subject - Quad subject
+   * @param predicate - Quad predicate
+   * @param uriValue - URI value (if truthy)
+   * @param fieldPath - Source field path for tracking
+   * @returns true if quad was added
+   */
+  protected addOptionalUri(
+    quads: Quad[],
+    mappedFields: string[],
+    subject: Subject,
+    predicate: NamedNode,
+    uriValue: string | undefined | null,
+    fieldPath: string
+  ): boolean {
+    if (!uriValue) {
+      return false;
+    }
+    quads.push(this.quad(subject, predicate, this.uri(uriValue)));
+    mappedFields.push(fieldPath);
+    return true;
+  }
+
+  /**
+   * Conditionally add a quad with any object type if value is defined.
+   *
+   * @param quads - Array to push the quad to
+   * @param mappedFields - Array to track mapped field paths
+   * @param subject - Quad subject
+   * @param predicate - Quad predicate
+   * @param object - Quad object (if truthy)
+   * @param fieldPath - Source field path for tracking
+   * @returns true if quad was added
+   */
+  protected addOptionalQuad(
+    quads: Quad[],
+    mappedFields: string[],
+    subject: Subject,
+    predicate: NamedNode,
+    object: QuadObject | undefined | null,
+    fieldPath: string
+  ): boolean {
+    if (!object) {
+      return false;
+    }
+    quads.push(this.quad(subject, predicate, object));
+    mappedFields.push(fieldPath);
+    return true;
+  }
+
+  /**
+   * Create a typed blank node connected to a parent subject.
+   * Commonly used for nested structures like tools, memory components, etc.
+   *
+   * @param quads - Array to push quads to
+   * @param parentSubject - Parent subject to link from
+   * @param linkPredicate - Predicate linking parent to new node
+   * @param typeUri - rdf:type value for the new node
+   * @param idPrefix - Prefix for blank node ID generation
+   * @returns The created blank node for further property addition
+   */
+  protected createTypedBlankNode(
+    quads: Quad[],
+    parentSubject: Subject,
+    linkPredicate: NamedNode,
+    typeUri: NamedNode,
+    idPrefix: string
+  ): BlankNode {
+    const node = this.blank(this.generateBlankId(idPrefix));
+    quads.push(this.quad(parentSubject, linkPredicate, node));
+    quads.push(this.quad(node, rdf('type'), typeUri));
+    return node;
+  }
+
+  /**
+   * Create a typed named node (URI) connected to a parent subject.
+   * Used when the nested resource has its own URI identity.
+   *
+   * @param quads - Array to push quads to
+   * @param parentSubject - Parent subject to link from
+   * @param linkPredicate - Predicate linking parent to new node
+   * @param nodeUri - URI for the new node
+   * @param typeUri - rdf:type value for the new node
+   * @returns The created named node for further property addition
+   */
+  protected createTypedNamedNode(
+    quads: Quad[],
+    parentSubject: Subject,
+    linkPredicate: NamedNode,
+    nodeUri: string,
+    typeUri: NamedNode
+  ): NamedNode {
+    const node = this.uri(nodeUri);
+    quads.push(this.quad(parentSubject, linkPredicate, node));
+    quads.push(this.quad(node, rdf('type'), typeUri));
+    return node;
+  }
+
+  /**
+   * Add multiple literal quads for an array of values.
+   * Tracks as a single field path.
+   *
+   * @param quads - Array to push quads to
+   * @param mappedFields - Array to track mapped field paths
+   * @param subject - Quad subject
+   * @param predicate - Quad predicate
+   * @param values - Array of values
+   * @param fieldPath - Source field path for tracking
+   * @param datatype - Optional XSD datatype URI
+   * @returns Number of quads added
+   */
+  protected addLiteralArray(
+    quads: Quad[],
+    mappedFields: string[],
+    subject: Subject,
+    predicate: NamedNode,
+    values: (string | number | boolean)[] | undefined | null,
+    fieldPath: string,
+    datatype?: string
+  ): number {
+    if (!values || values.length === 0) {
+      return 0;
+    }
+    for (const value of values) {
+      quads.push(this.quad(subject, predicate, this.literal(value, datatype)));
+    }
+    mappedFields.push(fieldPath);
+    return values.length;
+  }
+
+  /**
+   * Add a JSON-serialized literal for complex objects.
+   * Used for objects that can't be decomposed into individual triples.
+   *
+   * @param quads - Array to push quads to
+   * @param mappedFields - Array to track mapped field paths
+   * @param subject - Quad subject
+   * @param predicate - Quad predicate
+   * @param value - Object to serialize
+   * @param fieldPath - Source field path for tracking
+   * @returns true if quad was added
+   */
+  protected addJsonLiteral(
+    quads: Quad[],
+    mappedFields: string[],
+    subject: Subject,
+    predicate: NamedNode,
+    value: unknown,
+    fieldPath: string
+  ): boolean {
+    if (value === undefined || value === null) {
+      return false;
+    }
+    const json = JSON.stringify(value);
+    quads.push(this.quad(subject, predicate, this.literal(json)));
+    mappedFields.push(fieldPath);
+    return true;
+  }
+
+  // ==========================================================================
+  // Extension Restoration Helpers (P2 Extraction from CODE_QUALITY_REVIEW)
+  // ==========================================================================
+
+  /**
+   * Restore an extension value with JSON parsing.
+   * Returns undefined if not found or parse fails.
+   *
+   * @param extensions - Array of extension properties
+   * @param namespace - Extension namespace to match
+   * @param property - Extension property name to match
+   * @param defaultValue - Default value if not found
+   * @returns Parsed value or default
+   */
+  protected restoreExtension<T>(
+    extensions: ExtensionProperty[],
+    namespace: string,
+    property: string,
+    defaultValue?: T
+  ): T | undefined {
+    const ext = extensions.find(e =>
+      e.namespace === namespace && e.property === property
+    );
+    if (!ext) {
+      return defaultValue;
+    }
+    try {
+      return JSON.parse(ext.value) as T;
+    } catch {
+      // Try returning raw value if it's a simple string
+      return ext.value as unknown as T;
+    }
+  }
+
+  /**
+   * Restore extension value directly into a target object property.
+   *
+   * @param target - Object to set property on
+   * @param key - Property key to set
+   * @param extensions - Array of extension properties
+   * @param namespace - Extension namespace to match
+   * @param property - Extension property name to match
+   */
+  protected restoreExtensionInto<T extends Record<string, unknown>, K extends keyof T>(
+    target: T,
+    key: K,
+    extensions: ExtensionProperty[],
+    namespace: string,
+    property: string
+  ): void {
+    const value = this.restoreExtension<T[K]>(extensions, namespace, property);
+    if (value !== undefined) {
+      target[key] = value;
+    }
+  }
+
+  /**
+   * Restore extension value into a nested path.
+   * Creates intermediate objects as needed.
+   *
+   * @param target - Root object
+   * @param path - Dot-separated path to set
+   * @param extensions - Array of extension properties
+   * @param namespace - Extension namespace to match
+   * @param property - Extension property name to match
+   */
+  protected restoreExtensionIntoPath(
+    target: Record<string, unknown>,
+    path: string,
+    extensions: ExtensionProperty[],
+    namespace: string,
+    property: string
+  ): void {
+    const value = this.restoreExtension(extensions, namespace, property);
+    if (value !== undefined) {
+      this.setPath(target, path, value);
+    }
+  }
+
+  /**
+   * Batch restore multiple extensions into a target object.
+   *
+   * @param target - Object to set properties on
+   * @param extensions - Array of extension properties
+   * @param mappings - Array of [targetKey, namespace, property] tuples
+   */
+  protected restoreExtensionsBatch(
+    target: Record<string, unknown>,
+    extensions: ExtensionProperty[],
+    mappings: Array<[string, string, string]>
+  ): void {
+    for (const [targetPath, namespace, property] of mappings) {
+      this.restoreExtensionIntoPath(target, targetPath, extensions, namespace, property);
+    }
+  }
+
+  // ==========================================================================
   // Private Helper Methods
   // ==========================================================================
 

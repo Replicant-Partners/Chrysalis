@@ -167,6 +167,271 @@ export interface CompatibilityEntry {
   lastTested: Date;
 }
 
+/**
+ * Request validation error detail
+ */
+export interface RequestValidationError {
+  /** Error code for programmatic handling */
+  code: string;
+  /** Human-readable error message */
+  message: string;
+  /** Path to the problematic field */
+  path: string;
+  /** Expected value/type description */
+  expected?: string;
+  /** Actual value/type received */
+  actual?: string;
+}
+
+/**
+ * Request validation result
+ */
+export interface RequestValidationResult {
+  /** Whether validation passed */
+  valid: boolean;
+  /** Validation errors */
+  errors: RequestValidationError[];
+  /** Validation warnings */
+  warnings: RequestValidationError[];
+}
+
+// ============================================================================
+// Input Validation Guards (P2 from CODE_QUALITY_REVIEW)
+// ============================================================================
+
+/**
+ * Validate translation request structure
+ */
+function validateTranslationRequest(request: unknown): RequestValidationResult {
+  const errors: RequestValidationError[] = [];
+  const warnings: RequestValidationError[] = [];
+
+  // Check request is an object
+  if (!request || typeof request !== 'object') {
+    errors.push({
+      code: 'INVALID_REQUEST',
+      message: 'Request must be an object',
+      path: '',
+      expected: 'object',
+      actual: typeof request
+    });
+    return { valid: false, errors, warnings };
+  }
+
+  const req = request as Record<string, unknown>;
+
+  // Check agent exists
+  if (!req.agent) {
+    errors.push({
+      code: 'MISSING_AGENT',
+      message: 'Agent is required',
+      path: 'agent'
+    });
+  } else if (typeof req.agent !== 'object' || req.agent === null) {
+    errors.push({
+      code: 'INVALID_AGENT',
+      message: 'Agent must be an object',
+      path: 'agent',
+      expected: 'object',
+      actual: typeof req.agent
+    });
+  } else {
+    const agent = req.agent as Record<string, unknown>;
+
+    // Check agent.framework
+    if (!agent.framework) {
+      errors.push({
+        code: 'MISSING_FRAMEWORK',
+        message: 'Agent framework is required',
+        path: 'agent.framework'
+      });
+    } else if (typeof agent.framework !== 'string') {
+      errors.push({
+        code: 'INVALID_FRAMEWORK',
+        message: 'Agent framework must be a string',
+        path: 'agent.framework',
+        expected: 'string',
+        actual: typeof agent.framework
+      });
+    }
+
+    // Check agent.data
+    if (agent.data === undefined) {
+      errors.push({
+        code: 'MISSING_DATA',
+        message: 'Agent data is required',
+        path: 'agent.data'
+      });
+    } else if (typeof agent.data !== 'object' || agent.data === null) {
+      errors.push({
+        code: 'INVALID_DATA',
+        message: 'Agent data must be an object',
+        path: 'agent.data',
+        expected: 'object',
+        actual: agent.data === null ? 'null' : typeof agent.data
+      });
+    } else if (Object.keys(agent.data as object).length === 0) {
+      warnings.push({
+        code: 'EMPTY_DATA',
+        message: 'Agent data is empty',
+        path: 'agent.data'
+      });
+    }
+  }
+
+  // Check targetFramework
+  if (!req.targetFramework) {
+    errors.push({
+      code: 'MISSING_TARGET',
+      message: 'Target framework is required',
+      path: 'targetFramework'
+    });
+  } else if (typeof req.targetFramework !== 'string') {
+    errors.push({
+      code: 'INVALID_TARGET',
+      message: 'Target framework must be a string',
+      path: 'targetFramework',
+      expected: 'string',
+      actual: typeof req.targetFramework
+    });
+  }
+
+  // Validate optional boolean fields
+  const booleanFields = ['persist', 'useCache', 'validate'];
+  for (const field of booleanFields) {
+    if (req[field] !== undefined && typeof req[field] !== 'boolean') {
+      warnings.push({
+        code: 'INVALID_OPTION',
+        message: `${field} should be a boolean`,
+        path: field,
+        expected: 'boolean',
+        actual: typeof req[field]
+      });
+    }
+  }
+
+  return { valid: errors.length === 0, errors, warnings };
+}
+
+/**
+ * Validate batch translation request structure
+ */
+function validateBatchTranslationRequest(request: unknown): RequestValidationResult {
+  const errors: RequestValidationError[] = [];
+  const warnings: RequestValidationError[] = [];
+
+  // Check request is an object
+  if (!request || typeof request !== 'object') {
+    errors.push({
+      code: 'INVALID_REQUEST',
+      message: 'Request must be an object',
+      path: '',
+      expected: 'object',
+      actual: typeof request
+    });
+    return { valid: false, errors, warnings };
+  }
+
+  const req = request as Record<string, unknown>;
+
+  // Check agents array
+  if (!req.agents) {
+    errors.push({
+      code: 'MISSING_AGENTS',
+      message: 'Agents array is required',
+      path: 'agents'
+    });
+  } else if (!Array.isArray(req.agents)) {
+    errors.push({
+      code: 'INVALID_AGENTS',
+      message: 'Agents must be an array',
+      path: 'agents',
+      expected: 'array',
+      actual: typeof req.agents
+    });
+  } else if (req.agents.length === 0) {
+    warnings.push({
+      code: 'EMPTY_AGENTS',
+      message: 'Agents array is empty',
+      path: 'agents'
+    });
+  } else {
+    // Validate each agent in the array
+    for (let i = 0; i < req.agents.length; i++) {
+      const agent = req.agents[i];
+      if (!agent || typeof agent !== 'object') {
+        errors.push({
+          code: 'INVALID_AGENT_ITEM',
+          message: `Agent at index ${i} must be an object`,
+          path: `agents[${i}]`,
+          expected: 'object',
+          actual: typeof agent
+        });
+        continue;
+      }
+
+      const agentObj = agent as Record<string, unknown>;
+      if (!agentObj.framework) {
+        errors.push({
+          code: 'MISSING_AGENT_FRAMEWORK',
+          message: `Agent at index ${i} is missing framework`,
+          path: `agents[${i}].framework`
+        });
+      }
+      if (agentObj.data === undefined || agentObj.data === null) {
+        errors.push({
+          code: 'MISSING_AGENT_DATA',
+          message: `Agent at index ${i} is missing data`,
+          path: `agents[${i}].data`
+        });
+      }
+    }
+  }
+
+  // Check targetFramework
+  if (!req.targetFramework) {
+    errors.push({
+      code: 'MISSING_TARGET',
+      message: 'Target framework is required',
+      path: 'targetFramework'
+    });
+  } else if (typeof req.targetFramework !== 'string') {
+    errors.push({
+      code: 'INVALID_TARGET',
+      message: 'Target framework must be a string',
+      path: 'targetFramework',
+      expected: 'string',
+      actual: typeof req.targetFramework
+    });
+  }
+
+  // Validate optional boolean fields
+  const booleanFields = ['continueOnError', 'parallel', 'persist'];
+  for (const field of booleanFields) {
+    if (req[field] !== undefined && typeof req[field] !== 'boolean') {
+      warnings.push({
+        code: 'INVALID_OPTION',
+        message: `${field} should be a boolean`,
+        path: field,
+        expected: 'boolean',
+        actual: typeof req[field]
+      });
+    }
+  }
+
+  return { valid: errors.length === 0, errors, warnings };
+}
+
+/**
+ * Check if a framework string is a valid AgentFramework
+ */
+function isValidFramework(framework: string): framework is AgentFramework {
+  const validFrameworks: AgentFramework[] = [
+    'usa', 'lmos', 'mcp', 'langchain', 'openai', 'autogpt', 'semantic-kernel'
+  ];
+  return validFrameworks.includes(framework as AgentFramework);
+}
+
 // ============================================================================
 // Bridge Orchestrator Implementation
 // ============================================================================
@@ -269,6 +534,26 @@ export class BridgeOrchestrator extends EventEmitter {
   async translate(request: TranslationRequest): Promise<TranslationResult> {
     const startTime = Date.now();
     this.lastActivity = new Date();
+
+    // P2: Input validation guard - validate request structure before processing
+    const requestValidation = validateTranslationRequest(request);
+    if (!requestValidation.valid) {
+      const errors = requestValidation.errors.map(e => `${e.code}: ${e.message} (${e.path})`);
+      this.emit('validationError', { type: 'translationRequest', errors: requestValidation.errors });
+      return {
+        success: false,
+        fidelityScore: 0,
+        sourceFramework: 'usa' as AgentFramework, // Default for error case
+        targetFramework: (request as { targetFramework?: string }).targetFramework as AgentFramework || 'usa' as AgentFramework,
+        durationMs: Date.now() - startTime,
+        errors
+      };
+    }
+
+    // Emit warnings if any (non-blocking)
+    if (requestValidation.warnings.length > 0) {
+      this.emit('validationWarning', { type: 'translationRequest', warnings: requestValidation.warnings });
+    }
 
     const { agent, targetFramework, persist, useCache, validate } = request;
     const sourceFramework = agent.framework;
@@ -439,6 +724,33 @@ export class BridgeOrchestrator extends EventEmitter {
    */
   async batchTranslate(request: BatchTranslationRequest): Promise<BatchTranslationResult> {
     const startTime = Date.now();
+
+    // P2: Input validation guard - validate batch request structure before processing
+    const requestValidation = validateBatchTranslationRequest(request);
+    if (!requestValidation.valid) {
+      const errors = requestValidation.errors.map(e => `${e.code}: ${e.message} (${e.path})`);
+      this.emit('validationError', { type: 'batchTranslationRequest', errors: requestValidation.errors });
+      return {
+        total: 0,
+        succeeded: 0,
+        failed: 0,
+        results: [{
+          success: false,
+          fidelityScore: 0,
+          sourceFramework: 'usa' as AgentFramework,
+          targetFramework: (request as { targetFramework?: string }).targetFramework as AgentFramework || 'usa' as AgentFramework,
+          durationMs: Date.now() - startTime,
+          errors
+        }],
+        durationMs: Date.now() - startTime
+      };
+    }
+
+    // Emit warnings if any (non-blocking)
+    if (requestValidation.warnings.length > 0) {
+      this.emit('validationWarning', { type: 'batchTranslationRequest', warnings: requestValidation.warnings });
+    }
+
     const results: TranslationResult[] = [];
     let succeeded = 0;
     let failed = 0;
