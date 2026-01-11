@@ -7,7 +7,7 @@
  * @module ui/components/JSONCanvas/strategies/BuiltInStrategies
  */
 
-import React, { type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { WidgetRenderStrategy } from './WidgetRenderStrategy';

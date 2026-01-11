@@ -11,6 +11,8 @@ import { ChatPane } from './components/ChatPane/ChatPane';
 import { JSONCanvas } from './components/JSONCanvas/JSONCanvas';
 import { WalletModal } from './components/Wallet';
 import { WalletProvider } from './contexts/WalletContext';
+import { VoyeurProvider } from './contexts/VoyeurContext';
+import { VoyeurPane } from './components/VoyeurPane';
 import { useTerminal } from './hooks/useTerminal';
 import { Badge, Button } from './components/design-system';
 import './App.css';
@@ -35,9 +37,11 @@ interface HeaderProps {
   synced: boolean;
   sessionName?: string;
   participantCount: number;
+  onToggleVoyeur?: () => void;
+  voyeurOpen?: boolean;
 }
 
-function Header({ connected, synced, sessionName, participantCount }: HeaderProps) {
+function Header({ connected, synced, sessionName, participantCount, onToggleVoyeur, voyeurOpen }: HeaderProps) {
   return (
     <div className="app-header">
       <div className="app-logo">
@@ -69,6 +73,17 @@ function Header({ connected, synced, sessionName, participantCount }: HeaderProp
       </div>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+        {onToggleVoyeur && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={onToggleVoyeur}
+            title="Toggle Observability Stream"
+          >
+            <span style={{ fontSize: '0.875rem' }}>👁️</span>
+            {voyeurOpen ? 'Hide' : 'Show'} Voyeur
+          </Button>
+        )}
         <Button variant="ghost" size="sm">
           <span style={{ fontSize: '0.875rem' }}>📁</span>
           Project
@@ -117,8 +132,17 @@ function Footer({ leftMessageCount, rightMessageCount, widgetCount }: FooterProp
 export function App({ terminalId, serverUrl }: AppProps) {
   return (
     <WalletProvider>
-      <AppContent terminalId={terminalId} serverUrl={serverUrl} />
-      <WalletModal />
+      <VoyeurProvider
+        options={{
+          serverUrl: 'http://localhost:8787',
+          streamPath: '/voyeur-stream',
+          maxBufferSize: 500
+        }}
+        autoConnect={false}
+      >
+        <AppContent terminalId={terminalId} serverUrl={serverUrl} />
+        <WalletModal />
+      </VoyeurProvider>
     </WalletProvider>
   );
 }
@@ -133,6 +157,7 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
 
   // Local UI state
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [voyeurOpen, setVoyeurOpen] = useState(false);
 
   // Handlers
   const handleHumanSendMessage = useCallback((content: string) => {
@@ -171,6 +196,8 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
                 synced={terminal.synced}
                 sessionName={terminal.session?.name || 'New Session'}
                 participantCount={participantCount}
+                onToggleVoyeur={() => setVoyeurOpen(!voyeurOpen)}
+                voyeurOpen={voyeurOpen}
               />
             }
       leftPane={
@@ -215,6 +242,42 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
           />
         </div>
       </div>
+      
+      {/* Voyeur Modal Overlay */}
+      {voyeurOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(4px)'
+          }}
+          onClick={() => setVoyeurOpen(false)}
+        >
+          <div
+            style={{
+              width: '90%',
+              height: '80%',
+              maxWidth: '1200px',
+              background: 'var(--bg-primary, #1a1a2e)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+              border: '1px solid var(--border-color, #2d2d44)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <VoyeurPane />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

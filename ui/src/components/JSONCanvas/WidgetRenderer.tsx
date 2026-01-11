@@ -8,7 +8,6 @@
  * @see ui/src/components/JSONCanvas/strategies/WidgetRenderStrategy.tsx
  */
 
-import React from 'react';
 import type { WidgetNode } from '@terminal/protocols/types';
 import { defaultWidgetRegistry, type WidgetStrategyRegistry } from './strategies';
 import styles from './WidgetRenderer.module.css';

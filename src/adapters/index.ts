@@ -292,6 +292,73 @@ export {
 } from './unified-adapter';
 
 // ============================================================================
+// Unified Adapters (Phase 15.2 - Protocol-Specific Implementations)
+// ============================================================================
+
+// Base unified adapter (abstract foundation)
+export {
+  BaseUnifiedAdapter,
+  BaseAdapterConfig,
+  OperationMetrics
+} from './base-unified-adapter';
+
+// MCP Unified Adapter
+export {
+  MCPUnifiedAdapter,
+  MCPAdapterConfig,
+  MCPTool,
+  MCPToolCall,
+  MCPToolResult,
+  MCPContent,
+  MCPResource,
+  MCPPrompt,
+  MCPPromptArgument,
+  MCPCapabilities,
+  createMCPAdapter,
+  default as mcpUnifiedAdapter
+} from './mcp-unified-adapter';
+
+// A2A Unified Adapter
+export {
+  A2AUnifiedAdapter,
+  A2AAdapterConfig,
+  A2AAgentCard,
+  A2ASkill,
+  A2ATask,
+  A2ATaskState,
+  A2ATaskStatus,
+  A2AMessage,
+  A2APart,
+  A2AArtifact,
+  A2ASendTaskRequest,
+  A2AContentMode,
+  A2AAuthScheme,
+  createA2AAdapter,
+  default as a2aUnifiedAdapter
+} from './a2a-unified-adapter';
+
+// ANP Unified Adapter
+export {
+  ANPUnifiedAdapter,
+  ANPAdapterConfig,
+  ANPAgentIdentity,
+  ANPEndpoint,
+  ANPCapability,
+  ANPMessage,
+  ANPMessageType,
+  ANPPayload,
+  ANPTaskPayload,
+  ANPTaskStatus,
+  ANPContent,
+  ANPCollaborationPayload,
+  ANPErrorPayload,
+  ANPTrustRecord,
+  ANPFeedback,
+  createANPAdapter,
+  default as anpUnifiedAdapter
+} from './anp-unified-adapter';
+
+// ============================================================================
 // Legacy Adapters (Existing Implementations)
 // ============================================================================
 

@@ -26,18 +26,6 @@ import type {
 import type { CanvasNodeVisitor } from '../components/JSONCanvas/visitors/CanvasNodeVisitor';
 
 /**
- * Visitor method mapping from node type to visitor method name.
- * This enables type-safe dispatch without requiring runtime type checking.
- */
-const VISITOR_METHOD_MAP: Record<CanvasNode['type'], keyof CanvasNodeVisitor<unknown>> = {
-  'text': 'visitTextNode',
-  'file': 'visitFileNode',
-  'link': 'visitLinkNode',
-  'group': 'visitGroupNode',
-  'widget': 'visitWidgetNode'
-};
-
-/**
  * Wrapper class that adds Visitor pattern support to canvas nodes.
  * 
  * Usage:
@@ -73,8 +61,6 @@ export class CanvasNodeWrapper<T extends CanvasNode> {
    * ```
    */
   accept<R>(visitor: CanvasNodeVisitor<R>): R {
-    const methodName = VISITOR_METHOD_MAP[this.node.type];
-    
     // Dispatch to appropriate visitor method based on node type
     switch (this.node.type) {
       case 'text':

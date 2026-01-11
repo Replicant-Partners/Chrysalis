@@ -27,8 +27,7 @@ import styles from '../JSONCanvas.module.css';
  */
 export class RenderVisitor implements CanvasNodeVisitor<React.ReactElement> {
   constructor(
-    private readonly isSelected: boolean = false,
-    private readonly zoom: number = 1
+    private readonly isSelected: boolean = false
   ) {}
   
   /**

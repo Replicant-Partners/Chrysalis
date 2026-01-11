@@ -142,7 +142,7 @@ function ConnectionStatus({
 
   return (
     <div className={styles.connectionStatus}>
-      <Badge variant={statusColor as any}>{statusLabel}</Badge>
+      <Badge variant={statusColor}>{statusLabel}</Badge>
       
       <div className={styles.connectionButtons}>
         {!isConnected && state !== 'connecting' && (
@@ -165,7 +165,12 @@ function ConnectionStatus({
 // Main Component
 // ============================================================================
 
-export function VoyeurPane() {
+export interface VoyeurPaneProps {
+  /** Optional callback when close is requested */
+  onClose?: () => void;
+}
+
+export function VoyeurPane({ onClose }: VoyeurPaneProps = {}) {
   const voyeur = useVoyeurEvents();
   const [expandedEventIds, setExpandedEventIds] = useState<Set<string>>(new Set());
   const [searchText, setSearchText] = useState('');
@@ -218,11 +223,11 @@ export function VoyeurPane() {
   ).sort();
 
   return (
-    <div className={styles.voyeurPane}>
+    <div className={styles.voyeurPane} role="region" aria-label="Observability Events">
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.title}>
-          <span className={styles.titleIcon}>👁️</span>
+          <span className={styles.titleIcon} aria-hidden="true">👁️</span>
           <h3>Voyeur Stream</h3>
         </div>
         
@@ -244,6 +249,7 @@ export function VoyeurPane() {
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             className={styles.searchInput}
+            aria-label="Search events"
           />
           
           <Button 

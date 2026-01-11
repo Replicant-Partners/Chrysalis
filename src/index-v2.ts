@@ -20,6 +20,20 @@ export type {
   Concept
 } from './core/UniformSemanticAgentV2';
 
+// Agent Builder (Fluent API)
+export {
+  AgentBuilder,
+  createAgentBuilder,
+  quickAgent,
+  AgentBuilderError,
+  type IdentityConfig,
+  type PersonalityConfig,
+  type CommunicationConfig,
+  type MemoryConfig,
+  type ExecutionConfig,
+  type SyncConfig,
+} from './core/AgentBuilder';
+
 // Core v1 (for backward compatibility)
 export type { UniformSemanticAgent, Belief as BeliefV1 } from './core/UniformSemanticAgent';
 export * from './core/FrameworkAdapter';

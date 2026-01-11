@@ -24,7 +24,6 @@ import React, {
   useMemo 
 } from 'react';
 import { 
-  TerminalService, 
   createTerminalService,
   type ITerminalService,
   type TerminalServiceConfig,

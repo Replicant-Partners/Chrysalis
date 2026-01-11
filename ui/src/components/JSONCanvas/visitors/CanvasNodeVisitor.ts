@@ -176,23 +176,23 @@ export function isVisitable(node: unknown): node is CanvasNode & { accept<T>(vis
  * ```
  */
 export abstract class AbstractCanvasNodeVisitor<T> implements CanvasNodeVisitor<T> {
-  visitTextNode(node: TextNode): T {
+  visitTextNode(_node: TextNode): T {
     throw new Error(`visitTextNode not implemented in ${this.constructor.name}`);
   }
   
-  visitFileNode(node: FileNode): T {
+  visitFileNode(_node: FileNode): T {
     throw new Error(`visitFileNode not implemented in ${this.constructor.name}`);
   }
   
-  visitLinkNode(node: LinkNode): T {
+  visitLinkNode(_node: LinkNode): T {
     throw new Error(`visitLinkNode not implemented in ${this.constructor.name}`);
   }
   
-  visitGroupNode(node: GroupNode): T {
+  visitGroupNode(_node: GroupNode): T {
     throw new Error(`visitGroupNode not implemented in ${this.constructor.name}`);
   }
   
-  visitWidgetNode(node: WidgetNode): T {
+  visitWidgetNode(_node: WidgetNode): T {
     throw new Error(`visitWidgetNode not implemented in ${this.constructor.name}`);
   }
 }

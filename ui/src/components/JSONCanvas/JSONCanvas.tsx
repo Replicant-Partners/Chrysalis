@@ -13,10 +13,8 @@ import React, { useRef, useState, useCallback, useMemo } from 'react';
 import clsx from 'clsx';
 import type { 
   CanvasNode, 
-  CanvasEdge, 
-  WidgetNode 
+  CanvasEdge
 } from '@terminal/protocols/types';
-import { WidgetRenderer } from './WidgetRenderer';
 import { wrapNode } from '../../utils/CanvasNodeWrapper';
 import { RenderVisitor } from './visitors/RenderVisitor';
 import styles from './JSONCanvas.module.css';
@@ -111,7 +109,7 @@ function CanvasNodeComponent({
 
   // Render using Visitor pattern
   const renderContent = () => {
-    const visitor = new RenderVisitor(isSelected, zoom);
+    const visitor = new RenderVisitor(isSelected);
     const wrapped = wrapNode(node);
     return wrapped.accept(visitor);
   };
