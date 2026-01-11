@@ -91,10 +91,11 @@ export function assertDefined<T>(
   context?: ErrorContext
 ): asserts value is T {
   if (value === null || value === undefined) {
-    throw new ValidationError(`${name} is required but was ${value}`, {
-      ...context,
-      field: name,
-    });
+    throw new ValidationError(
+      `${name} is required but was ${value}`,
+      [{ path: name, code: 'required', message: `${name} is required` }],
+      { ...context, metadata: { ...context?.metadata, field: name } }
+    );
   }
 }
 
@@ -107,12 +108,11 @@ export function assertNonEmptyString(
   context?: ErrorContext
 ): asserts value is string {
   if (typeof value !== 'string' || value.length === 0) {
-    throw new ValidationError(`${name} must be a non-empty string`, {
-      ...context,
-      field: name,
-      actualType: typeof value,
-      actualValue: value,
-    });
+    throw new ValidationError(
+      `${name} must be a non-empty string`,
+      [{ path: name, code: 'type', message: `${name} must be a non-empty string`, expected: 'string', actual: typeof value }],
+      { ...context, metadata: { ...context?.metadata, field: name, actualType: typeof value, actualValue: value } }
+    );
   }
 }
 
@@ -125,11 +125,11 @@ export function assertNumber(
   context?: ErrorContext
 ): asserts value is number {
   if (typeof value !== 'number' || Number.isNaN(value)) {
-    throw new ValidationError(`${name} must be a valid number`, {
-      ...context,
-      field: name,
-      actualType: typeof value,
-    });
+    throw new ValidationError(
+      `${name} must be a valid number`,
+      [{ path: name, code: 'type', message: `${name} must be a valid number`, expected: 'number', actual: typeof value }],
+      { ...context, metadata: { ...context?.metadata, field: name, actualType: typeof value } }
+    );
   }
 }
 
@@ -145,13 +145,11 @@ export function assertInRange(
 ): asserts value is number {
   assertNumber(value, name, context);
   if (value < min || value > max) {
-    throw new ValidationError(`${name} must be between ${min} and ${max}`, {
-      ...context,
-      field: name,
-      actualValue: value,
-      min,
-      max,
-    });
+    throw new ValidationError(
+      `${name} must be between ${min} and ${max}`,
+      [{ path: name, code: 'range', message: `${name} must be between ${min} and ${max}` }],
+      { ...context, metadata: { ...context?.metadata, field: name, actualValue: value, min, max } }
+    );
   }
 }
 
@@ -164,11 +162,11 @@ export function assertBoolean(
   context?: ErrorContext
 ): asserts value is boolean {
   if (typeof value !== 'boolean') {
-    throw new ValidationError(`${name} must be a boolean`, {
-      ...context,
-      field: name,
-      actualType: typeof value,
-    });
+    throw new ValidationError(
+      `${name} must be a boolean`,
+      [{ path: name, code: 'type', message: `${name} must be a boolean`, expected: 'boolean', actual: typeof value }],
+      { ...context, metadata: { ...context?.metadata, field: name, actualType: typeof value } }
+    );
   }
 }
 
@@ -181,11 +179,11 @@ export function assertArray<T>(
   context?: ErrorContext
 ): asserts value is T[] {
   if (!Array.isArray(value)) {
-    throw new ValidationError(`${name} must be an array`, {
-      ...context,
-      field: name,
-      actualType: typeof value,
-    });
+    throw new ValidationError(
+      `${name} must be an array`,
+      [{ path: name, code: 'type', message: `${name} must be an array`, expected: 'array', actual: typeof value }],
+      { ...context, metadata: { ...context?.metadata, field: name, actualType: typeof value } }
+    );
   }
 }
 
@@ -199,10 +197,11 @@ export function assertNonEmptyArray<T>(
 ): asserts value is T[] {
   assertArray(value, name, context);
   if (value.length === 0) {
-    throw new ValidationError(`${name} must be a non-empty array`, {
-      ...context,
-      field: name,
-    });
+    throw new ValidationError(
+      `${name} must be a non-empty array`,
+      [{ path: name, code: 'empty', message: `${name} must be a non-empty array` }],
+      { ...context, metadata: { ...context?.metadata, field: name } }
+    );
   }
 }
 
@@ -215,11 +214,12 @@ export function assertObject(
   context?: ErrorContext
 ): asserts value is Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw new ValidationError(`${name} must be an object`, {
-      ...context,
-      field: name,
-      actualType: Array.isArray(value) ? 'array' : typeof value,
-    });
+    const actualType = Array.isArray(value) ? 'array' : typeof value;
+    throw new ValidationError(
+      `${name} must be an object`,
+      [{ path: name, code: 'type', message: `${name} must be an object`, expected: 'object', actual: actualType }],
+      { ...context, metadata: { ...context?.metadata, field: name, actualType } }
+    );
   }
 }
 
@@ -234,12 +234,11 @@ export function assertType<T>(
   context?: ErrorContext
 ): asserts value is T {
   if (!guard(value)) {
-    throw new ValidationError(`${name} must be of type ${expectedType}`, {
-      ...context,
-      field: name,
-      expectedType,
-      actualType: typeof value,
-    });
+    throw new ValidationError(
+      `${name} must be of type ${expectedType}`,
+      [{ path: name, code: 'type', message: `${name} must be of type ${expectedType}`, expected: expectedType, actual: typeof value }],
+      { ...context, metadata: { ...context?.metadata, field: name, expectedType, actualType: typeof value } }
+    );
   }
 }
 
@@ -282,17 +281,21 @@ export function getOrThrow<T>(
   
   for (const key of keys) {
     if (current === null || current === undefined) {
-      throw new ValidationError(`Property ${name ?? pathStr} not found at '${key}'`, {
-        field: pathStr,
-      });
+      throw new ValidationError(
+        `Property ${name ?? pathStr} not found at '${key}'`,
+        [{ path: pathStr, code: 'not_found', message: `Property not found at '${key}'` }],
+        { metadata: { field: pathStr } }
+      );
     }
     current = (current as Record<string, unknown>)[key];
   }
   
   if (current === undefined) {
-    throw new ValidationError(`Property ${name ?? pathStr} is undefined`, {
-      field: pathStr,
-    });
+    throw new ValidationError(
+      `Property ${name ?? pathStr} is undefined`,
+      [{ path: pathStr, code: 'undefined', message: `Property ${name ?? pathStr} is undefined` }],
+      { metadata: { field: pathStr } }
+    );
   }
   
   return current as T;
@@ -379,22 +382,6 @@ export function invariant(
     const errorMessage = typeof message === 'function' ? message() : message;
     throw new Error(`Invariant violation: ${errorMessage}`);
   }
-}
-
-/**
- * Assert that code path is unreachable
- */
-export function unreachable(value: never, message?: string): never {
-  throw new Error(
-    message ?? `Unreachable code reached with value: ${JSON.stringify(value)}`
-  );
-}
-
-/**
- * Assert that a switch case is exhaustive
- */
-export function exhaustiveCheck(value: never): never {
-  throw new Error(`Exhaustive check failed: ${JSON.stringify(value)}`);
 }
 
 // ============================================================================

@@ -140,11 +140,17 @@ export class DisposableStack implements AsyncDisposable, Disposable {
     
     this.disposables.push({
       dispose: () => {
-        if (Symbol.asyncDispose in disposable && disposable[Symbol.asyncDispose]) {
-          return disposable[Symbol.asyncDispose]();
+        if (Symbol.asyncDispose in disposable) {
+          const asyncDispose = disposable[Symbol.asyncDispose];
+          if (asyncDispose) {
+            return asyncDispose.call(disposable);
+          }
         }
-        if (Symbol.dispose in disposable && disposable[Symbol.dispose]) {
-          return disposable[Symbol.dispose]();
+        if (Symbol.dispose in disposable) {
+          const syncDispose = disposable[Symbol.dispose];
+          if (syncDispose) {
+            syncDispose.call(disposable);
+          }
         }
       },
     });
@@ -696,75 +702,3 @@ export async function usingAll<T extends AsyncDisposable[], R>(
   }
 }
 
-// ============================================================================
-// Lazy Initialization
-// ============================================================================
-
-/**
- * Lazy initialization wrapper with disposal
- */
-export class LazyDisposable<T extends AsyncDisposable> implements AsyncDisposable {
-  private instance?: T;
-  private initializing?: Promise<T>;
-  private disposed = false;
-  private readonly factory: () => T | Promise<T>;
-
-  constructor(factory: () => T | Promise<T>) {
-    this.factory = factory;
-  }
-
-  /**
-   * Get or create the instance
-   */
-  async get(): Promise<T> {
-    if (this.disposed) {
-      throw new DisposedError('LazyDisposable');
-    }
-    
-    if (this.instance) {
-      return this.instance;
-    }
-    
-    if (this.initializing) {
-      return this.initializing;
-    }
-    
-    this.initializing = Promise.resolve(this.factory()).then(instance => {
-      this.instance = instance;
-      this.initializing = undefined;
-      return instance;
-    });
-    
-    return this.initializing;
-  }
-
-  /**
-   * Check if initialized
-   */
-  get isInitialized(): boolean {
-    return this.instance !== undefined;
-  }
-
-  async [Symbol.asyncDispose](): Promise<void> {
-    if (this.disposed) return;
-    this.disposed = true;
-    
-    if (this.initializing) {
-      await this.initializing;
-    }
-    
-    if (this.instance) {
-      await this.instance[Symbol.asyncDispose]();
-      this.instance = undefined;
-    }
-  }
-}
-
-/**
- * Create a lazy disposable
- */
-export function lazyDisposable<T extends AsyncDisposable>(
-  factory: () => T | Promise<T>
-): LazyDisposable<T> {
-  return new LazyDisposable(factory);
-}

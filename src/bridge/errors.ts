@@ -276,36 +276,29 @@ export class ValidationError extends BridgeError {
    * @param schema - The schema that failed validation
    * @param errors - Validation error details
    * @param context - Error context
-   * @returns ValidationError with SCHEMA_INVALID code
+   * @returns SchemaValidationError with SCHEMA_INVALID code
    */
   static schema(
     schema: string,
     errors: ValidationErrorDetail[] = [],
     context: ErrorContext = {}
-  ): ValidationError {
-    const error = new ValidationError(
+  ): SchemaValidationError {
+    return new SchemaValidationError(
       `Schema validation failed: ${schema}`,
+      schema,
       errors,
       { ...context, metadata: { ...context.metadata, schema } }
     );
-    (error as { code: ErrorCodeType }).code = ErrorCode.SCHEMA_INVALID;
-    return error;
   }
 
   /**
    * Factory: Create required field error
    * @param fieldPath - The path to the missing required field
    * @param context - Error context
-   * @returns ValidationError with REQUIRED_FIELD_MISSING code
+   * @returns RequiredFieldError with REQUIRED_FIELD_MISSING code
    */
-  static requiredField(fieldPath: string, context: ErrorContext = {}): ValidationError {
-    const error = new ValidationError(
-      `Required field missing: ${fieldPath}`,
-      [{ path: fieldPath, code: 'required', message: `${fieldPath} is required` }],
-      { ...context, metadata: { ...context.metadata, fieldPath } }
-    );
-    (error as { code: ErrorCodeType }).code = ErrorCode.REQUIRED_FIELD_MISSING;
-    return error;
+  static requiredField(fieldPath: string, context: ErrorContext = {}): RequiredFieldError {
+    return new RequiredFieldError(fieldPath, { ...context, metadata: { ...context.metadata, fieldPath } });
   }
 
   /**
@@ -314,27 +307,20 @@ export class ValidationError extends BridgeError {
    * @param expectedType - The expected type
    * @param actualType - The actual type received
    * @param context - Error context
-   * @returns ValidationError with TYPE_MISMATCH code
+   * @returns TypeMismatchError with TYPE_MISMATCH code
    */
   static typeMismatch(
     fieldPath: string,
     expectedType: string,
     actualType: string,
     context: ErrorContext = {}
-  ): ValidationError {
-    const error = new ValidationError(
-      `Type mismatch at ${fieldPath}: expected ${expectedType}, got ${actualType}`,
-      [{
-        path: fieldPath,
-        code: 'type',
-        message: `Expected ${expectedType}, got ${actualType}`,
-        expected: expectedType,
-        actual: actualType,
-      }],
+  ): TypeMismatchError {
+    return new TypeMismatchError(
+      fieldPath,
+      expectedType,
+      actualType,
       { ...context, metadata: { ...context.metadata, fieldPath, expectedType, actualType } }
     );
-    (error as { code: ErrorCodeType }).code = ErrorCode.TYPE_MISMATCH;
-    return error;
   }
 }
 
@@ -350,8 +336,9 @@ export interface ValidationErrorDetail {
  * Error for schema validation failures
  * @deprecated Use ValidationError.schema() factory method instead
  */
-export class SchemaValidationError extends ValidationError {
+export class SchemaValidationError extends BridgeError {
   readonly schema: string;
+  readonly validationErrors: ValidationErrorDetail[];
 
   constructor(
     message: string,
@@ -359,9 +346,9 @@ export class SchemaValidationError extends ValidationError {
     errors: ValidationErrorDetail[] = [],
     context: ErrorContext = {}
   ) {
-    super(message, errors, { ...context, metadata: { ...context.metadata, schema } });
-    this.code = ErrorCode.SCHEMA_INVALID as ErrorCodeType;
+    super(ErrorCode.SCHEMA_INVALID, message, { ...context, metadata: { ...context.metadata, schema } });
     this.schema = schema;
+    this.validationErrors = errors;
   }
 }
 
@@ -369,17 +356,18 @@ export class SchemaValidationError extends ValidationError {
  * Error for missing required fields
  * @deprecated Use ValidationError.requiredField() factory method instead
  */
-export class RequiredFieldError extends ValidationError {
+export class RequiredFieldError extends BridgeError {
   readonly fieldPath: string;
+  readonly validationErrors: ValidationErrorDetail[];
 
   constructor(fieldPath: string, context: ErrorContext = {}) {
     super(
+      ErrorCode.REQUIRED_FIELD_MISSING,
       `Required field missing: ${fieldPath}`,
-      [{ path: fieldPath, code: 'required', message: `${fieldPath} is required` }],
       context
     );
-    this.code = ErrorCode.REQUIRED_FIELD_MISSING as ErrorCodeType;
     this.fieldPath = fieldPath;
+    this.validationErrors = [{ path: fieldPath, code: 'required', message: `${fieldPath} is required` }];
   }
 }
 
@@ -387,10 +375,11 @@ export class RequiredFieldError extends ValidationError {
  * Error for type mismatches
  * @deprecated Use ValidationError.typeMismatch() factory method instead
  */
-export class TypeMismatchError extends ValidationError {
+export class TypeMismatchError extends BridgeError {
   readonly fieldPath: string;
   readonly expectedType: string;
   readonly actualType: string;
+  readonly validationErrors: ValidationErrorDetail[];
 
   constructor(
     fieldPath: string,
@@ -399,20 +388,20 @@ export class TypeMismatchError extends ValidationError {
     context: ErrorContext = {}
   ) {
     super(
+      ErrorCode.TYPE_MISMATCH,
       `Type mismatch at ${fieldPath}: expected ${expectedType}, got ${actualType}`,
-      [{
-        path: fieldPath,
-        code: 'type',
-        message: `Expected ${expectedType}, got ${actualType}`,
-        expected: expectedType,
-        actual: actualType,
-      }],
       context
     );
-    this.code = ErrorCode.TYPE_MISMATCH as ErrorCodeType;
     this.fieldPath = fieldPath;
     this.expectedType = expectedType;
     this.actualType = actualType;
+    this.validationErrors = [{
+      path: fieldPath,
+      code: 'type',
+      message: `Expected ${expectedType}, got ${actualType}`,
+      expected: expectedType,
+      actual: actualType,
+    }];
   }
 }
 
@@ -608,18 +597,18 @@ export class StorageError extends BridgeError {
  */
 export class SnapshotNotFoundError extends StorageError {
   readonly agentId: string;
-  readonly timestamp?: Date;
+  readonly snapshotTimestamp?: Date;
 
-  constructor(agentId: string, timestamp?: Date, context: ErrorContext = {}) {
-    const msg = timestamp
-      ? `Snapshot not found for agent ${agentId} at ${timestamp.toISOString()}`
+  constructor(agentId: string, snapshotTimestamp?: Date, context: ErrorContext = {}) {
+    const msg = snapshotTimestamp
+      ? `Snapshot not found for agent ${agentId} at ${snapshotTimestamp.toISOString()}`
       : `No snapshots found for agent ${agentId}`;
     super(ErrorCode.SNAPSHOT_NOT_FOUND, msg, {
       ...context,
-      metadata: { ...context.metadata, agentId, timestamp: timestamp?.toISOString() },
+      metadata: { ...context.metadata, agentId, timestamp: snapshotTimestamp?.toISOString() },
     });
     this.agentId = agentId;
-    this.timestamp = timestamp;
+    this.snapshotTimestamp = snapshotTimestamp;
   }
 }
 

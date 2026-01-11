@@ -513,13 +513,17 @@ export class ContainerBuilder {
     factory: ServiceFactory<T>,
     options?: Partial<Omit<ServiceDescriptor<T>, 'id' | 'factory' | 'lifetime'>>
   ): this {
-    this.descriptors.push({
+    const descriptor: ServiceDescriptor<unknown> & { token: ServiceToken<unknown> } = {
       token: token as ServiceToken<unknown>,
       id: token.id,
       lifetime: 'singleton',
       factory: factory as ServiceFactory<unknown>,
-      ...options,
-    });
+      dependencies: options?.dependencies,
+      isAsync: options?.isAsync,
+      initializer: options?.initializer as ((instance: unknown, container: Container) => void | Promise<void>) | undefined,
+      disposer: options?.disposer as ((instance: unknown) => void | Promise<void>) | undefined,
+    };
+    this.descriptors.push(descriptor);
     return this;
   }
 
@@ -531,13 +535,17 @@ export class ContainerBuilder {
     factory: ServiceFactory<T>,
     options?: Partial<Omit<ServiceDescriptor<T>, 'id' | 'factory' | 'lifetime'>>
   ): this {
-    this.descriptors.push({
+    const descriptor: ServiceDescriptor<unknown> & { token: ServiceToken<unknown> } = {
       token: token as ServiceToken<unknown>,
       id: token.id,
       lifetime: 'transient',
       factory: factory as ServiceFactory<unknown>,
-      ...options,
-    });
+      dependencies: options?.dependencies,
+      isAsync: options?.isAsync,
+      initializer: options?.initializer as ((instance: unknown, container: Container) => void | Promise<void>) | undefined,
+      disposer: options?.disposer as ((instance: unknown) => void | Promise<void>) | undefined,
+    };
+    this.descriptors.push(descriptor);
     return this;
   }
 
@@ -549,13 +557,17 @@ export class ContainerBuilder {
     factory: ServiceFactory<T>,
     options?: Partial<Omit<ServiceDescriptor<T>, 'id' | 'factory' | 'lifetime'>>
   ): this {
-    this.descriptors.push({
+    const descriptor: ServiceDescriptor<unknown> & { token: ServiceToken<unknown> } = {
       token: token as ServiceToken<unknown>,
       id: token.id,
       lifetime: 'scoped',
       factory: factory as ServiceFactory<unknown>,
-      ...options,
-    });
+      dependencies: options?.dependencies,
+      isAsync: options?.isAsync,
+      initializer: options?.initializer as ((instance: unknown, container: Container) => void | Promise<void>) | undefined,
+      disposer: options?.disposer as ((instance: unknown) => void | Promise<void>) | undefined,
+    };
+    this.descriptors.push(descriptor);
     return this;
   }
 
@@ -614,36 +626,6 @@ export function createDefaultContainer(config?: Partial<BridgeConfig>): Containe
   return new ContainerBuilder()
     .addInstance(ServiceTokens.Config, fullConfig)
     .build();
-}
-
-// ============================================================================
-// Decorators (for class-based DI)
-// ============================================================================
-
-/**
- * Metadata key for injectable services
- */
-const INJECTABLE_METADATA = Symbol('injectable');
-const INJECT_METADATA = Symbol('inject');
-
-/**
- * Mark a class as injectable
- */
-export function Injectable(options?: { lifetime?: ServiceLifetime }): ClassDecorator {
-  return (target) => {
-    Reflect.defineMetadata(INJECTABLE_METADATA, options ?? {}, target);
-  };
-}
-
-/**
- * Mark a constructor parameter for injection
- */
-export function Inject<T>(token: ServiceToken<T>): ParameterDecorator {
-  return (target, propertyKey, parameterIndex) => {
-    const existing = Reflect.getMetadata(INJECT_METADATA, target) ?? [];
-    existing[parameterIndex] = token;
-    Reflect.defineMetadata(INJECT_METADATA, existing, target);
-  };
 }
 
 // ============================================================================

@@ -427,355 +427,6 @@ export class BridgeEventBus extends EventEmitter {
   }
 }
 
-// ============================================================================
-// Persistence Service
-// ============================================================================
-
-/**
- * Stored agent record
- */
-export interface StoredAgent {
-  uri: string;
-  agentId: string;
-  name: string;
-  framework: AgentFramework;
-  versionId: string;
-  graphUri: string;
-  fidelityScore: number;
-  createdAt: string;
-  updatedAt: string;
-  metadata?: Record<string, unknown>;
-}
-
-/**
- * Agent query options
- */
-export interface AgentQuery {
-  framework?: AgentFramework;
-  name?: string;
-  minFidelity?: number;
-  limit?: number;
-  offset?: number;
-}
-
-/**
- * Agent version record
- */
-export interface AgentVersion {
-  versionId: string;
-  agentUri: string;
-  graphUri: string;
-  validFrom: string;
-  validTo?: string;
-  fidelityScore: number;
-  changeType: 'create' | 'update' | 'translation';
-  changeMetadata?: Record<string, unknown>;
-}
-
-/**
- * Translation record for persistence
- */
-export interface TranslationRecord {
-  id: string;
-  sourceFramework: AgentFramework;
-  targetFramework: AgentFramework;
-  fidelityScore: number;
-  timestamp: string;
-  canonicalUri: string;
-  sourceUri: string;
-  targetUri: string;
-  warnings: string[];
-  durationMs: number;
-}
-
-/**
- * Bridge Persistence Service
- * 
- * Stores and retrieves canonical agents and translation history.
- * Maintains version history for temporal queries.
- */
-export class BridgePersistenceService {
-  private readonly agents = new Map<string, StoredAgent>();
-  private readonly versions = new Map<string, AgentVersion[]>();
-  private readonly translations = new Map<string, TranslationRecord>();
-  private versionCounter = 0;
-  private translationCounter = 0;
-
-  constructor(
-    private readonly orchestrator: BridgeOrchestrator,
-    private readonly eventBus?: BridgeEventBus
-  ) {}
-
-  /**
-   * Generate version ID
-   */
-  private generateVersionId(): string {
-    return `v_${Date.now()}_${++this.versionCounter}`;
-  }
-
-  /**
-   * Generate translation ID
-   */
-  private generateTranslationId(): string {
-    return `trans_${Date.now()}_${++this.translationCounter}`;
-  }
-
-  /**
-   * Store a canonical agent
-   */
-  storeAgent(
-    canonicalUri: string,
-    agent: { id: string; name: string },
-    options?: {
-      framework?: AgentFramework;
-      fidelityScore?: number;
-      metadata?: Record<string, unknown>;
-    }
-  ): StoredAgent {
-    const now = new Date().toISOString();
-    const versionId = this.generateVersionId();
-    const graphUri = `urn:chrysalis:graph:${agent.id}:${versionId}`;
-    
-    const existing = this.agents.get(canonicalUri);
-    
-    const storedAgent: StoredAgent = {
-      uri: canonicalUri,
-      agentId: agent.id,
-      name: agent.name,
-      framework: options?.framework ?? 'usa',
-      versionId,
-      graphUri,
-      fidelityScore: options?.fidelityScore ?? 1.0,
-      createdAt: existing?.createdAt ?? now,
-      updatedAt: now,
-      metadata: options?.metadata,
-    };
-
-    // Store agent
-    this.agents.set(canonicalUri, storedAgent);
-
-    // Store version record
-    const agentVersions = this.versions.get(canonicalUri) ?? [];
-    
-    // Close previous version
-    if (agentVersions.length > 0) {
-      const lastVersion = agentVersions[agentVersions.length - 1];
-      lastVersion.validTo = now;
-    }
-
-    // Add new version
-    const version: AgentVersion = {
-      versionId,
-      agentUri: canonicalUri,
-      graphUri,
-      validFrom: now,
-      fidelityScore: storedAgent.fidelityScore,
-      changeType: existing ? 'update' : 'create',
-      changeMetadata: options?.metadata,
-    };
-    agentVersions.push(version);
-    this.versions.set(canonicalUri, agentVersions);
-
-    // Emit event
-    if (this.eventBus) {
-      this.eventBus.publish<AgentStoredPayload>(
-        'AgentStored',
-        'agent',
-        {
-          timestamp: now,
-          agentUri: canonicalUri,
-          agentId: agent.id,
-          versionId,
-          graphUri,
-        }
-      );
-    }
-
-    return storedAgent;
-  }
-
-  /**
-   * Get agent by URI
-   */
-  getAgent(uri: string): StoredAgent | undefined {
-    return this.agents.get(uri);
-  }
-
-  /**
-   * Get agent at specific point in time
-   */
-  getAgentAtTime(uri: string, timestamp: string): AgentVersion | undefined {
-    const versions = this.versions.get(uri);
-    if (!versions) {
-      return undefined;
-    }
-
-    const targetTime = new Date(timestamp);
-    
-    for (const version of versions) {
-      const validFrom = new Date(version.validFrom);
-      const validTo = version.validTo ? new Date(version.validTo) : new Date();
-      
-      if (targetTime >= validFrom && targetTime <= validTo) {
-        return version;
-      }
-    }
-
-    return undefined;
-  }
-
-  /**
-   * Query agents
-   */
-  queryAgents(query?: AgentQuery): StoredAgent[] {
-    let results = Array.from(this.agents.values());
-
-    if (query?.framework) {
-      results = results.filter(a => a.framework === query.framework);
-    }
-
-    if (query?.name) {
-      const nameLower = query.name.toLowerCase();
-      results = results.filter(a => a.name.toLowerCase().includes(nameLower));
-    }
-
-    if (query?.minFidelity !== undefined) {
-      results = results.filter(a => a.fidelityScore >= query.minFidelity!);
-    }
-
-    // Apply pagination
-    const offset = query?.offset ?? 0;
-    const limit = query?.limit ?? 100;
-    results = results.slice(offset, offset + limit);
-
-    return results;
-  }
-
-  /**
-   * Get agent version history
-   */
-  getVersionHistory(uri: string): AgentVersion[] {
-    return this.versions.get(uri) ?? [];
-  }
-
-  /**
-   * Store translation record from a TranslationResult
-   */
-  storeTranslationResult(result: TranslationResult, sourceUri: string, targetUri: string): TranslationRecord {
-    const record: TranslationRecord = {
-      id: this.generateTranslationId(),
-      sourceFramework: result.sourceFramework,
-      targetFramework: result.targetFramework,
-      fidelityScore: result.fidelityScore,
-      timestamp: new Date().toISOString(),
-      canonicalUri: result.canonical?.uri ?? '',
-      sourceUri,
-      targetUri,
-      warnings: result.warnings ?? [],
-      durationMs: result.durationMs,
-    };
-    
-    this.translations.set(record.id, record);
-    return record;
-  }
-
-  /**
-   * Store translation record directly
-   */
-  storeTranslation(record: TranslationRecord): void {
-    this.translations.set(record.id, record);
-  }
-
-  /**
-   * Get translation by ID
-   */
-  getTranslation(id: string): TranslationRecord | undefined {
-    return this.translations.get(id);
-  }
-
-  /**
-   * Query translations
-   */
-  queryTranslations(options?: {
-    sourceFramework?: AgentFramework;
-    targetFramework?: AgentFramework;
-    minFidelity?: number;
-    limit?: number;
-  }): TranslationRecord[] {
-    let results = Array.from(this.translations.values());
-
-    if (options?.sourceFramework) {
-      results = results.filter(t => t.sourceFramework === options.sourceFramework);
-    }
-
-    if (options?.targetFramework) {
-      results = results.filter(t => t.targetFramework === options.targetFramework);
-    }
-
-    if (options?.minFidelity !== undefined) {
-      results = results.filter(t => t.fidelityScore >= options.minFidelity!);
-    }
-
-    if (options?.limit) {
-      results = results.slice(0, options.limit);
-    }
-
-    return results;
-  }
-
-  /**
-   * Delete agent
-   */
-  deleteAgent(uri: string): boolean {
-    const existed = this.agents.has(uri);
-    this.agents.delete(uri);
-    this.versions.delete(uri);
-    return existed;
-  }
-
-  /**
-   * Get storage statistics
-   */
-  getStats(): {
-    totalAgents: number;
-    totalVersions: number;
-    totalTranslations: number;
-    byFramework: Record<AgentFramework, number>;
-    avgFidelity: number;
-  } {
-    const byFramework: Record<string, number> = {};
-    let totalFidelity = 0;
-    let totalVersions = 0;
-
-    for (const agent of this.agents.values()) {
-      byFramework[agent.framework] = (byFramework[agent.framework] ?? 0) + 1;
-      totalFidelity += agent.fidelityScore;
-    }
-
-    for (const versions of this.versions.values()) {
-      totalVersions += versions.length;
-    }
-
-    return {
-      totalAgents: this.agents.size,
-      totalVersions,
-      totalTranslations: this.translations.size,
-      byFramework: byFramework as Record<AgentFramework, number>,
-      avgFidelity: this.agents.size > 0 ? totalFidelity / this.agents.size : 0,
-    };
-  }
-
-  /**
-   * Clear all data (useful for testing)
-   */
-  clear(): void {
-    this.agents.clear();
-    this.versions.clear();
-    this.translations.clear();
-    this.versionCounter = 0;
-    this.translationCounter = 0;
-  }
-}
 
 // ============================================================================
 // Integrated Bridge Service
@@ -804,12 +455,6 @@ export interface BridgeServiceStats {
     subscriptionCount: number;
     recentEvents: number;
   };
-  persistence: {
-    totalAgents: number;
-    totalVersions: number;
-    totalTranslations: number;
-    avgFidelity: number;
-  };
 }
 
 /**
@@ -823,15 +468,17 @@ export interface IngestResult {
 
 /**
  * Integrated Bridge Service
- * 
- * Combines discovery, events, and persistence into a unified service
- * that wraps the BridgeOrchestrator with full Chrysalis integration.
+ *
+ * Combines discovery and events into a unified service
+ * that wraps the BridgeOrchestrator with Chrysalis integration.
+ *
+ * Note: Persistence should be handled via TemporalStore for proper
+ * bi-temporal storage of canonical agents.
  */
 export class IntegratedBridgeService {
   public readonly orchestrator: BridgeOrchestrator;
   public readonly discovery: AdapterDiscoveryService;
   public readonly events: BridgeEventBus;
-  public readonly persistence: BridgePersistenceService;
 
   private readonly config: Required<BridgeServiceConfig>;
 
@@ -851,7 +498,6 @@ export class IntegratedBridgeService {
     this.discovery = new AdapterDiscoveryService(orchestrator, {
       healthCheckInterval: this.config.healthCheckInterval,
     });
-    this.persistence = new BridgePersistenceService(orchestrator, this.events);
 
     // Setup event logging
     if (this.config.enableEventLogging) {
@@ -891,7 +537,6 @@ export class IntegratedBridgeService {
     options?: { correlationId?: string; metadata?: Record<string, unknown> }
   ): Promise<{
     canonical: CanonicalAgent;
-    stored: StoredAgent;
     event: BridgeEvent<AgentIngestedPayload>;
   }> {
     const timestamp = new Date().toISOString();
@@ -905,17 +550,6 @@ export class IntegratedBridgeService {
     // Extract agent info
     const agentId = this.extractAgentId(canonical);
     const canonicalUri = canonical.uri;
-    
-    // Store in persistence
-    const stored = this.persistence.storeAgent(
-      canonicalUri,
-      { id: agentId, name: agentId },
-      {
-        framework: native.framework,
-        fidelityScore: canonical.metadata.fidelityScore,
-        metadata: options?.metadata,
-      }
-    );
 
     // Emit event
     const event = this.events.publish<AgentIngestedPayload>(
@@ -932,7 +566,7 @@ export class IntegratedBridgeService {
       }
     );
 
-    return { canonical, stored, event };
+    return { canonical, event };
   }
 
   /**
@@ -944,7 +578,6 @@ export class IntegratedBridgeService {
     options?: { correlationId?: string; metadata?: Record<string, unknown> }
   ): Promise<{
     result: TranslationResult;
-    stored: StoredAgent;
     event: BridgeEvent<AgentTranslatedPayload>;
   }> {
     const timestamp = new Date().toISOString();
@@ -960,26 +593,7 @@ export class IntegratedBridgeService {
     }
 
     // Extract agent info
-    const agentId = this.extractAgentId(result.canonical);
     const canonicalUri = result.canonical.uri;
-
-    // Store canonical representation
-    const stored = this.persistence.storeAgent(
-      canonicalUri,
-      { id: agentId, name: agentId },
-      {
-        framework: native.framework,
-        fidelityScore: result.fidelityScore,
-        metadata: options?.metadata,
-      }
-    );
-
-    // Store translation record
-    const translationRecord = this.persistence.storeTranslationResult(
-      result,
-      `urn:source:${native.framework}:${agentId}`,
-      `urn:target:${targetFramework}:${agentId}`
-    );
 
     // Emit event
     const event = this.events.publish<AgentTranslatedPayload>(
@@ -996,7 +610,7 @@ export class IntegratedBridgeService {
       }
     );
 
-    return { result, stored, event };
+    return { result, event };
   }
 
   /**
@@ -1012,7 +626,6 @@ export class IntegratedBridgeService {
    * Get service statistics
    */
   getStats(): BridgeServiceStats {
-    const persistenceStats = this.persistence.getStats();
     const adapters = this.discovery.listAdapters();
     const recentEvents = this.events.getHistory({
       since: new Date(Date.now() - 3600000).toISOString(), // Last hour
@@ -1029,12 +642,6 @@ export class IntegratedBridgeService {
         subscriptionCount: this.events.getSubscriptionCount(),
         recentEvents: recentEvents.length,
       },
-      persistence: {
-        totalAgents: persistenceStats.totalAgents,
-        totalVersions: persistenceStats.totalVersions,
-        totalTranslations: persistenceStats.totalTranslations,
-        avgFidelity: persistenceStats.avgFidelity,
-      },
     };
   }
 
@@ -1047,7 +654,6 @@ export class IntegratedBridgeService {
       orchestrator: boolean;
       discovery: boolean;
       events: boolean;
-      persistence: boolean;
     };
   } {
     const adapters = this.discovery.listAdapters();
@@ -1057,7 +663,6 @@ export class IntegratedBridgeService {
       orchestrator: this.orchestrator.getRegisteredFrameworks().length > 0,
       discovery: adapters.length > 0,
       events: true, // Events are always available
-      persistence: true, // In-memory persistence is always available
     };
 
     let status: 'healthy' | 'degraded' | 'unhealthy';

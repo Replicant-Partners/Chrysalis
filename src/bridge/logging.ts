@@ -488,64 +488,6 @@ export class Logger implements ILogger {
 }
 
 // ============================================================================
-// Async Context for Correlation IDs
-// ============================================================================
-
-/**
- * Async local storage for correlation context
- */
-class CorrelationContext {
-  private currentId?: CorrelationId;
-  private readonly storage = new Map<string, unknown>();
-
-  /**
-   * Get current correlation ID
-   */
-  getCorrelationId(): CorrelationId | undefined {
-    return this.currentId;
-  }
-
-  /**
-   * Run with a correlation ID
-   */
-  run<T>(correlationId: CorrelationId, fn: () => T): T {
-    const previous = this.currentId;
-    this.currentId = correlationId;
-    try {
-      return fn();
-    } finally {
-      this.currentId = previous;
-    }
-  }
-
-  /**
-   * Run with a new correlation ID
-   */
-  runWithNew<T>(fn: () => T): T {
-    return this.run(generateCorrelationId(), fn);
-  }
-
-  /**
-   * Set context value
-   */
-  set(key: string, value: unknown): void {
-    this.storage.set(key, value);
-  }
-
-  /**
-   * Get context value
-   */
-  get<T>(key: string): T | undefined {
-    return this.storage.get(key) as T | undefined;
-  }
-}
-
-/**
- * Global correlation context
- */
-export const correlationContext = new CorrelationContext();
-
-// ============================================================================
 // Request Context Logger
 // ============================================================================
 
@@ -558,56 +500,6 @@ export function createRequestLogger(
 ): Logger {
   const id = correlationId ?? generateCorrelationId();
   return baseLogger.withCorrelationId(id);
-}
-
-// ============================================================================
-// Log Decorators
-// ============================================================================
-
-/**
- * Decorator to log method entry and exit
- */
-export function LogMethod(logger: ILogger): MethodDecorator {
-  return function (
-    target: object,
-    propertyKey: string | symbol,
-    descriptor: PropertyDescriptor
-  ) {
-    const original = descriptor.value;
-    const methodName = String(propertyKey);
-
-    descriptor.value = function (...args: unknown[]) {
-      const timer = logger.startTimer(`${methodName}`);
-      
-      logger.debug(`Entering ${methodName}`, {
-        args: args.length > 0 ? args : undefined,
-      });
-
-      try {
-        const result = original.apply(this, args);
-
-        if (result instanceof Promise) {
-          return result
-            .then((value) => {
-              timer.success(`${methodName} completed`);
-              return value;
-            })
-            .catch((error) => {
-              timer.error(`${methodName} failed`, error as Error);
-              throw error;
-            });
-        }
-
-        timer.success(`${methodName} completed`);
-        return result;
-      } catch (error) {
-        timer.error(`${methodName} failed`, error as Error);
-        throw error;
-      }
-    };
-
-    return descriptor;
-  };
 }
 
 // ============================================================================

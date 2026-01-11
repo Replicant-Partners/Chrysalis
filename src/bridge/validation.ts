@@ -102,10 +102,13 @@ export interface ArraySchema extends SchemaDefinition {
 /**
  * Object schema
  */
-export interface ObjectSchema extends SchemaDefinition {
+export interface ObjectSchema extends Omit<SchemaDefinition, 'required'> {
   type: 'object';
+  /** Whether this object is required (inherited semantic) */
+  required?: boolean;
   properties?: Record<string, Schema>;
-  required?: string[];
+  /** List of property names that are required within this object */
+  requiredProperties?: string[];
   additionalProperties?: boolean | Schema;
   minProperties?: number;
   maxProperties?: number;
@@ -535,7 +538,7 @@ export class Validator {
     }
 
     const properties = schema.properties ?? {};
-    const requiredFields = new Set(schema.required ?? []);
+    const requiredFields = new Set(schema.requiredProperties ?? []);
 
     // Check required fields
     for (const key of requiredFields) {

@@ -285,12 +285,11 @@ export class A2AClient extends EventEmitter {
   async *sendTaskStream(params: TaskSendParams): AsyncGenerator<StreamEvent, Task, undefined> {
     this.ensureConnected();
     
-    if (!this.agentCard?.capabilities?.streaming) {
-      throw new A2AError(
-        A2A_ERROR_CODES.UNSUPPORTED_OPERATION,
-        'Agent does not support streaming'
-      );
-    }
+    this.ensureCapabilityEnabled(
+      this.agentCard?.capabilities?.streaming,
+      A2A_ERROR_CODES.UNSUPPORTED_OPERATION,
+      'Agent does not support streaming'
+    );
     
     const streamParams: TaskSendSubscribeParams = {
       ...params,
@@ -301,22 +300,12 @@ export class A2AClient extends EventEmitter {
     
     this.emitEvent('stream-start', { params: streamParams });
     
-    let finalTask: Task | undefined;
-    
-    for await (const event of this.parseStreamEvents(response)) {
-      this.emitEvent('stream-event', { event });
-      yield event as StreamEvent;
-      
-      if (event.type === 'done') {
-        finalTask = event.task as Task;
-      }
-    }
+    const finalTask = yield* this.streamEventsWithFinal(
+      response,
+      event => this.emitEvent('stream-event', { event })
+    );
     
     this.emitEvent('stream-end', { task: finalTask });
-    
-    if (!finalTask) {
-      throw new A2AError(A2A_ERROR_CODES.INTERNAL_ERROR, 'Stream ended without final task');
-    }
     
     return finalTask;
   }
@@ -364,19 +353,7 @@ export class A2AClient extends EventEmitter {
     
     const response = await this.streamRpc('tasks/resubscribe', params);
     
-    let finalTask: Task | undefined;
-    
-    for await (const event of this.parseStreamEvents(response)) {
-      yield event as StreamEvent;
-      
-      if (event.type === 'done') {
-        finalTask = event.task as Task;
-      }
-    }
-    
-    if (!finalTask) {
-      throw new A2AError(A2A_ERROR_CODES.INTERNAL_ERROR, 'Stream ended without final task');
-    }
+    const finalTask = yield* this.streamEventsWithFinal(response);
     
     return finalTask;
   }
@@ -422,12 +399,11 @@ export class A2AClient extends EventEmitter {
   async getPushNotificationConfig(taskId: string): Promise<PushNotificationConfig | null> {
     this.ensureConnected();
     
-    if (!this.agentCard?.capabilities?.pushNotifications) {
-      throw new A2AError(
-        A2A_ERROR_CODES.PUSH_NOTIFICATION_NOT_SUPPORTED,
-        'Agent does not support push notifications'
-      );
-    }
+    this.ensureCapabilityEnabled(
+      this.agentCard?.capabilities?.pushNotifications,
+      A2A_ERROR_CODES.PUSH_NOTIFICATION_NOT_SUPPORTED,
+      'Agent does not support push notifications'
+    );
     
     const params: PushNotificationGetParams = { id: taskId };
     const result = await this.rpc<PushNotificationGetResult>('tasks/pushNotification/get', params);
@@ -443,12 +419,11 @@ export class A2AClient extends EventEmitter {
   ): Promise<PushNotificationConfig> {
     this.ensureConnected();
     
-    if (!this.agentCard?.capabilities?.pushNotifications) {
-      throw new A2AError(
-        A2A_ERROR_CODES.PUSH_NOTIFICATION_NOT_SUPPORTED,
-        'Agent does not support push notifications'
-      );
-    }
+    this.ensureCapabilityEnabled(
+      this.agentCard?.capabilities?.pushNotifications,
+      A2A_ERROR_CODES.PUSH_NOTIFICATION_NOT_SUPPORTED,
+      'Agent does not support push notifications'
+    );
     
     const params: PushNotificationSetParams = {
       id: taskId,
@@ -517,35 +492,23 @@ export class A2AClient extends EventEmitter {
    */
   private cleanupSessions(): void {
     const now = Date.now();
-    const expiredIds: string[] = [];
+    const expiredIds = [...this.sessions.entries()]
+      .filter(([, session]) => now - new Date(session.lastActivityAt).getTime() > SESSION_TTL_MS)
+      .map(([id]) => id);
     
-    // Find expired sessions
-    for (const [id, session] of this.sessions) {
-      const lastActivity = new Date(session.lastActivityAt).getTime();
-      if (now - lastActivity > SESSION_TTL_MS) {
-        expiredIds.push(id);
-      }
-    }
-    
-    // Remove expired sessions
-    for (const id of expiredIds) {
-      this.sessions.delete(id);
-      this.stats.sessionsEvicted++;
-    }
+    this.evictSessions(expiredIds);
     
     // Enforce max sessions using LRU eviction
     if (this.sessions.size > MAX_SESSIONS) {
       const sorted = [...this.sessions.entries()]
-        .sort((a, b) => 
-          new Date(a[1].lastActivityAt).getTime() - 
+        .sort((a, b) =>
+          new Date(a[1].lastActivityAt).getTime() -
           new Date(b[1].lastActivityAt).getTime()
         );
       
-      const toRemove = sorted.slice(0, this.sessions.size - MAX_SESSIONS);
-      for (const [id] of toRemove) {
-        this.sessions.delete(id);
-        this.stats.sessionsEvicted++;
-      }
+      const overflow = this.sessions.size - MAX_SESSIONS;
+      const lruIds = sorted.slice(0, overflow).map(([id]) => id);
+      this.evictSessions(lruIds);
     }
     
     if (expiredIds.length > 0) {
@@ -713,6 +676,27 @@ export class A2AClient extends EventEmitter {
     } finally {
       reader.releaseLock();
     }
+  }
+
+  private async *streamEventsWithFinal(
+    stream: ReadableStream<Uint8Array>,
+    onEvent?: (event: ValidatedStreamEvent) => void
+  ): AsyncGenerator<ValidatedStreamEvent, Task, undefined> {
+    let finalTask: Task | undefined;
+
+    for await (const event of this.parseStreamEvents(stream)) {
+      onEvent?.(event);
+      yield event;
+      if (event.type === 'done') {
+        finalTask = event.task as Task;
+      }
+    }
+
+    if (!finalTask) {
+      throw new A2AError(A2A_ERROR_CODES.INTERNAL_ERROR, 'Stream ended without final task');
+    }
+
+    return finalTask;
   }
   
   /**
@@ -938,6 +922,16 @@ export class A2AClient extends EventEmitter {
       throw new A2AError(A2A_ERROR_CODES.INTERNAL_ERROR, 'Client not connected');
     }
   }
+
+  private ensureCapabilityEnabled(
+    capability: boolean | undefined,
+    code: number,
+    message: string
+  ): void {
+    if (!capability) {
+      throw new A2AError(code, message);
+    }
+  }
   
   /**
    * Track session.
@@ -946,11 +940,12 @@ export class A2AClient extends EventEmitter {
     let session = this.sessions.get(sessionId);
     
     if (!session) {
+      const now = this.nowIso();
       session = {
         id: sessionId,
         taskIds: [],
-        createdAt: new Date().toISOString(),
-        lastActivityAt: new Date().toISOString()
+        createdAt: now,
+        lastActivityAt: now
       };
       this.sessions.set(sessionId, session);
       this.stats.sessionsCreated++;
@@ -960,7 +955,7 @@ export class A2AClient extends EventEmitter {
       session.taskIds.push(taskId);
     }
     
-    session.lastActivityAt = new Date().toISOString();
+    session.lastActivityAt = this.nowIso();
   }
   
   /**
@@ -977,6 +972,18 @@ export class A2AClient extends EventEmitter {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
   
+  private evictSessions(ids: string[]): void {
+    for (const id of ids) {
+      if (this.sessions.delete(id)) {
+        this.stats.sessionsEvicted++;
+      }
+    }
+  }
+
+  private nowIso(): string {
+    return new Date().toISOString();
+  }
+
   /**
    * Log message.
    */
