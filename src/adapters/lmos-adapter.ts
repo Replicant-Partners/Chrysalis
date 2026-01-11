@@ -228,14 +228,62 @@ interface LMOSProtocolConfig {
 }
 
 // ============================================================================
+// LMOS Translation Context
+// ============================================================================
+
+/**
+ * Internal context object for LMOS→Canonical translation.
+ * Accumulates quads, field mappings, and extensions during translation.
+ *
+ * @internal
+ */
+interface LMOSTranslationContext {
+  /** The parsed LMOS agent specification */
+  agent: LMOSAgent;
+  /** Generated canonical URI for this agent */
+  agentUri: string;
+  /** Accumulated RDF quads */
+  quads: Quad[];
+  /** Fields successfully mapped to canonical predicates */
+  mappedFields: string[];
+  /** Fields preserved as extensions (no canonical predicate) */
+  unmappedFields: string[];
+  /** Fields that could not be preserved (data loss) */
+  lostFields: string[];
+  /** Extension properties for lossless round-tripping */
+  extensions: ExtensionProperty[];
+  /** Translation warnings (non-fatal issues) */
+  warnings: TranslationWarning[];
+  /** Translation start timestamp for metrics */
+  startTime: number;
+  /** Identity blank node (needed for security key references) */
+  identityNode?: BlankNode;
+}
+
+// ============================================================================
 // LMOS Adapter Implementation
 // ============================================================================
 
 /**
  * Adapter for Eclipse LMOS Protocol agent specification.
- * 
+ *
  * Handles bidirectional translation between LMOS/W3C WoT Thing Description
  * JSON-LD format and the canonical RDF representation.
+ *
+ * The toCanonical() method is decomposed into focused private methods
+ * following single-responsibility principle:
+ * - translateMetadata(): Core metadata (title, description, version)
+ * - translateIdentity(): DID-based identity
+ * - translateSecurity(): Security definitions and keys
+ * - translateAgentClass(): LMOS agent classification
+ * - translateActions(): WoT actions → Chrysalis tools
+ * - translateWotAffordances(): Properties, events, links
+ * - translateForms(): Top-level forms → protocol bindings
+ * - translateLLMConfig(): LMOS LLM configuration
+ * - translateMemoryConfig(): LMOS memory configuration
+ * - translateProtocols(): LMOS protocol flags
+ * - translateAdditionalMetadata(): timestamps, base, support
+ * - finalizeCanonical(): Build final CanonicalAgent structure
  */
 export class LMOSAdapter extends BaseAdapter {
   readonly framework = 'lmos' as const;
@@ -248,584 +296,597 @@ export class LMOSAdapter extends BaseAdapter {
   }
 
   // ==========================================================================
-  // Native → Canonical Translation
+  // Native → Canonical Translation (Public API)
   // ==========================================================================
 
+  /**
+   * Translate a native LMOS agent specification to canonical RDF representation.
+   *
+   * This method orchestrates the translation by delegating to focused private
+   * methods for each logical section of the LMOS/WoT specification.
+   *
+   * @param native - The native LMOS agent to translate
+   * @returns Promise resolving to the canonical RDF representation
+   *
+   * @example
+   * ```typescript
+   * const adapter = new LMOSAdapter();
+   * const canonical = await adapter.toCanonical({
+   *   data: lmosAgentSpec,
+   *   framework: 'lmos',
+   *   version: '1.1'
+   * });
+   * ```
+   */
   async toCanonical(native: NativeAgent): Promise<CanonicalAgent> {
-    const startTime = Date.now();
-    const warnings: TranslationWarning[] = [];
-    const mappedFields: string[] = [];
-    const unmappedFields: string[] = [];
-    const lostFields: string[] = [];
-    const extensions: ExtensionProperty[] = [];
+    // Initialize translation context
+    const ctx = this.initTranslationContext(native);
 
+    // Translate each section in logical order
+    this.translateMetadata(ctx);
+    this.translateIdentity(ctx);
+    this.translateSecurity(ctx);
+    this.translateAgentClass(ctx);
+    this.translateActions(ctx);
+    this.translateWotAffordances(ctx);
+    this.translateForms(ctx);
+    this.translateLLMConfig(ctx);
+    this.translateMemoryConfig(ctx);
+    this.translateProtocols(ctx);
+    this.translateJsonLdContext(ctx);
+    this.translateAdditionalMetadata(ctx);
+
+    // Build and return final canonical agent
+    return this.finalizeCanonical(ctx);
+  }
+
+  // ==========================================================================
+  // Private Translation Methods
+  // ==========================================================================
+
+  /**
+   * Initialize the translation context with agent data and empty accumulators.
+   *
+   * Creates the agent URI, sets up tracking arrays, and adds the base
+   * type declarations (chrysalis:Agent and td:Thing).
+   *
+   * @param native - The native agent specification
+   * @returns Initialized translation context
+   *
+   * @rdf-vocabulary
+   * - rdf:type → chrysalis:Agent
+   * - rdf:type → td:Thing (W3C WoT Thing Description)
+   */
+  private initTranslationContext(native: NativeAgent): LMOSTranslationContext {
     const agent = native.data as unknown as LMOSAgent;
-    
-    // Use DID as agent identifier or generate from id
     const agentId = this.extractAgentId(agent.id);
     const agentUri = this.generateAgentUri(agentId);
-    const quads: Quad[] = [];
+    
+    const ctx: LMOSTranslationContext = {
+      agent,
+      agentUri,
+      quads: [],
+      mappedFields: [],
+      unmappedFields: [],
+      lostFields: [],
+      extensions: [],
+      warnings: [],
+      startTime: Date.now()
+    };
 
-    // ========================================================================
-    // Type Declaration
-    // ========================================================================
+    const agentNode = this.uri(agentUri);
 
-    quads.push(this.quad(
-      this.uri(agentUri),
-      rdf('type'),
-      chrysalis('Agent')
-    ));
+    // Add base type declarations
+    ctx.quads.push(this.quad(agentNode, rdf('type'), chrysalis('Agent')));
+    ctx.quads.push(this.quad(agentNode, rdf('type'), td('Thing')));
+    ctx.mappedFields.push('@type');
 
-    // Also preserve W3C TD type
-    quads.push(this.quad(
-      this.uri(agentUri),
-      rdf('type'),
-      td('Thing')
-    ));
-    mappedFields.push('@type');
+    return ctx;
+  }
 
-    // ========================================================================
-    // Core Metadata
-    // ========================================================================
+  /**
+   * Translate LMOS core metadata to canonical RDF.
+   *
+   * Handles: title→name, description, version.instance.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:name (from title, required)
+   * - chrysalis:description
+   * - chrysalis:version (from version.instance)
+   */
+  private translateMetadata(ctx: LMOSTranslationContext): void {
+    const { agent, agentUri, quads, mappedFields } = ctx;
+    const agentNode = this.uri(agentUri);
 
-    // Title → name
-    quads.push(this.quad(
-      this.uri(agentUri),
-      chrysalis('name'),
-      this.literal(agent.title)
-    ));
+    // Title → name (required)
+    quads.push(this.quad(agentNode, chrysalis('name'), this.literal(agent.title)));
     mappedFields.push('title');
 
     // Description
     if (agent.description) {
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('description'),
-        this.literal(agent.description)
-      ));
+      quads.push(this.quad(agentNode, chrysalis('description'), this.literal(agent.description)));
       mappedFields.push('description');
     }
 
     // Version
     if (agent.version?.instance) {
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('version'),
-        this.literal(agent.version.instance)
-      ));
+      quads.push(this.quad(agentNode, chrysalis('version'), this.literal(agent.version.instance)));
       mappedFields.push('version.instance');
     }
+  }
 
-    // ========================================================================
-    // Identity (DID-based)
-    // ========================================================================
+  /**
+   * Translate LMOS DID-based identity to canonical RDF.
+   *
+   * Creates a DecentralizedIdentifier blank node linked via chrysalis:hasIdentity.
+   * Extracts DID scheme from the identifier format.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:hasIdentity → blank node
+   * - chrysalis:DecentralizedIdentifier (type)
+   * - chrysalis:identifierValue (full DID)
+   * - chrysalis:identifierScheme (e.g., 'did:web')
+   */
+  private translateIdentity(ctx: LMOSTranslationContext): void {
+    const { agent, agentUri, quads, mappedFields } = ctx;
+    const agentNode = this.uri(agentUri);
 
+    // Create identity blank node and store for security key references
     const identityNode = this.blank(this.generateBlankId('identity'));
-    
-    quads.push(this.quad(
-      this.uri(agentUri),
-      chrysalis('hasIdentity'),
-      identityNode
-    ));
+    ctx.identityNode = identityNode;
 
-    quads.push(this.quad(
-      identityNode,
-      rdf('type'),
-      chrysalis('DecentralizedIdentifier')
-    ));
+    quads.push(this.quad(agentNode, chrysalis('hasIdentity'), identityNode));
+    quads.push(this.quad(identityNode, rdf('type'), chrysalis('DecentralizedIdentifier')));
+    quads.push(this.quad(identityNode, chrysalis('identifierValue'), this.literal(agent.id)));
 
-    quads.push(this.quad(
-      identityNode,
-      chrysalis('identifierValue'),
-      this.literal(agent.id)
-    ));
-
-    // Determine identifier scheme from DID method
+    // Extract and add DID scheme
     const didScheme = this.extractDIDScheme(agent.id);
-    quads.push(this.quad(
-      identityNode,
-      chrysalis('identifierScheme'),
-      this.literal(didScheme)
-    ));
+    quads.push(this.quad(identityNode, chrysalis('identifierScheme'), this.literal(didScheme)));
     mappedFields.push('id');
+  }
 
-    // ========================================================================
-    // Security Definitions (extension)
-    // ========================================================================
+  /**
+   * Translate LMOS security definitions to canonical RDF.
+   *
+   * Security definitions are preserved as extensions for round-tripping.
+   * Public keys are extracted and added to the identity node.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:publicKey (extracted from security schemes)
+   */
+  private translateSecurity(ctx: LMOSTranslationContext): void {
+    const { agent, quads, mappedFields, unmappedFields, extensions, identityNode } = ctx;
 
+    // Security definitions (extension)
     if (agent.securityDefinitions) {
       extensions.push(this.createExtension(
-        'lmos',
-        'securityDefinitions',
-        agent.securityDefinitions,
-        'securityDefinitions'
+        'lmos', 'securityDefinitions', agent.securityDefinitions, 'securityDefinitions'
       ));
       unmappedFields.push('securityDefinitions');
 
       // Extract public keys for identity if present
-      for (const [name, scheme] of Object.entries(agent.securityDefinitions)) {
-        if (scheme.pubKeyPem) {
-          quads.push(this.quad(
-            identityNode,
-            chrysalis('publicKey'),
-            this.literal(scheme.pubKeyPem)
-          ));
-          mappedFields.push(`securityDefinitions.${name}.pubKeyPem`);
+      if (identityNode) {
+        for (const [name, scheme] of Object.entries(agent.securityDefinitions)) {
+          if (scheme.pubKeyPem) {
+            quads.push(this.quad(identityNode, chrysalis('publicKey'), this.literal(scheme.pubKeyPem)));
+            mappedFields.push(`securityDefinitions.${name}.pubKeyPem`);
+          }
         }
       }
     }
 
+    // Security reference (extension)
     if (agent.security) {
-      extensions.push(this.createExtension(
-        'lmos',
-        'security',
-        agent.security,
-        'security'
-      ));
+      extensions.push(this.createExtension('lmos', 'security', agent.security, 'security'));
       unmappedFields.push('security');
     }
+  }
 
-    // ========================================================================
-    // LMOS Agent Class (extension)
-    // ========================================================================
+  /**
+   * Translate LMOS agent class to canonical RDF.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - lmos:agentClass
+   */
+  private translateAgentClass(ctx: LMOSTranslationContext): void {
+    const { agent, agentUri, quads, mappedFields } = ctx;
 
     if (agent['lmos:agentClass']) {
       quads.push(this.quad(
-        this.uri(agentUri),
-        lmos('agentClass'),
-        this.literal(agent['lmos:agentClass'])
+        this.uri(agentUri), lmos('agentClass'), this.literal(agent['lmos:agentClass'])
       ));
       mappedFields.push('lmos:agentClass');
     }
+  }
 
-    // ========================================================================
-    // Actions → Tools
-    // ========================================================================
+  /**
+   * Translate WoT actions to Chrysalis tools.
+   *
+   * Each action becomes a Tool blank node linked via chrysalis:hasCapability.
+   * Input/output schemas are JSON-serialized. Forms are preserved as extensions.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:hasCapability → blank node
+   * - chrysalis:Tool (type)
+   * - chrysalis:toolName
+   * - chrysalis:toolDescription
+   * - chrysalis:inputSchema (JSON)
+   * - chrysalis:outputSchema (JSON)
+   * - chrysalis:toolEndpoint (primary form href)
+   */
+  private translateActions(ctx: LMOSTranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, extensions } = ctx;
 
-    if (agent.actions) {
-      for (const [actionName, action] of Object.entries(agent.actions)) {
-        const toolNode = this.blank(this.generateBlankId('tool'));
-
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('hasCapability'),
-          toolNode
-        ));
-
-        quads.push(this.quad(
-          toolNode,
-          rdf('type'),
-          chrysalis('Tool')
-        ));
-
-        quads.push(this.quad(
-          toolNode,
-          chrysalis('toolName'),
-          this.literal(actionName)
-        ));
-
-        if (action.title) {
-          quads.push(this.quad(
-            toolNode,
-            chrysalis('toolDescription'),
-            this.literal(action.title)
-          ));
-        } else if (action.description) {
-          quads.push(this.quad(
-            toolNode,
-            chrysalis('toolDescription'),
-            this.literal(action.description)
-          ));
-        }
-
-        // Input schema → inputSchema
-        if (action.input) {
-          quads.push(this.quad(
-            toolNode,
-            chrysalis('inputSchema'),
-            this.literal(JSON.stringify(action.input))
-          ));
-        }
-
-        // Output schema → outputSchema
-        if (action.output) {
-          quads.push(this.quad(
-            toolNode,
-            chrysalis('outputSchema'),
-            this.literal(JSON.stringify(action.output))
-          ));
-        }
-
-        // Forms → endpoint
-        if (action.forms?.length) {
-          const primaryForm = action.forms[0];
-          quads.push(this.quad(
-            toolNode,
-            chrysalis('toolEndpoint'),
-            this.uri(primaryForm.href)
-          ));
-
-          // Store all forms as extension
-          extensions.push(this.createExtension(
-            'lmos',
-            `action.${actionName}.forms`,
-            action.forms,
-            `actions.${actionName}.forms`
-          ));
-        }
-      }
-      mappedFields.push('actions');
+    if (!agent.actions) {
+      return;
     }
 
-    // ========================================================================
-    // Properties (as agent state - extension)
-    // ========================================================================
+    const agentNode = this.uri(agentUri);
 
+    for (const [actionName, action] of Object.entries(agent.actions)) {
+      const toolNode = this.blank(this.generateBlankId('tool'));
+
+      // Link tool to agent
+      quads.push(this.quad(agentNode, chrysalis('hasCapability'), toolNode));
+      quads.push(this.quad(toolNode, rdf('type'), chrysalis('Tool')));
+      quads.push(this.quad(toolNode, chrysalis('toolName'), this.literal(actionName)));
+
+      // Description (prefer title, fallback to description)
+      const description = action.title || action.description;
+      if (description) {
+        quads.push(this.quad(toolNode, chrysalis('toolDescription'), this.literal(description)));
+      }
+
+      // Input/output schemas
+      if (action.input) {
+        quads.push(this.quad(toolNode, chrysalis('inputSchema'), this.literal(JSON.stringify(action.input))));
+      }
+      if (action.output) {
+        quads.push(this.quad(toolNode, chrysalis('outputSchema'), this.literal(JSON.stringify(action.output))));
+      }
+
+      // Forms → endpoint (primary form)
+      if (action.forms?.length) {
+        const primaryForm = action.forms[0];
+        quads.push(this.quad(toolNode, chrysalis('toolEndpoint'), this.uri(primaryForm.href)));
+
+        // Store all forms as extension for round-tripping
+        extensions.push(this.createExtension(
+          'lmos', `action.${actionName}.forms`, action.forms, `actions.${actionName}.forms`
+        ));
+      }
+    }
+
+    mappedFields.push('actions');
+  }
+
+  /**
+   * Translate WoT affordances (properties, events, links) to extensions.
+   *
+   * These affordances don't have direct Chrysalis equivalents, so they're
+   * preserved as extensions for lossless round-tripping.
+   *
+   * @param ctx - Translation context to mutate
+   */
+  private translateWotAffordances(ctx: LMOSTranslationContext): void {
+    const { agent, unmappedFields, extensions } = ctx;
+
+    // Properties (extension)
     if (agent.properties) {
       for (const [propName, prop] of Object.entries(agent.properties)) {
         extensions.push(this.createExtension(
-          'lmos',
-          `property.${propName}`,
-          prop,
-          `properties.${propName}`
+          'lmos', `property.${propName}`, prop, `properties.${propName}`
         ));
       }
       unmappedFields.push('properties');
     }
 
-    // ========================================================================
     // Events (extension)
-    // ========================================================================
-
     if (agent.events) {
-      extensions.push(this.createExtension(
-        'lmos',
-        'events',
-        agent.events,
-        'events'
-      ));
+      extensions.push(this.createExtension('lmos', 'events', agent.events, 'events'));
       unmappedFields.push('events');
     }
 
-    // ========================================================================
     // Links (extension)
-    // ========================================================================
-
     if (agent.links?.length) {
-      extensions.push(this.createExtension(
-        'lmos',
-        'links',
-        agent.links,
-        'links'
-      ));
+      extensions.push(this.createExtension('lmos', 'links', agent.links, 'links'));
       unmappedFields.push('links');
     }
+  }
 
-    // ========================================================================
-    // Top-level Forms → Protocol Bindings
-    // ========================================================================
+  /**
+   * Translate top-level WoT forms to protocol bindings.
+   *
+   * Forms define how to interact with the Thing. Each form becomes a
+   * protocol binding node based on the href scheme or subprotocol.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:supportsProtocol → binding node
+   * - Protocol types: HTTPBinding, WebSocketBinding
+   * - chrysalis:endpointUrl
+   * - chrysalis:protocolConfig (JSON)
+   */
+  private translateForms(ctx: LMOSTranslationContext): void {
+    const { agent, agentUri, quads, mappedFields } = ctx;
 
-    if (agent.forms?.length) {
-      for (const form of agent.forms) {
-        const bindingNode = this.blank(this.generateBlankId('binding'));
-        
-        // Determine protocol type from href or subprotocol
-        const protocolType = this.determineProtocolType(form);
-
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('supportsProtocol'),
-          bindingNode
-        ));
-
-        quads.push(this.quad(
-          bindingNode,
-          rdf('type'),
-          chrysalis(protocolType)
-        ));
-
-        quads.push(this.quad(
-          bindingNode,
-          chrysalis('endpointUrl'),
-          this.uri(form.href)
-        ));
-
-        if (form.contentType) {
-          quads.push(this.quad(
-            bindingNode,
-            chrysalis('protocolConfig'),
-            this.literal(JSON.stringify({ contentType: form.contentType }))
-          ));
-        }
-      }
-      mappedFields.push('forms');
+    if (!agent.forms?.length) {
+      return;
     }
 
-    // ========================================================================
-    // LMOS LLM Configuration
-    // ========================================================================
+    const agentNode = this.uri(agentUri);
 
-    if (agent['lmos:llmConfig']) {
-      const llmConfig = agent['lmos:llmConfig'];
-      const llmNode = this.blank(this.generateBlankId('llm'));
+    for (const form of agent.forms) {
+      const bindingNode = this.blank(this.generateBlankId('binding'));
+      const protocolType = this.determineProtocolType(form);
 
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('hasExecutionConfig'),
-        llmNode
-      ));
+      quads.push(this.quad(agentNode, chrysalis('supportsProtocol'), bindingNode));
+      quads.push(this.quad(bindingNode, rdf('type'), chrysalis(protocolType)));
+      quads.push(this.quad(bindingNode, chrysalis('endpointUrl'), this.uri(form.href)));
 
-      quads.push(this.quad(
-        llmNode,
-        rdf('type'),
-        chrysalis('LLMConfig')
-      ));
-
-      quads.push(this.quad(
-        llmNode,
-        chrysalis('llmProvider'),
-        this.literal(llmConfig.provider)
-      ));
-
-      quads.push(this.quad(
-        llmNode,
-        chrysalis('llmModel'),
-        this.literal(llmConfig.model)
-      ));
-
-      if (llmConfig.temperature !== undefined) {
+      if (form.contentType) {
         quads.push(this.quad(
-          llmNode,
-          chrysalis('temperature'),
-          this.literal(llmConfig.temperature, `${XSD_NS}float`)
+          bindingNode, chrysalis('protocolConfig'),
+          this.literal(JSON.stringify({ contentType: form.contentType }))
         ));
       }
-
-      if (llmConfig.maxTokens !== undefined) {
-        quads.push(this.quad(
-          llmNode,
-          chrysalis('maxOutputTokens'),
-          this.literal(llmConfig.maxTokens, `${XSD_NS}integer`)
-        ));
-      }
-
-      if (llmConfig.systemPrompt) {
-        quads.push(this.quad(
-          llmNode,
-          chrysalis('systemPrompt'),
-          this.literal(llmConfig.systemPrompt)
-        ));
-      }
-
-      mappedFields.push('lmos:llmConfig');
     }
 
-    // ========================================================================
-    // LMOS Memory Configuration
-    // ========================================================================
+    mappedFields.push('forms');
+  }
 
-    if (agent['lmos:memory']) {
-      const memConfig = agent['lmos:memory'];
-      const memoryNode = this.blank(this.generateBlankId('memory'));
+  /**
+   * Translate LMOS LLM configuration to canonical RDF.
+   *
+   * Creates an LLMConfig node with provider, model, temperature, maxTokens, systemPrompt.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:hasExecutionConfig → blank node
+   * - chrysalis:LLMConfig (type)
+   * - chrysalis:llmProvider
+   * - chrysalis:llmModel
+   * - chrysalis:temperature (xsd:float)
+   * - chrysalis:maxOutputTokens (xsd:integer)
+   * - chrysalis:systemPrompt
+   */
+  private translateLLMConfig(ctx: LMOSTranslationContext): void {
+    const { agent, agentUri, quads, mappedFields } = ctx;
 
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('hasMemorySystem'),
-        memoryNode
-      ));
-
-      quads.push(this.quad(
-        memoryNode,
-        rdf('type'),
-        chrysalis('MemorySystem')
-      ));
-
-      // Map memory type
-      const memoryTypeMap: Record<string, string> = {
-        'working': 'WorkingMemory',
-        'episodic': 'EpisodicMemory',
-        'semantic': 'SemanticMemory',
-        'procedural': 'ProceduralMemory',
-        'core': 'CoreMemory'
-      };
-
-      const memoryType = memoryTypeMap[memConfig.type] || 'MemorySystem';
-      quads.push(this.quad(
-        memoryNode,
-        rdf('type'),
-        chrysalis(memoryType)
-      ));
-
-      quads.push(this.quad(
-        memoryNode,
-        chrysalis('memoryEnabled'),
-        this.literal(true)
-      ));
-
-      if (memConfig.contextWindow) {
-        quads.push(this.quad(
-          memoryNode,
-          chrysalis('maxTokens'),
-          this.literal(memConfig.contextWindow, `${XSD_NS}integer`)
-        ));
-      }
-
-      if (memConfig.vectorStore) {
-        quads.push(this.quad(
-          memoryNode,
-          chrysalis('storageBackend'),
-          this.literal(memConfig.vectorStore.provider)
-        ));
-
-        extensions.push(this.createExtension(
-          'lmos',
-          'vectorStoreConfig',
-          memConfig.vectorStore.config || {},
-          'lmos:memory.vectorStore.config'
-        ));
-      }
-
-      mappedFields.push('lmos:memory');
+    if (!agent['lmos:llmConfig']) {
+      return;
     }
 
-    // ========================================================================
-    // LMOS Protocol Configuration
-    // ========================================================================
+    const llmConfig = agent['lmos:llmConfig'];
+    const agentNode = this.uri(agentUri);
+    const llmNode = this.blank(this.generateBlankId('llm'));
 
-    if (agent['lmos:protocols']) {
-      const protocols = agent['lmos:protocols'];
+    quads.push(this.quad(agentNode, chrysalis('hasExecutionConfig'), llmNode));
+    quads.push(this.quad(llmNode, rdf('type'), chrysalis('LLMConfig')));
 
-      if (protocols.mcp) {
-        const mcpNode = this.blank(this.generateBlankId('mcp'));
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('supportsProtocol'),
-          mcpNode
-        ));
-        quads.push(this.quad(
-          mcpNode,
-          rdf('type'),
-          chrysalis('MCPBinding')
-        ));
-      }
+    // Required properties
+    quads.push(this.quad(llmNode, chrysalis('llmProvider'), this.literal(llmConfig.provider)));
+    quads.push(this.quad(llmNode, chrysalis('llmModel'), this.literal(llmConfig.model)));
 
-      if (protocols.a2a) {
-        const a2aNode = this.blank(this.generateBlankId('a2a'));
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('supportsProtocol'),
-          a2aNode
-        ));
-        quads.push(this.quad(
-          a2aNode,
-          rdf('type'),
-          chrysalis('A2ABinding')
-        ));
-      }
-
-      if (protocols.http) {
-        const httpNode = this.blank(this.generateBlankId('http'));
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('supportsProtocol'),
-          httpNode
-        ));
-        quads.push(this.quad(
-          httpNode,
-          rdf('type'),
-          chrysalis('HTTPBinding')
-        ));
-      }
-
-      if (protocols.websocket) {
-        const wsNode = this.blank(this.generateBlankId('ws'));
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('supportsProtocol'),
-          wsNode
-        ));
-        quads.push(this.quad(
-          wsNode,
-          rdf('type'),
-          chrysalis('WebSocketBinding')
-        ));
-      }
-
-      mappedFields.push('lmos:protocols');
+    // Optional properties
+    if (llmConfig.temperature !== undefined) {
+      quads.push(this.quad(
+        llmNode, chrysalis('temperature'), this.literal(llmConfig.temperature, `${XSD_NS}float`)
+      ));
     }
 
-    // ========================================================================
-    // Context (extension - preserve JSON-LD context)
-    // ========================================================================
+    if (llmConfig.maxTokens !== undefined) {
+      quads.push(this.quad(
+        llmNode, chrysalis('maxOutputTokens'), this.literal(llmConfig.maxTokens, `${XSD_NS}integer`)
+      ));
+    }
+
+    if (llmConfig.systemPrompt) {
+      quads.push(this.quad(llmNode, chrysalis('systemPrompt'), this.literal(llmConfig.systemPrompt)));
+    }
+
+    mappedFields.push('lmos:llmConfig');
+  }
+
+  /**
+   * Translate LMOS memory configuration to canonical RDF.
+   *
+   * Creates a MemorySystem node with type-specific secondary type.
+   * Vector store config is preserved as extension.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:hasMemorySystem → blank node
+   * - chrysalis:MemorySystem (type)
+   * - Memory types: WorkingMemory, EpisodicMemory, SemanticMemory, ProceduralMemory, CoreMemory
+   * - chrysalis:memoryEnabled
+   * - chrysalis:maxTokens (contextWindow)
+   * - chrysalis:storageBackend (vectorStore provider)
+   */
+  private translateMemoryConfig(ctx: LMOSTranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, extensions } = ctx;
+
+    if (!agent['lmos:memory']) {
+      return;
+    }
+
+    const memConfig = agent['lmos:memory'];
+    const agentNode = this.uri(agentUri);
+    const memoryNode = this.blank(this.generateBlankId('memory'));
+
+    quads.push(this.quad(agentNode, chrysalis('hasMemorySystem'), memoryNode));
+    quads.push(this.quad(memoryNode, rdf('type'), chrysalis('MemorySystem')));
+
+    // Map memory type to specific class
+    const memoryType = this.mapMemoryType(memConfig.type);
+    quads.push(this.quad(memoryNode, rdf('type'), chrysalis(memoryType)));
+    quads.push(this.quad(memoryNode, chrysalis('memoryEnabled'), this.literal(true)));
+
+    // Context window → maxTokens
+    if (memConfig.contextWindow) {
+      quads.push(this.quad(
+        memoryNode, chrysalis('maxTokens'), this.literal(memConfig.contextWindow, `${XSD_NS}integer`)
+      ));
+    }
+
+    // Vector store
+    if (memConfig.vectorStore) {
+      quads.push(this.quad(
+        memoryNode, chrysalis('storageBackend'), this.literal(memConfig.vectorStore.provider)
+      ));
+
+      // Config as extension
+      extensions.push(this.createExtension(
+        'lmos', 'vectorStoreConfig', memConfig.vectorStore.config || {}, 'lmos:memory.vectorStore.config'
+      ));
+    }
+
+    mappedFields.push('lmos:memory');
+  }
+
+  /**
+   * Map LMOS memory type string to canonical memory class name.
+   *
+   * @param type - The memory type string from LMOS config
+   * @returns The canonical memory class name
+   */
+  private mapMemoryType(type: string): string {
+    const memoryTypeMap: Record<string, string> = {
+      'working': 'WorkingMemory',
+      'episodic': 'EpisodicMemory',
+      'semantic': 'SemanticMemory',
+      'procedural': 'ProceduralMemory',
+      'core': 'CoreMemory'
+    };
+    return memoryTypeMap[type] || 'MemorySystem';
+  }
+
+  /**
+   * Translate LMOS protocol flags to protocol binding nodes.
+   *
+   * Each enabled protocol creates a binding node with the appropriate type.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:supportsProtocol → binding nodes
+   * - Protocol types: MCPBinding, A2ABinding, HTTPBinding, WebSocketBinding
+   */
+  private translateProtocols(ctx: LMOSTranslationContext): void {
+    const { agent, agentUri, quads, mappedFields } = ctx;
+
+    if (!agent['lmos:protocols']) {
+      return;
+    }
+
+    const protocols = agent['lmos:protocols'];
+    const agentNode = this.uri(agentUri);
+
+    // Create binding nodes for each enabled protocol
+    const protocolConfigs: Array<{ flag: boolean | undefined; type: string; idPrefix: string }> = [
+      { flag: protocols.mcp, type: 'MCPBinding', idPrefix: 'mcp' },
+      { flag: protocols.a2a, type: 'A2ABinding', idPrefix: 'a2a' },
+      { flag: protocols.http, type: 'HTTPBinding', idPrefix: 'http' },
+      { flag: protocols.websocket, type: 'WebSocketBinding', idPrefix: 'ws' }
+    ];
+
+    for (const { flag, type, idPrefix } of protocolConfigs) {
+      if (flag) {
+        const bindingNode = this.blank(this.generateBlankId(idPrefix));
+        quads.push(this.quad(agentNode, chrysalis('supportsProtocol'), bindingNode));
+        quads.push(this.quad(bindingNode, rdf('type'), chrysalis(type)));
+      }
+    }
+
+    mappedFields.push('lmos:protocols');
+  }
+
+  /**
+   * Translate JSON-LD @context to extension for round-tripping.
+   *
+   * @param ctx - Translation context to mutate
+   */
+  private translateJsonLdContext(ctx: LMOSTranslationContext): void {
+    const { agent, unmappedFields, extensions } = ctx;
 
     if (agent['@context']) {
-      extensions.push(this.createExtension(
-        'lmos',
-        '@context',
-        agent['@context'],
-        '@context'
-      ));
+      extensions.push(this.createExtension('lmos', '@context', agent['@context'], '@context'));
       unmappedFields.push('@context');
     }
+  }
 
-    // ========================================================================
-    // Additional metadata
-    // ========================================================================
+  /**
+   * Translate additional LMOS metadata to extensions.
+   *
+   * Handles: created, modified, base, support.
+   *
+   * @param ctx - Translation context to mutate
+   */
+  private translateAdditionalMetadata(ctx: LMOSTranslationContext): void {
+    const { agent, unmappedFields, extensions } = ctx;
 
+    // Timestamp fields
     if (agent.created) {
-      extensions.push(this.createExtension(
-        'lmos',
-        'created',
-        agent.created,
-        'created'
-      ));
+      extensions.push(this.createExtension('lmos', 'created', agent.created, 'created'));
       unmappedFields.push('created');
     }
 
     if (agent.modified) {
-      extensions.push(this.createExtension(
-        'lmos',
-        'modified',
-        agent.modified,
-        'modified'
-      ));
+      extensions.push(this.createExtension('lmos', 'modified', agent.modified, 'modified'));
       unmappedFields.push('modified');
     }
 
+    // Base URL and support
     if (agent.base) {
-      extensions.push(this.createExtension(
-        'lmos',
-        'base',
-        agent.base,
-        'base'
-      ));
+      extensions.push(this.createExtension('lmos', 'base', agent.base, 'base'));
       unmappedFields.push('base');
     }
 
     if (agent.support) {
-      extensions.push(this.createExtension(
-        'lmos',
-        'support',
-        agent.support,
-        'support'
-      ));
+      extensions.push(this.createExtension('lmos', 'support', agent.support, 'support'));
       unmappedFields.push('support');
     }
+  }
 
-    // ========================================================================
-    // Build Canonical Agent
-    // ========================================================================
-
+  /**
+   * Finalize and build the canonical agent from translation context.
+   *
+   * Creates the CanonicalAgent structure with all accumulated quads,
+   * extensions, and metadata. Adds provenance triples if configured.
+   *
+   * @param ctx - Completed translation context
+   * @returns The finalized CanonicalAgent
+   */
+  private finalizeCanonical(ctx: LMOSTranslationContext): CanonicalAgent {
     const canonical: CanonicalAgent = {
-      uri: agentUri,
-      quads,
+      uri: ctx.agentUri,
+      quads: ctx.quads,
       sourceFramework: 'lmos',
-      extensions,
-      metadata: this.createMetadata(startTime, mappedFields, unmappedFields, lostFields, warnings)
+      extensions: ctx.extensions,
+      metadata: this.createMetadata(
+        ctx.startTime,
+        ctx.mappedFields,
+        ctx.unmappedFields,
+        ctx.lostFields,
+        ctx.warnings
+      )
     };
 
-    // Add provenance if configured
-    this.addProvenanceTriples(canonical.quads, agentUri, canonical);
+    // Add provenance triples if configured
+    this.addProvenanceTriples(canonical.quads, ctx.agentUri, canonical);
 
     return canonical;
   }

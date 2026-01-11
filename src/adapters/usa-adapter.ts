@@ -247,14 +247,57 @@ interface USADeployment {
 }
 
 // ============================================================================
+// USA Translation Context
+// ============================================================================
+
+/**
+ * Internal context object for USA→Canonical translation.
+ * Accumulates quads, field mappings, and extensions during translation.
+ *
+ * @internal
+ */
+interface USATranslationContext {
+  /** The parsed USA agent specification */
+  agent: USAAgent;
+  /** Generated canonical URI for this agent */
+  agentUri: string;
+  /** Accumulated RDF quads */
+  quads: Quad[];
+  /** Fields successfully mapped to canonical predicates */
+  mappedFields: string[];
+  /** Fields preserved as extensions (no canonical predicate) */
+  unmappedFields: string[];
+  /** Fields that could not be preserved (data loss) */
+  lostFields: string[];
+  /** Extension properties for lossless round-tripping */
+  extensions: ExtensionProperty[];
+  /** Translation warnings (non-fatal issues) */
+  warnings: TranslationWarning[];
+  /** Translation start timestamp for metrics */
+  startTime: number;
+}
+
+// ============================================================================
 // USA Adapter Implementation
 // ============================================================================
 
 /**
  * Adapter for Chrysalis Uniform Semantic Agent (USA) specification.
- * 
+ *
  * Handles bidirectional translation between USA v2.0 YAML/JSON format
  * and the canonical RDF representation used by the bridge.
+ *
+ * The toCanonical() method is decomposed into focused private methods
+ * following single-responsibility principle:
+ * - translateMetadata(): Agent metadata (name, version, description, tags)
+ * - translateIdentity(): Agent identity (role, goal, backstory, traits)
+ * - translateTools(): Tool capabilities
+ * - translateReasoning(): Reasoning strategy configuration
+ * - translateMemorySystem(): Hierarchical memory architecture
+ * - translateProtocols(): Protocol bindings (MCP, A2A, Agent Protocol)
+ * - translateExecution(): LLM and runtime configuration
+ * - translateDeployment(): Deployment settings
+ * - finalizeCanonical(): Build final CanonicalAgent structure
  */
 export class USAAdapter extends BaseAdapter {
   readonly framework = 'usa' as const;
@@ -267,713 +310,751 @@ export class USAAdapter extends BaseAdapter {
   }
 
   // ==========================================================================
-  // Native → Canonical Translation
+  // Native → Canonical Translation (Public API)
   // ==========================================================================
 
+  /**
+   * Translate a native USA agent specification to canonical RDF representation.
+   *
+   * This method orchestrates the translation by delegating to focused private
+   * methods for each logical section of the USA specification.
+   *
+   * @param native - The native USA agent to translate
+   * @returns Promise resolving to the canonical RDF representation
+   *
+   * @example
+   * ```typescript
+   * const adapter = new USAAdapter();
+   * const canonical = await adapter.toCanonical({
+   *   data: usaAgentSpec,
+   *   framework: 'usa',
+   *   version: 'usa/v2'
+   * });
+   * ```
+   */
   async toCanonical(native: NativeAgent): Promise<CanonicalAgent> {
-    const startTime = Date.now();
-    const warnings: TranslationWarning[] = [];
-    const mappedFields: string[] = [];
-    const unmappedFields: string[] = [];
-    const lostFields: string[] = [];
-    const extensions: ExtensionProperty[] = [];
+    // Initialize translation context
+    const ctx = this.initTranslationContext(native);
 
+    // Translate each section in logical order
+    this.translateMetadata(ctx);
+    this.translateIdentity(ctx);
+    this.translateTools(ctx);
+    this.translateReasoning(ctx);
+    this.translateMemorySystem(ctx);
+    this.translateProtocols(ctx);
+    this.translateExecution(ctx);
+    this.translateDeployment(ctx);
+
+    // Build and return final canonical agent
+    return this.finalizeCanonical(ctx);
+  }
+
+  // ==========================================================================
+  // Private Translation Methods
+  // ==========================================================================
+
+  /**
+   * Initialize the translation context with agent data and empty accumulators.
+   *
+   * Creates the agent URI, sets up tracking arrays, and adds the base
+   * rdf:type declaration for the agent.
+   *
+   * @param native - The native agent specification
+   * @returns Initialized translation context
+   *
+   * @rdf-vocabulary
+   * - rdf:type → chrysalis:Agent
+   */
+  private initTranslationContext(native: NativeAgent): USATranslationContext {
     const agent = native.data as unknown as USAAgent;
     const agentId = agent.metadata.name;
     const agentUri = this.generateAgentUri(agentId);
-    const quads: Quad[] = [];
+    
+    const ctx: USATranslationContext = {
+      agent,
+      agentUri,
+      quads: [],
+      mappedFields: [],
+      unmappedFields: [],
+      lostFields: [],
+      extensions: [],
+      warnings: [],
+      startTime: Date.now()
+    };
 
-    // Agent type declaration
-    quads.push(this.quad(
+    // Add base type declaration
+    ctx.quads.push(this.quad(
       this.uri(agentUri),
       rdf('type'),
       chrysalis('Agent')
     ));
-    mappedFields.push('kind');
+    ctx.mappedFields.push('kind');
 
-    // ========================================================================
-    // Metadata Section
-    // ========================================================================
+    return ctx;
+  }
 
-    // Name
-    quads.push(this.quad(
-      this.uri(agentUri),
-      chrysalis('name'),
-      this.literal(agent.metadata.name)
-    ));
+  /**
+   * Translate USA metadata section to canonical RDF.
+   *
+   * Handles: name, version, description, author, tags, apiVersion.
+   * The apiVersion is stored as an extension since it's USA-specific.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:name (required)
+   * - chrysalis:version
+   * - chrysalis:description
+   * - chrysalis:author
+   * - chrysalis:tags (JSON-serialized array)
+   */
+  private translateMetadata(ctx: USATranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, unmappedFields, extensions } = ctx;
+    const agentNode = this.uri(agentUri);
+
+    // Name (required)
+    quads.push(this.quad(agentNode, chrysalis('name'), this.literal(agent.metadata.name)));
     mappedFields.push('metadata.name');
 
     // Version
     if (agent.metadata.version) {
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('version'),
-        this.literal(agent.metadata.version)
-      ));
+      quads.push(this.quad(agentNode, chrysalis('version'), this.literal(agent.metadata.version)));
       mappedFields.push('metadata.version');
     }
 
     // Description
     if (agent.metadata.description) {
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('description'),
-        this.literal(agent.metadata.description)
-      ));
+      quads.push(this.quad(agentNode, chrysalis('description'), this.literal(agent.metadata.description)));
       mappedFields.push('metadata.description');
     }
 
     // Author
     if (agent.metadata.author) {
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('author'),
-        this.literal(agent.metadata.author)
-      ));
+      quads.push(this.quad(agentNode, chrysalis('author'), this.literal(agent.metadata.author)));
       mappedFields.push('metadata.author');
     }
 
-    // Tags
+    // Tags (JSON-serialized)
     if (agent.metadata.tags?.length) {
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('tags'),
-        this.literal(JSON.stringify(agent.metadata.tags))
-      ));
+      quads.push(this.quad(agentNode, chrysalis('tags'), this.literal(JSON.stringify(agent.metadata.tags))));
       mappedFields.push('metadata.tags');
     }
 
-    // API Version (USA-specific extension)
+    // API Version (USA-specific extension for lossless round-tripping)
     if (agent.apiVersion) {
-      extensions.push(this.createExtension(
-        'usa',
-        'apiVersion',
-        agent.apiVersion,
-        'apiVersion'
-      ));
+      extensions.push(this.createExtension('usa', 'apiVersion', agent.apiVersion, 'apiVersion'));
       unmappedFields.push('apiVersion');
     }
+  }
 
-    // ========================================================================
-    // Identity Section
-    // ========================================================================
+  /**
+   * Translate USA identity section to canonical RDF.
+   *
+   * Creates an AgentIdentity blank node linked via chrysalis:hasIdentity.
+   * Generates a SHA-384 fingerprint for identity verification.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:hasIdentity → blank node
+   * - chrysalis:AgentIdentity (type)
+   * - chrysalis:identifierValue (fingerprint)
+   * - chrysalis:identifierScheme ('sha384')
+   * - usa:role
+   * - usa:goal
+   * - usa:backstory
+   */
+  private translateIdentity(ctx: USATranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, unmappedFields, extensions } = ctx;
+    const agentNode = this.uri(agentUri);
 
+    // Create identity blank node
     const identityNode = this.blank(this.generateBlankId('identity'));
     
-    quads.push(this.quad(
-      this.uri(agentUri),
-      chrysalis('hasIdentity'),
-      identityNode
-    ));
+    quads.push(this.quad(agentNode, chrysalis('hasIdentity'), identityNode));
+    quads.push(this.quad(identityNode, rdf('type'), chrysalis('AgentIdentity')));
 
-    quads.push(this.quad(
-      identityNode,
-      rdf('type'),
-      chrysalis('AgentIdentity')
-    ));
-
-    // Generate fingerprint-based identity
+    // Generate and add fingerprint-based identity
     const fingerprint = this.generateFingerprint(agent);
-    quads.push(this.quad(
-      identityNode,
-      chrysalis('identifierValue'),
-      this.literal(fingerprint)
-    ));
-    quads.push(this.quad(
-      identityNode,
-      chrysalis('identifierScheme'),
-      this.literal('sha384')
-    ));
+    quads.push(this.quad(identityNode, chrysalis('identifierValue'), this.literal(fingerprint)));
+    quads.push(this.quad(identityNode, chrysalis('identifierScheme'), this.literal('sha384')));
 
-    // USA-specific identity fields
+    // Role (USA-specific predicate)
     if (agent.identity.role) {
-      quads.push(this.quad(
-        identityNode,
-        usa('role'),
-        this.literal(agent.identity.role)
-      ));
+      quads.push(this.quad(identityNode, usa('role'), this.literal(agent.identity.role)));
       mappedFields.push('identity.role');
     }
 
+    // Goal (USA-specific predicate)
     if (agent.identity.goal) {
-      quads.push(this.quad(
-        identityNode,
-        usa('goal'),
-        this.literal(agent.identity.goal)
-      ));
+      quads.push(this.quad(identityNode, usa('goal'), this.literal(agent.identity.goal)));
       mappedFields.push('identity.goal');
     }
 
+    // Backstory (USA-specific predicate)
     if (agent.identity.backstory) {
-      quads.push(this.quad(
-        identityNode,
-        usa('backstory'),
-        this.literal(agent.identity.backstory)
-      ));
+      quads.push(this.quad(identityNode, usa('backstory'), this.literal(agent.identity.backstory)));
       mappedFields.push('identity.backstory');
     }
 
-    // Personality traits (extension)
+    // Personality traits (complex object → extension)
     if (agent.identity.personality_traits) {
       extensions.push(this.createExtension(
-        'usa',
-        'personalityTraits',
-        agent.identity.personality_traits,
-        'identity.personality_traits'
+        'usa', 'personalityTraits', agent.identity.personality_traits, 'identity.personality_traits'
       ));
       unmappedFields.push('identity.personality_traits');
     }
 
-    // Constraints (extension)
+    // Constraints (array → extension)
     if (agent.identity.constraints?.length) {
       extensions.push(this.createExtension(
-        'usa',
-        'constraints',
-        agent.identity.constraints,
-        'identity.constraints'
+        'usa', 'constraints', agent.identity.constraints, 'identity.constraints'
       ));
       unmappedFields.push('identity.constraints');
     }
+  }
 
-    // ========================================================================
-    // Capabilities Section - Tools
-    // ========================================================================
-
-    if (agent.capabilities.tools?.length) {
-      for (const tool of agent.capabilities.tools) {
-        const toolNode = this.blank(this.generateBlankId('tool'));
-        
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('hasCapability'),
-          toolNode
-        ));
-
-        quads.push(this.quad(
-          toolNode,
-          rdf('type'),
-          chrysalis('Tool')
-        ));
-
-        quads.push(this.quad(
-          toolNode,
-          chrysalis('toolName'),
-          this.literal(tool.name)
-        ));
-
-        if (tool.description) {
-          quads.push(this.quad(
-            toolNode,
-            chrysalis('toolDescription'),
-            this.literal(tool.description)
-          ));
-        }
-
-        if (tool.protocol) {
-          quads.push(this.quad(
-            toolNode,
-            chrysalis('protocolVersion'),
-            this.literal(tool.protocol)
-          ));
-        }
-
-        if (tool.config) {
-          extensions.push(this.createExtension(
-            'usa',
-            `tool.${tool.name}.config`,
-            tool.config,
-            `capabilities.tools.${tool.name}.config`
-          ));
-        }
-      }
-      mappedFields.push('capabilities.tools');
+  /**
+   * Translate USA tools capabilities to canonical RDF.
+   *
+   * Each tool becomes a Tool blank node linked via chrysalis:hasCapability.
+   * Tool configs are preserved as extensions for lossless round-tripping.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:hasCapability → blank node
+   * - chrysalis:Tool (type)
+   * - chrysalis:toolName
+   * - chrysalis:toolDescription
+   * - chrysalis:protocolVersion
+   */
+  private translateTools(ctx: USATranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, extensions } = ctx;
+    
+    if (!agent.capabilities.tools?.length) {
+      return;
     }
 
-    // ========================================================================
-    // Capabilities Section - Reasoning
-    // ========================================================================
+    const agentNode = this.uri(agentUri);
 
-    if (agent.capabilities.reasoning) {
-      const reasoningStrategy = agent.capabilities.reasoning.strategy;
-      let strategyUri: NamedNode;
+    for (const tool of agent.capabilities.tools) {
+      const toolNode = this.blank(this.generateBlankId('tool'));
+      
+      // Link tool to agent
+      quads.push(this.quad(agentNode, chrysalis('hasCapability'), toolNode));
+      quads.push(this.quad(toolNode, rdf('type'), chrysalis('Tool')));
 
-      switch (reasoningStrategy) {
-        case 'chain_of_thought':
-          strategyUri = chrysalis('ChainOfThought');
-          break;
-        case 'react':
-          strategyUri = chrysalis('ReAct');
-          break;
-        case 'reflexion':
-          strategyUri = chrysalis('Reflexion');
-          break;
-        case 'tree_of_thoughts':
-          strategyUri = chrysalis('TreeOfThoughts');
-          break;
-        default:
-          strategyUri = chrysalis('ChainOfThought');
-          warnings.push({
-            severity: 'warning',
-            code: 'UNKNOWN_STRATEGY',
-            message: `Unknown reasoning strategy: ${reasoningStrategy}, defaulting to ChainOfThought`,
-            sourcePath: 'capabilities.reasoning.strategy'
-          });
+      // Tool name (required)
+      quads.push(this.quad(toolNode, chrysalis('toolName'), this.literal(tool.name)));
+
+      // Optional tool properties
+      if (tool.description) {
+        quads.push(this.quad(toolNode, chrysalis('toolDescription'), this.literal(tool.description)));
       }
 
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('usesReasoningStrategy'),
-        strategyUri
-      ));
-      mappedFields.push('capabilities.reasoning.strategy');
+      if (tool.protocol) {
+        quads.push(this.quad(toolNode, chrysalis('protocolVersion'), this.literal(tool.protocol)));
+      }
 
-      // Extension for additional reasoning config
-      if (agent.capabilities.reasoning.max_iterations || 
-          agent.capabilities.reasoning.allow_backtracking !== undefined) {
+      // Tool config (complex object → extension)
+      if (tool.config) {
         extensions.push(this.createExtension(
-          'usa',
-          'reasoningConfig',
-          agent.capabilities.reasoning,
-          'capabilities.reasoning'
+          'usa', `tool.${tool.name}.config`, tool.config, `capabilities.tools.${tool.name}.config`
         ));
-        unmappedFields.push('capabilities.reasoning.max_iterations');
-        unmappedFields.push('capabilities.reasoning.allow_backtracking');
       }
     }
 
-    // ========================================================================
-    // Capabilities Section - Memory
-    // ========================================================================
+    mappedFields.push('capabilities.tools');
+  }
 
-    if (agent.capabilities.memory) {
-      const mem = agent.capabilities.memory;
-      const memoryNode = this.blank(this.generateBlankId('memory'));
-
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('hasMemorySystem'),
-        memoryNode
-      ));
-
-      quads.push(this.quad(
-        memoryNode,
-        rdf('type'),
-        chrysalis('MemorySystem')
-      ));
-
-      // Memory architecture (USA extension)
-      quads.push(this.quad(
-        memoryNode,
-        usa('memoryArchitecture'),
-        this.literal(mem.architecture)
-      ));
-      mappedFields.push('capabilities.memory.architecture');
-
-      // Working Memory
-      if (mem.working?.enabled) {
-        const workingNode = this.blank(this.generateBlankId('working'));
-        
-        quads.push(this.quad(
-          memoryNode,
-          chrysalis('hasMemoryComponent'),
-          workingNode
-        ));
-
-        quads.push(this.quad(
-          workingNode,
-          rdf('type'),
-          chrysalis('WorkingMemory')
-        ));
-
-        quads.push(this.quad(
-          workingNode,
-          chrysalis('memoryEnabled'),
-          this.literal(true)
-        ));
-
-        if (mem.working.max_tokens) {
-          quads.push(this.quad(
-            workingNode,
-            chrysalis('maxTokens'),
-            this.literal(mem.working.max_tokens, `${XSD_NS}integer`)
-          ));
-        }
-
-        mappedFields.push('capabilities.memory.working');
-      }
-
-      // Episodic Memory
-      if (mem.episodic?.enabled) {
-        const episodicNode = this.blank(this.generateBlankId('episodic'));
-        
-        quads.push(this.quad(
-          memoryNode,
-          chrysalis('hasMemoryComponent'),
-          episodicNode
-        ));
-
-        quads.push(this.quad(
-          episodicNode,
-          rdf('type'),
-          chrysalis('EpisodicMemory')
-        ));
-
-        quads.push(this.quad(
-          episodicNode,
-          chrysalis('memoryEnabled'),
-          this.literal(true)
-        ));
-
-        if (mem.episodic.storage) {
-          quads.push(this.quad(
-            episodicNode,
-            chrysalis('storageBackend'),
-            this.literal(mem.episodic.storage)
-          ));
-        }
-
-        mappedFields.push('capabilities.memory.episodic');
-      }
-
-      // Semantic Memory
-      if (mem.semantic?.enabled) {
-        const semanticNode = this.blank(this.generateBlankId('semantic'));
-        
-        quads.push(this.quad(
-          memoryNode,
-          chrysalis('hasMemoryComponent'),
-          semanticNode
-        ));
-
-        quads.push(this.quad(
-          semanticNode,
-          rdf('type'),
-          chrysalis('SemanticMemory')
-        ));
-
-        quads.push(this.quad(
-          semanticNode,
-          chrysalis('memoryEnabled'),
-          this.literal(true)
-        ));
-
-        if (mem.semantic.storage) {
-          quads.push(this.quad(
-            semanticNode,
-            chrysalis('storageBackend'),
-            this.literal(mem.semantic.storage)
-          ));
-        }
-
-        // RAG config as extension
-        if (mem.semantic.rag) {
-          extensions.push(this.createExtension(
-            'usa',
-            'ragConfig',
-            mem.semantic.rag,
-            'capabilities.memory.semantic.rag'
-          ));
-        }
-
-        mappedFields.push('capabilities.memory.semantic');
-      }
-
-      // Procedural Memory
-      if (mem.procedural?.enabled) {
-        const proceduralNode = this.blank(this.generateBlankId('procedural'));
-        
-        quads.push(this.quad(
-          memoryNode,
-          chrysalis('hasMemoryComponent'),
-          proceduralNode
-        ));
-
-        quads.push(this.quad(
-          proceduralNode,
-          rdf('type'),
-          chrysalis('ProceduralMemory')
-        ));
-
-        quads.push(this.quad(
-          proceduralNode,
-          chrysalis('memoryEnabled'),
-          this.literal(true)
-        ));
-
-        mappedFields.push('capabilities.memory.procedural');
-      }
-
-      // Core Memory
-      if (mem.core?.enabled) {
-        const coreNode = this.blank(this.generateBlankId('core'));
-        
-        quads.push(this.quad(
-          memoryNode,
-          chrysalis('hasMemoryComponent'),
-          coreNode
-        ));
-
-        quads.push(this.quad(
-          coreNode,
-          rdf('type'),
-          chrysalis('CoreMemory')
-        ));
-
-        quads.push(this.quad(
-          coreNode,
-          chrysalis('memoryEnabled'),
-          this.literal(true)
-        ));
-
-        // Core memory blocks as extension
-        if (mem.core.blocks) {
-          extensions.push(this.createExtension(
-            'usa',
-            'coreMemoryBlocks',
-            mem.core.blocks,
-            'capabilities.memory.core.blocks'
-          ));
-        }
-
-        mappedFields.push('capabilities.memory.core');
-      }
-
-      // Embeddings config (extension)
-      if (mem.embeddings) {
-        extensions.push(this.createExtension(
-          'usa',
-          'embeddingsConfig',
-          mem.embeddings,
-          'capabilities.memory.embeddings'
-        ));
-        unmappedFields.push('capabilities.memory.embeddings');
-      }
-
-      // Storage config (extension)
-      if (mem.storage) {
-        extensions.push(this.createExtension(
-          'usa',
-          'storageConfig',
-          mem.storage,
-          'capabilities.memory.storage'
-        ));
-        unmappedFields.push('capabilities.memory.storage');
-      }
-
-      // Operations config (extension)
-      if (mem.operations) {
-        extensions.push(this.createExtension(
-          'usa',
-          'memoryOperations',
-          mem.operations,
-          'capabilities.memory.operations'
-        ));
-        unmappedFields.push('capabilities.memory.operations');
-      }
+  /**
+   * Translate USA reasoning strategy to canonical RDF.
+   *
+   * Maps strategy strings to canonical reasoning strategy URIs.
+   * Additional reasoning config is preserved as an extension.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:usesReasoningStrategy → one of:
+   *   - chrysalis:ChainOfThought
+   *   - chrysalis:ReAct
+   *   - chrysalis:Reflexion
+   *   - chrysalis:TreeOfThoughts
+   */
+  private translateReasoning(ctx: USATranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, unmappedFields, extensions, warnings } = ctx;
+    
+    if (!agent.capabilities.reasoning) {
+      return;
     }
 
-    // ========================================================================
-    // Protocols Section
-    // ========================================================================
+    const agentNode = this.uri(agentUri);
+    const reasoningStrategy = agent.capabilities.reasoning.strategy;
+    
+    // Map strategy string to canonical URI
+    const strategyUri = this.mapReasoningStrategy(reasoningStrategy, warnings);
 
-    if (agent.protocols) {
-      // MCP Protocol
-      if (agent.protocols.mcp?.enabled) {
-        const mcpNode = this.blank(this.generateBlankId('mcp'));
-        
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('supportsProtocol'),
-          mcpNode
-        ));
+    quads.push(this.quad(agentNode, chrysalis('usesReasoningStrategy'), strategyUri));
+    mappedFields.push('capabilities.reasoning.strategy');
 
-        quads.push(this.quad(
-          mcpNode,
-          rdf('type'),
-          chrysalis('MCPBinding')
-        ));
+    // Preserve additional reasoning config as extension
+    if (agent.capabilities.reasoning.max_iterations !== undefined ||
+        agent.capabilities.reasoning.allow_backtracking !== undefined) {
+      extensions.push(this.createExtension(
+        'usa', 'reasoningConfig', agent.capabilities.reasoning, 'capabilities.reasoning'
+      ));
+      unmappedFields.push('capabilities.reasoning.max_iterations');
+      unmappedFields.push('capabilities.reasoning.allow_backtracking');
+    }
+  }
 
-        if (agent.protocols.mcp.role) {
-          quads.push(this.quad(
-            mcpNode,
-            chrysalis('protocolConfig'),
-            this.literal(JSON.stringify({ role: agent.protocols.mcp.role }))
-          ));
-        }
+  /**
+   * Map a reasoning strategy string to its canonical RDF URI.
+   *
+   * @param strategy - The strategy string from USA spec
+   * @param warnings - Warnings array to append to if unknown strategy
+   * @returns The canonical NamedNode for the strategy
+   */
+  private mapReasoningStrategy(strategy: string, warnings: TranslationWarning[]): NamedNode {
+    const strategyMap: Record<string, NamedNode> = {
+      'chain_of_thought': chrysalis('ChainOfThought'),
+      'react': chrysalis('ReAct'),
+      'reflexion': chrysalis('Reflexion'),
+      'tree_of_thoughts': chrysalis('TreeOfThoughts')
+    };
 
-        // MCP servers (extension)
-        if (agent.protocols.mcp.servers) {
-          extensions.push(this.createExtension(
-            'usa',
-            'mcpServers',
-            agent.protocols.mcp.servers,
-            'protocols.mcp.servers'
-          ));
-        }
-
-        mappedFields.push('protocols.mcp');
-      }
-
-      // A2A Protocol
-      if (agent.protocols.a2a?.enabled) {
-        const a2aNode = this.blank(this.generateBlankId('a2a'));
-        
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('supportsProtocol'),
-          a2aNode
-        ));
-
-        quads.push(this.quad(
-          a2aNode,
-          rdf('type'),
-          chrysalis('A2ABinding')
-        ));
-
-        mappedFields.push('protocols.a2a');
-      }
-
-      // Agent Protocol
-      if (agent.protocols.agent_protocol?.enabled) {
-        const apNode = this.blank(this.generateBlankId('ap'));
-        
-        quads.push(this.quad(
-          this.uri(agentUri),
-          chrysalis('supportsProtocol'),
-          apNode
-        ));
-
-        quads.push(this.quad(
-          apNode,
-          rdf('type'),
-          chrysalis('AgentProtocolBinding')
-        ));
-
-        if (agent.protocols.agent_protocol.endpoint) {
-          quads.push(this.quad(
-            apNode,
-            chrysalis('endpointUrl'),
-            this.literal(agent.protocols.agent_protocol.endpoint)
-          ));
-        }
-
-        mappedFields.push('protocols.agent_protocol');
-      }
+    const mapped = strategyMap[strategy];
+    if (mapped) {
+      return mapped;
     }
 
-    // ========================================================================
-    // Execution Section - LLM Config
-    // ========================================================================
+    // Unknown strategy - warn and default
+    warnings.push({
+      severity: 'warning',
+      code: 'UNKNOWN_STRATEGY',
+      message: `Unknown reasoning strategy: ${strategy}, defaulting to ChainOfThought`,
+      sourcePath: 'capabilities.reasoning.strategy'
+    });
+    return chrysalis('ChainOfThought');
+  }
 
+  /**
+   * Translate USA memory system to canonical RDF.
+   *
+   * Creates a MemorySystem blank node with component nodes for each
+   * memory type (working, episodic, semantic, procedural, core).
+   * Complex configs (embeddings, storage, operations) are preserved as extensions.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:hasMemorySystem → blank node
+   * - chrysalis:MemorySystem (type)
+   * - usa:memoryArchitecture
+   * - chrysalis:hasMemoryComponent → component nodes
+   * - Memory types: WorkingMemory, EpisodicMemory, SemanticMemory, ProceduralMemory, CoreMemory
+   */
+  private translateMemorySystem(ctx: USATranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, unmappedFields, extensions } = ctx;
+    
+    if (!agent.capabilities.memory) {
+      return;
+    }
+
+    const mem = agent.capabilities.memory;
+    const agentNode = this.uri(agentUri);
+
+    // Create memory system node
+    const memoryNode = this.blank(this.generateBlankId('memory'));
+    quads.push(this.quad(agentNode, chrysalis('hasMemorySystem'), memoryNode));
+    quads.push(this.quad(memoryNode, rdf('type'), chrysalis('MemorySystem')));
+
+    // Memory architecture (USA-specific)
+    quads.push(this.quad(memoryNode, usa('memoryArchitecture'), this.literal(mem.architecture)));
+    mappedFields.push('capabilities.memory.architecture');
+
+    // Translate each memory component
+    this.translateWorkingMemory(memoryNode, mem, ctx);
+    this.translateEpisodicMemory(memoryNode, mem, ctx);
+    this.translateSemanticMemory(memoryNode, mem, ctx);
+    this.translateProceduralMemory(memoryNode, mem, ctx);
+    this.translateCoreMemory(memoryNode, mem, ctx);
+
+    // Complex configs as extensions
+    if (mem.embeddings) {
+      extensions.push(this.createExtension('usa', 'embeddingsConfig', mem.embeddings, 'capabilities.memory.embeddings'));
+      unmappedFields.push('capabilities.memory.embeddings');
+    }
+
+    if (mem.storage) {
+      extensions.push(this.createExtension('usa', 'storageConfig', mem.storage, 'capabilities.memory.storage'));
+      unmappedFields.push('capabilities.memory.storage');
+    }
+
+    if (mem.operations) {
+      extensions.push(this.createExtension('usa', 'memoryOperations', mem.operations, 'capabilities.memory.operations'));
+      unmappedFields.push('capabilities.memory.operations');
+    }
+  }
+
+  /**
+   * Translate working memory component to RDF.
+   *
+   * @param memoryNode - Parent memory system node
+   * @param mem - USA memory configuration
+   * @param ctx - Translation context
+   */
+  private translateWorkingMemory(memoryNode: BlankNode, mem: USAMemory, ctx: USATranslationContext): void {
+    if (!mem.working?.enabled) {
+      return;
+    }
+
+    const workingNode = this.blank(this.generateBlankId('working'));
+    
+    ctx.quads.push(this.quad(memoryNode, chrysalis('hasMemoryComponent'), workingNode));
+    ctx.quads.push(this.quad(workingNode, rdf('type'), chrysalis('WorkingMemory')));
+    ctx.quads.push(this.quad(workingNode, chrysalis('memoryEnabled'), this.literal(true)));
+
+    if (mem.working.max_tokens) {
+      ctx.quads.push(this.quad(
+        workingNode, chrysalis('maxTokens'), this.literal(mem.working.max_tokens, `${XSD_NS}integer`)
+      ));
+    }
+
+    ctx.mappedFields.push('capabilities.memory.working');
+  }
+
+  /**
+   * Translate episodic memory component to RDF.
+   *
+   * @param memoryNode - Parent memory system node
+   * @param mem - USA memory configuration
+   * @param ctx - Translation context
+   */
+  private translateEpisodicMemory(memoryNode: BlankNode, mem: USAMemory, ctx: USATranslationContext): void {
+    if (!mem.episodic?.enabled) {
+      return;
+    }
+
+    const episodicNode = this.blank(this.generateBlankId('episodic'));
+    
+    ctx.quads.push(this.quad(memoryNode, chrysalis('hasMemoryComponent'), episodicNode));
+    ctx.quads.push(this.quad(episodicNode, rdf('type'), chrysalis('EpisodicMemory')));
+    ctx.quads.push(this.quad(episodicNode, chrysalis('memoryEnabled'), this.literal(true)));
+
+    if (mem.episodic.storage) {
+      ctx.quads.push(this.quad(episodicNode, chrysalis('storageBackend'), this.literal(mem.episodic.storage)));
+    }
+
+    ctx.mappedFields.push('capabilities.memory.episodic');
+  }
+
+  /**
+   * Translate semantic memory component to RDF.
+   * RAG config is preserved as an extension.
+   *
+   * @param memoryNode - Parent memory system node
+   * @param mem - USA memory configuration
+   * @param ctx - Translation context
+   */
+  private translateSemanticMemory(memoryNode: BlankNode, mem: USAMemory, ctx: USATranslationContext): void {
+    if (!mem.semantic?.enabled) {
+      return;
+    }
+
+    const semanticNode = this.blank(this.generateBlankId('semantic'));
+    
+    ctx.quads.push(this.quad(memoryNode, chrysalis('hasMemoryComponent'), semanticNode));
+    ctx.quads.push(this.quad(semanticNode, rdf('type'), chrysalis('SemanticMemory')));
+    ctx.quads.push(this.quad(semanticNode, chrysalis('memoryEnabled'), this.literal(true)));
+
+    if (mem.semantic.storage) {
+      ctx.quads.push(this.quad(semanticNode, chrysalis('storageBackend'), this.literal(mem.semantic.storage)));
+    }
+
+    // RAG config as extension
+    if (mem.semantic.rag) {
+      ctx.extensions.push(this.createExtension(
+        'usa', 'ragConfig', mem.semantic.rag, 'capabilities.memory.semantic.rag'
+      ));
+    }
+
+    ctx.mappedFields.push('capabilities.memory.semantic');
+  }
+
+  /**
+   * Translate procedural memory component to RDF.
+   *
+   * @param memoryNode - Parent memory system node
+   * @param mem - USA memory configuration
+   * @param ctx - Translation context
+   */
+  private translateProceduralMemory(memoryNode: BlankNode, mem: USAMemory, ctx: USATranslationContext): void {
+    if (!mem.procedural?.enabled) {
+      return;
+    }
+
+    const proceduralNode = this.blank(this.generateBlankId('procedural'));
+    
+    ctx.quads.push(this.quad(memoryNode, chrysalis('hasMemoryComponent'), proceduralNode));
+    ctx.quads.push(this.quad(proceduralNode, rdf('type'), chrysalis('ProceduralMemory')));
+    ctx.quads.push(this.quad(proceduralNode, chrysalis('memoryEnabled'), this.literal(true)));
+
+    ctx.mappedFields.push('capabilities.memory.procedural');
+  }
+
+  /**
+   * Translate core memory component to RDF.
+   * Core memory blocks are preserved as an extension.
+   *
+   * @param memoryNode - Parent memory system node
+   * @param mem - USA memory configuration
+   * @param ctx - Translation context
+   */
+  private translateCoreMemory(memoryNode: BlankNode, mem: USAMemory, ctx: USATranslationContext): void {
+    if (!mem.core?.enabled) {
+      return;
+    }
+
+    const coreNode = this.blank(this.generateBlankId('core'));
+    
+    ctx.quads.push(this.quad(memoryNode, chrysalis('hasMemoryComponent'), coreNode));
+    ctx.quads.push(this.quad(coreNode, rdf('type'), chrysalis('CoreMemory')));
+    ctx.quads.push(this.quad(coreNode, chrysalis('memoryEnabled'), this.literal(true)));
+
+    // Core memory blocks as extension
+    if (mem.core.blocks) {
+      ctx.extensions.push(this.createExtension(
+        'usa', 'coreMemoryBlocks', mem.core.blocks, 'capabilities.memory.core.blocks'
+      ));
+    }
+
+    ctx.mappedFields.push('capabilities.memory.core');
+  }
+
+  /**
+   * Translate USA protocol bindings to canonical RDF.
+   *
+   * Handles MCP, A2A, and Agent Protocol bindings.
+   * MCP servers configuration is preserved as an extension.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:supportsProtocol → binding nodes
+   * - chrysalis:MCPBinding, A2ABinding, AgentProtocolBinding (types)
+   * - chrysalis:protocolConfig (JSON)
+   * - chrysalis:endpointUrl
+   */
+  private translateProtocols(ctx: USATranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, extensions } = ctx;
+    
+    if (!agent.protocols) {
+      return;
+    }
+
+    const agentNode = this.uri(agentUri);
+
+    // MCP Protocol
+    if (agent.protocols.mcp?.enabled) {
+      this.translateMCPProtocol(agentNode, agent.protocols.mcp, ctx);
+      mappedFields.push('protocols.mcp');
+    }
+
+    // A2A Protocol
+    if (agent.protocols.a2a?.enabled) {
+      const a2aNode = this.blank(this.generateBlankId('a2a'));
+      quads.push(this.quad(agentNode, chrysalis('supportsProtocol'), a2aNode));
+      quads.push(this.quad(a2aNode, rdf('type'), chrysalis('A2ABinding')));
+      mappedFields.push('protocols.a2a');
+    }
+
+    // Agent Protocol
+    if (agent.protocols.agent_protocol?.enabled) {
+      this.translateAgentProtocol(agentNode, agent.protocols.agent_protocol, ctx);
+      mappedFields.push('protocols.agent_protocol');
+    }
+  }
+
+  /**
+   * Translate MCP protocol binding to RDF.
+   *
+   * @param agentNode - The agent URI node
+   * @param mcp - MCP protocol configuration
+   * @param ctx - Translation context
+   */
+  private translateMCPProtocol(
+    agentNode: NamedNode,
+    mcp: NonNullable<USAProtocols['mcp']>,
+    ctx: USATranslationContext
+  ): void {
+    const mcpNode = this.blank(this.generateBlankId('mcp'));
+    
+    ctx.quads.push(this.quad(agentNode, chrysalis('supportsProtocol'), mcpNode));
+    ctx.quads.push(this.quad(mcpNode, rdf('type'), chrysalis('MCPBinding')));
+
+    if (mcp.role) {
+      ctx.quads.push(this.quad(
+        mcpNode, chrysalis('protocolConfig'), this.literal(JSON.stringify({ role: mcp.role }))
+      ));
+    }
+
+    // MCP servers as extension
+    if (mcp.servers) {
+      ctx.extensions.push(this.createExtension('usa', 'mcpServers', mcp.servers, 'protocols.mcp.servers'));
+    }
+  }
+
+  /**
+   * Translate Agent Protocol binding to RDF.
+   *
+   * @param agentNode - The agent URI node
+   * @param ap - Agent Protocol configuration
+   * @param ctx - Translation context
+   */
+  private translateAgentProtocol(
+    agentNode: NamedNode,
+    ap: NonNullable<USAProtocols['agent_protocol']>,
+    ctx: USATranslationContext
+  ): void {
+    const apNode = this.blank(this.generateBlankId('ap'));
+    
+    ctx.quads.push(this.quad(agentNode, chrysalis('supportsProtocol'), apNode));
+    ctx.quads.push(this.quad(apNode, rdf('type'), chrysalis('AgentProtocolBinding')));
+
+    if (ap.endpoint) {
+      ctx.quads.push(this.quad(apNode, chrysalis('endpointUrl'), this.literal(ap.endpoint)));
+    }
+  }
+
+  /**
+   * Translate USA execution configuration to canonical RDF.
+   *
+   * Creates an LLMConfig node with provider, model, temperature, max_tokens.
+   * Additional LLM parameters and runtime config are preserved as extensions.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - chrysalis:hasExecutionConfig → blank node
+   * - chrysalis:LLMConfig (type)
+   * - chrysalis:llmProvider
+   * - chrysalis:llmModel
+   * - chrysalis:temperature (xsd:float)
+   * - chrysalis:maxOutputTokens (xsd:integer)
+   */
+  private translateExecution(ctx: USATranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, unmappedFields, extensions } = ctx;
+    const agentNode = this.uri(agentUri);
+
+    // LLM Configuration
     if (agent.execution?.llm) {
       const llmNode = this.blank(this.generateBlankId('llm'));
       
-      quads.push(this.quad(
-        this.uri(agentUri),
-        chrysalis('hasExecutionConfig'),
-        llmNode
-      ));
+      quads.push(this.quad(agentNode, chrysalis('hasExecutionConfig'), llmNode));
+      quads.push(this.quad(llmNode, rdf('type'), chrysalis('LLMConfig')));
 
-      quads.push(this.quad(
-        llmNode,
-        rdf('type'),
-        chrysalis('LLMConfig')
-      ));
-
-      quads.push(this.quad(
-        llmNode,
-        chrysalis('llmProvider'),
-        this.literal(agent.execution.llm.provider)
-      ));
+      // Required LLM properties
+      quads.push(this.quad(llmNode, chrysalis('llmProvider'), this.literal(agent.execution.llm.provider)));
       mappedFields.push('execution.llm.provider');
 
-      quads.push(this.quad(
-        llmNode,
-        chrysalis('llmModel'),
-        this.literal(agent.execution.llm.model)
-      ));
+      quads.push(this.quad(llmNode, chrysalis('llmModel'), this.literal(agent.execution.llm.model)));
       mappedFields.push('execution.llm.model');
 
+      // Optional LLM properties
       if (agent.execution.llm.temperature !== undefined) {
         quads.push(this.quad(
-          llmNode,
-          chrysalis('temperature'),
-          this.literal(agent.execution.llm.temperature, `${XSD_NS}float`)
+          llmNode, chrysalis('temperature'), this.literal(agent.execution.llm.temperature, `${XSD_NS}float`)
         ));
         mappedFields.push('execution.llm.temperature');
       }
 
       if (agent.execution.llm.max_tokens !== undefined) {
         quads.push(this.quad(
-          llmNode,
-          chrysalis('maxOutputTokens'),
-          this.literal(agent.execution.llm.max_tokens, `${XSD_NS}integer`)
+          llmNode, chrysalis('maxOutputTokens'), this.literal(agent.execution.llm.max_tokens, `${XSD_NS}integer`)
         ));
         mappedFields.push('execution.llm.max_tokens');
       }
 
-      // Additional LLM parameters (extension)
+      // Additional LLM parameters as extension
       if (agent.execution.llm.parameters) {
         extensions.push(this.createExtension(
-          'usa',
-          'llmParameters',
-          agent.execution.llm.parameters,
-          'execution.llm.parameters'
+          'usa', 'llmParameters', agent.execution.llm.parameters, 'execution.llm.parameters'
         ));
         unmappedFields.push('execution.llm.parameters');
       }
     }
 
-    // Runtime config (extension)
+    // Runtime config as extension
     if (agent.execution?.runtime) {
       extensions.push(this.createExtension(
-        'usa',
-        'runtimeConfig',
-        agent.execution.runtime,
-        'execution.runtime'
+        'usa', 'runtimeConfig', agent.execution.runtime, 'execution.runtime'
       ));
       unmappedFields.push('execution.runtime');
     }
+  }
 
-    // ========================================================================
-    // Deployment Section (extension)
-    // ========================================================================
-
-    if (agent.deployment) {
-      extensions.push(this.createExtension(
-        'usa',
-        'deploymentConfig',
-        agent.deployment,
-        'deployment'
-      ));
-
-      // Deployment context as specific property
-      if (agent.deployment.context) {
-        quads.push(this.quad(
-          this.uri(agentUri),
-          usa('deploymentContext'),
-          this.literal(agent.deployment.context)
-        ));
-        mappedFields.push('deployment.context');
-      }
-
-      unmappedFields.push('deployment');
+  /**
+   * Translate USA deployment configuration to canonical RDF.
+   *
+   * Deployment context gets its own USA-namespace predicate.
+   * Full deployment config is preserved as an extension.
+   *
+   * @param ctx - Translation context to mutate
+   *
+   * @rdf-vocabulary
+   * - usa:deploymentContext
+   */
+  private translateDeployment(ctx: USATranslationContext): void {
+    const { agent, agentUri, quads, mappedFields, unmappedFields, extensions } = ctx;
+    
+    if (!agent.deployment) {
+      return;
     }
 
-    // ========================================================================
-    // Build Canonical Agent
-    // ========================================================================
+    const agentNode = this.uri(agentUri);
 
+    // Full deployment config as extension
+    extensions.push(this.createExtension('usa', 'deploymentConfig', agent.deployment, 'deployment'));
+
+    // Deployment context as specific property
+    if (agent.deployment.context) {
+      quads.push(this.quad(agentNode, usa('deploymentContext'), this.literal(agent.deployment.context)));
+      mappedFields.push('deployment.context');
+    }
+
+    unmappedFields.push('deployment');
+  }
+
+  /**
+   * Finalize and build the canonical agent from translation context.
+   *
+   * Creates the CanonicalAgent structure with all accumulated quads,
+   * extensions, and metadata. Adds provenance triples if configured.
+   *
+   * @param ctx - Completed translation context
+   * @returns The finalized CanonicalAgent
+   */
+  private finalizeCanonical(ctx: USATranslationContext): CanonicalAgent {
     const canonical: CanonicalAgent = {
-      uri: agentUri,
-      quads,
+      uri: ctx.agentUri,
+      quads: ctx.quads,
       sourceFramework: 'usa',
-      extensions,
-      metadata: this.createMetadata(startTime, mappedFields, unmappedFields, lostFields, warnings)
+      extensions: ctx.extensions,
+      metadata: this.createMetadata(
+        ctx.startTime,
+        ctx.mappedFields,
+        ctx.unmappedFields,
+        ctx.lostFields,
+        ctx.warnings
+      )
     };
 
-    // Add provenance if configured
-    this.addProvenanceTriples(canonical.quads, agentUri, canonical);
+    // Add provenance triples if configured
+    this.addProvenanceTriples(canonical.quads, ctx.agentUri, canonical);
 
     return canonical;
   }
