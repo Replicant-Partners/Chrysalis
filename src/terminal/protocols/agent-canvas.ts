@@ -215,6 +215,7 @@ export type AgentErrorCode =
  */
 export interface DataResourceLink {
   id: string;
+  resourceId: string;    // Reference ID for the resource
   type: DataResourceType;
   name: string;
   
@@ -241,12 +242,17 @@ export interface DataResourceLink {
  * Types of data resources
  */
 export type DataResourceType =
-  | 'memory'       // Agent memory state
-  | 'knowledge'    // Knowledge base
-  | 'skills'       // Skill definitions
-  | 'credentials'  // API keys, tokens (encrypted)
-  | 'context'      // Conversation context
-  | 'artifacts';   // Generated outputs
+  | 'memory'         // Agent memory state
+  | 'knowledge'      // Knowledge base
+  | 'skills'         // Skill definitions
+  | 'credentials'    // API keys, tokens (encrypted)
+  | 'context'        // Conversation context
+  | 'artifacts'      // Generated outputs
+  | 'api'            // External API connections
+  | 'database'       // Database connections
+  | 'vector_db'      // Vector database (embeddings)
+  | 'file_storage'   // File storage systems
+  | 'knowledge_base'; // Extended knowledge base
 
 // ============================================================================
 // Agent Node Widget
@@ -452,7 +458,12 @@ export const DATA_RESOURCE_ICONS: Record<DataResourceType, string> = {
   skills: '⚡',
   credentials: '🔐',
   context: '💬',
-  artifacts: '📦'
+  artifacts: '📦',
+  api: '🔌',
+  database: '🗄️',
+  vector_db: '📊',
+  file_storage: '📁',
+  knowledge_base: '📖',
 };
 
 // ============================================================================
@@ -545,3 +556,46 @@ export function createEmptyAgentCanvasState(
     agents: []
   };
 }
+
+/**
+ * Create a canvas agent from spec
+ */
+export function createCanvasAgent(
+  spec: AgentSpecSummary,
+  importedBy: ParticipantId,
+  options: Partial<{
+    sourceFormat: AgentSourceFormat;
+    position: AgentPosition;
+    customId: string;
+  }> = {}
+): CanvasAgent {
+  const now = Date.now();
+  const id = options.customId || `agent-${now}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  return {
+    id,
+    spec,
+    state: 'dormant',
+    stateChangedAt: now,
+    sourceFormat: options.sourceFormat || 'usa',
+    importedAt: now,
+    importedBy,
+    totalAwakeTime: 0,
+    sessionCount: 0,
+    position: options.position || createDefaultAgentPosition(),
+    dataResources: [],
+  };
+}
+
+/**
+ * Canvas constants
+ */
+export const AGENT_CANVAS_CONSTANTS = {
+  MAX_AGENTS_PER_CANVAS: 50,
+  MAX_DATA_RESOURCES_PER_AGENT: 20,
+  DEFAULT_WAKE_TIMEOUT_MS: 30000,
+  DEFAULT_SLEEP_TIMEOUT_MS: 10000,
+  MIN_NODE_DISTANCE: 20,
+  GRID_SIZE: 20,
+  VERSION: '1.0.0',
+} as const;

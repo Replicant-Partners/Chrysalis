@@ -21,6 +21,7 @@ import {
     QualityMetrics,
     QualityToolConfig,
 } from './QualityToolInterface';
+import { Result, ResultUtils, isFailure, getError } from './Result';
 
 /**
  * Base Python Tool Adapter
@@ -110,6 +111,16 @@ abstract class BasePythonTool implements IQualityTool {
     }
 
     /**
+     * Execute command with Result wrapper (Result pattern)
+     */
+    protected async executeCommandResult(
+        args: string[],
+        options?: { timeout?: number; cwd?: string }
+    ): Promise<Result<{ exitCode: number; stdout: string; stderr: string }>> {
+        return ResultUtils.fromPromise(this.executeCommand(args, options));
+    }
+
+    /**
      * Parse tool output (to be implemented by subclasses)
      */
     protected abstract parseOutput(
@@ -118,6 +129,58 @@ abstract class BasePythonTool implements IQualityTool {
         exitCode: number,
         executionTime: number
     ): QualityToolResult;
+
+    /**
+     * Create error result for tool execution failure
+     *
+     * Reduces code duplication across adapters (DRY principle).
+     *
+     * @param error - The error that occurred
+     * @param targetPath - Path that was being checked
+     * @param executionTime - Time elapsed before error
+     * @returns Standardized error result
+     */
+    protected createErrorResult(
+        error: any,
+        targetPath: string,
+        executionTime: number
+    ): QualityToolResult {
+        return {
+            tool_name: this.name,
+            tool_version: this.version,
+            success: false,
+            errors: [
+                {
+                    severity: 'error',
+                    message: error?.message || `${this.name} execution failed`,
+                    file_path: targetPath,
+                },
+            ],
+            warnings: [],
+            metrics: this.createEmptyMetrics(1),
+            execution_time_ms: executionTime,
+            timestamp: new Date().toISOString(),
+            error_output: error?.message,
+        };
+    }
+
+    /**
+     * Create empty metrics with optional error count
+     *
+     * @param errorCount - Number of errors (default 0)
+     * @returns Empty metrics object
+     */
+    protected createEmptyMetrics(errorCount: number = 0): QualityMetrics {
+        return {
+            total_issues: errorCount,
+            errors: errorCount,
+            warnings: 0,
+            info: 0,
+            fixable_issues: 0,
+            files_checked: 0,
+            files_with_issues: errorCount > 0 ? 1 : 0,
+        };
+    }
 }
 
 /**
@@ -154,41 +217,18 @@ export class Flake8Adapter extends BasePythonTool {
             args.push('--max-complexity', String(cfg.options.max_complexity));
         }
 
-        try {
-            const { stdout, stderr, exitCode } = await this.executeCommand(
-                args,
-                { timeout: cfg.timeout_ms || 300000 }
-            );
+        const commandResult = await this.executeCommandResult(args, {
+            timeout: cfg.timeout_ms || 300000,
+        });
 
-            const executionTime = Date.now() - startTime;
-            return this.parseOutput(stdout, stderr, exitCode, executionTime);
-        } catch (error: any) {
-            const executionTime = Date.now() - startTime;
-            return {
-                tool_name: this.name,
-                success: false,
-                errors: [
-                    {
-                        severity: 'error',
-                        message: error.message || 'Flake8 execution failed',
-                        file_path: targetPath,
-                    },
-                ],
-                warnings: [],
-                metrics: {
-                    total_issues: 1,
-                    errors: 1,
-                    warnings: 0,
-                    info: 0,
-                    fixable_issues: 0,
-                    files_checked: 0,
-                    files_with_issues: 0,
-                },
-                execution_time_ms: executionTime,
-                timestamp: new Date().toISOString(),
-                error_output: error.message,
-            };
+        const executionTime = Date.now() - startTime;
+
+        if (isFailure(commandResult)) {
+            return this.createErrorResult(getError(commandResult), targetPath, executionTime);
         }
+
+        const { stdout, stderr, exitCode } = commandResult.value;
+        return this.parseOutput(stdout, stderr, exitCode, executionTime);
     }
 
     getDefaultConfig(): QualityToolConfig {
@@ -301,30 +341,7 @@ export class BlackAdapter extends BasePythonTool {
             return this.parseOutput(stdout, stderr, exitCode, executionTime);
         } catch (error: any) {
             const executionTime = Date.now() - startTime;
-            return {
-                tool_name: this.name,
-                success: false,
-                errors: [
-                    {
-                        severity: 'error',
-                        message: error.message || 'Black execution failed',
-                        file_path: targetPath,
-                    },
-                ],
-                warnings: [],
-                metrics: {
-                    total_issues: 1,
-                    errors: 1,
-                    warnings: 0,
-                    info: 0,
-                    fixable_issues: 0,
-                    files_checked: 0,
-                    files_with_issues: 0,
-                },
-                execution_time_ms: executionTime,
-                timestamp: new Date().toISOString(),
-                error_output: error.message,
-            };
+            return this.createErrorResult(error, targetPath, executionTime);
         }
     }
 
@@ -370,30 +387,7 @@ export class BlackAdapter extends BasePythonTool {
             };
         } catch (error: any) {
             const executionTime = Date.now() - startTime;
-            return {
-                tool_name: this.name,
-                success: false,
-                errors: [
-                    {
-                        severity: 'error',
-                        message: error.message || 'Black fix execution failed',
-                        file_path: targetPath,
-                    },
-                ],
-                warnings: [],
-                metrics: {
-                    total_issues: 1,
-                    errors: 1,
-                    warnings: 0,
-                    info: 0,
-                    fixable_issues: 0,
-                    files_checked: 0,
-                    files_with_issues: 0,
-                },
-                execution_time_ms: executionTime,
-                timestamp: new Date().toISOString(),
-                error_output: error.message,
-            };
+            return this.createErrorResult(error, targetPath, executionTime);
         }
     }
 
@@ -493,30 +487,7 @@ export class MyPyAdapter extends BasePythonTool {
             return this.parseOutput(stdout, stderr, exitCode, executionTime);
         } catch (error: any) {
             const executionTime = Date.now() - startTime;
-            return {
-                tool_name: this.name,
-                success: false,
-                errors: [
-                    {
-                        severity: 'error',
-                        message: error.message || 'MyPy execution failed',
-                        file_path: targetPath,
-                    },
-                ],
-                warnings: [],
-                metrics: {
-                    total_issues: 1,
-                    errors: 1,
-                    warnings: 0,
-                    info: 0,
-                    fixable_issues: 0,
-                    files_checked: 0,
-                    files_with_issues: 0,
-                },
-                execution_time_ms: executionTime,
-                timestamp: new Date().toISOString(),
-                error_output: error.message,
-            };
+            return this.createErrorResult(error, targetPath, executionTime);
         }
     }
 

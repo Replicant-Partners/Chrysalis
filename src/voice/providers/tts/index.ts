@@ -42,8 +42,9 @@ export const DEFAULT_TTS_FALLBACK_CHAIN: TTSProviderType[] = [
  */
 export async function createTTSProvider(
   type: TTSProviderType,
-  config: TTSProviderConfig = {}
+  config: Partial<Omit<TTSProviderConfig, 'provider'>> = {}
 ): Promise<ITTSProvider> {
+  const fullConfig: TTSProviderConfig = { provider: type, ...config };
   let provider: BaseTTSProvider;
   
   switch (type) {
@@ -63,7 +64,7 @@ export async function createTTSProvider(
       throw new Error(`Unknown TTS provider type: ${type}`);
   }
   
-  await provider.initialize(config);
+  await provider.initialize(fullConfig);
   return provider;
 }
 
@@ -77,7 +78,7 @@ export async function createTTSProvider(
  * @returns Initialized TTS provider
  */
 export async function createTTSProviderWithFallback(
-  config: TTSProviderConfig = {},
+  config: Partial<Omit<TTSProviderConfig, 'provider'>> = {},
   fallbackChain: TTSProviderType[] = DEFAULT_TTS_FALLBACK_CHAIN
 ): Promise<ITTSProvider> {
   const errors: Array<{ type: TTSProviderType; error: Error }> = [];
@@ -155,11 +156,11 @@ export async function getAvailableTTSProviders(): Promise<TTSProviderType[]> {
  */
 export class TTSProviderManager {
   private provider: ITTSProvider | null = null;
-  private config: TTSProviderConfig;
+  private config: Partial<Omit<TTSProviderConfig, 'provider'>>;
   private fallbackChain: TTSProviderType[];
   
   constructor(
-    config: TTSProviderConfig = {},
+    config: Partial<Omit<TTSProviderConfig, 'provider'>> = {},
     fallbackChain: TTSProviderType[] = DEFAULT_TTS_FALLBACK_CHAIN
   ) {
     this.config = config;
@@ -218,8 +219,8 @@ export class TTSProviderManager {
    */
   async synthesize(
     text: string,
-    options?: { voiceId?: string; speed?: number; pitch?: number }
-  ): Promise<{ blob: Blob; mimeType: string; durationMs: number }> {
+    options?: { speed?: number; pitch?: number }
+  ): Promise<import('../../types').AudioBlob> {
     const provider = await this.getProvider();
     return provider.synthesize(text, options);
   }
@@ -227,12 +228,7 @@ export class TTSProviderManager {
   /**
    * List available voices from current provider
    */
-  async listVoices(): Promise<Array<{
-    id: string;
-    name: string;
-    gender: string;
-    language: string;
-  }>> {
+  async listVoices(): Promise<import('../../types').VoiceProfile[]> {
     const provider = await this.getProvider();
     return provider.listVoices();
   }

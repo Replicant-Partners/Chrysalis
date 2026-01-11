@@ -5,6 +5,7 @@
 [![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](package.json)
+[![Build](https://img.shields.io/badge/build-issues-orange.svg)](docs/IMPLEMENTATION_STATUS.md)
 
 ---
 
@@ -31,6 +32,20 @@ flowchart LR
 
 ---
 
+## Current Status
+
+> ⚠️ **Active Development**: The system has known build issues. See [Implementation Status](docs/IMPLEMENTATION_STATUS.md) for details.
+
+| Component | Status |
+|-----------|--------|
+| TypeScript Core | ⚠️ Build errors in voice module |
+| Python Memory System | ⚠️ Test collection issues |
+| Core Functionality | ✅ Implemented (pending build fix) |
+
+**For authoritative status**: See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)
+
+---
+
 ## Quick Start
 
 ### Prerequisites
@@ -49,66 +64,23 @@ cd Chrysalis
 # Install TypeScript dependencies
 npm install
 
-# Build
+# Build (see status note above)
 npm run build
-
-# Verify
-npm run test:unit
 ```
 
-### Basic Usage
-
-```typescript
-import { createPatternResolver } from './src/fabric/PatternResolver';
-import { MemoryMerger } from './src/experience/MemoryMerger';
-import { ExperienceSyncManager } from './src/sync/ExperienceSyncManager';
-
-// Create pattern resolver (adaptive mode)
-const resolver = createPatternResolver('adaptive');
-
-// Use cryptographic patterns
-const hashImpl = await resolver.resolveHash();
-const fingerprint = await hashImpl.implementation.generateFingerprint(agent.identity);
-
-// Merge memories with deduplication
-const merger = new MemoryMerger({
-  similarity_method: 'jaccard',
-  similarity_threshold: 0.9
-});
-await merger.mergeBatch(agent, memories, 'instance-1');
-
-// Sync experiences from instances
-const syncManager = new ExperienceSyncManager();
-await syncManager.initializeSync('instance-1', 'streaming', config, agent);
-```
-
-### Python Memory System
+### Verify Installation
 
 ```bash
-# Install Python package
-pip install -e memory_system/
+# Check build status
+npm run build 2>&1 | tail -5
 
-# Run tests
-cd memory_system && python3 -m pytest tests/ -v
-```
-
-```python
-from memory_system.semantic import HeuristicStrategy
-from memory_system.embedding import EmbeddingService
-
-# Semantic decomposition
-strategy = HeuristicStrategy()
-frame = await strategy.decompose("fix the login bug in auth.py")
-print(frame.intent)  # Intent.DEBUG
-
-# Embeddings with fallback
-service = EmbeddingService(model="voyage-3")
-vector = service.embed("Knowledge representation")
+# Run tests (requires successful build)
+npm run test:unit
 ```
 
 ---
 
-## Key Capabilities
+## Core Capabilities
 
 ### Implemented ✅
 
@@ -120,13 +92,13 @@ vector = service.embed("Knowledge representation")
 | **Experience Sync** | Streaming, lumped, and check-in protocols | [`ExperienceSyncManager.ts`](src/sync/ExperienceSyncManager.ts) |
 | **Observability** | Voyeur event bus + SSE viewer + Prometheus metrics | [`src/observability/`](src/observability/) |
 | **Circuit Breaker** | Fault tolerance for external service calls | [`CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
-| **Python Semantic Services** | 7 modules, 84 tests passing | [`memory_system/`](memory_system/) |
 
 ### In Progress 🔄
 
-- MCP client SDK integration with PatternResolver
-- Sanitizer hardening (PII detection, allowlists)
-- Go gRPC test verification
+| Feature | Description | Blocking Issue |
+|---------|-------------|----------------|
+| Voice Integration | TTS/STT providers | Build errors in voice module |
+| MCP Client Integration | PatternResolver → MCP servers | Implementation incomplete |
 
 ### Planned 📋
 
@@ -155,10 +127,11 @@ Chrysalis/
 │   ├── converters/           # Document processing
 │   ├── embedding/            # Vector embeddings
 │   └── analysis/             # Shannon entropy
+├── ui/                       # React frontend
 ├── docs/                     # Documentation
-│   ├── current/              # Active specifications
-│   ├── research/             # Research foundation
-│   └── archive/              # Historical versions
+│   ├── IMPLEMENTATION_STATUS.md  # Current status
+│   ├── INDEX.md              # Documentation index
+│   └── ...
 ├── examples/                 # Usage examples
 └── tests/                    # Test suites
 ```
@@ -169,17 +142,17 @@ Chrysalis/
 
 | Document | Purpose |
 |----------|---------|
+| **[Documentation Index](docs/INDEX.md)** | Navigation hub for all docs |
+| **[Implementation Status](docs/IMPLEMENTATION_STATUS.md)** | Current build state and known issues |
 | **[Architecture](ARCHITECTURE.md)** | System design, components, data flow |
-| **[Status](docs/current/STATUS.md)** | Implementation status, remaining work |
-| **[Documentation Index](docs/README.md)** | Navigation hub for all docs |
 | **[Memory System](memory_system/README.md)** | Python package documentation |
-| **[Research](docs/research/)** | Universal patterns, deep research |
 
 ### Quick Links
 
-- [Unified Spec v3.1](docs/current/UNIFIED_SPEC_V3.1.md) — Complete technical specification
-- [Universal Patterns](docs/research/universal-patterns/PATTERNS_ANCHORED.md) — Evidence-based pattern validation
-- [Observability Guide](docs/current/OBSERVABILITY_GUIDE.md) — SSE viewer and metrics setup
+- [Quick Start Guide](docs/guides/QUICK_START.md)
+- [Configuration Guide](docs/CONFIGURATION.md)
+- [Troubleshooting](docs/guides/TROUBLESHOOTING.md)
+- [API Reference](docs/api/API_REFERENCE_INDEX.md)
 
 ---
 
@@ -247,27 +220,6 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for complete system design.
 
 ---
 
-## Contributing
-
-We welcome contributions! Please see our development workflow:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make changes with tests
-4. Run `npm run build && npm run test:unit`
-5. Commit (`git commit -m 'Add amazing feature'`)
-6. Push (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Code Standards
-
-- TypeScript strict mode
-- ESLint configuration
-- Jest for testing
-- Mermaid for diagrams
-
----
-
 ## Research Foundation
 
 Chrysalis applies **10 universal patterns** validated against production systems:
@@ -284,26 +236,33 @@ See [docs/research/](docs/research/) for deep research and mathematical foundati
 
 ---
 
+## Contributing
+
+We welcome contributions! Please see our development workflow:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make changes with tests
+4. Run `npm run build && npm run test:unit`
+5. Commit (`git commit -m 'Add amazing feature'`)
+6. Push (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
+
+---
+
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-## Status Summary
-
-| Component | Status |
-|-----------|--------|
-| TypeScript Core | ✅ Builds and tests pass |
-| Python Memory System | ✅ 84/84 tests passing |
-| Go Crypto Server | ⚠️ Tests not verified this session |
-| Documentation | ✅ Current |
-
-**Version**: 3.1.0
-**Last Updated**: January 9, 2026
-
----
-
 <p align="center">
   <strong>Transform. Learn. Emerge.</strong>
 </p>
+
+---
+
+**Version**: 3.1.0  
+**Last Updated**: January 11, 2026

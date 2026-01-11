@@ -537,7 +537,7 @@ def convert_to_usa(data: Dict[str, Any], source_format: Optional[str] = None) ->
     
     Args:
         data: Agent specification in any supported format
-        source_format: Override format detection (usa, eliza, crewai, replicant)
+        source_format: Override format detection (usa, eliza, crewai, replicant, lmos, autogen)
     
     Returns:
         uSA v2 specification
@@ -553,5 +553,27 @@ def convert_to_usa(data: Dict[str, Any], source_format: Optional[str] = None) ->
         return crewai_agent_to_usa(data)
     elif source_format == "replicant":
         return replicant_to_usa(data)
+    elif source_format == "lmos":
+        from .lmos_adapter import lmos_to_usa
+        return lmos_to_usa(data)
+    elif source_format == "autogen":
+        from .autogen_adapter import autogen_to_usa
+        return autogen_to_usa(data)
     else:
         raise ValueError(f"Unknown or unsupported agent format: {source_format}")
+
+
+# Import new adapters for convenience
+try:
+    from .lmos_adapter import usa_to_lmos, lmos_to_usa, detect_lmos_format
+    from .autogen_adapter import (
+        usa_to_autogen, 
+        autogen_to_usa, 
+        detect_autogen_format,
+        usa_to_autogen_assistant,
+        usa_to_autogen_user_proxy,
+        usa_to_autogen_group_chat
+    )
+except ImportError:
+    # Adapters not yet available
+    pass

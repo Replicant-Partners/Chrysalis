@@ -75,12 +75,13 @@ export type InstrumentationPoint =
 
 /**
  * Change propagation channel type.
+ * 
+ * Note: hierarchical and peer-to-peer channels were removed in v1.1.0
+ * as they had no consumers and added latent complexity.
  */
 export type PropagationChannel =
   | 'broadcast'      // All adapters receive
   | 'targeted'       // Specific adapters receive
-  | 'hierarchical'   // Parent-child propagation
-  | 'peer-to-peer'   // Direct adapter communication
   | 'event-driven';  // Event-based propagation
 
 /**
@@ -733,40 +734,6 @@ export class ChangePropagationSystem {
         this.emitter.emit(message.changeType, message);
       }
     });
-
-    // Hierarchical channel - parent-child propagation
-    this.channels.set('hierarchical', {
-      channel: 'hierarchical',
-      send: async (message) => {
-        // For hierarchical, we propagate based on protocol relationships
-        const hierarchy = this.getProtocolHierarchy(message.source);
-        for (const protocol of hierarchy) {
-          const subs = this.subscribers.get(protocol) || [];
-          for (const sub of subs) {
-            await sub.handler(message);
-          }
-        }
-      }
-    });
-
-    // Peer-to-peer channel - direct communication
-    this.channels.set('peer-to-peer', {
-      channel: 'peer-to-peer',
-      send: async (message) => {
-        // Similar to targeted but with acknowledgment
-        if (message.targets !== 'all') {
-          for (const target of message.targets) {
-            const subs = this.subscribers.get(target) || [];
-            for (const sub of subs) {
-              const result = await sub.handler(message);
-              if (message.requiresAck) {
-                this.emitter.emit('ack', { messageId: message.id, target, result });
-              }
-            }
-          }
-        }
-      }
-    });
   }
 
   /**
@@ -950,26 +917,6 @@ export class ChangePropagationSystem {
       all.push(...subs);
     }
     return all;
-  }
-
-  /**
-   * Get protocol hierarchy for propagation.
-   */
-  private getProtocolHierarchy(source: AgentFramework | 'system'): AgentFramework[] {
-    // Define protocol relationships (simplified)
-    const hierarchies: Record<string, AgentFramework[]> = {
-      'mcp': ['langchain', 'openai', 'semantic-kernel'],
-      'a2a': ['openai-agents', 'crewai', 'autogen'],
-      'anp': ['a2a', 'mcp'],
-      'fipa': ['jade'],
-      'ros2': []
-    };
-
-    if (source === 'system') {
-      return ['mcp', 'a2a', 'anp', 'fipa', 'ros2'] as AgentFramework[];
-    }
-
-    return hierarchies[source] || [];
   }
 
   /**

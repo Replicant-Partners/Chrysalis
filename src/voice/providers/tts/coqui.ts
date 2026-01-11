@@ -113,8 +113,8 @@ export class CoquiTTSProvider extends BaseTTSProvider {
     });
     
     // Add speaker if using XTTS for voice cloning
-    if (options?.voiceId || this.speakerWav) {
-      params.set('speaker_wav', options?.voiceId || this.speakerWav!);
+    if (options?.voiceProfile?.voiceId || this.speakerWav) {
+      params.set('speaker_wav', options?.voiceProfile?.voiceId || this.speakerWav!);
     }
     
     // Add speed adjustment if specified
@@ -146,7 +146,7 @@ export class CoquiTTSProvider extends BaseTTSProvider {
     
     if (contentType.includes('application/json')) {
       // JSON response with base64 audio
-      const data: CoquiResponse = await response.json();
+      const data = await response.json() as CoquiResponse;
       const audioData = atob(data.audio);
       const audioArray = new Uint8Array(audioData.length);
       for (let i = 0; i < audioData.length; i++) {
@@ -154,23 +154,25 @@ export class CoquiTTSProvider extends BaseTTSProvider {
       }
       blob = new Blob([audioArray], { type: 'audio/wav' });
       mimeType = 'audio/wav';
-      duration = data.duration * 1000;
+      duration = data.duration; // Already in seconds
     } else {
       // Direct audio response
       const audioData = await response.arrayBuffer();
       blob = new Blob([audioData], { type: 'audio/wav' });
       mimeType = 'audio/wav';
       
-      // Estimate duration from text
+      // Estimate duration from text (in seconds)
       const wordsPerMinute = options?.speed ? 150 * options.speed : 150;
       const wordCount = text.split(/\s+/).length;
-      duration = (wordCount / wordsPerMinute) * 60 * 1000;
+      duration = (wordCount / wordsPerMinute) * 60;
     }
     
     return {
       blob,
+      duration,
+      sampleRate: 22050,
+      channels: 1,
       mimeType,
-      durationMs: duration,
     };
   }
   
@@ -213,15 +215,17 @@ export class CoquiTTSProvider extends BaseTTSProvider {
     const audioData = await response.arrayBuffer();
     const blob = new Blob([audioData], { type: 'audio/wav' });
     
-    // Estimate duration
+    // Estimate duration (in seconds)
     const wordsPerMinute = options?.speed ? 150 * options.speed : 150;
     const wordCount = text.split(/\s+/).length;
-    const duration = (wordCount / wordsPerMinute) * 60 * 1000;
+    const duration = (wordCount / wordsPerMinute) * 60;
     
     return {
       blob,
+      duration,
+      sampleRate: 22050,
+      channels: 1,
       mimeType: 'audio/wav',
-      durationMs: duration,
     };
   }
   
@@ -239,7 +243,7 @@ export class CoquiTTSProvider extends BaseTTSProvider {
         return this.getDefaultVoices();
       }
       
-      const models: string[] = await modelsResponse.json();
+      const models = await modelsResponse.json() as string[];
       
       // Get speakers for current model
       const speakersResponse = await this.rateLimitedFetch(
@@ -248,17 +252,17 @@ export class CoquiTTSProvider extends BaseTTSProvider {
       
       let speakers: string[] = [];
       if (speakersResponse.ok) {
-        speakers = await speakersResponse.json();
+        speakers = await speakersResponse.json() as string[];
       }
       
       // Create voice profiles from speakers
       const voices: VoiceProfile[] = speakers.map(speaker => ({
         id: speaker,
         name: speaker,
-        gender: 'neutral',
-        language: 'en',
-        characteristics: ['coqui'],
-        provider: 'coqui',
+        voiceId: speaker,
+        isCloned: false,
+        characteristics: ['coqui', 'neutral', 'en'],
+        provider: 'coqui' as const,
       }));
       
       // If no speakers, return model-based profiles
@@ -266,10 +270,10 @@ export class CoquiTTSProvider extends BaseTTSProvider {
         return models.slice(0, 10).map(model => ({
           id: model,
           name: model.split('/').pop() || model,
-          gender: 'neutral',
-          language: model.includes('en') ? 'en' : 'multilingual',
-          characteristics: ['coqui', 'model'],
-          provider: 'coqui',
+          voiceId: model,
+          isCloned: false,
+          characteristics: ['coqui', 'model', model.includes('en') ? 'en' : 'multilingual'],
+          provider: 'coqui' as const,
         }));
       }
       
@@ -287,17 +291,17 @@ export class CoquiTTSProvider extends BaseTTSProvider {
       {
         id: 'default',
         name: 'Default',
-        gender: 'neutral',
-        language: 'en',
-        characteristics: ['coqui'],
+        voiceId: 'default',
+        isCloned: false,
+        characteristics: ['coqui', 'neutral', 'en'],
         provider: 'coqui',
       },
       {
         id: 'xtts_v2',
         name: 'XTTS v2 (Cloning)',
-        gender: 'neutral',
-        language: 'multilingual',
-        characteristics: ['coqui', 'cloning'],
+        voiceId: 'xtts_v2',
+        isCloned: false,
+        characteristics: ['coqui', 'cloning', 'multilingual'],
         provider: 'coqui',
       },
     ];
@@ -338,12 +342,13 @@ export class CoquiTTSProvider extends BaseTTSProvider {
     
     // Return profile with base64 sample as ID
     // In production, would save to disk and return path
+    const cloneId = `clone_${Date.now()}`;
     return {
-      id: `clone_${Date.now()}`,
+      id: cloneId,
       name,
-      gender: 'neutral',
-      language: 'en',
-      characteristics: ['cloned', 'coqui'],
+      voiceId: cloneId,
+      isCloned: true,
+      characteristics: ['cloned', 'coqui', 'en'],
       provider: 'coqui',
       // Store sample reference (would be path in production)
       // sampleData: base64,
@@ -360,7 +365,7 @@ export class CoquiTTSProvider extends BaseTTSProvider {
       );
       
       if (response.ok) {
-        return await response.json();
+        return await response.json() as string[];
       }
     } catch {
       // Server unavailable

@@ -664,6 +664,9 @@ export type ClientEventType =
   | 'stream-start'
   | 'stream-event'
   | 'stream-end'
+  | 'stream-validation-error'  // Phase 1: Schema validation error
+  | 'stream-parse-error'       // Phase 1: JSON parse error
+  | 'sessions-cleaned'         // Phase 1: Session cleanup event
   | 'error';
 
 /**

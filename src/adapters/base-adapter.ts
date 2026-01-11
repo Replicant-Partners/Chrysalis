@@ -46,16 +46,104 @@ export type AgentFramework =
 
 /**
  * Native agent representation (framework-specific JSON/object)
+ *
+ * P2 Type Safety: Generic type parameter allows type-safe data access
+ * when the specific framework type is known at compile time.
+ *
+ * @typeParam TData - Framework-specific data type (defaults to Record<string, unknown>)
  */
-export interface NativeAgent {
+export interface NativeAgent<TData extends Record<string, unknown> = Record<string, unknown>> {
   /** Raw JSON/object from the source framework */
-  data: Record<string, unknown>;
+  data: TData;
   /** Source framework identifier */
   framework: AgentFramework;
   /** Original format version (if available) */
   version?: string;
   /** Source URI/path (if available) */
   source?: string;
+}
+
+// ============================================================================
+// Framework Type Guards (P2 Type Safety)
+// ============================================================================
+
+/**
+ * USA Agent data structure for type-safe access
+ */
+export interface USAAgentData extends Record<string, unknown> {
+  id?: string;
+  name?: string;
+  description?: string;
+  version?: string;
+  tools?: Array<{
+    name: string;
+    description?: string;
+    parameters?: Record<string, unknown>;
+  }>;
+  memory?: {
+    type?: string;
+    config?: Record<string, unknown>;
+  };
+  llm?: {
+    provider?: string;
+    model?: string;
+  };
+}
+
+/**
+ * LMOS Agent data structure for type-safe access
+ */
+export interface LMOSAgentData extends Record<string, unknown> {
+  id?: string;
+  name?: string;
+  description?: string;
+  version?: string;
+  capabilities?: Array<{
+    name: string;
+    type?: string;
+    parameters?: Record<string, unknown>;
+  }>;
+  protocols?: string[];
+}
+
+/**
+ * Type guard to check if agent is a USA framework agent
+ *
+ * @param agent - Agent to check
+ * @returns True if agent.framework is 'usa'
+ */
+export function isUSAAgent(agent: NativeAgent): agent is NativeAgent<USAAgentData> {
+  return agent.framework === 'usa';
+}
+
+/**
+ * Type guard to check if agent is an LMOS framework agent
+ *
+ * @param agent - Agent to check
+ * @returns True if agent.framework is 'lmos'
+ */
+export function isLMOSAgent(agent: NativeAgent): agent is NativeAgent<LMOSAgentData> {
+  return agent.framework === 'lmos';
+}
+
+/**
+ * Type guard to check if agent is an MCP framework agent
+ *
+ * @param agent - Agent to check
+ * @returns True if agent.framework is 'mcp'
+ */
+export function isMCPAgent(agent: NativeAgent): agent is NativeAgent {
+  return agent.framework === 'mcp';
+}
+
+/**
+ * Type guard to check if agent is a LangChain framework agent
+ *
+ * @param agent - Agent to check
+ * @returns True if agent.framework is 'langchain'
+ */
+export function isLangChainAgent(agent: NativeAgent): agent is NativeAgent {
+  return agent.framework === 'langchain';
 }
 
 /**

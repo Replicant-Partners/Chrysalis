@@ -130,15 +130,6 @@ export interface QualityToolExecutionResult {
 }
 
 /**
- * Quality Tool Execution Result
- */
-export interface QualityToolExecutionResult {
-    tool: IQualityTool;
-    result: QualityToolResult;
-    execution_time_ms: number;
-}
-
-/**
  * Quality Tool Execution Options
  */
 export interface QualityToolExecutionOptions {
@@ -146,4 +137,10 @@ export interface QualityToolExecutionOptions {
     timeout_ms?: number;
     continue_on_error?: boolean;
     config?: Record<string, QualityToolConfig>;
+    /**
+     * Success policy:
+     * - 'all' requires all tools to succeed
+     * - 'any' (default) succeeds if at least one tool succeeds when continue_on_error is true
+     */
+    success_policy?: 'all' | 'any';
 }

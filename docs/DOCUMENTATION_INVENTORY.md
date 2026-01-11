@@ -1,475 +1,355 @@
 # Chrysalis Documentation Inventory
 
-**Generated**: 2026-01-11  
-**Purpose**: Comprehensive catalog of all documentation artifacts for synchronization initiative
+**Version**: 2.0.0  
+**Last Updated**: January 11, 2026  
+**Status**: Comprehensive Audit Complete
 
-## Inventory Methodology
-
-This inventory was generated through systematic discovery:
-1. Recursive file listing of all directories
-2. Pattern matching for markdown files
-3. Classification by location, purpose, and status
-4. Assessment of currency, duplication, and contradictions
+---
 
 ## Executive Summary
 
-### Inventory Statistics
-- **Total Documentation Files**: 150+ markdown files identified
-- **Root-Level Docs**: 8 files
-- **docs/ Directory**: 80+ files across multiple subdirectories
-- **Project-Specific Docs**: 40+ files across 8 projects
-- **Archive Area**: Exists at `docs/archive/` with multiple subdirectories
+This inventory catalogs all documentation artifacts in the Chrysalis repository as of January 11, 2026. The audit reveals a documentation system requiring significant consolidation: **130+ documents** spread across multiple directories with substantial duplication, conflicting status claims, and outdated content.
 
-### Critical Findings
-1. **Extensive Archive Structure**: `docs/archive/` contains historical material but lacks clear non-current labeling
-2. **Duplication Detected**: Multiple status reports, implementation plans, and code reviews
-3. **Organizational Complexity**: Documentation spread across root, docs/, plans/, projects/, and ui/docs/
-4. **Mixed Currency**: Active and historical documentation intermingled in some areas
+### Key Findings
 
-## Root-Level Documentation
+| Metric | Count | Assessment |
+|--------|-------|------------|
+| Total Documentation Files | 130+ | Excessive fragmentation |
+| Root-level Docs | 12 | Mixed currency |
+| Active docs/ Files | 55+ | Requires consolidation |
+| Archive Files | 65+ | Well-organized |
+| Conflicting Status Claims | 8+ | Critical issue |
+| Build Status (Actual) | ❌ FAILING | Claims say "passing" |
+| Python Tests (Actual) | ❌ FAILING | Claims say "84/84 passing" |
 
-### Primary Documentation (Root Directory)
+---
 
-| File | Purpose | Audience | Status | Issues |
-|------|---------|----------|--------|--------|
-| [`README.md`](../README.md) | Project overview, quick start | All users | Current | Needs verification against codebase |
-| [`ARCHITECTURE.md`](../ARCHITECTURE.md) | System architecture specification | Developers, architects | Current | Contains diagrams, needs verification |
-| ~~[`IMPLEMENTATION_STATUS.md`](../IMPLEMENTATION_STATUS.md)~~ | **ARCHIVED** → [`docs/archive/legacy/IMPLEMENTATION_STATUS_2026-01-09.md`](archive/legacy/IMPLEMENTATION_STATUS_2026-01-09.md) | Developers, PM | Archived | Consolidated into docs/current/STATUS.md |
-| [`QUICK_WINS_IMPLEMENTATION_SUMMARY.md`](../archive/2026-01-quick-wins/QUICK_WINS_IMPLEMENTATION_SUMMARY.md) | Quick wins completion report | Developers, PM | Archived | Archived 2026-01-11 |
-| [`REVIEW_COMPLETE_SUMMARY.md`](../REVIEW_COMPLETE_SUMMARY.md) | Code review completion summary | Developers, PM | Historical | Should be archived |
-| [`builder_pipeline_report.md`](../builder_pipeline_report.md) | Builder pipeline execution report | Developers | Historical | Should be archived |
-| [`PULL_REQUEST_TEMPLATE.md`](../PULL_REQUEST_TEMPLATE.md) | PR template | Contributors | Current | Active template |
+## Ground Truth: Codebase Verification
 
-## docs/ Directory Structure
+### TypeScript Build Status
 
-### Top-Level docs/ Files
+**Actual**: ❌ **FAILING** (19 errors in `src/voice/providers/tts/`)
 
-| File | Purpose | Status | Classification |
-|------|---------|--------|----------------|
-| [`docs/README.md`](../docs/README.md) | Documentation index | Current | **Primary navigation hub** |
-| ~~[`docs/index.md`]~~ | **REMOVED** - Duplicate of docs/README.md | N/A | Removed in previous session |
-| [`docs/API.md`](../docs/API.md) | API documentation | Current | Technical spec |
-| [`docs/CONFIGURATION.md`](../docs/CONFIGURATION.md) | Configuration guide | Current | Technical spec |
-| [`docs/DATA_MODELS.md`](../docs/DATA_MODELS.md) | Data model specifications | Current | Technical spec |
-| [`docs/STANDARDS.md`](../docs/STANDARDS.md) | Coding standards | Current | Guidelines |
-| [`docs/FUTURE_OPTIMIZATIONS.md`](../docs/FUTURE_OPTIMIZATIONS.md) | Future work | Planning | Roadmap |
-| [`docs/semantic-scavenger.md`](../docs/semantic-scavenger.md) | Tool documentation | Current | Technical spec |
-
-### Code Review Documents (docs/ root)
-
-**Status**: Historical - Should be archived or consolidated
-
-| File | Date Context | Purpose |
-|------|--------------|---------|
-| [`docs/CODE_REVIEW_CHRYSALIS_2026-01-09.md`](../docs/CODE_REVIEW_CHRYSALIS_2026-01-09.md) | 2026-01-09 | Code review report |
-| [`docs/CODE_REVIEW_REMEDIATION_PLAN.md`](../docs/CODE_REVIEW_REMEDIATION_PLAN.md) | Recent | Remediation planning |
-| [`docs/CODE_REVIEW_REMEDIATION_IMPLEMENTATION.md`](../docs/CODE_REVIEW_REMEDIATION_IMPLEMENTATION.md) | Recent | Implementation tracking |
-| [`docs/CODE_VERIFICATION_ANALYSIS.md`](../docs/CODE_VERIFICATION_ANALYSIS.md) | Recent | Verification report |
-| [`docs/BEYOND_CODE_REVIEW_SUMMARY.md`](../docs/BEYOND_CODE_REVIEW_SUMMARY.md) | Recent | Summary report |
-| [`docs/PHASE_0_CODE_REVIEW.md`](../docs/PHASE_0_CODE_REVIEW.md) | Historical | Phase-specific review |
-
-### Design Pattern Documents (docs/ root)
-
-**Status**: Current technical documentation
-
-| File | Purpose |
-|------|---------|
-| [`docs/DESIGN_PATTERN_ANALYSIS.md`](../docs/DESIGN_PATTERN_ANALYSIS.md) | Pattern analysis |
-| [`docs/DESIGN_PATTERN_REMEDIATION_SPECIFICATION.md`](../docs/DESIGN_PATTERN_REMEDIATION_SPECIFICATION.md) | Pattern remediation spec |
-| [`docs/EXCELLENCE_ANALYSIS.md`](../docs/EXCELLENCE_ANALYSIS.md) | Quality analysis |
-
-### Documentation Cleanup Documents (docs/ root)
-
-**Status**: Historical - Should be archived
-
-| File | Purpose |
-|------|---------|
-| [`docs/DOCUMENTATION_CLEANUP_PLAN.md`](../docs/DOCUMENTATION_CLEANUP_PLAN.md) | Previous cleanup plan |
-| [`docs/DOCUMENTATION_CLEANUP_COMPLETION_REPORT.md`](../docs/DOCUMENTATION_CLEANUP_COMPLETION_REPORT.md) | Previous cleanup report |
-
-### Phase-Specific Documents (docs/ root)
-
-**Status**: Historical - Should be archived
-
-| File | Purpose |
-|------|---------|
-| [`docs/PHASE_3_4_ASSESSMENT.md`](../docs/PHASE_3_4_ASSESSMENT.md) | Phase assessment |
-| [`docs/PHASE_3_4_COMPLETION_REPORT.md`](../docs/PHASE_3_4_COMPLETION_REPORT.md) | Phase completion |
-| [`docs/PHASE_3_4_FINAL_STATUS.md`](../docs/PHASE_3_4_FINAL_STATUS.md) | Phase status |
-| [`docs/PHASE_3_4_PROGRESS.md`](../docs/PHASE_3_4_PROGRESS.md) | Phase progress |
-| [`docs/IMMEDIATE_STEPS_COMPLETE.md`](../docs/IMMEDIATE_STEPS_COMPLETE.md) | Step completion |
-
-### Migration and Implementation Documents (docs/ root)
-
-| File | Status | Purpose |
-|------|--------|---------|
-| [`docs/MIGRATION_PLAN_SEMANTIC_SERVICES.md`](../docs/MIGRATION_PLAN_SEMANTIC_SERVICES.md) | Planning | Migration planning |
-| [`docs/VECTOR_EMBEDDING_BEST_PRACTICES.md`](../docs/VECTOR_EMBEDDING_BEST_PRACTICES.md) | Current | Best practices |
-| [`docs/FRONTEND_THREE_FRAME_FIVE_CANVAS_SPEC.md`](../docs/FRONTEND_THREE_FRAME_FIVE_CANVAS_SPEC.md) | Current | Frontend spec |
-
-## docs/architecture/ Subdirectory
-
-**Purpose**: Architecture documentation and technical specifications
-
-| File | Status | Purpose |
-|------|--------|---------|
-| [`docs/architecture/overview.md`](../docs/architecture/overview.md) | Current | Architecture overview |
-| [`docs/architecture/memory-system.md`](../docs/architecture/memory-system.md) | Current | Memory system architecture |
-| [`docs/architecture/experience-sync.md`](../docs/architecture/experience-sync.md) | Current | Experience sync architecture |
-| [`docs/architecture/universal-patterns.md`](../docs/architecture/universal-patterns.md) | Current | Universal patterns |
-| [`docs/architecture/voice-integration.md`](../docs/architecture/voice-integration.md) | Current | Voice integration spec |
-
-### Architecture Code Review Documents
-
-**Status**: Historical - Should be archived or consolidated
-
-| File | Purpose |
-|------|---------|
-| [`docs/architecture/CODE_QUALITY_REVIEW_2026.md`](../docs/architecture/CODE_QUALITY_REVIEW_2026.md) | Code quality review |
-| [`docs/architecture/CODE_REVIEW_SUMMARY.md`](../docs/architecture/CODE_REVIEW_SUMMARY.md) | Review summary |
-| [`docs/architecture/FINAL_CODE_REVIEW_SUMMARY.md`](../docs/architecture/FINAL_CODE_REVIEW_SUMMARY.md) | Final review summary |
-| [`docs/architecture/RATE_LIMITING_CODE_REVIEW.md`](../docs/architecture/RATE_LIMITING_CODE_REVIEW.md) | Rate limiting review |
-| [`docs/architecture/BACKEND_INTERFACE_REVIEW.md`](../docs/architecture/BACKEND_INTERFACE_REVIEW.md) | Backend review |
-| [`docs/architecture/CODE_IMPROVEMENTS_AND_REFACTORING.md`](../docs/architecture/CODE_IMPROVEMENTS_AND_REFACTORING.md) | Improvements doc |
-
-### Architecture Implementation Documents
-
-| File | Status | Purpose |
-|------|--------|---------|
-| [`docs/architecture/HIGH_PRIORITY_IMPLEMENTATION_PLAN.md`](../docs/architecture/HIGH_PRIORITY_IMPLEMENTATION_PLAN.md) | Planning | Implementation plan |
-| [`docs/architecture/IMPLEMENTATION_PROGRESS_REPORT.md`](../docs/architecture/IMPLEMENTATION_PROGRESS_REPORT.md) | Historical | Progress report |
-| [`docs/architecture/UNIFIED_API_GAP_ANALYSIS.md`](../docs/architecture/UNIFIED_API_GAP_ANALYSIS.md) | Analysis | Gap analysis |
-| [`docs/architecture/UNIFIED_API_IMPLEMENTATION_STATUS.md`](../docs/architecture/UNIFIED_API_IMPLEMENTATION_STATUS.md) | Current | Implementation status |
-
-## docs/current/ Subdirectory
-
-**Purpose**: Current active documentation (well-organized)
-
-### Status and Summary Documents
-
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/current/STATUS.md`](../docs/current/STATUS.md) | Current system status | Current |
-| [`docs/current/SYSTEM_SUMMARY.md`](../docs/current/SYSTEM_SUMMARY.md) | System summary | Current |
-| [`docs/current/SYNTHESIS.md`](../docs/current/SYNTHESIS.md) | Synthesis document | Current |
-| [`docs/current/ANALYSIS.md`](../docs/current/ANALYSIS.md) | System analysis | Current |
-
-### Specification Documents
-
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/current/COMPLETE_SPEC.md`](../docs/current/COMPLETE_SPEC.md) | Complete specification | Current |
-| [`docs/current/FOUNDATION_SPEC.md`](../docs/current/FOUNDATION_SPEC.md) | Foundation spec | Current |
-| [`docs/current/UNIFIED_SPEC_V3.1.md`](../docs/current/UNIFIED_SPEC_V3.1.md) | Unified spec v3.1 | Current |
-| [`docs/current/USA_PROFILE_V0.1.md`](../docs/current/USA_PROFILE_V0.1.md) | USA profile | Current |
-
-### Implementation Guides
-
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/current/IMPLEMENTATION_GUIDE.md`](../docs/current/IMPLEMENTATION_GUIDE.md) | Implementation guide | Current |
-| [`docs/current/DOCUMENTATION_STANDARDS.md`](../docs/current/DOCUMENTATION_STANDARDS.md) | Documentation standards | Current |
-| [`docs/current/OBSERVABILITY_GUIDE.md`](../docs/current/OBSERVABILITY_GUIDE.md) | Observability guide | Current |
-
-### Technical Decision Documents
-
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/current/TECH_DECISIONS_MEMORY_OBSERVABILITY.md`](../docs/current/TECH_DECISIONS_MEMORY_OBSERVABILITY.md) | Technical decisions | Current |
-| [`docs/current/HEDERA_STRATEGY.md`](../docs/current/HEDERA_STRATEGY.md) | Hedera strategy | Current |
-| [`docs/current/HEDERA_REFERENCE.md`](../docs/current/HEDERA_REFERENCE.md) | Hedera reference | Current |
-
-### Planning Documents
-
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/current/DUAL_SYNC_PLAN.md`](../docs/current/DUAL_SYNC_PLAN.md) | Dual sync planning | Planning |
-| [`docs/current/MEMORY_MERGE_PLAN.md`](../docs/current/MEMORY_MERGE_PLAN.md) | Memory merge planning | Planning |
-| [`docs/current/SKILLBUILDER_DEEPENING.md`](../docs/current/SKILLBUILDER_DEEPENING.md) | SkillBuilder planning | Planning |
-
-### Setup and Configuration
-
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/current/MCP_SETUP.md`](../docs/current/MCP_SETUP.md) | MCP setup guide | Current |
-| [`docs/current/VECTOR_INDEX_SETUP.md`](../docs/current/VECTOR_INDEX_SETUP.md) | Vector index setup | Current |
-| [`docs/current/SANITIZATION_POLICY.md`](../docs/current/SANITIZATION_POLICY.md) | Sanitization policy | Current |
-| [`docs/current/SYNC_PRIMITIVES.md`](../docs/current/SYNC_PRIMITIVES.md) | Sync primitives | Current |
-
-### Reference Documents
-
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/current/UNIVERSAL_AGENT_LEXICON.md`](../docs/current/UNIVERSAL_AGENT_LEXICON.md) | Agent lexicon | Current |
-| [`docs/current/ACTION_EMOJI_LANGUAGE.md`](../docs/current/ACTION_EMOJI_LANGUAGE.md) | Emoji language | Current |
-| [`docs/current/STATUS_BADGES.md`](../docs/current/STATUS_BADGES.md) | Status badges | Current |
-| [`docs/current/OBSERVABILITY_VOYEUR.md`](../docs/current/OBSERVABILITY_VOYEUR.md) | Observability reference | Current |
-
-## docs/current/memory/ Subdirectory
-
-**Purpose**: Memory system documentation
-
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/current/memory/README.md`](../docs/current/memory/README.md) | Memory system overview | Current |
-| [`docs/current/memory/ARCHITECTURE.md`](../docs/current/memory/ARCHITECTURE.md) | Memory architecture | Current |
-| [`docs/current/memory/ARCHITECTURE_ANCHORED.md`](../docs/current/memory/ARCHITECTURE_ANCHORED.md) | Anchored architecture | Current |
-| [`docs/current/memory/IMPLEMENTATION.md`](../docs/current/memory/IMPLEMENTATION.md) | Implementation details | Current |
-| [`docs/current/memory/QUICK_SUMMARY.md`](../docs/current/memory/QUICK_SUMMARY.md) | Quick summary | Current |
-| [`docs/current/memory/UPDATE_SUMMARY.md`](../docs/current/memory/UPDATE_SUMMARY.md) | Update summary | Historical |
-
-## docs/adr/ Subdirectory
-
-**Purpose**: Architecture Decision Records
-
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/adr/ADR-001-service-layer-independence.md`](../docs/adr/ADR-001-service-layer-independence.md) | Service layer independence ADR | Current |
-
-**Assessment**: ADR structure exists but is underutilized (only 1 ADR found)
-
-## docs/archive/ Subdirectory
-
-**Purpose**: Historical documentation archive
-
-### Archive Structure
 ```
-docs/archive/
-├── 2026-01-semantic-merge/
-├── crewai/
-├── deprecated/
-│   └── old-memory/
-├── historical-plans/
-├── maintenance/
-├── plans/
-├── reorg/
-├── reports/
-│   └── Mathematician-and-Metaphysician/
-├── review/
-├── s2l/
-├── v1/
-├── v2/
-└── v3/
+src/voice/providers/tts/elevenlabs.ts - Multiple type errors
+src/voice/providers/tts/index.ts - Missing properties errors
 ```
 
-**Assessment**: 
-- Archive structure exists and is organized
-- Lacks clear README explaining archive organization
-- No explicit "non-current" labeling on archived documents
-- Version-based organization (v1, v2, v3) suggests iterative development
+**Documentation Claims**: README.md and docs/current/STATUS.md claim "✅ Builds and tests pass"
 
-## docs/features/ Subdirectory
+### Python Test Status
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/features/SEMANTIC_MERGE.md`](../docs/features/SEMANTIC_MERGE.md) | Semantic merge feature | Current |
+**Actual**: ❌ **FAILING** (2 errors during collection)
 
-## docs/getting-started/ Subdirectory
+```
+ERROR tests/test_security_integration.py
+ERROR tests/test_singleton.py
+```
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/getting-started/quickstart.md`](../docs/getting-started/quickstart.md) | Quick start guide | Current |
+**Documentation Claims**: Multiple docs claim "84/84 tests passing"
 
-## docs/guides/ Subdirectory
+### Version Inconsistency
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/guides/QUICK_START.md`](../docs/guides/QUICK_START.md) | Quick start guide | Current |
-| [`docs/guides/TROUBLESHOOTING.md`](../docs/guides/TROUBLESHOOTING.md) | Troubleshooting guide | Current |
+| Location | Version |
+|----------|---------|
+| package.json | 3.1.0 |
+| README.md | 3.1.0 |
+| ARCHITECTURE.md | 3.2.0 |
+| docs/current/STATUS.md | 3.3.0 |
+| CHANGELOG.md | Latest 3.3.0 |
 
-**Assessment**: Potential duplication with `docs/getting-started/quickstart.md`
+---
 
-## docs/prompts/ Subdirectory
+## Documentation Artifact Inventory
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/prompts/CODE_REVIEW_CHECKLIST_GENERATOR.md`](../docs/prompts/CODE_REVIEW_CHECKLIST_GENERATOR.md) | Code review prompt | Current |
+### Root-Level Documentation
 
-## docs/reports/ Subdirectory
+| File | Purpose | Status | Action |
+|------|---------|--------|--------|
+| `README.md` | Project overview, quick start | ⚠️ Contains false claims | Update |
+| `ARCHITECTURE.md` | System design | ✅ Comprehensive | Update references |
+| `CHANGELOG.md` | Version history | ✅ Current | Keep |
+| `CONTRIBUTING.md` | Contributor guide | ✅ Current | Keep |
+| `WORKPLAN_EXECUTIVE_SUMMARY.md` | Strategy overview | ⚠️ Dated 2025-01-XX | Archive |
+| `WORKPLAN_FOCUS_AREAS.md` | Focus area details | ⚠️ Historical | Archive |
+| `WORKPLAN_SECOND_PASS.md` | Workplan revision | ⚠️ Historical | Archive |
+| `CODE_REVIEW_CHECKLIST.md` | Review standards | ✅ Current | Keep |
+| `PULL_REQUEST_TEMPLATE.md` | PR template | ✅ Current | Keep |
+| `QODO-REVIEW.md` | Review tool config | ⚠️ Tool-specific | Archive |
+| `AGENT.md` | Agent guidelines | ⚠️ AI-specific | Keep |
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/reports/PHASE11_AGENT_CANVAS_IMPROVEMENT_REPORT_v1.0.md`](../docs/reports/PHASE11_AGENT_CANVAS_IMPROVEMENT_REPORT_v1.0.md) | Phase 11 report | Historical |
+### docs/ Directory Structure
 
-**Assessment**: Should be moved to archive
+#### docs/current/ (Active Specifications)
 
-## docs/research/ Subdirectory
+| File | Purpose | Status | Action |
+|------|---------|--------|--------|
+| `STATUS.md` | Implementation status | ⚠️ False claims | Update |
+| `UNIFIED_SPEC_V3.1.md` | Technical specification | ✅ Comprehensive | Keep |
+| `SYSTEM_SUMMARY.md` | System overview | ⚠️ Duplicates | Merge |
+| `DOCUMENTATION_STANDARDS.md` | Doc standards | ✅ Current | Keep |
+| `OBSERVABILITY_GUIDE.md` | Voyeur setup | ✅ Current | Keep |
+| `MCP_SETUP.md` | MCP configuration | ✅ Current | Keep |
+| `VECTOR_INDEX_SETUP.md` | Vector index guide | ✅ Current | Keep |
+| `SANITIZATION_POLICY.md` | Input sanitization | ✅ Current | Keep |
+| + 15 more files | Various specifications | Mixed | Review |
 
-**Purpose**: Research documentation
+#### docs/architecture/ (Architecture Docs)
 
-### Research Index
-| File | Purpose | Status |
-|------|---------|--------|
-| [`docs/research/INDEX.md`](../docs/research/INDEX.md) | Research index | Current |
-| [`docs/research/RESEARCH_SUMMARY.md`](../docs/research/RESEARCH_SUMMARY.md) | Research summary | Current |
-| [`docs/research/COMPARISON.md`](../docs/research/COMPARISON.md) | Comparison analysis | Current |
-| [`docs/research/CREATIVE_RESEARCH.md`](../docs/research/CREATIVE_RESEARCH.md) | Creative research | Current |
+| File | Purpose | Status | Action |
+|------|---------|--------|--------|
+| `overview.md` | Architecture overview | ⚠️ Duplicates ARCHITECTURE.md | Archive |
+| `memory-system.md` | Memory architecture | ✅ Current | Keep |
+| `universal-patterns.md` | Pattern documentation | ✅ Current | Keep |
+| `HIGH_PRIORITY_IMPLEMENTATION_PLAN.md` | Implementation plan | ⚠️ Dated | Archive |
+| + 12 more files | Various architecture docs | Mixed | Review |
 
-### Research Subdirectories
-- `docs/research/agent-spec/` - Agent specification research
-- `docs/research/deep-research/` - Deep research topics
-- `docs/research/universal-patterns/` - Universal patterns research
+#### docs/api/ (API Documentation)
 
-## plans/ Directory
+| File | Purpose | Status | Action |
+|------|---------|--------|--------|
+| `API_REFERENCE_INDEX.md` | API index | ✅ Current | Keep |
+| `AUTHENTICATION.md` | Auth documentation | ✅ Current | Keep |
+| `openapi-specification.md` | OpenAPI docs | ✅ Current | Keep |
+| + 7 more files | API-related docs | Mixed | Review |
 
-**Purpose**: Planning documents
+#### docs/guides/ (User Guides)
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`plans/README.md`](../plans/README.md) | Plans index | Current |
-| [`plans/SENIOR_PM_ONBOARDING_ASSESSMENT.md`](../plans/SENIOR_PM_ONBOARDING_ASSESSMENT.md) | PM onboarding assessment | Historical |
-| [`plans/P0_CRITICAL_ISSUES_EXECUTION_PLAN.md`](../plans/P0_CRITICAL_ISSUES_EXECUTION_PLAN.md) | P0 execution plan | Historical |
-| [`plans/PHASE_1_2_COMPLETION_REPORT.md`](../plans/PHASE_1_2_COMPLETION_REPORT.md) | Phase 1-2 report | Historical |
-| [`plans/PATTERN_IMPLEMENTATION_PLAN.md`](../plans/PATTERN_IMPLEMENTATION_PLAN.md) | Pattern implementation | Planning |
-| [`plans/CHRYSALIS_UI_MEMU_INTEGRATION.md`](../plans/CHRYSALIS_UI_MEMU_INTEGRATION.md) | UI integration plan | Planning |
-| [`plans/PHASE_12_14_DUAL_CHAT_CANVAS_MEMU_PLAN.md`](../plans/PHASE_12_14_DUAL_CHAT_CANVAS_MEMU_PLAN.md) | Phase 12-14 plan | Planning |
+| File | Purpose | Status | Action |
+|------|---------|--------|--------|
+| `QUICK_START.md` | Getting started | ⚠️ Claims may be false | Verify |
+| `TROUBLESHOOTING.md` | Problem resolution | ✅ Current | Keep |
 
-## scripts/ Directory
+#### docs/quality/ (Quality Docs)
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`scripts/SEMANTIC_MERGE_README.md`](../scripts/SEMANTIC_MERGE_README.md) | Semantic merge implementation | Current |
+| File | Purpose | Status | Action |
+|------|---------|--------|--------|
+| `README.md` | Quality overview | ✅ Current | Keep |
+| `CODE_REVIEW_DESIGN_PATTERNS.md` | Pattern review | ✅ Current | Keep |
+| + 8 more files | Quality documentation | ✅ Current | Keep |
 
-## ui/docs/ Directory
+#### docs/research/ (Research Foundation)
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md`](../ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md) | Terminal architecture | Current |
+| Directory | Purpose | Status | Action |
+|-----------|---------|--------|--------|
+| `universal-patterns/` | Pattern research | ✅ Current | Keep |
+| `deep-research/` | Deep dive research | ✅ Current | Keep |
+| `agent-spec/` | Agent specifications | ✅ Current | Keep |
+| `INDEX.md` | Research index | ✅ Current | Keep |
 
-## Project-Specific Documentation
+### Duplicate Content Identification
 
-### projects/AgentBuilder/
-- Documentation status: Unknown (requires investigation)
+#### Status Documents (Multiple Sources of Truth)
 
-### projects/KnowledgeBuilder/
-| File | Purpose | Status |
-|------|---------|--------|
-| `projects/KnowledgeBuilder/IMPROVEMENTS_RECOMMENDATIONS.md` | Improvements | Current |
-| `projects/KnowledgeBuilder/EMBEDDING_IMPROVEMENTS_PLAN.md` | Embedding plan | Planning |
-| `projects/KnowledgeBuilder/IMPLEMENTATION_CHECKLIST.md` | Implementation checklist | Current |
-| `projects/KnowledgeBuilder/QUICK_START_GUIDE.md` | Quick start | Current |
+1. `docs/current/STATUS.md` - Claims v3.3.0, 84 tests passing
+2. `README.md` - Claims v3.1.0, builds pass
+3. `ARCHITECTURE.md` - Claims v3.2.0
+4. `docs/DOCUMENTATION_INVENTORY.md` (previous) - Dated 2026-01-09
 
-### projects/SkillBuilder/
-- Documentation status: Unknown (requires investigation)
+**Resolution**: Create single authoritative `IMPLEMENTATION_STATUS.md`
 
-### Other Projects
-- CrewPony, deer-flow, GaryVision, LeatherLadder, Ludwig - require investigation
+#### Architecture Documents (Overlap)
 
-## Agents/ Directory
+1. `ARCHITECTURE.md` (root) - Primary, comprehensive
+2. `docs/architecture/overview.md` - Duplicates root
+3. `docs/current/SYSTEM_SUMMARY.md` - Partial duplicate
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`Agents/deep-research-agent.md`](../Agents/deep-research-agent.md) | Agent specification | Current |
-| [`Agents/frontend-architect.md`](../Agents/frontend-architect.md) | Agent specification | Current |
-| [`Agents/refactoring-expert.md`](../Agents/refactoring-expert.md) | Agent specification | Current |
-| [`Agents/root-cause-analyst.md`](../Agents/root-cause-analyst.md) | Agent specification | Current |
+**Resolution**: Keep root ARCHITECTURE.md, archive duplicates
 
-### Agents/wshobson-agents/
-- Multiple agent specifications organized by category
-- Appears to be a comprehensive agent library
+#### Workplan Documents (Historical)
 
-## Replicants/ Directory
+1. `WORKPLAN_EXECUTIVE_SUMMARY.md`
+2. `WORKPLAN_FOCUS_AREAS.md`
+3. `WORKPLAN_SECOND_PASS.md`
+4. Multiple `plans/` directory documents
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`Replicants/legends/README.md`](../Replicants/legends/README.md) | Legends documentation | Current |
+**Resolution**: Archive all to `docs/archive/historical-plans/`
 
-## examples/ Directory
+### Archive Content
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`examples/README.md`](../examples/README.md) | Examples documentation | Current |
+The `docs/archive/` directory is well-organized with dated subdirectories:
 
-## usa_implementation/ Directory
+| Directory | Contents | File Count |
+|-----------|----------|------------|
+| `2026-01-assessments/` | PM assessments | 1 |
+| `2026-01-builder-reports/` | Builder reports | 1 |
+| `2026-01-cleanup-history/` | Prior cleanup docs | 2 |
+| `2026-01-code-reviews/` | Code review reports | 4 |
+| `2026-01-phase-reports/` | Phase completion | 6 |
+| `2026-01-quick-wins/` | Quick wins summary | 1 |
+| `2026-01-semantic-merge/` | Semantic merge impl | 9 |
+| `crewai/` | CrewAI integration | 7 |
+| `deprecated/` | Old implementations | 16 |
+| `historical-plans/` | Old planning docs | 4 |
+| `legacy/` | Legacy status docs | 1 |
+| `maintenance/` | Git instructions | 1 |
+| `plans/` | Old plans | 2 |
+| `reorg/` | Reorganization docs | 8 |
+| `reports/` | Various reports | 10 |
+| `review/` | Review summaries | 7 |
+| `s2l/` | S2L documentation | 6 |
+| `v1/, v2/, v3/` | Version archives | 17 |
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [`usa_implementation/README.md`](../usa_implementation/README.md) | USA implementation | Current |
+**Total Archive Files**: 65+
 
-## Key Issues Identified
+---
 
-### 1. Duplication
-- Multiple quick start guides: `README.md`, `docs/guides/QUICK_START.md`, `docs/getting-started/quickstart.md`
-- Multiple documentation indexes: `docs/README.md`, `docs/index.md`
-- Multiple status documents: `IMPLEMENTATION_STATUS.md`, `docs/current/STATUS.md`
-- Multiple code review summaries in `docs/` and `docs/architecture/`
+## Conflicts Requiring Resolution
 
-### 2. Historical Documents in Active Areas
-- Phase completion reports in root and `docs/`
-- Code review documents from specific dates in `docs/`
-- Implementation summaries that should be archived
+### Critical Conflicts
 
-### 3. Organizational Inconsistency
-- Some current docs in `docs/`, others in `docs/current/`
-- Plans in both `plans/` and `docs/`
-- Architecture docs in both `docs/architecture/` and `ARCHITECTURE.md`
+1. **Build Status Claims**
+   - Claims: "TypeScript core builds and tests pass"
+   - Reality: 19 TypeScript errors, build fails
+   - **Resolution**: Fix build errors OR update documentation
 
-### 4. Archive Issues
-- Archive exists but lacks clear labeling
-- No archive README explaining organization
-- Unclear criteria for what belongs in archive
+2. **Python Test Claims**
+   - Claims: "84/84 tests passing"
+   - Reality: 2 tests fail during collection
+   - **Resolution**: Fix tests OR update documentation
 
-### 5. Missing Documentation
-- No comprehensive API documentation consolidation
-- Limited ADR usage (only 1 ADR found)
-- No clear developer onboarding guide
-- No consolidated troubleshooting guide
+3. **Version Numbers**
+   - package.json: 3.1.0
+   - STATUS.md: 3.3.0
+   - **Resolution**: Synchronize to correct version
 
-### 6. Verification Needed
-- All technical specifications need verification against codebase
-- API documentation needs verification against implemented endpoints
-- Configuration documentation needs verification against actual config files
-- Data models need verification against implemented schemas
+### Documentation Conflicts
 
-## Recommendations for Next Steps
+1. **Multiple Status Sources**
+   - 4+ documents claim to be "the status"
+   - **Resolution**: Single `IMPLEMENTATION_STATUS.md`
 
-### Immediate Actions
-1. Read key technical documents to establish ground truth
-2. Analyze codebase to verify documentation claims
-3. Design information architecture with clear boundaries
-4. Create archive README with explicit non-current labeling
+2. **Duplicate Architecture Descriptions**
+   - Root and docs/architecture overlap
+   - **Resolution**: Consolidate to root `ARCHITECTURE.md`
 
-### Consolidation Priorities
-1. Merge duplicate quick start guides
-2. Consolidate status documents
-3. Archive historical phase reports
-4. Merge code review documents
+3. **Outdated Quick Start**
+   - May reference non-working commands
+   - **Resolution**: Verify and update
 
-### Structure Improvements
-1. Establish single source of truth for each topic
-2. Clear separation between current and archived
-3. Consistent location for similar document types
-4. Comprehensive documentation index
+---
 
-## Investigation Path
+## Recommended Documentation Structure
 
-### What Was Examined
-1. Root directory markdown files
-2. Complete `docs/` directory structure
-3. `plans/` directory
-4. Project-specific documentation locations
-5. Agent and Replicant documentation
-6. Archive structure
+### Proposed Final Structure
 
-### How Investigation Redirected Search
-- Initial assumption: Documentation would be primarily in `docs/`
-- Reality: Documentation spread across 6+ top-level locations
-- Discovery: Extensive archive structure already exists
-- Finding: `docs/current/` represents attempt at organization
-- Insight: Multiple cleanup efforts have occurred (evidenced by cleanup reports)
+```
+Chrysalis/
+├── README.md                    # Project overview (updated)
+├── ARCHITECTURE.md              # System architecture (single source)
+├── CHANGELOG.md                 # Version history
+├── CONTRIBUTING.md              # Contributor guide
+├── CODE_REVIEW_CHECKLIST.md     # Review standards
+├── PULL_REQUEST_TEMPLATE.md     # PR template
+│
+├── docs/
+│   ├── README.md                # Documentation index (new)
+│   ├── IMPLEMENTATION_STATUS.md # Single status source (new)
+│   │
+│   ├── getting-started/
+│   │   ├── QUICK_START.md       # Verified quick start
+│   │   └── CONFIGURATION.md     # Config guide
+│   │
+│   ├── architecture/
+│   │   ├── README.md            # Architecture index
+│   │   ├── components.md        # Component details
+│   │   └── data-models.md       # Data structures
+│   │
+│   ├── api/
+│   │   ├── README.md            # API index
+│   │   └── [existing api docs]
+│   │
+│   ├── guides/
+│   │   ├── development.md       # Developer guide
+│   │   ├── deployment.md        # Deployment guide
+│   │   └── troubleshooting.md   # Problem resolution
+│   │
+│   ├── research/
+│   │   └── [existing research]  # Keep as-is
+│   │
+│   └── archive/
+│       ├── README.md            # Archive index (updated)
+│       └── [organized by date]  # Historical content
+```
 
-### Confidence Assessment
-- **High confidence (>75%)**: File locations, archive structure, duplication patterns
-- **Medium confidence (50-75%)**: Document currency status, verification needs
-- **Requires verification**: Technical accuracy, API completeness, configuration correctness
+---
 
-## Next Task: Ground Truth Establishment
+## Action Plan
 
-The next phase requires:
-1. Reading core technical documents
-2. Analyzing codebase implementation
-3. Cross-referencing documentation claims against code
-4. Identifying documentation-code misalignment
-5. Documenting actual system behavior
+### Phase 1: Ground Truth Alignment
+1. Fix TypeScript build errors OR document known issues
+2. Fix Python test errors OR document known issues
+3. Synchronize version numbers across all documents
 
-This inventory provides the foundation for systematic documentation synchronization.
+### Phase 2: Consolidation
+1. Create single `IMPLEMENTATION_STATUS.md`
+2. Archive duplicate status documents
+3. Archive workplan documents to historical-plans/
+4. Update docs/README.md as navigation hub
+
+### Phase 3: Verification
+1. Verify Quick Start commands work
+2. Test all documentation links
+3. Validate Mermaid diagrams render
+
+### Phase 4: Maintenance
+1. Add last-updated timestamps
+2. Define document ownership
+3. Establish review cadence
+
+---
+
+## Document Relationships Map
+
+```mermaid
+graph TD
+    README[README.md] --> ARCH[ARCHITECTURE.md]
+    README --> STATUS[docs/IMPLEMENTATION_STATUS.md]
+    README --> DOCS[docs/README.md]
+    
+    DOCS --> QS[guides/QUICK_START.md]
+    DOCS --> API[api/README.md]
+    DOCS --> ARCHDIR[architecture/]
+    DOCS --> RESEARCH[research/]
+    DOCS --> ARCHIVE[archive/]
+    
+    STATUS --> ARCH
+    
+    ARCH --> COMPONENTS[architecture/components.md]
+    ARCH --> DATAMODELS[architecture/data-models.md]
+    
+    ARCHIVE --> V1[v1/]
+    ARCHIVE --> V2[v2/]
+    ARCHIVE --> V3[v3/]
+    ARCHIVE --> HISTORY[historical-plans/]
+```
+
+---
+
+## Appendix: Full File List
+
+### Root-Level Files
+
+```
+README.md
+ARCHITECTURE.md
+CHANGELOG.md
+CONTRIBUTING.md
+CODE_REVIEW_CHECKLIST.md
+PULL_REQUEST_TEMPLATE.md
+WORKPLAN_EXECUTIVE_SUMMARY.md (→ archive)
+WORKPLAN_FOCUS_AREAS.md (→ archive)
+WORKPLAN_SECOND_PASS.md (→ archive)
+QODO-REVIEW.md (→ archive)
+AGENT.md
+```
+
+### docs/ First-Level Files (55+)
+
+See section "docs/ Directory Structure" above for complete listing.
+
+---
+
+**Document Owner**: Chrysalis Documentation Team  
+**Next Review**: After Phase 4 completion  
+**Related**: [Documentation Standards](current/DOCUMENTATION_STANDARDS.md)

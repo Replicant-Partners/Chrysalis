@@ -21,6 +21,7 @@ import {
     QualityMetrics,
     QualityToolConfig,
 } from './QualityToolInterface';
+import { Result, ResultUtils, isFailure, getError } from './Result';
 
 /**
  * Base TypeScript Tool Adapter
@@ -110,6 +111,16 @@ abstract class BaseTypeScriptTool implements IQualityTool {
     }
 
     /**
+     * Execute command with Result wrapper (Result pattern)
+     */
+    protected async executeCommandResult(
+        args: string[],
+        options?: { timeout?: number; cwd?: string }
+    ): Promise<Result<{ exitCode: number; stdout: string; stderr: string }>> {
+        return ResultUtils.fromPromise(this.executeCommand(args, options));
+    }
+
+    /**
      * Execute npm script
      */
     protected async executeNpmScript(
@@ -117,6 +128,58 @@ abstract class BaseTypeScriptTool implements IQualityTool {
         options?: { timeout?: number; cwd?: string }
     ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
         return this.executeCommand(['run', script], options);
+    }
+
+    /**
+     * Create error result for tool execution failure
+     *
+     * Reduces code duplication across adapters (DRY principle).
+     *
+     * @param error - The error that occurred
+     * @param targetPath - Path that was being checked
+     * @param executionTime - Time elapsed before error
+     * @returns Standardized error result
+     */
+    protected createErrorResult(
+        error: any,
+        targetPath: string,
+        executionTime: number
+    ): QualityToolResult {
+        return {
+            tool_name: this.name,
+            tool_version: this.version,
+            success: false,
+            errors: [
+                {
+                    severity: 'error',
+                    message: error?.message || `${this.name} execution failed`,
+                    file_path: targetPath,
+                },
+            ],
+            warnings: [],
+            metrics: this.createEmptyMetrics(1),
+            execution_time_ms: executionTime,
+            timestamp: new Date().toISOString(),
+            error_output: error?.message,
+        };
+    }
+
+    /**
+     * Create empty metrics with optional error count
+     *
+     * @param errorCount - Number of errors (default 0)
+     * @returns Empty metrics object
+     */
+    protected createEmptyMetrics(errorCount: number = 0): QualityMetrics {
+        return {
+            total_issues: errorCount,
+            errors: errorCount,
+            warnings: 0,
+            info: 0,
+            fixable_issues: 0,
+            files_checked: 0,
+            files_with_issues: errorCount > 0 ? 1 : 0,
+        };
     }
 }
 
@@ -159,47 +222,29 @@ export class ESLintAdapter extends BaseTypeScriptTool {
             args.push('--ignore-pattern', cfg.exclude_patterns.join(','));
         }
 
-        try {
-            let result: { exitCode: number; stdout: string; stderr: string };
-            if (useNpm) {
-                result = await this.executeNpmScript('lint', {
-                    timeout: cfg.timeout_ms || 300000,
-                });
-            } else {
-                result = await this.executeCommand(args, {
-                    timeout: cfg.timeout_ms || 300000,
-                });
-            }
+        const commandResult = useNpm
+            ? await ResultUtils.fromPromise(
+                  this.executeNpmScript('lint', {
+                      timeout: cfg.timeout_ms || 300000,
+                  })
+              )
+            : await this.executeCommandResult(args, {
+                  timeout: cfg.timeout_ms || 300000,
+              });
 
-            const executionTime = Date.now() - startTime;
-            return this.parseOutput(result.stdout, result.stderr, result.exitCode, executionTime);
-        } catch (error: any) {
-            const executionTime = Date.now() - startTime;
-            return {
-                tool_name: this.name,
-                success: false,
-                errors: [
-                    {
-                        severity: 'error',
-                        message: error.message || 'ESLint execution failed',
-                        file_path: targetPath,
-                    },
-                ],
-                warnings: [],
-                metrics: {
-                    total_issues: 1,
-                    errors: 1,
-                    warnings: 0,
-                    info: 0,
-                    fixable_issues: 0,
-                    files_checked: 0,
-                    files_with_issues: 0,
-                },
-                execution_time_ms: executionTime,
-                timestamp: new Date().toISOString(),
-                error_output: error.message,
-            };
+        const executionTime = Date.now() - startTime;
+
+        if (isFailure(commandResult)) {
+            return this.createErrorResult(getError(commandResult), targetPath, executionTime);
         }
+
+        const result = commandResult.value;
+        return this.parseOutput(
+            result.stdout,
+            result.stderr,
+            result.exitCode,
+            executionTime
+        );
     }
 
     async applyFixes(
@@ -263,30 +308,7 @@ export class ESLintAdapter extends BaseTypeScriptTool {
             };
         } catch (error: any) {
             const executionTime = Date.now() - startTime;
-            return {
-                tool_name: this.name,
-                success: false,
-                errors: [
-                    {
-                        severity: 'error',
-                        message: error.message || 'ESLint fix execution failed',
-                        file_path: targetPath,
-                    },
-                ],
-                warnings: [],
-                metrics: {
-                    total_issues: 1,
-                    errors: 1,
-                    warnings: 0,
-                    info: 0,
-                    fixable_issues: 0,
-                    files_checked: 0,
-                    files_with_issues: 0,
-                },
-                execution_time_ms: executionTime,
-                timestamp: new Date().toISOString(),
-                error_output: error.message,
-            };
+            return this.createErrorResult(error, targetPath, executionTime);
         }
     }
 
@@ -430,30 +452,7 @@ export class TypeScriptCompilerAdapter extends BaseTypeScriptTool {
             return this.parseOutput(result.stdout, result.stderr, result.exitCode, executionTime);
         } catch (error: any) {
             const executionTime = Date.now() - startTime;
-            return {
-                tool_name: this.name,
-                success: false,
-                errors: [
-                    {
-                        severity: 'error',
-                        message: error.message || 'TypeScript compilation failed',
-                        file_path: targetPath,
-                    },
-                ],
-                warnings: [],
-                metrics: {
-                    total_issues: 1,
-                    errors: 1,
-                    warnings: 0,
-                    info: 0,
-                    fixable_issues: 0,
-                    files_checked: 0,
-                    files_with_issues: 0,
-                },
-                execution_time_ms: executionTime,
-                timestamp: new Date().toISOString(),
-                error_output: error.message,
-            };
+            return this.createErrorResult(error, targetPath, executionTime);
         }
     }
 

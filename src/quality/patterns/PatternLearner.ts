@@ -3,12 +3,13 @@
  *
  * Learns quality patterns from issues and outcomes.
  *
- * Design Pattern: Template Method Pattern (GoF, p. 325)
- * - Defines algorithm structure for pattern learning
- * - Allows subclasses to implement specific learning strategies
+ * Design Pattern: Composed Method Pattern (Beck, "Implementation Patterns")
+ * - Breaks complex algorithm into small, focused methods
+ * - Each method operates at a single level of abstraction
+ * - Main method composes smaller methods into complete algorithm
  *
  * References:
- * - Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley. p. 325.
+ * - Beck, K. (2007). Implementation Patterns. Addison-Wesley. Chapter 7: Behavior - Composed Method.
  */
 
 import {

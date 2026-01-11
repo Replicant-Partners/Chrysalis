@@ -5,11 +5,24 @@
  * Supports task submission, streaming, and push notifications.
  * 
  * @module a2a-client/a2a-client
- * @version 1.0.0
+ * @version 1.1.0
  * @see https://google.github.io/A2A/
+ * 
+ * Phase 1 Improvements (2026-01-11):
+ * - Browser compatibility: Replaced Buffer.from() with cross-platform encoding
+ * - Runtime validation: Added Zod schema validation for stream events
+ * - Memory management: Added session cleanup with TTL and max limits
+ * - Error handling: Added cause chain support to A2AError
  */
 
 import { EventEmitter } from 'events';
+import { encodeBasicAuth } from '../shared/encoding';
+import {
+  StreamEventSchema,
+  parseStreamEvent,
+  ValidatedStreamEvent,
+  ValidationResult
+} from './schemas';
 import {
   // JSON-RPC types
   JsonRpcId,
@@ -79,6 +92,19 @@ import {
 } from './types';
 
 // ============================================================================
+// Session Management Constants
+// ============================================================================
+
+/** Maximum number of sessions to track */
+const MAX_SESSIONS = 1000;
+
+/** Session time-to-live in milliseconds (24 hours) */
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+/** Session cleanup interval in milliseconds (1 hour) */
+const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
+
+// ============================================================================
 // A2A Client Class
 // ============================================================================
 
@@ -119,6 +145,17 @@ export class A2AClient extends EventEmitter {
   }> = new Map();
   private requestId: number = 0;
   
+  /** Timer for periodic session cleanup */
+  private cleanupTimer?: ReturnType<typeof setInterval>;
+  
+  /** Statistics for monitoring */
+  private stats = {
+    sessionsCreated: 0,
+    sessionsEvicted: 0,
+    streamEventsReceived: 0,
+    streamEventsInvalid: 0
+  };
+  
   constructor(config: A2AClientConfig) {
     super();
     this.config = {
@@ -129,6 +166,9 @@ export class A2AClient extends EventEmitter {
       debug: false,
       ...config
     };
+    
+    // Start session cleanup timer
+    this.startSessionCleanup();
   }
   
   // ============================================================================
@@ -162,7 +202,7 @@ export class A2AClient extends EventEmitter {
       return this.agentCard;
     } catch (error) {
       this.emitEvent('error', { error });
-      throw error;
+      throw A2AError.from(error, A2A_ERROR_CODES.INTERNAL_ERROR);
     }
   }
   
@@ -170,6 +210,12 @@ export class A2AClient extends EventEmitter {
    * Disconnect from the A2A agent.
    */
   disconnect(): void {
+    // Stop cleanup timer
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = undefined;
+    }
+    
     this.connected = false;
     this.agentCard = undefined;
     this.sessions.clear();
@@ -204,6 +250,13 @@ export class A2AClient extends EventEmitter {
     return this.agentCard?.skills || [];
   }
   
+  /**
+   * Get client statistics.
+   */
+  getStats(): typeof this.stats {
+    return { ...this.stats };
+  }
+  
   // ============================================================================
   // Task Operations
   // ============================================================================
@@ -227,6 +280,7 @@ export class A2AClient extends EventEmitter {
   
   /**
    * Send a task with streaming response.
+   * Now includes runtime validation of stream events.
    */
   async *sendTaskStream(params: TaskSendParams): AsyncGenerator<StreamEvent, Task, undefined> {
     this.ensureConnected();
@@ -251,10 +305,10 @@ export class A2AClient extends EventEmitter {
     
     for await (const event of this.parseStreamEvents(response)) {
       this.emitEvent('stream-event', { event });
-      yield event;
+      yield event as StreamEvent;
       
       if (event.type === 'done') {
-        finalTask = event.task;
+        finalTask = event.task as Task;
       }
     }
     
@@ -313,10 +367,10 @@ export class A2AClient extends EventEmitter {
     let finalTask: Task | undefined;
     
     for await (const event of this.parseStreamEvents(response)) {
-      yield event;
+      yield event as StreamEvent;
       
       if (event.type === 'done') {
-        finalTask = event.task;
+        finalTask = event.task as Task;
       }
     }
     
@@ -428,6 +482,79 @@ export class A2AClient extends EventEmitter {
    */
   clearSessions(): void {
     this.sessions.clear();
+  }
+  
+  /**
+   * Get current session count.
+   */
+  getSessionCount(): number {
+    return this.sessions.size;
+  }
+  
+  // ============================================================================
+  // Session Cleanup (Phase 1 Fix: Memory Management)
+  // ============================================================================
+  
+  /**
+   * Start periodic session cleanup.
+   * Runs every hour to remove expired sessions and enforce max limit.
+   */
+  private startSessionCleanup(): void {
+    this.cleanupTimer = setInterval(
+      () => this.cleanupSessions(),
+      CLEANUP_INTERVAL_MS
+    );
+    
+    // Don't prevent process exit in Node.js
+    if (typeof this.cleanupTimer === 'object' && 'unref' in this.cleanupTimer) {
+      this.cleanupTimer.unref();
+    }
+  }
+  
+  /**
+   * Clean up expired sessions and enforce max session limit.
+   * Uses LRU eviction when over the limit.
+   */
+  private cleanupSessions(): void {
+    const now = Date.now();
+    const expiredIds: string[] = [];
+    
+    // Find expired sessions
+    for (const [id, session] of this.sessions) {
+      const lastActivity = new Date(session.lastActivityAt).getTime();
+      if (now - lastActivity > SESSION_TTL_MS) {
+        expiredIds.push(id);
+      }
+    }
+    
+    // Remove expired sessions
+    for (const id of expiredIds) {
+      this.sessions.delete(id);
+      this.stats.sessionsEvicted++;
+    }
+    
+    // Enforce max sessions using LRU eviction
+    if (this.sessions.size > MAX_SESSIONS) {
+      const sorted = [...this.sessions.entries()]
+        .sort((a, b) => 
+          new Date(a[1].lastActivityAt).getTime() - 
+          new Date(b[1].lastActivityAt).getTime()
+        );
+      
+      const toRemove = sorted.slice(0, this.sessions.size - MAX_SESSIONS);
+      for (const [id] of toRemove) {
+        this.sessions.delete(id);
+        this.stats.sessionsEvicted++;
+      }
+    }
+    
+    if (expiredIds.length > 0) {
+      this.log('debug', `Cleaned up ${expiredIds.length} expired sessions`);
+      this.emitEvent('sessions-cleaned', { 
+        expired: expiredIds.length, 
+        remaining: this.sessions.size 
+      });
+    }
   }
   
   // ============================================================================
@@ -545,8 +672,9 @@ export class A2AClient extends EventEmitter {
   
   /**
    * Parse stream events from response body.
+   * Now includes Zod schema validation for security.
    */
-  private async *parseStreamEvents(stream: ReadableStream<Uint8Array>): AsyncGenerator<StreamEvent> {
+  private async *parseStreamEvents(stream: ReadableStream<Uint8Array>): AsyncGenerator<ValidatedStreamEvent> {
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -567,11 +695,9 @@ export class A2AClient extends EventEmitter {
         
         for (const line of lines) {
           if (line.trim()) {
-            try {
-              const event = JSON.parse(line) as StreamEvent;
+            const event = this.parseAndValidateEvent(line);
+            if (event) {
               yield event;
-            } catch (e) {
-              this.log('error', `Failed to parse stream event: ${line}`);
             }
           }
         }
@@ -579,15 +705,50 @@ export class A2AClient extends EventEmitter {
       
       // Process remaining buffer
       if (buffer.trim()) {
-        try {
-          const event = JSON.parse(buffer) as StreamEvent;
+        const event = this.parseAndValidateEvent(buffer);
+        if (event) {
           yield event;
-        } catch (e) {
-          this.log('error', `Failed to parse final stream event: ${buffer}`);
         }
       }
     } finally {
       reader.releaseLock();
+    }
+  }
+  
+  /**
+   * Parse and validate a single stream event.
+   * Returns null if validation fails (with error emitted).
+   */
+  private parseAndValidateEvent(line: string): ValidatedStreamEvent | null {
+    this.stats.streamEventsReceived++;
+    
+    try {
+      const parsed = JSON.parse(line);
+      const result = parseStreamEvent(parsed);
+      
+      if (result.success && result.data) {
+        return result.data;
+      }
+      
+      // Validation failed - emit error event
+      this.stats.streamEventsInvalid++;
+      this.log('error', `Invalid stream event schema: ${result.error?.message}`);
+      this.emitEvent('stream-validation-error', {
+        error: result.error,
+        rawData: line
+      });
+      
+      return null;
+    } catch (e) {
+      // JSON parse failed
+      this.stats.streamEventsInvalid++;
+      this.log('error', `Failed to parse stream event JSON: ${line}`);
+      this.emitEvent('stream-parse-error', {
+        error: e,
+        rawData: line
+      });
+      
+      return null;
     }
   }
   
@@ -663,7 +824,7 @@ export class A2AClient extends EventEmitter {
       }
     }
     
-    throw lastError || new Error('Request failed after retries');
+    throw A2AError.from(lastError, A2A_ERROR_CODES.INTERNAL_ERROR);
   }
   
   /**
@@ -689,6 +850,7 @@ export class A2AClient extends EventEmitter {
   
   /**
    * Build authorization header.
+   * Uses cross-platform Base64 encoding for browser compatibility.
    */
   private buildAuthHeader(auth: A2AAuthConfig): string | undefined {
     switch (auth.scheme) {
@@ -697,7 +859,8 @@ export class A2AClient extends EventEmitter {
       
       case 'Basic':
         if (auth.username && auth.password) {
-          const credentials = Buffer.from(`${auth.username}:${auth.password}`).toString('base64');
+          // Use cross-platform encoding (Phase 1 Fix)
+          const credentials = encodeBasicAuth(auth.username, auth.password);
           return `Basic ${credentials}`;
         }
         return undefined;
@@ -790,6 +953,7 @@ export class A2AClient extends EventEmitter {
         lastActivityAt: new Date().toISOString()
       };
       this.sessions.set(sessionId, session);
+      this.stats.sessionsCreated++;
     }
     
     if (!session.taskIds.includes(taskId)) {
@@ -845,29 +1009,97 @@ export class A2AClient extends EventEmitter {
 }
 
 // ============================================================================
-// A2A Error Class
+// A2A Error Class (Phase 1 Fix: Error Cause Chain)
 // ============================================================================
 
 /**
- * A2A-specific error class.
+ * A2A-specific error class with cause chain support.
+ * 
+ * Supports ES2022 error cause for better debugging:
+ * ```typescript
+ * try {
+ *   await client.sendTask(params);
+ * } catch (error) {
+ *   if (error instanceof A2AError) {
+ *     console.log('Cause:', error.cause); // Original error
+ *   }
+ * }
+ * ```
  */
 export class A2AError extends Error {
-  code: number;
-  data?: unknown;
+  readonly code: number;
+  readonly data?: unknown;
   
-  constructor(code: number, message: string, data?: unknown) {
+  constructor(
+    code: number,
+    message: string,
+    data?: unknown,
+    options?: { cause?: Error }
+  ) {
+    // TypeScript target might be older than ES2022, so we handle cause manually if needed
+    // but for now we'll just pass message to super() to fix the TS2554 error
+    // assuming the environment might not support the options argument in Error constructor
     super(message);
     this.name = 'A2AError';
     this.code = code;
     this.data = data;
+    
+    // Manually set cause if provided and supported
+    if (options?.cause) {
+      (this as any).cause = options.cause;
+    }
+    
+    // Ensure proper prototype chain for instanceof checks
+    Object.setPrototypeOf(this, A2AError.prototype);
   }
   
+  /**
+   * Convert to JSON-RPC error format.
+   */
   toJsonRpcError(): JsonRpcError {
     return {
       code: this.code,
       message: this.message,
       data: this.data
     };
+  }
+  
+  /**
+   * Create A2AError from unknown error.
+   * Preserves the original error as the cause.
+   * 
+   * @param error - The original error
+   * @param code - Optional error code (defaults to INTERNAL_ERROR)
+   * @returns A2AError instance
+   */
+  static from(error: unknown, code?: number): A2AError {
+    // Already an A2AError - return as-is
+    if (error instanceof A2AError) {
+      return error;
+    }
+    
+    // Standard Error - wrap with cause
+    if (error instanceof Error) {
+      return new A2AError(
+        code ?? A2A_ERROR_CODES.INTERNAL_ERROR,
+        error.message,
+        undefined,
+        { cause: error }
+      );
+    }
+    
+    // Unknown type - convert to string
+    return new A2AError(
+      code ?? A2A_ERROR_CODES.INTERNAL_ERROR,
+      String(error)
+    );
+  }
+  
+  /**
+   * Check if an error is an A2AError.
+   */
+  static isA2AError(error: unknown): error is A2AError {
+    return error instanceof A2AError;
   }
 }
 

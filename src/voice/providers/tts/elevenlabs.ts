@@ -109,7 +109,7 @@ export class ElevenLabsTTSProvider extends BaseTTSProvider {
       throw new Error('ElevenLabs not initialized');
     }
     
-    const voiceId = options?.voiceId || this.defaultVoiceId;
+    const voiceId = options?.voiceProfile?.voiceId || this.defaultVoiceId;
     
     // Handle long text by chunking
     const chunks = this.chunkText(text, 5000);
@@ -136,11 +136,12 @@ export class ElevenLabsTTSProvider extends BaseTTSProvider {
     voiceId: string,
     options?: TTSOptions
   ): Promise<AudioBlob> {
-    // Build voice settings
+    // Build voice settings - use emotionalState intensity if available
+    const emotionalIntensity = options?.emotionalState?.intensity || 0.5;
     const voiceSettings: ElevenLabsVoiceSettings = {
-      stability: options?.emotionalRange ? (1 - options.emotionalRange) * 0.5 + 0.25 : 0.5,
+      stability: (1 - emotionalIntensity) * 0.5 + 0.25,
       similarity_boost: 0.75,
-      style: options?.emotionalRange || 0.5,
+      style: emotionalIntensity,
       use_speaker_boost: true,
     };
     
@@ -180,7 +181,9 @@ export class ElevenLabsTTSProvider extends BaseTTSProvider {
     return {
       blob,
       mimeType: 'audio/mpeg',
-      durationMs: estimatedDuration,
+      duration: estimatedDuration / 1000, // Convert to seconds
+      sampleRate: 44100,
+      channels: 1,
     };
   }
   
@@ -205,7 +208,7 @@ export class ElevenLabsTTSProvider extends BaseTTSProvider {
       throw new Error(`Failed to list voices: ${response.status}`);
     }
     
-    const data = await response.json();
+    const data = await response.json() as { voices?: ElevenLabsVoice[] };
     const voices: ElevenLabsVoice[] = data.voices || [];
     
     return voices.map(voice => this.mapElevenLabsVoice(voice));
@@ -223,21 +226,16 @@ export class ElevenLabsTTSProvider extends BaseTTSProvider {
     if (labels.age) characteristics.push(labels.age);
     if (labels.gender) characteristics.push(labels.gender);
     if (labels.use_case) characteristics.push(labels.use_case);
-    
-    // Determine gender from labels
-    let gender: 'male' | 'female' | 'neutral' = 'neutral';
-    if (labels.gender?.toLowerCase().includes('male')) {
-      gender = labels.gender.toLowerCase().includes('female') ? 'female' : 'male';
-    }
+    if (labels.language) characteristics.push(labels.language);
     
     return {
       id: voice.voice_id,
       name: voice.name,
-      gender,
-      language: labels.language || 'en',
+      voiceId: voice.voice_id,
       characteristics,
       previewUrl: voice.preview_url,
       provider: 'elevenlabs',
+      isCloned: voice.category === 'cloned',
     };
   }
   
@@ -293,15 +291,15 @@ export class ElevenLabsTTSProvider extends BaseTTSProvider {
       throw new Error(`Voice cloning failed: ${response.status} - ${errorText}`);
     }
     
-    const result = await response.json();
+    const result = await response.json() as { voice_id: string };
     
     return {
       id: result.voice_id,
       name,
-      gender: 'neutral',
-      language: 'en',
+      voiceId: result.voice_id,
       characteristics: ['cloned'],
       provider: 'elevenlabs',
+      isCloned: true,
     };
   }
   
@@ -357,7 +355,12 @@ export class ElevenLabsTTSProvider extends BaseTTSProvider {
       throw new Error(`Failed to get subscription info: ${response.status}`);
     }
     
-    const data = await response.json();
+    const data = await response.json() as {
+      tier?: string;
+      character_limit?: number;
+      character_count?: number;
+      can_use_instant_voice_cloning?: boolean;
+    };
     
     return {
       tier: data.tier || 'free',

@@ -4,8 +4,9 @@
  * Matches quality issues against patterns.
  *
  * Design Pattern: Strategy Pattern (GoF, p. 315)
- * - Different matching strategies for different condition types
+ * - Uses ConditionMatcherRegistry to delegate condition evaluation
  * - Encapsulates pattern matching algorithms
+ * - Open/Closed Principle: new operators can be added without modification
  *
  * References:
  * - Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley. p. 315.
@@ -17,13 +18,25 @@ import {
     PatternMatchResult,
 } from './QualityPattern';
 import { QualityIssue } from '../tools/QualityToolInterface';
+import { ConditionMatcherRegistry, createDefaultRegistry } from './matchers';
 
 /**
  * Pattern Matcher
  *
- * Matches quality issues against patterns.
+ * Matches quality issues against patterns using pluggable condition matchers.
  */
 export class PatternMatcher {
+    private registry: ConditionMatcherRegistry;
+
+    /**
+     * Create a pattern matcher
+     *
+     * @param registry - Optional custom registry. Defaults to standard matchers.
+     */
+    constructor(registry?: ConditionMatcherRegistry) {
+        this.registry = registry || createDefaultRegistry();
+    }
+
     /**
      * Match an issue against a pattern
      */
@@ -115,6 +128,20 @@ export class PatternMatcher {
     }
 
     /**
+     * Get the condition matcher registry
+     */
+    getRegistry(): ConditionMatcherRegistry {
+        return this.registry;
+    }
+
+    /**
+     * Get supported operators
+     */
+    getSupportedOperators(): string[] {
+        return this.registry.getSupportedOperators();
+    }
+
+    /**
      * Get field value from issue
      */
     private getFieldValue(issue: QualityIssue, field: string): string | number | undefined {
@@ -142,60 +169,13 @@ export class PatternMatcher {
 
     /**
      * Evaluate a condition against a value
+     *
+     * Delegates to the registered condition matcher for the operator.
      */
     private evaluateCondition(
         condition: PatternCondition,
         value: string | number
     ): boolean {
-        const valueStr = String(value).toLowerCase();
-
-        let matches = false;
-
-        switch (condition.operator) {
-            case 'equals': {
-                const conditionValue = typeof condition.value === 'string'
-                    ? condition.value.toLowerCase()
-                    : String(condition.value).toLowerCase();
-                matches = valueStr === conditionValue;
-                break;
-            }
-            case 'contains': {
-                const conditionValue = typeof condition.value === 'string'
-                    ? condition.value.toLowerCase()
-                    : String(condition.value).toLowerCase();
-                matches = valueStr.includes(conditionValue);
-                break;
-            }
-            case 'starts_with': {
-                const conditionValue = typeof condition.value === 'string'
-                    ? condition.value.toLowerCase()
-                    : String(condition.value).toLowerCase();
-                matches = valueStr.startsWith(conditionValue);
-                break;
-            }
-            case 'ends_with': {
-                const conditionValue = typeof condition.value === 'string'
-                    ? condition.value.toLowerCase()
-                    : String(condition.value).toLowerCase();
-                matches = valueStr.endsWith(conditionValue);
-                break;
-            }
-            case 'matches':
-            case 'regex': {
-                try {
-                    const regex = condition.value instanceof RegExp
-                        ? condition.value
-                        : new RegExp(String(condition.value), 'i');
-                    matches = regex.test(String(value));
-                } catch {
-                    matches = false;
-                }
-                break;
-            }
-            default:
-                matches = false;
-        }
-
-        return condition.negate ? !matches : matches;
+        return this.registry.evaluate(condition, value);
     }
 }

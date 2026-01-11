@@ -134,23 +134,23 @@ class MCPHashImpl implements HashImplementation {
   constructor(client: MCPPatternClient) {
     this.client = client;
   }
-  async hash(data: string | Uint8Array, algorithm: string): Promise<string> {
+  public async hash(data: string | Uint8Array, algorithm: string): Promise<string> {
     return this.client.hash(data, algorithm);
   }
-  async verify(data: string | Uint8Array, expectedHash: string): Promise<boolean> {
+  public async verify(data: string | Uint8Array, expectedHash: string): Promise<boolean> {
     const actual = await this.client.hash(data, algorithmForVerify(expectedHash));
     return actual === expectedHash;
   }
-  async generateFingerprint(identity: any): Promise<string> {
+  public async generateFingerprint(identity: unknown): Promise<string> {
     const payload = typeof identity === 'string' ? identity : JSON.stringify(identity);
     return this.client.hash(payload, 'sha-384');
   }
 }
 
 function algorithmForVerify(expectedHash: string): string {
-  if (expectedHash.length === 128) return 'sha-512';
-  if (expectedHash.length === 96) return 'sha-384';
-  if (expectedHash.length === 64) return 'sha-256';
+  if (expectedHash.length === 128) { return 'sha-512'; }
+  if (expectedHash.length === 96) { return 'sha-384'; }
+  if (expectedHash.length === 64) { return 'sha-256'; }
   return 'sha-384';
 }
 
@@ -160,19 +160,19 @@ class GoHashImpl implements HashImplementation {
     this.client = client;
   }
 
-  async hash(data: string | Uint8Array, algorithm: string = 'SHA-384'): Promise<string> {
+  public async hash(data: string | Uint8Array, algorithm: string = 'SHA-384'): Promise<string> {
     const encoded = encodeDataInput(data);
     const res = await this.client.call('Hash', { data: encoded.data, algorithm, encoding: encoded.encoding });
     return res.hash as string;
   }
 
-  async verify(data: string | Uint8Array, expectedHash: string): Promise<boolean> {
+  public async verify(data: string | Uint8Array, expectedHash: string): Promise<boolean> {
     const encoded = encodeDataInput(data);
     const res = await this.client.call('VerifyHash', { data: encoded.data, expectedHash, algorithm: 'SHA-384', encoding: encoded.encoding });
     return !!res.valid;
   }
 
-  async generateFingerprint(identity: any): Promise<string> {
+  public async generateFingerprint(identity: unknown): Promise<string> {
     const payload = JSON.stringify(identity);
     const res = await this.client.call('Hash', { data: payload, algorithm: 'SHA-384', encoding: 'utf8' });
     return res.hash as string;
@@ -184,13 +184,13 @@ class MCPSignatureImpl implements SignatureImplementation {
   constructor(client: MCPPatternClient) {
     this.client = client;
   }
-  async generateKeypair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
+  public async generateKeypair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
     return this.client.generateKeypair();
   }
-  async sign(message: string | Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
+  public async sign(message: string | Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
     return this.client.sign(message, privateKey);
   }
-  async verify(message: string | Uint8Array, signature: Uint8Array, publicKey: Uint8Array): Promise<boolean> {
+  public async verify(message: string | Uint8Array, signature: Uint8Array, publicKey: Uint8Array): Promise<boolean> {
     return this.client.verify(message, signature, publicKey);
   }
 }
@@ -201,18 +201,18 @@ class GoSignatureImpl implements SignatureImplementation {
     this.client = client;
   }
 
-  async generateKeypair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
+  public async generateKeypair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
     const res = await this.client.call('Ed25519Keygen', {});
     return { privateKey: hexToBytes(res.privateKey as string), publicKey: hexToBytes(res.publicKey as string) };
   }
 
-  async sign(message: string | Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
+  public async sign(message: string | Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
     const encoded = encodeDataInput(message);
     const res = await this.client.call('Ed25519Sign', { message: encoded.data, privateKey: bytesToHex(privateKey), encoding: encoded.encoding });
     return hexToBytes(res.signature as string);
   }
 
-  async verify(message: string | Uint8Array, signature: Uint8Array, publicKey: Uint8Array): Promise<boolean> {
+  public async verify(message: string | Uint8Array, signature: Uint8Array, publicKey: Uint8Array): Promise<boolean> {
     const encoded = encodeDataInput(message);
     const res = await this.client.call('Ed25519Verify', { message: encoded.data, signature: bytesToHex(signature), publicKey: bytesToHex(publicKey), encoding: encoded.encoding });
     return !!res.valid;
@@ -223,16 +223,16 @@ class GoSignatureImpl implements SignatureImplementation {
  * Embedded Hash Implementation (Pattern #1)
  */
 class EmbeddedHashImpl implements HashImplementation {
-  async hash(data: string | Uint8Array, algorithm: string = 'SHA-384'): Promise<string> {
+  public async hash(data: string | Uint8Array, algorithm: string = 'SHA-384'): Promise<string> {
     return EmbeddedPatterns.hashToHex(data, algorithm as any);
   }
   
-  async verify(data: string | Uint8Array, expectedHash: string): Promise<boolean> {
+  public async verify(data: string | Uint8Array, expectedHash: string): Promise<boolean> {
     return EmbeddedPatterns.verifyHash(data, expectedHash);
   }
   
-  async generateFingerprint(identity: any): Promise<string> {
-    return EmbeddedPatterns.generateAgentFingerprint(identity);
+  public async generateFingerprint(identity: unknown): Promise<string> {
+    return EmbeddedPatterns.generateAgentFingerprint(identity as any);
   }
 }
 
@@ -240,15 +240,15 @@ class EmbeddedHashImpl implements HashImplementation {
  * Embedded Signature Implementation (Pattern #2)
  */
 class EmbeddedSignatureImpl implements SignatureImplementation {
-  async generateKeypair() {
+  public async generateKeypair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
     return await EmbeddedPatterns.generateKeypair('ed25519');
   }
   
-  async sign(message: string | Uint8Array, privateKey: Uint8Array) {
+  public async sign(message: string | Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
     return await EmbeddedPatterns.sign(message, privateKey, 'ed25519');
   }
   
-  async verify(message: string | Uint8Array, signature: Uint8Array, publicKey: Uint8Array) {
+  public async verify(message: string | Uint8Array, signature: Uint8Array, publicKey: Uint8Array): Promise<boolean> {
     return await EmbeddedPatterns.verify(message, signature, publicKey, 'ed25519');
   }
 }
@@ -257,19 +257,19 @@ class EmbeddedSignatureImpl implements SignatureImplementation {
  * Embedded Threshold Implementation (Pattern #8)
  */
 class EmbeddedThresholdImpl implements ThresholdImplementation {
-  trimmedMean(values: number[], trimPercent: number = 0.2): number {
+  public trimmedMean(values: number[], trimPercent: number = 0.2): number {
     return EmbeddedPatterns.trimmedMean(values, trimPercent);
   }
   
-  median(values: number[]): number {
+  public median(values: number[]): number {
     return EmbeddedPatterns.median(values);
   }
   
-  hasSupermajority(yes: number, total: number, threshold: number = 2/3): boolean {
+  public hasSupermajority(yes: number, total: number, threshold: number = 2/3): boolean {
     return EmbeddedPatterns.hasSupermajority(yes, total, threshold);
   }
   
-  byzantineAgreement<T>(values: T[]): T | null {
+  public byzantineAgreement<T>(values: T[]): T | null {
     return EmbeddedPatterns.byzantineAgreement(values);
   }
 }
@@ -278,15 +278,15 @@ class EmbeddedThresholdImpl implements ThresholdImplementation {
  * Embedded Time Implementation (Pattern #9)
  */
 class EmbeddedTimeImpl implements TimeImplementation {
-  createLamportClock(nodeId: string) {
+  public createLamportClock(nodeId: string): unknown {
     return new EmbeddedPatterns.LamportClock(nodeId);
   }
   
-  createVectorClock(nodeId: string, numNodes: number, mapping: Map<string, number>) {
+  public createVectorClock(nodeId: string, numNodes: number, mapping: Map<string, number>): unknown {
     return new EmbeddedPatterns.VectorClock(nodeId, numNodes, mapping);
   }
   
-  consensusTimestamp(timestamps: number[]): number {
+  public consensusTimestamp(timestamps: number[]): number {
     return EmbeddedPatterns.consensusTimestamp(timestamps);
   }
 }
@@ -320,7 +320,7 @@ export class AdaptivePatternResolver {
   /**
    * Update deployment context (runtime reconfiguration)
    */
-  updateContext(updates: Partial<DeploymentContext>): void {
+  public updateContext(updates: Partial<DeploymentContext>): void {
     this.context = { ...this.context, ...updates };
   }
   
@@ -355,7 +355,7 @@ export class AdaptivePatternResolver {
   /**
    * Resolve hash implementation with circuit breaker protection
    */
-  async resolveHash(): Promise<PatternResolution<HashImplementation>> {
+  public async resolveHash(): Promise<PatternResolution<HashImplementation>> {
     if (this.shouldUseMCP()) {
       // Use circuit breaker for external service calls
       return this.hashCircuitBreaker.execute(
@@ -378,13 +378,14 @@ export class AdaptivePatternResolver {
         () => this.getEmbeddedHashResolution()
       );
     }
+    // Default to embedded if MCP not suitable
     return this.getEmbeddedHashResolution();
   }
   
   /**
    * Resolve signature implementation with circuit breaker protection
    */
-  async resolveSignature(): Promise<PatternResolution<SignatureImplementation>> {
+  public async resolveSignature(): Promise<PatternResolution<SignatureImplementation>> {
     if (this.shouldUseMCP()) {
       // Use circuit breaker for external service calls
       return this.signatureCircuitBreaker.execute(
@@ -413,9 +414,9 @@ export class AdaptivePatternResolver {
   /**
    * Get circuit breaker statistics for monitoring
    */
-  getCircuitBreakerStats(): {
-    hash: ReturnType<CircuitBreaker<any>['getStats']>;
-    signature: ReturnType<CircuitBreaker<any>['getStats']>;
+  public getCircuitBreakerStats(): {
+    hash: ReturnType<CircuitBreaker<PatternResolution<HashImplementation>>['getStats']>;
+    signature: ReturnType<CircuitBreaker<PatternResolution<SignatureImplementation>>['getStats']>;
   } {
     return {
       hash: this.hashCircuitBreaker.getStats(),
@@ -426,25 +427,25 @@ export class AdaptivePatternResolver {
   /**
    * Resolve threshold implementation
    */
-  async resolveThreshold(): Promise<PatternResolution<ThresholdImplementation>> {
-    return {
+  public async resolveThreshold(): Promise<PatternResolution<ThresholdImplementation>> {
+    return Promise.resolve({
       source: 'embedded',
       implementation: new EmbeddedThresholdImpl(),
       latency_estimate_ms: 0.05,  // Statistical ops are fast
       reason: 'Statistical operations best performed locally'
-    };
+    });
   }
   
   /**
    * Resolve time implementation
    */
-  async resolveTime(): Promise<PatternResolution<TimeImplementation>> {
-    return {
+  public async resolveTime(): Promise<PatternResolution<TimeImplementation>> {
+    return Promise.resolve({
       source: 'embedded',
       implementation: new EmbeddedTimeImpl(),
       latency_estimate_ms: 0.01,  // Clock ops are very fast
       reason: 'Logical clocks require local state, embedded is optimal'
-    };
+    });
   }
   
   /**
@@ -466,7 +467,7 @@ export class AdaptivePatternResolver {
   /**
    * Get deployment summary
    */
-  getDeploymentSummary(): {
+  public getDeploymentSummary(): {
     context: DeploymentContext;
     preferred_source: ResolutionSource;
     estimated_latency_ms: number;

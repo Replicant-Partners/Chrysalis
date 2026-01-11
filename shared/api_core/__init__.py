@@ -321,3 +321,101 @@ try:
 except (ImportError, RuntimeError):
     # Audit logging not available (Flask not installed)
     pass
+
+# Circuit breaker (for resilient downstream calls)
+try:
+    from .circuit_breaker import (
+        CircuitBreaker,
+        CircuitBreakerConfig,
+        CircuitBreakerError,
+        CircuitBreakerRegistry,
+        CircuitState,
+        circuit_breaker,
+        call_with_circuit_breaker,
+    )
+    __all__.extend([
+        'CircuitBreaker',
+        'CircuitBreakerConfig',
+        'CircuitBreakerError',
+        'CircuitBreakerRegistry',
+        'CircuitState',
+        'circuit_breaker',
+        'call_with_circuit_breaker',
+    ])
+except (ImportError, RuntimeError):
+    # Circuit breaker dependencies not available
+    pass
+
+# Retry logic
+try:
+    from .retry import (
+        RetryConfig,
+        RetryExhaustedError,
+        retry,
+        retry_call,
+        retry_async,
+        retry_with_circuit_breaker,
+    )
+    __all__.extend([
+        'RetryConfig',
+        'RetryExhaustedError',
+        'retry',
+        'retry_call',
+        'retry_async',
+        'retry_with_circuit_breaker',
+    ])
+except (ImportError, RuntimeError):
+    # Retry dependencies not available
+    pass
+
+# JSON Schema validation
+try:
+    from .json_schema import (
+        validate_json_schema,
+        validate_request_schema,
+        get_all_validation_errors,
+        register_schema,
+        get_schema,
+        list_schemas,
+        SCHEMA_REGISTRY,
+        SchemaValidationError,
+    )
+    __all__.extend([
+        'validate_json_schema',
+        'validate_request_schema',
+        'get_all_validation_errors',
+        'register_schema',
+        'get_schema',
+        'list_schemas',
+        'SCHEMA_REGISTRY',
+        'SchemaValidationError',
+    ])
+except (ImportError, RuntimeError):
+    # JSON Schema dependencies not available
+    pass
+
+# Caching
+try:
+    from .caching import (
+        CacheConfig,
+        CacheEntry,
+        InMemoryCache,
+        get_cache,
+        generate_cache_key,
+        cached,
+        cache_response,
+        invalidate_cache_pattern,
+    )
+    __all__.extend([
+        'CacheConfig',
+        'CacheEntry',
+        'InMemoryCache',
+        'get_cache',
+        'generate_cache_key',
+        'cached',
+        'cache_response',
+        'invalidate_cache_pattern',
+    ])
+except (ImportError, RuntimeError):
+    # Caching dependencies not available
+    pass

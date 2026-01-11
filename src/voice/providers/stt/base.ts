@@ -22,15 +22,15 @@ export abstract class BaseSTTProvider implements ISTTProvider {
   abstract readonly name: string;
   abstract readonly type: STTProviderType;
   
-  protected config: STTProviderConfig | null = null;
+  protected config: Partial<STTProviderConfig> | null = null;
   protected _isInitialized = false;
   protected mediaRecorder: MediaRecorder | null = null;
   protected audioChunks: Blob[] = [];
   protected mediaStream: MediaStream | null = null;
   
-  async initialize(config: STTProviderConfig): Promise<void> {
+  async initialize(config: Partial<Omit<STTProviderConfig, 'provider'>> | STTProviderConfig): Promise<void> {
     this.config = config;
-    await this.doInitialize(config);
+    await this.doInitialize(config as STTProviderConfig);
     this._isInitialized = true;
   }
   

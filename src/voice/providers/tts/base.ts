@@ -13,6 +13,7 @@ import {
   TTSProviderConfig,
   TTSOptions,
   AudioBlob,
+  AudioChunk,
   VoiceProfile,
 } from '../../types';
 
@@ -68,6 +69,28 @@ export abstract class BaseTTSProvider implements ITTSProvider {
     await this.doInitialize(config);
     this.initialized = true;
     console.log(`${this.name} initialized`);
+  }
+  
+  /**
+   * Check if provider is initialized
+   */
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+  
+  /**
+   * Get streaming audio (default implementation yields single chunk)
+   */
+  async *getStreamingAudio(text: string, options?: TTSOptions): AsyncGenerator<AudioChunk> {
+    const audioBlob = await this.synthesize(text, options);
+    const arrayBuffer = await audioBlob.blob.arrayBuffer();
+    
+    yield {
+      data: arrayBuffer,
+      index: 0,
+      isFinal: true,
+      timestamp: Date.now(),
+    };
   }
   
   /**
@@ -327,12 +350,14 @@ export abstract class BaseTTSProvider implements ITTSProvider {
       { type: blobs[0].mimeType }
     );
     
-    const totalDuration = blobs.reduce((sum, b) => sum + b.durationMs, 0);
+    const totalDuration = blobs.reduce((sum, b) => sum + b.duration, 0);
     
     return {
       blob: combinedBlob,
       mimeType: blobs[0].mimeType,
-      durationMs: totalDuration,
+      duration: totalDuration,
+      sampleRate: blobs[0].sampleRate,
+      channels: blobs[0].channels,
     };
   }
   

@@ -40,7 +40,7 @@ export const DEFAULT_STT_FALLBACK_CHAIN: STTProviderType[] = [
  */
 export async function createSTTProvider(
   type: STTProviderType,
-  config: STTProviderConfig = {}
+  config: Partial<Omit<STTProviderConfig, 'provider'>> = {}
 ): Promise<ISTTProvider> {
   let provider: BaseSTTProvider;
   
@@ -76,7 +76,7 @@ export async function createSTTProvider(
  * @returns Initialized STT provider
  */
 export async function createSTTProviderWithFallback(
-  config: STTProviderConfig = {},
+  config: Partial<Omit<STTProviderConfig, 'provider'>> = {},
   fallbackChain: STTProviderType[] = DEFAULT_STT_FALLBACK_CHAIN
 ): Promise<ISTTProvider> {
   const errors: Array<{ type: STTProviderType; error: Error }> = [];
@@ -142,11 +142,11 @@ export function getAvailableSTTProviders(): STTProviderType[] {
  */
 export class STTProviderManager {
   private provider: ISTTProvider | null = null;
-  private config: STTProviderConfig;
+  private config: Partial<Omit<STTProviderConfig, 'provider'>>;
   private fallbackChain: STTProviderType[];
   
   constructor(
-    config: STTProviderConfig = {},
+    config: Partial<Omit<STTProviderConfig, 'provider'>> = {},
     fallbackChain: STTProviderType[] = DEFAULT_STT_FALLBACK_CHAIN
   ) {
     this.config = config;

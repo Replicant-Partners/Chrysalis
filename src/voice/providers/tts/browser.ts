@@ -7,6 +7,8 @@
  * @module voice/providers/tts/browser
  */
 
+/// <reference lib="dom" />
+
 import {
   TTSProviderConfig,
   TTSOptions,
@@ -14,6 +16,13 @@ import {
   VoiceProfile,
 } from '../../types';
 import { BaseTTSProvider } from './base';
+
+// Type declarations for browser APIs (for non-DOM environments)
+declare const window: Window & typeof globalThis;
+declare const SpeechSynthesisUtterance: {
+  new (text?: string): SpeechSynthesisUtterance;
+  prototype: SpeechSynthesisUtterance;
+};
 
 /**
  * Browser TTS Provider
@@ -102,9 +111,9 @@ export class BrowserTTSProvider extends BaseTTSProvider {
     const utterance = new SpeechSynthesisUtterance(text);
     
     // Set voice
-    if (options?.voiceId) {
+    if (options?.voiceProfile?.voiceId) {
       const voices = this.synth.getVoices();
-      const voice = voices.find(v => v.voiceURI === options.voiceId);
+      const voice = voices.find((v: SpeechSynthesisVoice) => v.voiceURI === options.voiceProfile?.voiceId);
       if (voice) utterance.voice = voice;
     } else if (this.selectedVoice) {
       utterance.voice = this.selectedVoice;
@@ -120,10 +129,10 @@ export class BrowserTTSProvider extends BaseTTSProvider {
       utterance.pitch = Math.max(0, Math.min(2, options.pitch));
     }
     
-    // Calculate estimated duration
+    // Calculate estimated duration (in seconds)
     const wordsPerMinute = (options?.speed || 1) * 150;
     const wordCount = text.split(/\s+/).length;
-    const estimatedDuration = (wordCount / wordsPerMinute) * 60 * 1000;
+    const estimatedDuration = (wordCount / wordsPerMinute) * 60;
     
     // Return a promise that resolves when speech ends
     return new Promise((resolve, reject) => {
@@ -132,12 +141,14 @@ export class BrowserTTSProvider extends BaseTTSProvider {
         // Return an empty blob with duration info
         resolve({
           blob: new Blob([], { type: 'audio/wav' }),
+          duration: estimatedDuration,
+          sampleRate: 22050,
+          channels: 1,
           mimeType: 'audio/wav',
-          durationMs: estimatedDuration,
         });
       };
       
-      utterance.onerror = (event) => {
+      utterance.onerror = (event: SpeechSynthesisErrorEvent) => {
         reject(new Error(`Browser TTS error: ${event.error}`));
       };
       
@@ -159,9 +170,9 @@ export class BrowserTTSProvider extends BaseTTSProvider {
     const utterance = new SpeechSynthesisUtterance(text);
     
     // Set voice
-    if (options?.voiceId) {
+    if (options?.voiceProfile?.voiceId) {
       const voices = this.synth.getVoices();
-      const voice = voices.find(v => v.voiceURI === options.voiceId);
+      const voice = voices.find((v: SpeechSynthesisVoice) => v.voiceURI === options.voiceProfile?.voiceId);
       if (voice) utterance.voice = voice;
     } else if (this.selectedVoice) {
       utterance.voice = this.selectedVoice;
@@ -177,7 +188,7 @@ export class BrowserTTSProvider extends BaseTTSProvider {
     
     return new Promise((resolve, reject) => {
       utterance.onend = () => resolve();
-      utterance.onerror = (event) => reject(new Error(`TTS error: ${event.error}`));
+      utterance.onerror = (event: SpeechSynthesisErrorEvent) => reject(new Error(`TTS error: ${event.error}`));
       this.synth!.speak(utterance);
     });
   }
@@ -194,16 +205,18 @@ export class BrowserTTSProvider extends BaseTTSProvider {
     
     const voices = this.synth.getVoices();
     
-    return voices.map(voice => ({
+    return voices.map((voice: SpeechSynthesisVoice) => ({
       id: voice.voiceURI,
       name: voice.name,
-      gender: this.inferGender(voice.name),
-      language: voice.lang,
+      voiceId: voice.voiceURI,
+      isCloned: false,
       characteristics: [
         voice.localService ? 'local' : 'remote',
         voice.default ? 'default' : '',
-      ].filter(Boolean),
-      provider: 'browser',
+        this.inferGender(voice.name),
+        voice.lang,
+      ].filter(Boolean) as string[],
+      provider: 'browser' as const,
     }));
   }
   
@@ -233,8 +246,9 @@ export class BrowserTTSProvider extends BaseTTSProvider {
    */
   async getVoicesByLanguage(lang: string): Promise<VoiceProfile[]> {
     const allVoices = await this.listVoices();
+    // Filter by language characteristic
     return allVoices.filter(voice => 
-      voice.language.toLowerCase().startsWith(lang.toLowerCase())
+      voice.characteristics.some(c => c.toLowerCase().startsWith(lang.toLowerCase()))
     );
   }
   
@@ -245,7 +259,7 @@ export class BrowserTTSProvider extends BaseTTSProvider {
     if (!this.synth) return;
     
     const voices = this.synth.getVoices();
-    this.selectedVoice = voices.find(v => v.voiceURI === voiceId) || null;
+    this.selectedVoice = voices.find((v: SpeechSynthesisVoice) => v.voiceURI === voiceId) || null;
   }
   
   /**

@@ -24,3 +24,5 @@ export {
     FileQualityReport,
     AggregatedMetrics,
 } from './QualityResultAggregator';
+export { QualityToolFactory } from './QualityToolFactory';
+export { Result, ResultUtils } from './Result';

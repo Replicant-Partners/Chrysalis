@@ -714,6 +714,56 @@ export class TemporalRDFStore extends EventEmitter {
   }
 
   // ==========================================================================
+  // Canonical Conversion (P2 Feature Envy Resolution)
+  // ==========================================================================
+
+  /**
+   * Convert a snapshot to canonical agent representation.
+   *
+   * This method encapsulates the knowledge of how to build a canonical form
+   * from snapshot data, keeping this logic with the store that owns the data.
+   * This resolves feature envy from BridgeOrchestrator.getAgent() which
+   * previously built canonical representations by accessing snapshot internals.
+   *
+   * @param snapshot - The agent snapshot to convert
+   * @param agentId - The agent identifier
+   * @returns Object structurally compatible with CanonicalAgent interface
+   */
+  snapshotToCanonical(snapshot: AgentSnapshot, agentId: string): {
+    uri: string;
+    quads: Quad[];
+    sourceFramework: string;
+    extensions: Array<{ namespace: string; property: string; value: string; sourcePath: string }>;
+    metadata: {
+      fidelityScore: number;
+      mappedFields: string[];
+      unmappedFields: string[];
+      lostFields: string[];
+      warnings: Array<{ severity: string; code: string; message: string; sourcePath?: string }>;
+      timestamp: Date;
+      durationMs: number;
+      adapterVersion: string;
+    };
+  } {
+    return {
+      uri: `https://chrysalis.dev/agent/${agentId}`,
+      quads: snapshot.quads,
+      sourceFramework: snapshot.sourceFormat || 'usa',
+      extensions: [],
+      metadata: {
+        fidelityScore: snapshot.fidelityScore ?? 1.0,
+        mappedFields: [],
+        unmappedFields: [],
+        lostFields: [],
+        warnings: [],
+        timestamp: snapshot.validFrom,
+        durationMs: 0,
+        adapterVersion: '1.0.0'
+      }
+    };
+  }
+
+  // ==========================================================================
   // Administrative Operations
   // ==========================================================================
 

@@ -861,6 +861,11 @@ export class BridgeOrchestrator extends EventEmitter {
 
   /**
    * Retrieve an agent by ID
+   *
+   * P2 Feature Envy Resolution: Delegates canonical construction to
+   * TemporalRDFStore.snapshotToCanonical() instead of building it here.
+   * This keeps the knowledge of snapshot-to-canonical conversion with the
+   * store that owns the snapshot data.
    */
   async getAgent(
     agentId: string,
@@ -870,23 +875,8 @@ export class BridgeOrchestrator extends EventEmitter {
     const snapshot = await this.store.getSnapshot(agentId, options);
     if (!snapshot) return null;
 
-    // Build canonical from stored quads
-    const canonical: CanonicalAgent = {
-      uri: `https://chrysalis.dev/agent/${agentId}`,
-      quads: snapshot.quads,
-      sourceFramework: (snapshot.sourceFormat as AgentFramework) || 'usa',
-      extensions: [],
-      metadata: {
-        fidelityScore: snapshot.fidelityScore || 1.0,
-        mappedFields: [],
-        unmappedFields: [],
-        lostFields: [],
-        warnings: [],
-        timestamp: snapshot.validFrom,
-        durationMs: 0,
-        adapterVersion: '1.0.0'
-      }
-    };
+    // Delegate canonical construction to the store (feature envy fix)
+    const canonical = this.store.snapshotToCanonical(snapshot, agentId) as CanonicalAgent;
 
     if (!targetFramework) {
       return canonical;

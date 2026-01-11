@@ -122,6 +122,7 @@ export class BrowserSTTProvider extends BaseSTTProvider {
         text: transcript,
         isFinal: result.isFinal,
         confidence,
+        timestamp: Date.now(),
       };
       
       // Add to results queue
@@ -162,6 +163,7 @@ export class BrowserSTTProvider extends BaseSTTProvider {
       text: '',
       isFinal: true,
       confidence: 0,
+      timestamp: Date.now(),
     };
     
     this.streamingResults.push(errorResult);
@@ -183,7 +185,7 @@ export class BrowserSTTProvider extends BaseSTTProvider {
     
     // Signal end to all waiting resolvers
     for (const resolver of this.streamingResolvers) {
-      resolver({ value: { text: '', isFinal: true, confidence: 0 }, done: true });
+      resolver({ value: { text: '', isFinal: true, confidence: 0, timestamp: Date.now() }, done: true });
     }
     this.streamingResolvers = [];
   }

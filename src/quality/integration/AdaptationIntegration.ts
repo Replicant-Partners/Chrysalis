@@ -3,12 +3,12 @@
  *
  * Integrates quality pattern recognition with AI Lead Adaptation System.
  *
- * Design Pattern: Adapter Pattern (GoF, p. 139) + Observer Pattern (GoF, p. 293)
+ * Design Pattern: Adapter Pattern (GoF, p. 139)
  * - Adapts quality events to adaptation system format
- * - Observes adaptation outcomes for pattern learning
+ * - Bridges quality pattern recognition with AI Lead Adaptation components
  *
  * References:
- * - Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley. p. 139, 293.
+ * - Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley. p. 139.
  */
 
 import { LearningLoop } from '../../adaptation/LearningLoop';
@@ -16,37 +16,108 @@ import { AdaptationTracker, AdaptationOutcome } from '../../adaptation/Adaptatio
 import { QualityPatternRecognizer } from '../patterns/QualityPatternRecognizer';
 import { PatternLearningContext } from '../patterns/QualityPattern';
 import { QualityIssue } from '../tools/QualityToolInterface';
+import {
+    IQualityEventObserver,
+    QualityEvent,
+    QualityEventSubject,
+    AdaptationOutcomeEventData,
+} from './QualityEventObserver';
 
 /**
  * Adaptation Integration
  *
  * Integrates quality pattern recognition with AI Lead Adaptation System.
+ *
+ * Implements Observer pattern explicitly for quality events.
  */
-export class AdaptationIntegration {
+export class AdaptationIntegration implements IQualityEventObserver {
     private learningLoop: LearningLoop;
     private adaptationTracker: AdaptationTracker;
     private patternRecognizer: QualityPatternRecognizer;
+    private eventSubject: QualityEventSubject;
 
     constructor(
         learningLoop: LearningLoop,
         adaptationTracker: AdaptationTracker,
-        patternRecognizer: QualityPatternRecognizer
+        patternRecognizer: QualityPatternRecognizer,
+        eventSubject?: QualityEventSubject
     ) {
         this.learningLoop = learningLoop;
         this.adaptationTracker = adaptationTracker;
         this.patternRecognizer = patternRecognizer;
+        this.eventSubject = eventSubject || new QualityEventSubject();
+
+        // Register self as observer
+        this.eventSubject.attach(this);
+    }
+
+    /**
+     * Handle quality event (Observer pattern)
+     */
+    async onQualityEvent(event: QualityEvent): Promise<void> {
+        switch (event.type) {
+            case 'adaptation_outcome':
+                await this.handleAdaptationOutcome(event.data as AdaptationOutcomeEventData);
+                break;
+            case 'quality_check_complete':
+                // Handle quality check completion if needed
+                break;
+            case 'pattern_learned':
+                // Handle pattern learning if needed
+                break;
+            case 'pattern_matched':
+                // Handle pattern matching if needed
+                break;
+            case 'auto_fix_applied':
+                // Handle auto-fix if needed
+                break;
+            case 'quality_improvement':
+                // Handle quality improvement if needed
+                break;
+        }
+    }
+
+    /**
+     * Get event subject for external observers
+     */
+    getEventSubject(): QualityEventSubject {
+        return this.eventSubject;
     }
 
     /**
      * Learn patterns from adaptation outcomes
+     *
+     * Now uses explicit Observer pattern via event notification.
      */
     async learnPatternsFromAdaptation(
         outcome: AdaptationOutcome,
         qualityIssues?: QualityIssue[]
     ): Promise<void> {
+        // Notify observers via event subject (Observer pattern)
+        const event: QualityEvent = {
+            type: 'adaptation_outcome',
+            timestamp: new Date().toISOString(),
+            data: {
+                outcome,
+                quality_issues: qualityIssues,
+            } as AdaptationOutcomeEventData,
+        };
+
+        // Notify all observers (including self)
+        await this.eventSubject.notify(event);
+    }
+
+    /**
+     * Handle adaptation outcome event (private handler)
+     */
+    private async handleAdaptationOutcome(
+        data: AdaptationOutcomeEventData
+    ): Promise<void> {
+        const { outcome, quality_issues } = data;
+
         // Create learning context from adaptation outcome
         const learningContext: PatternLearningContext = {
-            issues: qualityIssues || [],
+            issues: quality_issues || [],
             fixes_applied: outcome.implemented ? [outcome] : [],
             outcomes: [outcome],
             metadata: {
@@ -63,9 +134,9 @@ export class AdaptationIntegration {
         // Also feed to learning loop using adaptation outcome
         // LearningLoop.collectExperience expects AdaptationOutcome
         await this.learningLoop.collectExperience(outcome, {
-            quality_issues_count: qualityIssues?.length || 0,
-            quality_errors_count: qualityIssues?.filter((i) => i.severity === 'error').length || 0,
-            quality_warnings_count: qualityIssues?.filter((i) => i.severity === 'warning').length || 0,
+            quality_issues_count: quality_issues?.length || 0,
+            quality_errors_count: quality_issues?.filter((i) => i.severity === 'error').length || 0,
+            quality_warnings_count: quality_issues?.filter((i) => i.severity === 'warning').length || 0,
         });
     }
 
@@ -112,7 +183,6 @@ export class AdaptationIntegration {
         metricsBefore: Record<string, number>,
         metricsAfter: Record<string, number>
     ): Promise<void> {
-        // Create adaptation outcome for quality improvement
         const outcome: AdaptationOutcome = {
             change_proposal_id: changeProposalId,
             task_id: `quality_${Date.now()}`,
@@ -123,10 +193,28 @@ export class AdaptationIntegration {
             implemented_at: new Date().toISOString(),
         };
 
-        // Track in adaptation tracker (if method exists)
-        // Note: AdaptationTracker may use different method signature
-        // This is a placeholder for integration
-        console.log('Tracking quality improvement:', outcome.change_proposal_id);
+        // Persist outcome to adaptation tracker (Observer-style handoff)
+        this.adaptationTracker.recordOutcome(outcome);
+
+        // Feed learning loop with experience for closed-loop adaptation
+        await this.learningLoop.collectExperience(outcome, {
+            source: 'quality_improvement',
+            metrics_before: metricsBefore,
+            metrics_after: metricsAfter,
+        });
+
+        // Optionally learn patterns from the improvement outcome
+        await this.patternRecognizer.learnPatterns({
+            issues: [],
+            fixes_applied: [outcome],
+            outcomes: [outcome],
+            metadata: {
+                source: 'quality_improvement',
+                change_proposal_id: outcome.change_proposal_id,
+                task_id: outcome.task_id,
+                success: outcome.success,
+            },
+        });
     }
 
     /**

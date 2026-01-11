@@ -165,6 +165,15 @@ export class MemoryMerger {
       return;
     }
 
+    // Check for PII in content if sanitizer didn't block it but flagged it
+    if ((sanitized as any).piiDetected && (sanitized as any).piiDetected.length > 0) {
+        await this.emitVoyeur('ingest.pii_detected', {
+            sourceInstance,
+            memoryHash: this.hashContent(rawContent),
+            piiTypes: (sanitized as any).piiDetected
+        });
+    }
+
     const memory: Memory = {
       memory_id: crypto.randomUUID(),
       content: sanitized.content,

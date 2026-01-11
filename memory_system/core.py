@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Protocol
 from datetime import datetime
 import uuid
+from .sanitization import MemorySanitizer
 
 
 @dataclass
@@ -174,13 +175,28 @@ class Memory:
         """Add an episodic memory (experience/event)"""
         self._ensure_initialized()
         
-        entry = MemoryEntry.create(content, "episodic", metadata)
+        # Sanitize content and metadata
+        sanitized_content, detected_pii = MemorySanitizer.sanitize(content)
+        sanitized_metadata = metadata
+        if metadata:
+            sanitized_metadata, meta_detected = MemorySanitizer.validate_metadata(metadata)
+            detected_pii.extend(meta_detected)
+            
+        # Record PII detection in metadata
+        if detected_pii:
+            if not sanitized_metadata:
+                sanitized_metadata = {}
+            sanitized_metadata["_pii_detected"] = list(set(detected_pii))
+            sanitized_metadata["_sanitized"] = True
+
+        entry = MemoryEntry.create(sanitized_content, "episodic", sanitized_metadata)
         
         # Generate embedding
         entry.embedding = self._embedding_provider.embed(content)
         
         # Store in vector database
-        self._vector_store.store(entry)
+        if self._vector_store:
+            self._vector_store.store(entry)
         
         return entry
     
@@ -194,13 +210,28 @@ class Memory:
         """Add semantic memory (fact/knowledge)"""
         self._ensure_initialized()
         
-        entry = MemoryEntry.create(content, "semantic", metadata)
+        # Sanitize content and metadata
+        sanitized_content, detected_pii = MemorySanitizer.sanitize(content)
+        sanitized_metadata = metadata
+        if metadata:
+            sanitized_metadata, meta_detected = MemorySanitizer.validate_metadata(metadata)
+            detected_pii.extend(meta_detected)
+            
+        # Record PII detection in metadata
+        if detected_pii:
+            if not sanitized_metadata:
+                sanitized_metadata = {}
+            sanitized_metadata["_pii_detected"] = list(set(detected_pii))
+            sanitized_metadata["_sanitized"] = True
+
+        entry = MemoryEntry.create(sanitized_content, "semantic", sanitized_metadata)
         
         # Generate embedding
         entry.embedding = self._embedding_provider.embed(content)
         
         # Store in vector database
-        self._vector_store.store(entry)
+        if self._vector_store:
+            self._vector_store.store(entry)
         
         return entry
     

@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+out/
+coverage/
+htmlcov/
+
+# Generated files
+*.min.js
+*.min.css
+
+# Python virtual environment
+.venv/
+__pycache__/
+
+# Lock files (keep formatting)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Data files
+data/
+*.json.lock
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Config cache
+.eslintcache
+.cache/
+
+# Test artifacts
+.coverage*
+*.pid*

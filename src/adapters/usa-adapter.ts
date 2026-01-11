@@ -1060,14 +1060,48 @@ export class USAAdapter extends BaseAdapter {
   }
 
   // ==========================================================================
-  // Canonical → Native Translation
+  // Canonical → Native Translation (Public API)
   // ==========================================================================
 
+  /**
+   * Translate canonical RDF representation back to native USA format.
+   *
+   * This method orchestrates the reverse translation by delegating to focused
+   * private extraction methods for each logical section of the USA specification.
+   *
+   * @param canonical - The canonical RDF representation
+   * @returns Promise resolving to the native USA agent specification
+   */
   async fromCanonical(canonical: CanonicalAgent): Promise<NativeAgent> {
-    const quads = canonical.quads;
-    const agentUri = canonical.uri;
+    const agent = this.initEmptyUSAAgent();
 
-    const agent: USAAgent = {
+    // Extract each section using focused helper methods
+    this.extractMetadataFromCanonical(canonical, agent);
+    this.extractIdentityFromCanonical(canonical, agent);
+    this.extractToolsFromCanonical(canonical, agent);
+    this.extractReasoningFromCanonical(canonical, agent);
+    this.extractMemorySystemFromCanonical(canonical, agent);
+    this.extractProtocolsFromCanonical(canonical, agent);
+    this.extractExecutionFromCanonical(canonical, agent);
+    this.extractDeploymentFromCanonical(canonical, agent);
+
+    return {
+      data: agent as unknown as Record<string, unknown>,
+      framework: 'usa',
+      version: agent.apiVersion,
+      source: canonical.uri
+    };
+  }
+
+  // ==========================================================================
+  // Private Extraction Methods for fromCanonical
+  // ==========================================================================
+
+  /**
+   * Initialize an empty USA agent with required structure.
+   */
+  private initEmptyUSAAgent(): USAAgent {
+    return {
       apiVersion: 'usa/v2',
       kind: 'Agent',
       metadata: {
@@ -1086,10 +1120,16 @@ export class USAAdapter extends BaseAdapter {
         }
       }
     };
+  }
 
-    // ========================================================================
-    // Extract Metadata
-    // ========================================================================
+  /**
+   * Extract metadata section from canonical RDF.
+   *
+   * @param canonical - The canonical representation
+   * @param agent - The agent to populate
+   */
+  private extractMetadataFromCanonical(canonical: CanonicalAgent, agent: USAAgent): void {
+    const { quads, uri: agentUri, extensions } = canonical;
 
     agent.metadata.name = this.extractLiteral(quads, agentUri, `${CHRYSALIS_NS}name`) || 'unknown';
     agent.metadata.version = this.extractLiteral(quads, agentUri, `${CHRYSALIS_NS}version`) || '1.0.0';
@@ -1109,9 +1149,23 @@ export class USAAdapter extends BaseAdapter {
       }
     }
 
-    // ========================================================================
-    // Extract Identity
-    // ========================================================================
+    // Restore API version from extensions
+    const apiVersionExt = extensions.find(e =>
+      e.namespace === 'usa' && e.property === 'apiVersion'
+    );
+    if (apiVersionExt) {
+      agent.apiVersion = apiVersionExt.value;
+    }
+  }
+
+  /**
+   * Extract identity section from canonical RDF.
+   *
+   * @param canonical - The canonical representation
+   * @param agent - The agent to populate
+   */
+  private extractIdentityFromCanonical(canonical: CanonicalAgent, agent: USAAgent): void {
+    const { quads, uri: agentUri, extensions } = canonical;
 
     const identityUri = this.extractUri(quads, agentUri, `${CHRYSALIS_NS}hasIdentity`);
     if (identityUri) {
@@ -1122,32 +1176,25 @@ export class USAAdapter extends BaseAdapter {
       if (backstory) agent.identity.backstory = backstory;
     }
 
-    // Restore identity extensions
-    const personalityTraitsExt = canonical.extensions.find(e => 
-      e.namespace === 'usa' && e.property === 'personalityTraits'
-    );
-    if (personalityTraitsExt) {
-      try {
-        agent.identity.personality_traits = JSON.parse(personalityTraitsExt.value);
-      } catch {
-        // Ignore
-      }
-    }
+    // Restore personality traits from extensions
+    this.restoreExtensionToAgent(extensions, 'personalityTraits', (value) => {
+      agent.identity.personality_traits = value as Record<string, string | number | boolean>;
+    });
 
-    const constraintsExt = canonical.extensions.find(e =>
-      e.namespace === 'usa' && e.property === 'constraints'
-    );
-    if (constraintsExt) {
-      try {
-        agent.identity.constraints = JSON.parse(constraintsExt.value);
-      } catch {
-        // Ignore
-      }
-    }
+    // Restore constraints from extensions
+    this.restoreExtensionToAgent(extensions, 'constraints', (value) => {
+      agent.identity.constraints = value as string[];
+    });
+  }
 
-    // ========================================================================
-    // Extract Tools
-    // ========================================================================
+  /**
+   * Extract tools section from canonical RDF.
+   *
+   * @param canonical - The canonical representation
+   * @param agent - The agent to populate
+   */
+  private extractToolsFromCanonical(canonical: CanonicalAgent, agent: USAAgent): void {
+    const { quads, uri: agentUri, extensions } = canonical;
 
     const toolUris = this.extractUris(quads, agentUri, `${CHRYSALIS_NS}hasCapability`);
     const tools: USATool[] = [];
@@ -1171,7 +1218,7 @@ export class USAAdapter extends BaseAdapter {
           if (protocol) tool.protocol = protocol;
 
           // Restore tool config from extensions
-          const configExt = canonical.extensions.find(e =>
+          const configExt = extensions.find(e =>
             e.namespace === 'usa' && e.property === `tool.${name}.config`
           );
           if (configExt) {
@@ -1190,10 +1237,16 @@ export class USAAdapter extends BaseAdapter {
     if (tools.length > 0) {
       agent.capabilities.tools = tools;
     }
+  }
 
-    // ========================================================================
-    // Extract Reasoning Strategy
-    // ========================================================================
+  /**
+   * Extract reasoning strategy from canonical RDF.
+   *
+   * @param canonical - The canonical representation
+   * @param agent - The agent to populate
+   */
+  private extractReasoningFromCanonical(canonical: CanonicalAgent, agent: USAAgent): void {
+    const { quads, uri: agentUri, extensions } = canonical;
 
     const strategyUri = this.extractUri(quads, agentUri, `${CHRYSALIS_NS}usesReasoningStrategy`);
     if (strategyUri) {
@@ -1206,124 +1259,131 @@ export class USAAdapter extends BaseAdapter {
 
       const strategy = strategyMap[strategyUri] || 'chain_of_thought';
       
-      agent.capabilities.reasoning = {
-        strategy
-      };
+      agent.capabilities.reasoning = { strategy };
 
       // Restore reasoning config from extensions
-      const reasoningExt = canonical.extensions.find(e =>
-        e.namespace === 'usa' && e.property === 'reasoningConfig'
-      );
-      if (reasoningExt) {
-        try {
-          const config = JSON.parse(reasoningExt.value);
-          if (config.max_iterations) agent.capabilities.reasoning.max_iterations = config.max_iterations;
-          if (config.allow_backtracking !== undefined) {
-            agent.capabilities.reasoning.allow_backtracking = config.allow_backtracking;
-          }
-        } catch {
-          // Ignore
+      this.restoreExtensionToAgent(extensions, 'reasoningConfig', (config) => {
+        const reasoningConfig = config as { max_iterations?: number; allow_backtracking?: boolean };
+        if (reasoningConfig.max_iterations && agent.capabilities.reasoning) {
+          agent.capabilities.reasoning.max_iterations = reasoningConfig.max_iterations;
         }
-      }
+        if (reasoningConfig.allow_backtracking !== undefined && agent.capabilities.reasoning) {
+          agent.capabilities.reasoning.allow_backtracking = reasoningConfig.allow_backtracking;
+        }
+      });
     }
+  }
 
-    // ========================================================================
-    // Extract Memory System
-    // ========================================================================
+  /**
+   * Extract memory system from canonical RDF.
+   *
+   * @param canonical - The canonical representation
+   * @param agent - The agent to populate
+   */
+  private extractMemorySystemFromCanonical(canonical: CanonicalAgent, agent: USAAgent): void {
+    const { quads, uri: agentUri, extensions } = canonical;
 
     const memoryUri = this.extractUri(quads, agentUri, `${CHRYSALIS_NS}hasMemorySystem`);
-    if (memoryUri) {
-      const architecture = this.extractLiteral(quads, memoryUri, `${USA_NS}memoryArchitecture`) || 'hierarchical';
-      
-      agent.capabilities.memory = {
-        architecture
-      };
+    if (!memoryUri) return;
 
-      // Extract memory components
-      const componentUris = this.extractUris(quads, memoryUri, `${CHRYSALIS_NS}hasMemoryComponent`);
-      
-      for (const compUri of componentUris) {
-        const typeUri = this.extractUri(quads, compUri, `${RDF_NS}type`);
-        const enabled = this.extractLiteral(quads, compUri, `${CHRYSALIS_NS}memoryEnabled`) === 'true';
-        const maxTokens = this.extractLiteral(quads, compUri, `${CHRYSALIS_NS}maxTokens`);
-        const storage = this.extractLiteral(quads, compUri, `${CHRYSALIS_NS}storageBackend`);
+    const architecture = this.extractLiteral(quads, memoryUri, `${USA_NS}memoryArchitecture`) || 'hierarchical';
+    agent.capabilities.memory = { architecture };
 
-        switch (typeUri) {
-          case `${CHRYSALIS_NS}WorkingMemory`:
-            agent.capabilities.memory.working = { enabled };
-            if (maxTokens) agent.capabilities.memory.working.max_tokens = parseInt(maxTokens);
-            break;
-          case `${CHRYSALIS_NS}EpisodicMemory`:
-            agent.capabilities.memory.episodic = { enabled };
-            if (storage) agent.capabilities.memory.episodic.storage = storage;
-            break;
-          case `${CHRYSALIS_NS}SemanticMemory`:
-            agent.capabilities.memory.semantic = { enabled };
-            if (storage) agent.capabilities.memory.semantic.storage = storage;
-            break;
-          case `${CHRYSALIS_NS}ProceduralMemory`:
-            agent.capabilities.memory.procedural = { enabled };
-            if (storage) agent.capabilities.memory.procedural.storage = storage;
-            break;
-          case `${CHRYSALIS_NS}CoreMemory`:
-            agent.capabilities.memory.core = { enabled };
-            break;
-        }
+    // Extract memory components
+    this.extractMemoryComponents(quads, memoryUri, agent);
+
+    // Restore memory extensions
+    this.restoreMemoryExtensions(extensions, agent);
+  }
+
+  /**
+   * Extract individual memory components from RDF.
+   */
+  private extractMemoryComponents(quads: Quad[], memoryUri: string, agent: USAAgent): void {
+    const componentUris = this.extractUris(quads, memoryUri, `${CHRYSALIS_NS}hasMemoryComponent`);
+    
+    for (const compUri of componentUris) {
+      const typeUri = this.extractUri(quads, compUri, `${RDF_NS}type`);
+      const enabled = this.extractLiteral(quads, compUri, `${CHRYSALIS_NS}memoryEnabled`) === 'true';
+      const maxTokens = this.extractLiteral(quads, compUri, `${CHRYSALIS_NS}maxTokens`);
+      const storage = this.extractLiteral(quads, compUri, `${CHRYSALIS_NS}storageBackend`);
+
+      if (!agent.capabilities.memory) continue;
+
+      switch (typeUri) {
+        case `${CHRYSALIS_NS}WorkingMemory`:
+          agent.capabilities.memory.working = { enabled };
+          if (maxTokens) agent.capabilities.memory.working.max_tokens = parseInt(maxTokens);
+          break;
+        case `${CHRYSALIS_NS}EpisodicMemory`:
+          agent.capabilities.memory.episodic = { enabled };
+          if (storage) agent.capabilities.memory.episodic.storage = storage;
+          break;
+        case `${CHRYSALIS_NS}SemanticMemory`:
+          agent.capabilities.memory.semantic = { enabled };
+          if (storage) agent.capabilities.memory.semantic.storage = storage;
+          break;
+        case `${CHRYSALIS_NS}ProceduralMemory`:
+          agent.capabilities.memory.procedural = { enabled };
+          if (storage) agent.capabilities.memory.procedural.storage = storage;
+          break;
+        case `${CHRYSALIS_NS}CoreMemory`:
+          agent.capabilities.memory.core = { enabled };
+          break;
       }
-
-      // Restore memory extensions
-      const restoreMemoryExtension = (prop: string, handler: (parsed: unknown) => void) => {
-        const ext = canonical.extensions.find(e =>
-          e.namespace === 'usa' && e.property === prop
-        );
-        if (ext) {
-          try {
-            handler(JSON.parse(ext.value));
-          } catch {
-            // Ignore parse errors
-          }
-        }
-      };
-
-      // Restore RAG config for semantic memory
-      restoreMemoryExtension('ragConfig', (parsed) => {
-        if (agent.capabilities.memory?.semantic) {
-          agent.capabilities.memory.semantic.rag = parsed as USASemanticMemory['rag'];
-        }
-      });
-
-      // Restore core memory blocks
-      restoreMemoryExtension('coreMemoryBlocks', (parsed) => {
-        if (agent.capabilities.memory?.core) {
-          agent.capabilities.memory.core.blocks = parsed as USACoreMemory['blocks'];
-        }
-      });
-
-      // Restore embeddings config
-      restoreMemoryExtension('embeddingsConfig', (parsed) => {
-        if (agent.capabilities.memory) {
-          agent.capabilities.memory.embeddings = parsed as USAEmbeddings;
-        }
-      });
-
-      // Restore storage config
-      restoreMemoryExtension('storageConfig', (parsed) => {
-        if (agent.capabilities.memory) {
-          agent.capabilities.memory.storage = parsed as USAStorage;
-        }
-      });
-
-      // Restore memory operations
-      restoreMemoryExtension('memoryOperations', (parsed) => {
-        if (agent.capabilities.memory) {
-          agent.capabilities.memory.operations = parsed as USAMemoryOperations;
-        }
-      });
     }
+  }
 
-    // ========================================================================
-    // Extract Protocols
-    // ========================================================================
+  /**
+   * Restore memory-related extensions to agent.
+   */
+  private restoreMemoryExtensions(extensions: ExtensionProperty[], agent: USAAgent): void {
+    if (!agent.capabilities.memory) return;
+
+    // Restore RAG config for semantic memory
+    this.restoreExtensionToAgent(extensions, 'ragConfig', (parsed) => {
+      if (agent.capabilities.memory?.semantic) {
+        agent.capabilities.memory.semantic.rag = parsed as USASemanticMemory['rag'];
+      }
+    });
+
+    // Restore core memory blocks
+    this.restoreExtensionToAgent(extensions, 'coreMemoryBlocks', (parsed) => {
+      if (agent.capabilities.memory?.core) {
+        agent.capabilities.memory.core.blocks = parsed as USACoreMemory['blocks'];
+      }
+    });
+
+    // Restore embeddings config
+    this.restoreExtensionToAgent(extensions, 'embeddingsConfig', (parsed) => {
+      if (agent.capabilities.memory) {
+        agent.capabilities.memory.embeddings = parsed as USAEmbeddings;
+      }
+    });
+
+    // Restore storage config
+    this.restoreExtensionToAgent(extensions, 'storageConfig', (parsed) => {
+      if (agent.capabilities.memory) {
+        agent.capabilities.memory.storage = parsed as USAStorage;
+      }
+    });
+
+    // Restore memory operations
+    this.restoreExtensionToAgent(extensions, 'memoryOperations', (parsed) => {
+      if (agent.capabilities.memory) {
+        agent.capabilities.memory.operations = parsed as USAMemoryOperations;
+      }
+    });
+  }
+
+  /**
+   * Extract protocols from canonical RDF.
+   *
+   * @param canonical - The canonical representation
+   * @param agent - The agent to populate
+   */
+  private extractProtocolsFromCanonical(canonical: CanonicalAgent, agent: USAAgent): void {
+    const { quads, uri: agentUri, extensions } = canonical;
 
     const protocolUris = this.extractUris(quads, agentUri, `${CHRYSALIS_NS}supportsProtocol`);
     
@@ -1332,50 +1392,68 @@ export class USAAdapter extends BaseAdapter {
       
       switch (typeUri) {
         case `${CHRYSALIS_NS}MCPBinding`:
-          if (!agent.protocols) agent.protocols = {};
-          agent.protocols.mcp = { enabled: true };
-          
-          const mcpConfig = this.extractLiteral(quads, protoUri, `${CHRYSALIS_NS}protocolConfig`);
-          if (mcpConfig) {
-            try {
-              const config = JSON.parse(mcpConfig);
-              if (config.role) agent.protocols.mcp.role = config.role;
-            } catch {
-              // Ignore
-            }
-          }
-
-          // Restore MCP servers from extensions
-          const serversExt = canonical.extensions.find(e =>
-            e.namespace === 'usa' && e.property === 'mcpServers'
-          );
-          if (serversExt) {
-            try {
-              agent.protocols.mcp.servers = JSON.parse(serversExt.value);
-            } catch {
-              // Ignore
-            }
-          }
+          this.extractMCPProtocol(quads, protoUri, extensions, agent);
           break;
-
         case `${CHRYSALIS_NS}A2ABinding`:
           if (!agent.protocols) agent.protocols = {};
           agent.protocols.a2a = { enabled: true };
           break;
-
         case `${CHRYSALIS_NS}AgentProtocolBinding`:
-          if (!agent.protocols) agent.protocols = {};
-          agent.protocols.agent_protocol = { enabled: true };
-          
-          const endpoint = this.extractLiteral(quads, protoUri, `${CHRYSALIS_NS}endpointUrl`);
-          if (endpoint) agent.protocols.agent_protocol.endpoint = endpoint;
+          this.extractAgentProtocolBinding(quads, protoUri, agent);
           break;
       }
     }
+  }
 
-    // ========================================================================
-    // Extract LLM Configuration
-    // ========================================================================
+  /**
+   * Extract MCP protocol configuration.
+   */
+  private extractMCPProtocol(
+    quads: Quad[],
+    protoUri: string,
+    extensions: ExtensionProperty[],
+    agent: USAAgent
+  ): void {
+    if (!agent.protocols) agent.protocols = {};
+    agent.protocols.mcp = { enabled: true };
+    
+    const mcpConfig = this.extractLiteral(quads, protoUri, `${CHRYSALIS_NS}protocolConfig`);
+    if (mcpConfig) {
+      try {
+        const config = JSON.parse(mcpConfig);
+        if (config.role) agent.protocols.mcp.role = config.role;
+      } catch {
+        // Ignore
+      }
+    }
+
+    // Restore MCP servers from extensions
+    this.restoreExtensionToAgent(extensions, 'mcpServers', (servers) => {
+      if (agent.protocols?.mcp) {
+        agent.protocols.mcp.servers = servers as USAProtocols['mcp'] extends { servers?: infer S } ? S : never;
+      }
+    });
+  }
+
+  /**
+   * Extract Agent Protocol binding.
+   */
+  private extractAgentProtocolBinding(quads: Quad[], protoUri: string, agent: USAAgent): void {
+    if (!agent.protocols) agent.protocols = {};
+    agent.protocols.agent_protocol = { enabled: true };
+    
+    const endpoint = this.extractLiteral(quads, protoUri, `${CHRYSALIS_NS}endpointUrl`);
+    if (endpoint) agent.protocols.agent_protocol.endpoint = endpoint;
+  }
+
+  /**
+   * Extract execution configuration from canonical RDF.
+   *
+   * @param canonical - The canonical representation
+   * @param agent - The agent to populate
+   */
+  private extractExecutionFromCanonical(canonical: CanonicalAgent, agent: USAAgent): void {
+    const { quads, uri: agentUri, extensions } = canonical;
 
     const llmUri = this.extractUri(quads, agentUri, `${CHRYSALIS_NS}hasExecutionConfig`);
     if (llmUri) {
@@ -1389,59 +1467,52 @@ export class USAAdapter extends BaseAdapter {
       if (maxTokens) agent.execution.llm.max_tokens = parseInt(maxTokens);
 
       // Restore LLM parameters from extensions
-      const paramsExt = canonical.extensions.find(e =>
-        e.namespace === 'usa' && e.property === 'llmParameters'
-      );
-      if (paramsExt) {
-        try {
-          agent.execution.llm.parameters = JSON.parse(paramsExt.value);
-        } catch {
-          // Ignore
-        }
-      }
+      this.restoreExtensionToAgent(extensions, 'llmParameters', (params) => {
+        agent.execution.llm.parameters = params as Record<string, unknown>;
+      });
     }
 
     // Restore runtime config from extensions
-    const runtimeExt = canonical.extensions.find(e =>
-      e.namespace === 'usa' && e.property === 'runtimeConfig'
-    );
-    if (runtimeExt) {
+    this.restoreExtensionToAgent(extensions, 'runtimeConfig', (runtime) => {
+      agent.execution.runtime = runtime as USAExecution['runtime'];
+    });
+  }
+
+  /**
+   * Extract deployment configuration from canonical RDF.
+   *
+   * @param canonical - The canonical representation
+   * @param agent - The agent to populate
+   */
+  private extractDeploymentFromCanonical(canonical: CanonicalAgent, agent: USAAgent): void {
+    const { extensions } = canonical;
+
+    // Restore deployment from extensions
+    this.restoreExtensionToAgent(extensions, 'deploymentConfig', (deployment) => {
+      agent.deployment = deployment as USADeployment;
+    });
+  }
+
+  /**
+   * Helper to restore an extension value to the agent.
+   * 
+   * @param extensions - Extension properties array
+   * @param property - The property name to find
+   * @param handler - Callback to handle the parsed value
+   */
+  private restoreExtensionToAgent(
+    extensions: ExtensionProperty[],
+    property: string,
+    handler: (value: unknown) => void
+  ): void {
+    const ext = extensions.find(e => e.namespace === 'usa' && e.property === property);
+    if (ext) {
       try {
-        agent.execution.runtime = JSON.parse(runtimeExt.value);
+        handler(JSON.parse(ext.value));
       } catch {
-        // Ignore
+        // Ignore parse errors
       }
     }
-
-    // ========================================================================
-    // Restore Deployment from Extensions
-    // ========================================================================
-
-    const deploymentExt = canonical.extensions.find(e =>
-      e.namespace === 'usa' && e.property === 'deploymentConfig'
-    );
-    if (deploymentExt) {
-      try {
-        agent.deployment = JSON.parse(deploymentExt.value);
-      } catch {
-        // Ignore
-      }
-    }
-
-    // Restore API version from extensions
-    const apiVersionExt = canonical.extensions.find(e =>
-      e.namespace === 'usa' && e.property === 'apiVersion'
-    );
-    if (apiVersionExt) {
-      agent.apiVersion = apiVersionExt.value;
-    }
-
-    return {
-      data: agent as unknown as Record<string, unknown>,
-      framework: 'usa',
-      version: agent.apiVersion,
-      source: canonical.uri
-    };
   }
 
   // ==========================================================================

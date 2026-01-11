@@ -281,50 +281,156 @@ export class AdaptationPipelineOrchestrator extends EventEmitter {
 
   /**
    * Execute pipeline stages sequentially
+   *
+   * Orchestrates the 5-stage pipeline: Analyze → Generate → Validate → (Approve) → Deploy → Complete
+   * Each stage is executed with proper transitions and event emissions.
    */
   private async executePipelineStages(pipeline: AdaptationPipeline): Promise<void> {
     // Stage 1: Analyze
+    const analysis = await this.executeAndEmitAnalysis(pipeline);
+
+    // Stage 2: Generate
+    const proposal = await this.executeAndEmitGeneration(pipeline, analysis);
+
+    // Stage 3: Validate
+    const validation = await this.executeAndEmitValidation(pipeline, proposal);
+
+    // Stage 4: Check approval requirements
+    const approvalResult = await this.handleApprovalRequirements(
+      pipeline,
+      analysis,
+      proposal,
+      validation
+    );
+    
+    if (approvalResult.awaitingApproval) {
+      return; // Wait for manual approval
+    }
+
+    // Stage 5: Deploy and Complete
+    await this.executeDeploymentAndComplete(pipeline, proposal);
+  }
+
+  /**
+   * Execute analysis stage with proper transitions and event emission
+   */
+  private async executeAndEmitAnalysis(pipeline: AdaptationPipeline): Promise<AnalysisResult> {
     await this.transitionStage(pipeline, 'analyzing');
     const analysis = await this.executeAnalysisStage(pipeline);
     pipeline.analysis = analysis;
     this.emit('analysis:completed', analysis);
+    return analysis;
+  }
 
-    // Stage 2: Generate
+  /**
+   * Execute generation stage with proper transitions and event emission
+   */
+  private async executeAndEmitGeneration(
+    pipeline: AdaptationPipeline,
+    analysis: AnalysisResult
+  ): Promise<ChangeProposal> {
     await this.transitionStage(pipeline, 'generating');
     const proposal = await this.executeGenerationStage(pipeline, analysis);
     pipeline.proposal = proposal;
     this.emit('proposal:generated', proposal);
+    return proposal;
+  }
 
-    // Stage 3: Validate
+  /**
+   * Execute validation stage with proper transitions and event emission
+   */
+  private async executeAndEmitValidation(
+    pipeline: AdaptationPipeline,
+    proposal: ChangeProposal
+  ): Promise<ValidationResult> {
     await this.transitionStage(pipeline, 'validating');
     const validation = await this.executeValidationStage(pipeline, proposal);
     pipeline.validation = validation;
     this.emit('validation:completed', validation);
+    return validation;
+  }
 
-    // Check if approval is needed
-    const impactScore = analysis.impactAssessment.overallImpact === 'critical' ? 1.0 :
-                       analysis.impactAssessment.overallImpact === 'significant' ? 0.8 :
-                       analysis.impactAssessment.overallImpact === 'moderate' ? 0.5 :
-                       analysis.impactAssessment.overallImpact === 'minimal' ? 0.2 : 0;
+  /**
+   * Calculate numeric impact score from impact assessment
+   *
+   * Maps categorical impact levels to numeric scores for threshold comparison:
+   * - critical: 1.0 (highest impact, always requires human review)
+   * - significant: 0.8
+   * - moderate: 0.5
+   * - minimal: 0.2
+   * - none/unknown: 0.0
+   */
+  private calculateImpactScore(impactAssessment: ImpactAssessment): number {
+    const impactScoreMap: Record<string, number> = {
+      critical: 1.0,
+      significant: 0.8,
+      moderate: 0.5,
+      minimal: 0.2,
+      none: 0.0,
+    };
+    return impactScoreMap[impactAssessment.overallImpact] ?? 0.0;
+  }
 
+  /**
+   * Determine approval type based on impact score and thresholds
+   */
+  private determineApprovalType(
+    impactScore: number,
+    validationPassed: boolean
+  ): 'human-required' | 'auto-approved' | 'proceed-with-caution' {
     if (impactScore > this.config.humanApprovalThreshold) {
-      // Requires human approval
-      await this.transitionStage(pipeline, 'awaiting-review');
-      this.state.pendingApprovals.set(pipeline.pipelineId, proposal);
-      this.emit('pipeline:approval-required', pipeline, proposal);
-      return; // Wait for manual approval
-    } else if (impactScore <= this.config.autoApprovalThreshold && validation.valid) {
-      // Auto-approve
-      this.state.statistics.autoApprovedCount++;
+      return 'human-required';
     }
+    if (impactScore <= this.config.autoApprovalThreshold && validationPassed) {
+      return 'auto-approved';
+    }
+    return 'proceed-with-caution';
+  }
 
-    // Stage 4: Deploy
+  /**
+   * Handle approval requirements for a pipeline
+   *
+   * Returns an object indicating whether the pipeline is awaiting approval
+   * or if it can proceed to deployment.
+   */
+  private async handleApprovalRequirements(
+    pipeline: AdaptationPipeline,
+    analysis: AnalysisResult,
+    proposal: ChangeProposal,
+    validation: ValidationResult
+  ): Promise<{ awaitingApproval: boolean; approvalType: string }> {
+    const impactScore = this.calculateImpactScore(analysis.impactAssessment);
+    const approvalType = this.determineApprovalType(impactScore, validation.valid);
+
+    switch (approvalType) {
+      case 'human-required':
+        await this.transitionStage(pipeline, 'awaiting-review');
+        this.state.pendingApprovals.set(pipeline.pipelineId, proposal);
+        this.emit('pipeline:approval-required', pipeline, proposal);
+        return { awaitingApproval: true, approvalType };
+
+      case 'auto-approved':
+        this.state.statistics.autoApprovedCount++;
+        return { awaitingApproval: false, approvalType };
+
+      default:
+        // proceed-with-caution: validation issues but below human threshold
+        return { awaitingApproval: false, approvalType };
+    }
+  }
+
+  /**
+   * Execute deployment stage and complete the pipeline
+   */
+  private async executeDeploymentAndComplete(
+    pipeline: AdaptationPipeline,
+    proposal: ChangeProposal
+  ): Promise<void> {
     await this.transitionStage(pipeline, 'deploying');
     const deployment = await this.executeDeploymentStage(pipeline, proposal);
     pipeline.deployment = deployment;
     this.emit('deployment:completed', deployment);
 
-    // Complete
     await this.transitionStage(pipeline, 'completed');
     await this.completePipeline(pipeline);
   }

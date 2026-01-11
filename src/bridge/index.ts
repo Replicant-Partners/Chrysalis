@@ -27,29 +27,49 @@ export {
   
   // Specialized errors
   ValidationError,
+  SchemaValidationError,
+  RequiredFieldError,
+  TypeMismatchError,
   TranslationError,
+  AdapterNotFoundError,
+  UnsupportedFrameworkError,
   StorageError,
+  SnapshotNotFoundError,
+  GraphNotFoundError,
+  QueryError,
   ConfigurationError,
-  ConnectionError,
+  DependencyError,
   TimeoutError,
   AbortError,
   DisposedError,
-  NotFoundError,
-  ConflictError,
   TemporalConflictError,
-  PermissionError,
-  RateLimitError,
+  InvalidTimeRangeError,
+  ResourceExhaustedError,
+  SerializationError,
+  DeserializationError,
+  RDFError,
+  AggregateError,
   
   // Error utilities
   isBridgeError,
+  hasErrorCode,
   wrapError,
-  isRecoverableError,
-  getErrorChain,
-  serializeError,
+  createCorrelationId,
+  
+  // Result type from errors (different signature than types.ts)
+  ok,
+  err,
+  isOk,
+  isErr,
+  unwrap,
+  unwrapOr,
   
   // Types
   type ErrorContext,
   type SerializedError,
+  type ErrorCodeType,
+  type ValidationErrorDetail,
+  type Result,
 } from './errors';
 
 // ============================================================================
@@ -58,7 +78,6 @@ export {
 
 export {
   // Branded types
-  type Brand,
   type URI,
   type ISOTimestamp,
   type AgentId,
@@ -69,9 +88,11 @@ export {
   isoTimestamp,
   agentId,
   generateCorrelationId,
+  parseISOTimestamp,
+  correlationId,
   
   // Agent framework types
-  AGENT_FRAMEWORKS,
+  AgentFrameworks,
   type AgentFramework,
   isAgentFramework,
   
@@ -79,31 +100,80 @@ export {
   type USAAgentData,
   type LMOSAgentData,
   type MCPAgentData,
-  type LangChainAgentData,
   type AgentData,
   
   // Generic agent interfaces
   type NativeAgent,
   type CanonicalAgent,
+  type TypedNativeAgent,
   
   // Type guards
-  isUSAAgent,
-  isLMOSAgent,
-  isMCPAgent,
-  isLangChainAgent,
   isNativeAgent,
   isCanonicalAgent,
+  isValidationResult,
+  isQuad,
+  isTerm,
+  isJsonValue,
+  isJsonObject,
   
-  // Result pattern
-  type Result,
-  ok,
-  err,
-  isOk,
-  isErr,
-  unwrap,
-  unwrapOr,
-  mapResult,
-  flatMapResult,
+  // RDF Types
+  type TermType,
+  type Term,
+  type NamedNode,
+  type BlankNode,
+  type Literal,
+  type Variable,
+  type DefaultGraph,
+  type Subject,
+  type Predicate,
+  type QuadObject,
+  type Graph,
+  type Quad,
+  
+  // Translation types
+  type ExtensionProperty,
+  type TranslationWarning,
+  type TranslationMetadata,
+  type TranslationRequest,
+  type TranslationOptions,
+  type TranslationResult,
+  type TranslationResultMetadata,
+  
+  // Validation types from types.ts
+  type ValidationErrorDetail as TypesValidationErrorDetail,
+  type ValidationWarning,
+  type ValidationResult as TypesValidationResult,
+  
+  // Temporal types
+  type TemporalInstant,
+  type TemporalInterval,
+  type BiTemporalCoordinates,
+  type TemporalQueryOptions,
+  
+  // Snapshot types
+  type AgentSnapshot,
+  
+  // Field mapping types
+  type FieldMapping,
+  
+  // Adapter types
+  type AdapterConfig,
+  type IAdapter,
+  
+  // Service types
+  type DiscoveryQuery,
+  type DiscoveryResult,
+  type AgentSummary,
+  
+  // Event types
+  type BridgeEventType,
+  type BridgeEvent,
+  type BridgeEventData,
+  type AgentEventData,
+  type TranslationEventData,
+  type ValidationEventData,
+  type CacheEventData,
+  type ErrorEventData,
   
   // Disposable types
   type Disposable,
@@ -113,11 +183,19 @@ export {
   // Utility types
   type DeepReadonly,
   type DeepPartial,
-  type Awaitable,
-  type PromiseOr,
+  type RequiredKeys,
+  type OptionalKeys,
+  type WithRequired,
+  type WithOptional,
+  type NonNullableProps,
   type ValueOf,
-  type Entries,
-  type NonEmptyArray,
+  type TypeGuard,
+  
+  // JSON types
+  type JsonPrimitive,
+  type JsonArray,
+  type JsonObject,
+  type JsonValue,
 } from './types';
 
 // ============================================================================
@@ -125,34 +203,43 @@ export {
 // ============================================================================
 
 export {
-  // Schema builder
-  S,
+  // Schema types
   type SchemaType,
   type SchemaDefinition,
-  type ValidationResult,
-  type ValidationIssue,
+  type Schema,
+  type StringSchema,
+  type NumberSchema,
+  type BooleanSchema,
+  type ArraySchema,
+  type ObjectSchema,
+  type NullSchema,
+  type AnySchema,
+  type UnionSchema,
+  
+  // Schema builder
+  SchemaBuilder,
+  S,
+  
+  // Validation
+  type ValidationOptions,
+  type ValidationResult as SchemaValidationResult,
+  Validator,
   
   // Schema registry
   SchemaRegistry,
-  getSchemaRegistry,
+  schemaRegistry,
   
   // Pre-defined schemas
-  URISchema,
-  ISOTimestampSchema,
-  AgentIdSchema,
-  CorrelationIdSchema,
-  USAMetadataSchema,
-  USAIdentitySchema,
-  USAExecutionSchema,
   USAAgentSchema,
   LMOSAgentSchema,
-  MCPCapabilitySchema,
   MCPAgentSchema,
-  LangChainAgentSchema,
   
   // Validation helpers
-  validateAgentData,
-  parseAgentData,
+  validateUSAAgent,
+  validateLMOSAgent,
+  validateMCPAgent,
+  validateAgentByFramework,
+  createValidator,
 } from './validation';
 
 // ============================================================================
@@ -163,16 +250,21 @@ export {
   // Container
   Container,
   ContainerBuilder,
-  createContainer,
+  createDefaultContainer,
+  getGlobalContainer,
+  setGlobalContainer,
+  resetGlobalContainer,
   
   // Service tokens
   createToken,
   ServiceTokens,
   type ServiceToken,
   
-  // Lifetime
-  Lifetime,
+  // Types
   type ServiceLifetime,
+  type ServiceFactory,
+  type ServiceDescriptor,
+  type BridgeConfig,
   
   // Service interfaces
   type ITemporalStore,
@@ -180,6 +272,21 @@ export {
   type IOrchestrator,
   type IEventBus,
   type ILogger as ILoggerService,
+  type IValidationService,
+  type IPersistenceService,
+  type IDiscoveryService,
+  
+  // Decorators
+  Injectable,
+  Inject,
+  
+  // Lazy resolution
+  Lazy,
+  lazy,
+  
+  // Module pattern
+  type ServiceModule,
+  registerModules,
 } from './container';
 
 // ============================================================================
