@@ -1,14 +1,15 @@
 """
 Chrysalis Unified API Core Library (Python)
 
-Provides shared request/response models, error handling, validation, and authentication
-for all Chrysalis backend services.
+Provides shared request/response models, error handling, validation, authentication,
+and Result type pattern for all Chrysalis backend services.
 
 Usage:
     from shared.api_core import (
         APIResponse, APIError, ErrorCode, ErrorCategory,
         PaginationParams, PaginationMeta, FilterParams, SortParams,
-        authenticate_request, validate_request
+        authenticate_request, validate_request,
+        Result, Success, Failure, success, failure
     )
 """
 
@@ -17,15 +18,67 @@ from .models import (
     APIError,
     ErrorCode,
     ErrorCategory,
-    SuccessResponse,
-    ErrorResponse,
     PaginationParams,
     PaginationMeta,
     FilterParams,
     SortParams,
+    ValidationError,
+    RequestValidator,
 )
-from .auth import authenticate_request, get_current_user, require_auth, AuthContext
-from .validation import validate_request, ValidationError, RequestValidator
+from .result import (
+    Result,
+    Success,
+    Failure,
+    success,
+    failure,
+    validation_failure,
+    not_found_failure,
+    service_failure,
+    map_result,
+    map_error,
+    flat_map,
+    fold,
+    get_or_else,
+    sequence,
+    traverse,
+    zip_results,
+    zip3_results,
+    try_catch,
+    try_catch_async,
+    ResultDo,
+    from_predicate,
+    from_optional,
+    from_exception,
+)
+from .filtering import apply_filter, apply_sorting
+from .list_helpers import apply_list_filters, process_list_items, process_list_request
+
+# Flask-specific utilities (optional, requires Flask)
+try:
+    from .utils import json_response, error_response, require_resource_exists
+    _UTILS_AVAILABLE = True
+except (ImportError, RuntimeError):
+    # Flask not available - stub functions
+    _UTILS_AVAILABLE = False
+    def json_response(*args, **kwargs):
+        raise RuntimeError("Flask is required for json_response. Install Flask.")
+    def error_response(*args, **kwargs):
+        raise RuntimeError("Flask is required for error_response. Install Flask.")
+    def require_resource_exists(*args, **kwargs):
+        raise RuntimeError("Flask is required for require_resource_exists. Install Flask.")
+from .validation import validate_request
+# Conditional import for auth - requires Flask
+try:
+    from .auth import authenticate_request, get_current_user, require_auth, AuthContext
+except ImportError:
+    # If Flask not available, create stubs
+    AuthContext = None
+    def authenticate_request(*args, **kwargs):
+        raise RuntimeError("Flask required for authentication. Install Flask to use authentication features.")
+    def get_current_user():
+        return None
+    def require_auth(f):
+        return f
 from .middleware import (
     create_error_handler,
     create_auth_middleware,
@@ -34,6 +87,45 @@ from .middleware import (
     create_response_headers_middleware,
     create_all_middleware,
 )
+from .rate_limiting import (
+    RateLimitConfig,
+    RateLimiter,
+    create_rate_limit_middleware,
+    get_rate_limit_info,
+)
+
+# Optional Pydantic schemas (gracefully handle if not installed)
+try:
+    from .schemas import (
+        AgentCreateRequest,
+        AgentUpdateRequest,
+        AgentReplaceRequest,
+        KnowledgeCreateRequest,
+        KnowledgeUpdateRequest,
+        KnowledgeReplaceRequest,
+        SkillCreateRequest,
+        SkillUpdateRequest,
+        SkillReplaceRequest,
+        RoleModelRequest,
+        validate_with_pydantic,
+    )
+    PYDANTIC_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    # Pydantic not available - create stubs
+    AgentCreateRequest = None
+    AgentUpdateRequest = None
+    AgentReplaceRequest = None
+    KnowledgeCreateRequest = None
+    KnowledgeUpdateRequest = None
+    KnowledgeReplaceRequest = None
+    SkillCreateRequest = None
+    SkillUpdateRequest = None
+    SkillReplaceRequest = None
+    RoleModelRequest = None
+    PYDANTIC_AVAILABLE = False
+
+    def validate_with_pydantic(*args, **kwargs):
+        raise RuntimeError("Pydantic is required for request validation. Install with: pip install pydantic")
 
 __version__ = "1.0.0"
 
@@ -43,12 +135,47 @@ __all__ = [
     "APIError",
     "ErrorCode",
     "ErrorCategory",
-    "SuccessResponse",
-    "ErrorResponse",
     "PaginationParams",
     "PaginationMeta",
     "FilterParams",
     "SortParams",
+    "ValidationError",
+    "RequestValidator",
+    # Result Types (monadic error handling)
+    "Result",
+    "Success",
+    "Failure",
+    "success",
+    "failure",
+    "validation_failure",
+    "not_found_failure",
+    "service_failure",
+    "map_result",
+    "map_error",
+    "flat_map",
+    "fold",
+    "get_or_else",
+    "sequence",
+    "traverse",
+    "zip_results",
+    "zip3_results",
+    "try_catch",
+    "try_catch_async",
+    "ResultDo",
+    "from_predicate",
+    "from_optional",
+    "from_exception",
+    # Filtering and sorting
+    "apply_filter",
+    "apply_sorting",
+    # List endpoint helpers
+    "apply_list_filters",
+    "process_list_items",
+    "process_list_request",
+    # Flask utilities (optional, requires Flask)
+    "json_response",
+    "error_response",
+    "require_resource_exists",
     # Authentication
     "authenticate_request",
     "get_current_user",
@@ -56,8 +183,6 @@ __all__ = [
     "AuthContext",
     # Validation
     "validate_request",
-    "ValidationError",
-    "RequestValidator",
     # Middleware
     "create_error_handler",
     "create_auth_middleware",
@@ -65,4 +190,60 @@ __all__ = [
     "create_request_id_middleware",
     "create_response_headers_middleware",
     "create_all_middleware",
+    # Rate Limiting
+    "RateLimitConfig",
+    "RateLimiter",
+    "create_rate_limit_middleware",
+    "get_rate_limit_info",
+    # Pydantic Schemas (optional)
+    "AgentCreateRequest",
+    "AgentUpdateRequest",
+    "AgentReplaceRequest",
+    "KnowledgeCreateRequest",
+    "KnowledgeUpdateRequest",
+    "KnowledgeReplaceRequest",
+    "SkillCreateRequest",
+    "SkillUpdateRequest",
+    "SkillReplaceRequest",
+    "RoleModelRequest",
+    "validate_with_pydantic",
+    "PYDANTIC_AVAILABLE",
 ]
+
+# Test utilities (optional - can be imported separately)
+try:
+    from .test_utils import (
+        MockRequest,
+        MockResponse,
+        create_mock_auth_context,
+        AuthenticationFixture,
+        mock_authenticate_request,
+        pytest_auth_fixture,
+        create_test_app_with_auth_bypass,
+    )
+    __all__.extend([
+        "MockRequest",
+        "MockResponse",
+        "create_mock_auth_context",
+        "AuthenticationFixture",
+        "mock_authenticate_request",
+        "pytest_auth_fixture",
+        "create_test_app_with_auth_bypass",
+    ])
+except ImportError:
+    # Test utils may have dependencies, that's ok
+    pass
+
+# OpenAPI/Swagger utilities (optional - requires flasgger)
+try:
+    from .swagger import create_swagger_config, setup_swagger
+    from .openapi import get_base_openapi_spec, create_openapi_endpoint_spec
+    __all__.extend([
+        "create_swagger_config",
+        "setup_swagger",
+        "get_base_openapi_spec",
+        "create_openapi_endpoint_spec",
+    ])
+except ImportError:
+    # flasgger may not be installed, that's ok
+    pass

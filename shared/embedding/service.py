@@ -1,12 +1,36 @@
 """
 Core embedding service with provider abstraction, telemetry, and enhanced logging.
+
+This module provides both exception-based (legacy) and Result-based (recommended) APIs.
+Result-returning methods end with `_safe` suffix.
 """
 
 import hashlib
 import logging
 import os
+import sys
 import time
 from typing import List, Optional, Dict, Any
+
+# Import Result types from api_core
+# Handle potential circular imports gracefully
+try:
+    from shared.api_core.result import (
+        Result,
+        Success,
+        Failure,
+        success,
+        failure,
+        service_failure,
+    )
+    from shared.api_core.models import APIError, ErrorCode
+    RESULT_TYPES_AVAILABLE = True
+except ImportError:
+    # Fallback if result types not available
+    RESULT_TYPES_AVAILABLE = False
+    Result = Any  # type: ignore
+    Success = Any  # type: ignore
+    Failure = Any  # type: ignore
 
 from .exceptions import (
     EmbeddingError,
@@ -500,3 +524,150 @@ class EmbeddingService:
         if self._primary_provider:
             return self._primary_provider.estimate_cost(text)
         return 0.0
+
+    # =========================================================================
+    # Result-returning Methods (Safe API)
+    # =========================================================================
+
+    def embed_safe(self, text: str) -> 'Result[List[float], APIError]':
+        """
+        Generate embedding for text with Result-based error handling.
+
+        This is the recommended API for new code. Instead of raising exceptions,
+        this method returns a Result type that explicitly represents success or failure.
+
+        Args:
+            text: Text to embed
+
+        Returns:
+            Success with embedding vector, or Failure with APIError
+
+        Example:
+            >>> result = service.embed_safe("Hello world")
+            >>> if result.is_success():
+            ...     embedding = result.unwrap()
+            ... else:
+            ...     error = result.error
+            ...     print(f"Failed: {error.message}")
+        """
+        if not RESULT_TYPES_AVAILABLE:
+            raise RuntimeError(
+                "Result types not available. "
+                "Ensure shared.api_core.result is importable."
+            )
+
+        try:
+            embedding = self.embed(text)
+            return success(embedding)
+        except EmbeddingDimensionMismatchError as e:
+            return service_failure(
+                f"Embedding dimension mismatch: {e}",
+                original_error=e,
+                code=ErrorCode.SERVICE_ERROR,
+            )
+        except EmbeddingError as e:
+            return service_failure(
+                f"Embedding generation failed: {e}",
+                original_error=e,
+                code=ErrorCode.SERVICE_ERROR,
+            )
+        except Exception as e:
+            return service_failure(
+                f"Unexpected embedding error: {e}",
+                original_error=e,
+                code=ErrorCode.INTERNAL_ERROR,
+            )
+
+    def embed_batch_safe(
+        self, texts: List[str]
+    ) -> 'Result[List[List[float]], APIError]':
+        """
+        Generate embeddings for multiple texts with Result-based error handling.
+
+        Args:
+            texts: List of texts to embed
+
+        Returns:
+            Success with list of embedding vectors, or Failure with APIError
+
+        Example:
+            >>> result = service.embed_batch_safe(["Hello", "World"])
+            >>> if result.is_success():
+            ...     embeddings = result.unwrap()
+        """
+        if not RESULT_TYPES_AVAILABLE:
+            raise RuntimeError(
+                "Result types not available. "
+                "Ensure shared.api_core.result is importable."
+            )
+
+        try:
+            embeddings = self.embed_batch(texts)
+            return success(embeddings)
+        except EmbeddingDimensionMismatchError as e:
+            return service_failure(
+                f"Embedding dimension mismatch: {e}",
+                original_error=e,
+                code=ErrorCode.SERVICE_ERROR,
+            )
+        except EmbeddingError as e:
+            return service_failure(
+                f"Batch embedding generation failed: {e}",
+                original_error=e,
+                code=ErrorCode.SERVICE_ERROR,
+            )
+        except Exception as e:
+            return service_failure(
+                f"Unexpected batch embedding error: {e}",
+                original_error=e,
+                code=ErrorCode.INTERNAL_ERROR,
+            )
+
+    def get_provider_info_safe(self) -> 'Result[Dict[str, Any], APIError]':
+        """
+        Get provider information with Result-based error handling.
+
+        Returns:
+            Success with provider info dict, or Failure with APIError
+        """
+        if not RESULT_TYPES_AVAILABLE:
+            raise RuntimeError(
+                "Result types not available. "
+                "Ensure shared.api_core.result is importable."
+            )
+
+        try:
+            info = self.get_provider_info()
+            return success(info)
+        except Exception as e:
+            return service_failure(
+                f"Failed to get provider info: {e}",
+                original_error=e,
+                code=ErrorCode.SERVICE_ERROR,
+            )
+
+    def estimate_cost_safe(self, text: str) -> 'Result[float, APIError]':
+        """
+        Estimate embedding cost with Result-based error handling.
+
+        Args:
+            text: Text to estimate cost for
+
+        Returns:
+            Success with estimated cost in USD, or Failure with APIError
+        """
+        if not RESULT_TYPES_AVAILABLE:
+            raise RuntimeError(
+                "Result types not available. "
+                "Ensure shared.api_core.result is importable."
+            )
+
+        try:
+            cost = self.estimate_cost(text)
+            return success(cost)
+        except Exception as e:
+            return service_failure(
+                f"Failed to estimate cost: {e}",
+                original_error=e,
+                code=ErrorCode.SERVICE_ERROR,
+            )

@@ -8,7 +8,6 @@ import {
   sendJson,
   sendError,
   createSuccessResponse,
-  createErrorResponse,
   parsePaginationParams,
   createPaginationMeta,
   APIError,
@@ -154,8 +153,7 @@ export class LedgerService {
         category: ErrorCategory.SERVICE_ERROR,
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 500);
-      return sendError(res, statusCode, error);
+      return sendError(res, 500, error);
     }
   }
 
@@ -174,8 +172,7 @@ export class LedgerService {
         ],
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 400);
-      return sendError(res, statusCode, error);
+      return sendError(res, 400, error);
     }
     const pub = body.publicKeyBase64;
     const agentInstances = this.instancesByAgent.get(body.agentId) || new Map<string, RegisteredInstance>();
@@ -227,8 +224,7 @@ export class LedgerService {
         ],
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 400);
-      return sendError(res, statusCode, error);
+      return sendError(res, 400, error);
     }
 
     const agentInstances = this.instancesByAgent.get(body.agentId);
@@ -240,8 +236,7 @@ export class LedgerService {
         category: ErrorCategory.NOT_FOUND_ERROR,
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 403);
-      return sendError(res, statusCode, error);
+      return sendError(res, 403, error);
     }
 
     const message = `${body.agentId}:${body.instanceId}:keyrotate:${body.newPublicKeyBase64}`;
@@ -258,8 +253,7 @@ export class LedgerService {
         category: ErrorCategory.AUTHENTICATION_ERROR,
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 401);
-      return sendError(res, statusCode, error);
+      return sendError(res, 401, error);
     }
 
     known.publicKeyBase64 = body.newPublicKeyBase64;
@@ -303,8 +297,7 @@ export class LedgerService {
         category: ErrorCategory.NOT_FOUND_ERROR,
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 404);
-      return sendError(res, statusCode, error);
+      return sendError(res, 404, error);
     }
     const response = createSuccessResponse(record);
     sendJson(res, 200, response);
@@ -377,8 +370,7 @@ export class LedgerService {
         details: [{ field: 'profile.designation', message: 'designation is required' }],
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 400);
-      return sendError(res, statusCode, error);
+      return sendError(res, 400, error);
     }
     const createdAt = new Date().toISOString();
     const agentId = makeAgentId(profile, createdAt);
@@ -397,8 +389,7 @@ export class LedgerService {
         details: [{ field: 'agentId', message: 'agentId is required' }],
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 400);
-      return sendError(res, statusCode, error);
+      return sendError(res, 400, error);
     }
     const rec = this.agentsById.get(agentId);
     if (!rec) {
@@ -408,8 +399,7 @@ export class LedgerService {
         category: ErrorCategory.NOT_FOUND_ERROR,
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 404);
-      return sendError(res, statusCode, error);
+      return sendError(res, 404, error);
     }
     const response = createSuccessResponse(rec);
     sendJson(res, 200, response);

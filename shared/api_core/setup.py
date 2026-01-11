@@ -29,11 +29,13 @@ setup(
     ],
     extras_require={
         "jwt": ["PyJWT>=2.0.0"],
+        "pydantic": ["pydantic>=2.0.0"],  # Optional: for request validation schemas
         "dev": [
             "pytest>=7.0.0",
             "pytest-cov>=4.0.0",
             "black>=23.0.0",
             "mypy>=1.0.0",
+            "pydantic>=2.0.0",  # Include in dev for testing
         ],
     },
     classifiers=[

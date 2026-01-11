@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from flask import Flask, request, jsonify, g
 from datetime import datetime, timezone
+from typing import Any, Dict, List
 import requests
 import os
 
@@ -26,6 +27,10 @@ from shared.api_core import (
     RequestValidator,
     PaginationParams,
     PaginationMeta,
+    FilterParams,
+    SortParams,
+    process_list_request,
+    json_response,
     require_auth,
     authenticate_request,
     create_error_handler,
@@ -42,15 +47,49 @@ KNOWLEDGE_BUILDER_URL = os.getenv("KNOWLEDGE_BUILDER_URL", "http://localhost:500
 create_error_handler(app)
 create_all_middleware(app, api_version="v1")
 
+# Setup Swagger/OpenAPI documentation
+try:
+    from shared.api_core.swagger import setup_swagger, create_swagger_config
+    swagger_config = create_swagger_config(
+        title="AgentBuilder API",
+        version="1.0.0",
+        description="AgentBuilder Service - Builds complete agents by orchestrating KnowledgeBuilder and SkillBuilder services.",
+        api_version="v1"
+    )
+    setup_swagger(app, swagger_config)
+except ImportError:
+    # flasgger not installed - skip Swagger UI
+    pass
+
 # In-memory agent store (replace with database in production)
 agents_store = {}
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Health check endpoint."""
-    return jsonify(APIResponse.success_response(
+    """
+    Health check endpoint.
+    ---
+    tags:
+      - Health
+    summary: Health check
+    description: Returns service health status
+    responses:
+      200:
+        description: Service is healthy
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APIResponse'
+        examples:
+          application/json:
+            success: true
+            data:
+              status: healthy
+              service: agentbuilder
+    """
+    return json_response(
         {"status": "healthy", "service": "agentbuilder"}
-    ).to_dict()), 200
+    ), 200
 
 @app.route('/api/v1/agents', methods=['POST'])
 @require_auth
@@ -131,13 +170,12 @@ def create_agent():
         agents_store[agent_id] = agent_data
 
         # Return standardized response
-        response = APIResponse.success_response({
+        return json_response({
             'agent_id': agent_id,
             'role_model': role_model,
             'generated_skills': skills,
             'generated_knowledge': knowledge_items,
-        })
-        return jsonify(response.to_dict()), 201
+        }), 201
 
     except ValidationError as e:
         error = APIError.from_exception(e)
@@ -173,31 +211,22 @@ def get_agent(agent_id: str):
         response, status = APIResponse.error_response(error, status_code=404)
         return jsonify(response.to_dict()), status
 
-    response = APIResponse.success_response(agents_store[agent_id])
-    return jsonify(response.to_dict()), 200
+    return json_response(agents_store[agent_id]), 200
 
 @app.route('/api/v1/agents', methods=['GET'])
 @require_auth
 def list_agents():
     """List all agents."""
-    pagination = PaginationParams.from_request(request)
-
     # Get agents (in production, this would query a database with pagination)
     all_agents = list(agents_store.values())
-    total = len(all_agents)
 
-    # Apply pagination
-    start = pagination.offset
-    end = start + pagination.per_page
-    agents_page = all_agents[start:end]
+    # Apply filters, sorting, and pagination
+    agents_page, pagination_meta = process_list_request(all_agents)
 
-    pagination_meta = PaginationMeta.create(pagination, total)
-
-    response = APIResponse.success_response(
+    return json_response(
         agents_page,
         pagination=pagination_meta
-    )
-    return jsonify(response.to_dict()), 200
+    ), 200
 
 @app.route('/api/v1/agents/<agent_id>/build', methods=['POST'])
 @require_auth
@@ -226,8 +255,7 @@ def get_agent_capabilities(agent_id: str):
         'knowledge': agent.get('generated_knowledge', []),
     }
 
-    response = APIResponse.success_response(capabilities)
-    return jsonify(response.to_dict()), 200
+    return json_response(capabilities), 200
 
 @app.route('/api/v1/agents/<agent_id>', methods=['PATCH'])
 @require_auth
@@ -278,8 +306,7 @@ def update_agent(agent_id: str):
         # Update timestamp
         agent['updated_at'] = datetime.now(timezone.utc).isoformat()
 
-        response = APIResponse.success_response(agent)
-        return jsonify(response.to_dict()), 200
+        return json_response(agent), 200
 
     except ValidationError as e:
         error = APIError.from_exception(e)
@@ -320,8 +347,7 @@ def replace_agent(agent_id: str):
             'updated_at': datetime.now(timezone.utc).isoformat(),
         }
 
-        response = APIResponse.success_response(agents_store[agent_id])
-        return jsonify(response.to_dict()), 200
+        return json_response(agents_store[agent_id]), 200
 
     except ValidationError as e:
         error = APIError.from_exception(e)
@@ -351,8 +377,7 @@ def delete_agent(agent_id: str):
 
     del agents_store[agent_id]
 
-    response = APIResponse.success_response({'deleted': True, 'agent_id': agent_id})
-    return jsonify(response.to_dict()), 200
+    return json_response({'deleted': True, 'agent_id': agent_id}), 200
 
 # Backwards compatibility endpoint (deprecated)
 @app.route('/build', methods=['POST'])

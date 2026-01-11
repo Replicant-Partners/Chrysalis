@@ -271,8 +271,8 @@ class APIResponse:
             try:
                 from flask import g
                 request_id = getattr(g, "request_id", None)
-            except RuntimeError:
-                # Not in Flask context
+            except (RuntimeError, ImportError):
+                # Not in Flask context or Flask not available
                 pass
 
         meta = {
@@ -333,6 +333,10 @@ class ValidationError(Exception):
         self.message = message
         self.field = field
         self.code = code or ErrorCode.REQUIRED_FIELD.value
+
+    def __str__(self):
+        """Return error message."""
+        return self.message
 
 
 class RequestValidator:

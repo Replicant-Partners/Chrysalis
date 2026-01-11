@@ -29,6 +29,7 @@ from shared.api_core import (
     PaginationMeta,
     FilterParams,
     SortParams,
+    process_list_request,
     require_auth,
     authenticate_request,
     create_error_handler,
@@ -44,12 +45,46 @@ app = Flask(__name__)
 create_error_handler(app)
 create_all_middleware(app, api_version="v1")
 
+# Setup Swagger/OpenAPI documentation
+try:
+    from shared.api_core.swagger import setup_swagger, create_swagger_config
+    swagger_config = create_swagger_config(
+        title="SkillBuilder API",
+        version="1.0.0",
+        description="SkillBuilder Service - Generates agent skills from occupation and corpus text using exemplar-driven research.",
+        api_version="v1"
+    )
+    setup_swagger(app, swagger_config)
+except ImportError:
+    # flasgger not installed - skip Swagger UI
+    pass
+
 # In-memory skill store (replace with database in production)
 skills_store: Dict[str, Dict[str, Any]] = {}
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Health check endpoint."""
+    """
+    Health check endpoint.
+    ---
+    tags:
+      - Health
+    summary: Health check
+    description: Returns service health status
+    responses:
+      200:
+        description: Service is healthy
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APIResponse'
+        examples:
+          application/json:
+            success: true
+            data:
+              status: healthy
+              service: skillbuilder
+    """
     return jsonify(APIResponse.success_response(
         {"status": "healthy", "service": "skillbuilder"}
     ).to_dict()), 200
@@ -152,36 +187,11 @@ def get_skills(skill_id: str):
 @require_auth
 def list_skills():
     """List all skills entries."""
-    pagination = PaginationParams.from_request(request)
-    filters = FilterParams.from_request(request)
-
     # Get all skills entries
     all_skills = list(skills_store.values())
 
-    # Apply filters
-    filtered_skills = all_skills
-    if filters.filters:
-        for field, value in filters.filters.items():
-            if isinstance(value, dict):
-                for op, op_value in value.items():
-                    filtered_skills = [
-                        s for s in filtered_skills
-                        if _apply_filter(s.get(field), op, op_value)
-                    ]
-            else:
-                filtered_skills = [
-                    s for s in filtered_skills
-                    if s.get(field) == value
-                ]
-
-    total = len(filtered_skills)
-
-    # Apply pagination
-    start = pagination.offset
-    end = start + pagination.per_page
-    skills_page = filtered_skills[start:end]
-
-    pagination_meta = PaginationMeta.create(pagination, total)
+    # Apply filters, sorting, and pagination
+    skills_page, pagination_meta = process_list_request(all_skills)
 
     response = APIResponse.success_response(
         skills_page,
@@ -201,15 +211,15 @@ def update_skills(skill_id: str):
         )
         response, status = APIResponse.error_response(error, status_code=404)
         return jsonify(response.to_dict()), status
-    
+
     try:
         data = request.get_json() or {}
         skills = skills_store[skill_id]
-        
+
         # Update allowed fields
         if 'occupation' in data:
             skills['occupation'] = RequestValidator.require_string(data, 'occupation', min_length=1)
-        
+
         if 'skills' in data:
             if isinstance(data['skills'], list):
                 skills['skills'] = data['skills']
@@ -222,7 +232,7 @@ def update_skills(skill_id: str):
                 )
                 response, status = APIResponse.error_response(error, status_code=422)
                 return jsonify(response.to_dict()), status
-        
+
         if 'deepening_cycles' in data:
             deepening_cycles = data['deepening_cycles']
             if isinstance(deepening_cycles, int) and 0 <= deepening_cycles <= 11:
@@ -235,13 +245,13 @@ def update_skills(skill_id: str):
                 )
                 response, status = APIResponse.error_response(error, status_code=422)
                 return jsonify(response.to_dict()), status
-        
+
         # Update timestamp
         skills['updated_at'] = datetime.now(timezone.utc).isoformat()
-        
+
         response = APIResponse.success_response(skills)
         return jsonify(response.to_dict()), 200
-        
+
     except ValidationError as e:
         error = APIError.from_exception(e)
         response, status = APIResponse.error_response(error, status_code=422)
@@ -261,17 +271,17 @@ def replace_skills(skill_id: str):
     """Replace skills entry (full update)."""
     try:
         data = request.get_json() or {}
-        
+
         # Validate required fields
         occupation = RequestValidator.require_string(data, 'occupation', min_length=1)
         deepening_cycles = data.get('deepening_cycles', 0)
         if not isinstance(deepening_cycles, int) or not (0 <= deepening_cycles <= 11):
             deepening_cycles = 0
-        
+
         skills_list = data.get('skills', [])
         if not isinstance(skills_list, list):
             skills_list = []
-        
+
         # Replace entire skills entry
         skills_store[skill_id] = {
             'skill_id': skill_id,
@@ -281,10 +291,10 @@ def replace_skills(skill_id: str):
             'total_skills': len(skills_list),
             'updated_at': datetime.now(timezone.utc).isoformat(),
         }
-        
+
         response = APIResponse.success_response(skills_store[skill_id])
         return jsonify(response.to_dict()), 200
-        
+
     except ValidationError as e:
         error = APIError.from_exception(e)
         response, status = APIResponse.error_response(error, status_code=422)
@@ -310,9 +320,9 @@ def delete_skills(skill_id: str):
         )
         response, status = APIResponse.error_response(error, status_code=404)
         return jsonify(response.to_dict()), status
-    
+
     del skills_store[skill_id]
-    
+
     response = APIResponse.success_response({'deleted': True, 'skill_id': skill_id})
     return jsonify(response.to_dict()), 200
 
@@ -320,11 +330,24 @@ def delete_skills(skill_id: str):
 @require_auth
 def list_modes():
     """List available skill modes."""
+    pagination = PaginationParams.from_request(request)
+
     # This would query the mode database/registry
     # For now, return empty list or placeholder
-    modes = []  # Would be populated from mode registry
+    all_modes = []  # Would be populated from mode registry
+    total = len(all_modes)
 
-    response = APIResponse.success_response(modes)
+    # Apply pagination
+    start = pagination.offset
+    end = start + pagination.per_page
+    modes_page = all_modes[start:end]
+
+    pagination_meta = PaginationMeta.create(pagination, total)
+
+    response = APIResponse.success_response(
+        modes_page,
+        pagination=pagination_meta
+    )
     return jsonify(response.to_dict()), 200
 
 @app.route('/api/v1/skills/modes/<mode_id>', methods=['GET'])
@@ -381,26 +404,6 @@ def create_skills_legacy():
             return jsonify(json_response), status_code
 
     return response_data
-
-def _apply_filter(value: Any, op: str, op_value: Any) -> bool:
-    """Apply filter operation."""
-    if op == 'eq':
-        return value == op_value
-    elif op == 'ne':
-        return value != op_value
-    elif op == 'gt':
-        return value > op_value
-    elif op == 'gte':
-        return value >= op_value
-    elif op == 'lt':
-        return value < op_value
-    elif op == 'lte':
-        return value <= op_value
-    elif op == 'in':
-        return value in (op_value if isinstance(op_value, list) else [op_value])
-    elif op == 'contains':
-        return op_value in str(value)
-    return False
 
 if __name__ == '__main__':
     print('--- SkillBuilder Server Starting ---')

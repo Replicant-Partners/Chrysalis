@@ -110,15 +110,27 @@ from .resolvers import (
     SymbolInfo,
 )
 
-# MCP server
-from .mcp import (
-    SemanticServer,
-    create_server,
+# Core memory classes
+from .core import (
+    Memory,
+    MemoryConfig,
+    MemoryEntry,
 )
+
+# MCP server - commented out until mcp module is implemented
+# from .mcp import (
+#     SemanticServer,
+#     create_server,
+# )
 
 __all__ = [
     # Version
     "__version__",
+    
+    # Core Memory
+    "Memory",
+    "MemoryConfig",
+    "MemoryEntry",
     
     # Semantic
     "SemanticDecomposer",
@@ -154,9 +166,9 @@ __all__ = [
     "LSPResult",
     "SymbolInfo",
     
-    # MCP
-    "SemanticServer",
-    "create_server",
+    # MCP - commented out until mcp module is implemented
+    # "SemanticServer",
+    # "create_server",
 ]
 
 

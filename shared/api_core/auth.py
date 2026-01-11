@@ -3,6 +3,11 @@ Unified authentication framework for Chrysalis services.
 """
 
 import os
+from dataclasses import dataclass
+from datetime import datetime, timezone, timedelta
+from typing import Optional, Dict, Any, List
+from functools import wraps
+
 try:
     import jwt
 except ImportError:
@@ -11,11 +16,13 @@ except ImportError:
     import logging
     logger = logging.getLogger(__name__)
     logger.warning("PyJWT not installed - JWT authentication will be unavailable")
-from dataclasses import dataclass
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, Any, List
-from flask import request, g
-from functools import wraps
+
+# Flask is optional - only needed when using decorators/middleware
+try:
+    import flask
+    FLASK_AVAILABLE = True
+except ImportError:
+    FLASK_AVAILABLE = False
 
 from .models import APIError, ErrorCode, ErrorCategory
 
@@ -54,10 +61,12 @@ API_KEYS: Dict[str, Dict[str, Any]] = {}
 ADMIN_KEY_IDS = set(os.getenv("ADMIN_KEY_IDS", "").split(",") if os.getenv("ADMIN_KEY_IDS") else [])
 
 
-def get_bearer_token(request) -> Optional[str]:
+def get_bearer_token(req) -> Optional[str]:
     """Extract Bearer token from request headers."""
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
+    if not hasattr(req, 'headers'):
+        return None
+    auth_header = req.headers.get("Authorization", "")
+    if not auth_header or not isinstance(auth_header, str) or not auth_header.startswith("Bearer "):
         return None
     return auth_header[7:].strip()
 
@@ -103,12 +112,13 @@ def verify_api_key(key: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def authenticate_request(optional: bool = False) -> Optional[AuthContext]:
+def authenticate_request(optional: bool = False, req=None) -> Optional[AuthContext]:
     """
     Authenticate request and return AuthContext.
 
     Args:
         optional: If True, return None instead of raising error when auth missing
+        req: Request object (Flask request if not provided and Flask available)
 
     Returns:
         AuthContext if authenticated, None if optional and not authenticated
@@ -116,8 +126,15 @@ def authenticate_request(optional: bool = False) -> Optional[AuthContext]:
     Raises:
         APIError if authentication fails (unless optional=True)
     """
+    if req is None:
+        if FLASK_AVAILABLE:
+            from flask import request as flask_request
+            req = flask_request
+        else:
+            raise RuntimeError("Request object required when Flask is not available. Pass req parameter explicitly.")
+
     # Try Bearer token (JWT)
-    bearer_token = get_bearer_token(request)
+    bearer_token = get_bearer_token(req)
     if bearer_token:
         payload = verify_jwt_token(bearer_token)
         if payload:
@@ -153,25 +170,36 @@ def authenticate_request(optional: bool = False) -> Optional[AuthContext]:
 
 def get_current_user() -> Optional[AuthContext]:
     """Get current authenticated user from Flask g context."""
-    return getattr(g, "auth_context", None)
+    if FLASK_AVAILABLE:
+        from flask import g as flask_g
+        return getattr(flask_g, "auth_context", None)
+    return None
 
 
 def require_auth(f):
     """Decorator to require authentication."""
+    if not FLASK_AVAILABLE:
+        raise RuntimeError("require_auth decorator requires Flask. Install Flask to use this decorator.")
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        auth_context = authenticate_request(optional=False)
-        g.auth_context = auth_context
+        from flask import request as flask_request, g as flask_g
+        auth_context = authenticate_request(optional=False, req=flask_request)
+        flask_g.auth_context = auth_context
         return f(*args, **kwargs)
     return decorated_function
 
 
 def require_role(role: str):
     """Decorator to require specific role."""
+    if not FLASK_AVAILABLE:
+        raise RuntimeError("require_role decorator requires Flask. Install Flask to use this decorator.")
+
     def decorator(f):
         @wraps(f)
         @require_auth
         def decorated_function(*args, **kwargs):
+            from flask import jsonify
             auth_context = get_current_user()
             if not auth_context or not auth_context.has_role(role):
                 error = APIError(
@@ -181,7 +209,6 @@ def require_role(role: str):
                 )
                 from .models import APIResponse
                 response, status = APIResponse.error_response(error, status_code=403)
-                from flask import jsonify
                 return jsonify(response.to_dict()), status
             return f(*args, **kwargs)
         return decorated_function
@@ -190,10 +217,14 @@ def require_role(role: str):
 
 def require_permission(permission: str):
     """Decorator to require specific permission."""
+    if not FLASK_AVAILABLE:
+        raise RuntimeError("require_permission decorator requires Flask. Install Flask to use this decorator.")
+
     def decorator(f):
         @wraps(f)
         @require_auth
         def decorated_function(*args, **kwargs):
+            from flask import jsonify
             auth_context = get_current_user()
             if not auth_context or not auth_context.has_permission(permission):
                 error = APIError(
@@ -203,7 +234,6 @@ def require_permission(permission: str):
                 )
                 from .models import APIResponse
                 response, status = APIResponse.error_response(error, status_code=403)
-                from flask import jsonify
                 return jsonify(response.to_dict()), status
             return f(*args, **kwargs)
         return decorated_function

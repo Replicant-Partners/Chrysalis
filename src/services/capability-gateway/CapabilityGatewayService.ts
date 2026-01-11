@@ -7,16 +7,20 @@
 
 import http from 'http';
 import path from 'path';
-import { badRequest, methodNotAllowed, notFound, readJsonBody } from '../../demo/milestone1/http';
 import {
-  sendJson,
-  sendError,
   createSuccessResponse,
-  createErrorResponse,
   APIError,
   ErrorCode,
   ErrorCategory,
-} from '../ledger/api-utils';
+} from '../../shared/api-core/src/models';
+import {
+  readJsonBody,
+  sendJson,
+  sendError,
+  notFound,
+  methodNotAllowed,
+  badRequest,
+} from '../../shared/api-core/src/http';
 import { authenticateRequest } from '../../shared/api-core/src/auth';
 import { LedgerClient } from '../../demo/milestone1/ledger-client';
 import { AgentBuilderAdapter, RoleModel } from '../../integrations/agentbuilder/AgentBuilderAdapter';
@@ -77,8 +81,7 @@ export class CapabilityGatewayService {
           timestamp: new Date().toISOString(),
           documentation_url: 'https://docs.chrysalis.dev/auth',
         };
-        const { response, statusCode } = createErrorResponse(error, 401);
-        return sendError(res, statusCode, error);
+        return sendError(res, 401, error);
       }
 
       const v = this.apiKeys.verify(authz);
@@ -89,8 +92,7 @@ export class CapabilityGatewayService {
           category: ErrorCategory.AUTHENTICATION_ERROR,
           timestamp: new Date().toISOString(),
         };
-        const { response, statusCode } = createErrorResponse(error, 401);
-        return sendError(res, statusCode, error);
+        return sendError(res, 401, error);
       }
 
       const allowed = this.limiter.allow(v.keyId);
@@ -102,8 +104,7 @@ export class CapabilityGatewayService {
           retry_after: allowed.retryAfterMs ? Math.ceil(allowed.retryAfterMs / 1000) : undefined,
           timestamp: new Date().toISOString(),
         };
-        const { response, statusCode } = createErrorResponse(error, 429);
-        return sendError(res, statusCode, error);
+        return sendError(res, 429, error);
       }
 
       // Unified API endpoints
@@ -140,8 +141,7 @@ export class CapabilityGatewayService {
         category: ErrorCategory.SERVICE_ERROR,
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 500);
-      return sendError(res, statusCode, error);
+      return sendError(res, 500, error);
     }
   }
 
@@ -153,8 +153,7 @@ export class CapabilityGatewayService {
         category: ErrorCategory.AUTHORIZATION_ERROR,
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 403);
-      return sendError(res, statusCode, error);
+      return sendError(res, 403, error);
     }
 
     if (this.apiKeys.exists()) {
@@ -164,8 +163,7 @@ export class CapabilityGatewayService {
         category: ErrorCategory.CONFLICT_ERROR,
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 409);
-      return sendError(res, statusCode, error);
+      return sendError(res, 409, error);
     }
 
     const body = (await readJsonBody(req)) as { name?: string };
@@ -197,8 +195,7 @@ export class CapabilityGatewayService {
       category: ErrorCategory.NOT_FOUND_ERROR,
       timestamp: new Date().toISOString(),
     };
-    const { response, statusCode } = createErrorResponse(error, 404);
-    return sendError(res, statusCode, error);
+    return sendError(res, 404, error);
   }
 
   private getBearerToken(req: http.IncomingMessage): string | null {
@@ -219,8 +216,7 @@ export class CapabilityGatewayService {
           details: [{ field: 'roleModel', message: 'roleModel is required' }],
           timestamp: new Date().toISOString(),
         };
-        const { response, statusCode } = createErrorResponse(error, 400);
-        return sendError(res, statusCode, error);
+        return sendError(res, 400, error);
       }
 
       const agentId = body.agentId || (await this.ensureAgent(body.agent, callerKeyId));
@@ -232,8 +228,7 @@ export class CapabilityGatewayService {
           details: [{ field: 'agentId', message: 'agentId or agent profile is required' }],
           timestamp: new Date().toISOString(),
         };
-        const { response, statusCode } = createErrorResponse(error, 400);
-        return sendError(res, statusCode, error);
+        return sendError(res, 400, error);
       }
 
       // Check authorization
@@ -246,8 +241,7 @@ export class CapabilityGatewayService {
           category: ErrorCategory.AUTHORIZATION_ERROR,
           timestamp: new Date().toISOString(),
         };
-        const { response, statusCode } = createErrorResponse(error, 403);
-        return sendError(res, statusCode, error);
+        return sendError(res, 403, error);
       }
 
       // Build capabilities
@@ -266,8 +260,7 @@ export class CapabilityGatewayService {
         category: ErrorCategory.SERVICE_ERROR,
         timestamp: new Date().toISOString(),
       };
-      const { response, statusCode } = createErrorResponse(error, 500);
-      return sendError(res, statusCode, error);
+      return sendError(res, 500, error);
     }
   }
 

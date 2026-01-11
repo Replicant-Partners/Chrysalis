@@ -28,6 +28,7 @@ from shared.api_core import (
     PaginationMeta,
     FilterParams,
     SortParams,
+    process_list_request,
     require_auth,
     authenticate_request,
     create_error_handler,
@@ -42,12 +43,46 @@ app = Flask(__name__)
 create_error_handler(app)
 create_all_middleware(app, api_version="v1")
 
+# Setup Swagger/OpenAPI documentation
+try:
+    from shared.api_core.swagger import setup_swagger, create_swagger_config
+    swagger_config = create_swagger_config(
+        title="KnowledgeBuilder API",
+        version="1.0.0",
+        description="KnowledgeBuilder Service - Collects and structures knowledge about entities using multi-source search and fact extraction.",
+        api_version="v1"
+    )
+    setup_swagger(app, swagger_config)
+except ImportError:
+    # flasgger not installed - skip Swagger UI
+    pass
+
 # In-memory knowledge store (replace with database in production)
 knowledge_store: Dict[str, Dict[str, Any]] = {}
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Health check endpoint."""
+    """
+    Health check endpoint.
+    ---
+    tags:
+      - Health
+    summary: Health check
+    description: Returns service health status
+    responses:
+      200:
+        description: Service is healthy
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APIResponse'
+        examples:
+          application/json:
+            success: true
+            data:
+              status: healthy
+              service: knowledgebuilder
+    """
     return jsonify(APIResponse.success_response(
         {"status": "healthy", "service": "knowledgebuilder"}
     ).to_dict()), 200
@@ -133,38 +168,11 @@ def get_knowledge(knowledge_id: str):
 @require_auth
 def list_knowledge():
     """List all knowledge entries."""
-    pagination = PaginationParams.from_request(request)
-    filters = FilterParams.from_request(request)
-
     # Get all knowledge entries
     all_knowledge = list(knowledge_store.values())
 
-    # Apply filters (basic implementation)
-    filtered_knowledge = all_knowledge
-    if filters.filters:
-        for field, value in filters.filters.items():
-            if isinstance(value, dict):
-                # Handle filter[field][op] format
-                for op, op_value in value.items():
-                    filtered_knowledge = [
-                        k for k in filtered_knowledge
-                        if _apply_filter(k.get(field), op, op_value)
-                    ]
-            else:
-                # Simple equality filter
-                filtered_knowledge = [
-                    k for k in filtered_knowledge
-                    if k.get(field) == value
-                ]
-
-    total = len(filtered_knowledge)
-
-    # Apply pagination
-    start = pagination.offset
-    end = start + pagination.per_page
-    knowledge_page = filtered_knowledge[start:end]
-
-    pagination_meta = PaginationMeta.create(pagination, total)
+    # Apply filters, sorting, and pagination
+    knowledge_page, pagination_meta = process_list_request(all_knowledge)
 
     response = APIResponse.success_response(
         knowledge_page,
@@ -398,26 +406,6 @@ def create_knowledge_legacy():
             return jsonify(json_response), status_code
 
     return response_data
-
-def _apply_filter(value: Any, op: str, op_value: Any) -> bool:
-    """Apply filter operation."""
-    if op == 'eq':
-        return value == op_value
-    elif op == 'ne':
-        return value != op_value
-    elif op == 'gt':
-        return value > op_value
-    elif op == 'gte':
-        return value >= op_value
-    elif op == 'lt':
-        return value < op_value
-    elif op == 'lte':
-        return value <= op_value
-    elif op == 'in':
-        return value in (op_value if isinstance(op_value, list) else [op_value])
-    elif op == 'contains':
-        return op_value in str(value)
-    return False
 
 if __name__ == '__main__':
     print('--- KnowledgeBuilder Server Starting ---')

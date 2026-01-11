@@ -5,7 +5,19 @@ Flask middleware for error handling, CORS, request tracking, etc.
 import logging
 import uuid
 from functools import wraps
-from flask import jsonify, request, g
+from typing import Optional, Dict, Any
+
+try:
+    from flask import jsonify, request, g, Flask
+    FLASK_AVAILABLE = True
+except ImportError:
+    FLASK_AVAILABLE = False
+    # Stub Flask types for type checking
+    Flask = None
+    jsonify = None
+    request = None
+    g = None
+
 from .models import APIResponse, APIError, ErrorCode, ErrorCategory, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -13,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 def create_error_handler(app):
     """Create error handler for Flask app."""
+    if not FLASK_AVAILABLE:
+        raise RuntimeError("Flask required for error handlers. Install Flask.")
 
     @app.errorhandler(ValidationError)
     def handle_validation_error(e):
@@ -94,9 +108,13 @@ def create_auth_middleware(app):
 
 def create_request_id_middleware(app):
     """Create request ID tracking middleware."""
+    if not FLASK_AVAILABLE:
+        raise RuntimeError("Flask required for request ID middleware. Install Flask.")
+
     @app.before_request
     def extract_request_id():
         """Extract or generate request ID from headers."""
+        from flask import request, g
         # Extract from X-Request-ID header if present
         request_id = request.headers.get("X-Request-ID")
         if not request_id:
@@ -112,6 +130,7 @@ def create_request_id_middleware(app):
     @app.after_request
     def add_request_id_header(response):
         """Add request ID to response headers."""
+        from flask import g
         request_id = getattr(g, "request_id", None)
         if request_id:
             response.headers["X-Request-ID"] = request_id
@@ -120,9 +139,13 @@ def create_request_id_middleware(app):
 
 def create_response_headers_middleware(app, api_version: str = "v1"):
     """Create middleware to add standard response headers."""
+    if not FLASK_AVAILABLE:
+        raise RuntimeError("Flask required for response headers middleware. Install Flask.")
+
     @app.after_request
     def add_standard_headers(response):
         """Add standard API response headers."""
+        from flask import request, g
         # API Version
         response.headers["X-API-Version"] = api_version
 
@@ -142,6 +165,9 @@ def create_response_headers_middleware(app, api_version: str = "v1"):
 
 def create_cors_middleware(app):
     """Create CORS middleware."""
+    if not FLASK_AVAILABLE:
+        raise RuntimeError("Flask required for CORS middleware. Install Flask.")
+
     try:
         from flask_cors import CORS
         CORS(app, resources={
@@ -162,12 +188,51 @@ def create_cors_middleware(app):
             return response
 
 
-def create_all_middleware(app, api_version: str = "v1"):
-    """Create all standard middleware in correct order."""
+def create_all_middleware(
+    app,
+    api_version: str = "v1",
+    enable_rate_limiting: bool = True,
+    rate_limit_config: Optional[Dict[str, Any]] = None
+):
+    """
+    Create all standard middleware in correct order.
+
+    Args:
+        app: Flask application
+        api_version: API version string
+        enable_rate_limiting: Whether to enable rate limiting
+        rate_limit_config: Optional rate limit configuration
+    """
+    if not FLASK_AVAILABLE:
+        raise RuntimeError("Flask required for middleware. Install Flask.")
+
     # Order matters:
-    # 1. Request ID (before_request)
-    # 2. CORS (after_request - runs first)
-    # 3. Response headers (after_request - runs second)
+    # 1. Request ID (before_request - must be first so rate limit errors have request IDs)
+    # 2. Rate limiting (before_request - needs request ID from previous middleware)
+    # 3. CORS (after_request - runs first)
+    # 4. Response headers (after_request - runs second)
+
+    # Request ID must come first so rate limit errors can include it
+    create_request_id_middleware(app)
+
+    if enable_rate_limiting:
+        try:
+            from .rate_limiting import create_rate_limit_middleware, RateLimitConfig
+
+            if rate_limit_config:
+                default_config = RateLimitConfig(**rate_limit_config)
+                create_rate_limit_middleware(app, default_config=default_config)
+            else:
+                # Use sensible defaults
+                default_config = RateLimitConfig(
+                    limit=1000,
+                    window=3600,  # 1 hour
+                    per_ip=True,
+                    per_endpoint=False
+                )
+                create_rate_limit_middleware(app, default_config=default_config)
+        except ImportError:
+            logger.warning("Rate limiting not available - skipping")
 
     create_request_id_middleware(app)
     create_cors_middleware(app)
