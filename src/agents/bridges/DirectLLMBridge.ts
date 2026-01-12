@@ -145,15 +145,18 @@ export class DirectLLMBridge extends BaseBridge {
     try {
       // Create LLM service if not provided
       if (!this.llmService) {
+        const model = this.directLLMConfig.model ?? 'claude-3-5-sonnet-20241022';
         this.llmService = new LLMHydrationService({
           defaultProvider: this.directLLMConfig.provider,
-          providers: {
-            [this.directLLMConfig.provider]: {
-              apiKey: this.directLLMConfig.apiKey,
-              baseUrl: this.directLLMConfig.baseUrl,
-              defaultModel: this.directLLMConfig.model
-            }
-          }
+          providers: [{
+            id: this.directLLMConfig.provider,
+            apiKey: this.directLLMConfig.apiKey,
+            baseUrl: this.directLLMConfig.baseUrl,
+            defaultModel: model,
+            models: [model],
+            enabled: true,
+            priority: 1
+          }]
         });
       }
       
@@ -162,9 +165,8 @@ export class DirectLLMBridge extends BaseBridge {
         agentId: this.id,
         agentName: this.config.name,
         systemPrompt: this.directLLMConfig.systemPrompt,
-        defaultModel: this.directLLMConfig.model,
-        defaultTemperature: this.directLLMConfig.temperature,
-        maxHistoryMessages: 50
+        model: this.directLLMConfig.model,
+        temperature: this.directLLMConfig.temperature,
       });
       
       // Verify connection by testing with empty message
@@ -322,12 +324,14 @@ export class DirectLLMBridge extends BaseBridge {
       
       // Stream from the LLM service
       let fullContent = '';
+      let chunkIndex = 0;
       
       for await (const chunk of this.llmService.stream({
         messages: messages as any,
         model: this.directLLMConfig.model,
         temperature: this.directLLMConfig.temperature,
-        maxTokens: this.directLLMConfig.maxTokens
+        maxTokens: this.directLLMConfig.maxTokens,
+        agentId: this.id
       })) {
         fullContent += chunk.content;
         
@@ -339,7 +343,7 @@ export class DirectLLMBridge extends BaseBridge {
         });
         
         yield {
-          id: chunk.id,
+          id: `${this.id}-chunk-${chunkIndex++}`,
           content: chunk.content,
           timestamp: Date.now(),
           status: 'partial',

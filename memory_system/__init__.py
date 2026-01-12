@@ -117,8 +117,11 @@ from .core import (
     MemoryEntry,
 )
 
-# Beads (short-term/context) stub
+# Beads (short-term/context)
 from .beads import BeadsService
+
+# Zep hooks/client
+from .hooks import ZepHooks, ZepClient, ZepClientError
 
 # MCP server - commented out until mcp module is implemented
 # from .mcp import (
@@ -135,6 +138,9 @@ __all__ = [
     "MemoryConfig",
     "MemoryEntry",
     "BeadsService",
+    "ZepHooks",
+    "ZepClient",
+    "ZepClientError",
     
     # Semantic
     "SemanticDecomposer",

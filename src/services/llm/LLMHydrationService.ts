@@ -77,21 +77,21 @@ export class LLMHydrationService {
   
   constructor(config?: Partial<LLMServiceConfig>) {
     this.config = { ...DEFAULT_LLM_CONFIG, ...config };
-    
+
     // Initialize cost controller
     this.costController = new CostController({
-      maxCostPerRequest: this.config.costTracking.maxCostPerRequest,
-      dailyBudget: this.config.costTracking.dailyBudget,
-      monthlyBudget: this.config.costTracking.monthlyBudget,
+      maxCostPerRequest: this.config.costTracking?.maxCostPerRequest ?? 1.00,
+      dailyLimit: this.config.costTracking?.dailyBudget ?? 10.00,
+      monthlyLimit: this.config.costTracking?.monthlyBudget ?? 100.00,
       warningThreshold: 0.8
     });
-    
+
     // Initialize rate limiter (requests per minute)
-    this.rateLimiter = new RateLimiter(
-      this.config.rateLimiting.requestsPerMinute,
-      60000 // 1 minute window
-    );
-    
+    this.rateLimiter = new RateLimiter({
+      windowMs: 60000,
+      max: this.config.rateLimiting?.requestsPerMinute ?? 60
+    });
+
     // Register default providers
     this.registerDefaultProviders();
   }
@@ -100,19 +100,24 @@ export class LLMHydrationService {
    * Register default providers based on configuration
    */
   private registerDefaultProviders(): void {
-    // OpenAI
-    if (this.config.providers.openai?.enabled !== false) {
-      this.registerProvider(new OpenAIProvider(this.config.providers.openai));
-    }
-    
-    // Anthropic
-    if (this.config.providers.anthropic?.enabled !== false) {
-      this.registerProvider(new AnthropicProvider(this.config.providers.anthropic));
-    }
-    
-    // Ollama (local)
-    if (this.config.providers.ollama?.enabled !== false) {
-      this.registerProvider(new OllamaProvider(this.config.providers.ollama));
+    // Register providers from config array
+    for (const providerConfig of this.config.providers) {
+      if (!providerConfig.enabled) continue;
+
+      switch (providerConfig.id) {
+        case 'openai':
+          this.registerProvider(new OpenAIProvider(providerConfig));
+          break;
+        case 'anthropic':
+          this.registerProvider(new AnthropicProvider(providerConfig));
+          break;
+        case 'ollama':
+          this.registerProvider(new OllamaProvider(providerConfig));
+          break;
+        case 'mock':
+          this.registerProvider(new MockProvider(providerConfig));
+          break;
+      }
     }
   }
   
@@ -122,25 +127,26 @@ export class LLMHydrationService {
   registerProvider(provider: LLMProvider): void {
     const circuitBreaker = new CircuitBreaker({
       failureThreshold: 3,
-      successThreshold: 2,
-      timeout: 30000 // 30 seconds
+      timeout: 30000, // 30 seconds
+      resetTime: 60000, // 1 minute
+      name: `provider-${provider.id}`
     });
-    
+
     this.providers.set(provider.id, {
       provider,
       circuitBreaker,
       status: {
+        id: provider.id,
         available: false,
-        lastCheck: new Date(),
-        consecutiveErrors: 0
+        lastCheck: new Date()
       }
     });
-    
+
     // Initialize stats
     this.stats.requestsByProvider[provider.id] = 0;
     this.stats.tokensByProvider[provider.id] = 0;
     this.stats.errorsByProvider[provider.id] = 0;
-    
+
     // Check availability
     this.checkProviderAvailability(provider.id);
   }
@@ -158,20 +164,21 @@ export class LLMHydrationService {
   private async checkProviderAvailability(providerId: ProviderId): Promise<boolean> {
     const registration = this.providers.get(providerId);
     if (!registration) return false;
-    
+
     try {
       const available = await registration.provider.isAvailable();
       registration.status = {
+        id: providerId,
         available,
-        lastCheck: new Date(),
-        consecutiveErrors: available ? 0 : registration.status.consecutiveErrors
+        lastCheck: new Date()
       };
       return available;
     } catch {
       registration.status = {
+        id: providerId,
         available: false,
         lastCheck: new Date(),
-        consecutiveErrors: registration.status.consecutiveErrors + 1
+        error: 'Availability check failed'
       };
       return false;
     }
@@ -182,29 +189,31 @@ export class LLMHydrationService {
    */
   async getAvailableProviders(): Promise<LLMProvider[]> {
     const available: Array<{ provider: LLMProvider; priority: number }> = [];
-    
+
     for (const [, registration] of this.providers) {
       // Check circuit breaker
       if (registration.circuitBreaker.getState() === 'open') {
         continue;
       }
-      
+
       // Check availability (use cached status if recent)
       const statusAge = Date.now() - registration.status.lastCheck.getTime();
       let isAvailable = registration.status.available;
-      
+
       if (statusAge > 60000) { // Re-check every minute
         isAvailable = await this.checkProviderAvailability(registration.provider.id);
       }
-      
+
       if (isAvailable) {
+        // Get priority from provider config
+        const providerConfig = this.config.providers.find(p => p.id === registration.provider.id);
         available.push({
           provider: registration.provider,
-          priority: registration.provider.getStatus().priority ?? 99
+          priority: providerConfig?.priority ?? 99
         });
       }
     }
-    
+
     // Sort by priority (lower is better)
     return available
       .sort((a, b) => a.priority - b.priority)
@@ -226,80 +235,71 @@ export class LLMHydrationService {
     preferredProvider?: ProviderId
   ): Promise<CompletionResponse> {
     // Check rate limit
-    if (!this.rateLimiter.allow('global')) {
-      throw new Error('Rate limit exceeded. Please wait before making more requests.');
+    const rateLimitResult = this.rateLimiter.allow('global');
+    if (!rateLimitResult.ok) {
+      throw new Error(`Rate limit exceeded. Retry after ${rateLimitResult.retryAfterMs}ms.`);
     }
-    
+
     // Estimate cost before making request
     const estimatedInputTokens = this.estimateInputTokens(request);
     const model = request.model ?? 'gpt-4o-mini';
     const estimatedCost = calculateCost(estimatedInputTokens, 500, model);
-    
-    // Check cost budget
-    if (!this.costController.canSpend(estimatedCost)) {
-      throw new Error('Budget limit exceeded. Cannot make request.');
-    }
-    
+
     // Get providers to try
     let providers: LLMProvider[] = [];
-    
+
     if (preferredProvider) {
       const preferred = this.getProvider(preferredProvider);
       if (preferred) {
         providers = [preferred];
       }
     }
-    
-    if (providers.length === 0 || this.config.fallbackEnabled) {
+
+    if (providers.length === 0) {
       const available = await this.getAvailableProviders();
       providers = preferredProvider
         ? [providers[0], ...available.filter(p => p.id !== preferredProvider)]
         : available;
     }
-    
+
     if (providers.length === 0) {
       throw new Error('No LLM providers available');
     }
-    
+
     // Try each provider in order
     let lastError: Error | null = null;
-    
+
     for (const provider of providers) {
       const registration = this.providers.get(provider.id);
       if (!registration) continue;
-      
+
       try {
         const response = await registration.circuitBreaker.execute(
           async () => provider.complete(request)
         );
-        
+
         // Update stats
         this.updateStats(provider.id, response);
-        
+
         // Track cost
-        this.costController.track({
-          inputTokens: response.usage.promptTokens,
-          outputTokens: response.usage.completionTokens,
-          model: response.model,
-          estimatedCost: response.estimatedCost
-        });
-        
-        // Reset error count on success
-        registration.status.consecutiveErrors = 0;
-        
+        this.costController.trackUsage(
+          request.agentId,
+          'completion',
+          response.model,
+          response.usage.promptTokens,
+          response.usage.completionTokens
+        );
+
         return response;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         // Update error stats
-        this.stats.errorsByProvider[provider.id] = 
+        this.stats.errorsByProvider[provider.id] =
           (this.stats.errorsByProvider[provider.id] ?? 0) + 1;
-        registration.status.consecutiveErrors++;
-        
-        // Continue to next provider if fallback enabled
-        if (!this.config.fallbackEnabled) {
-          throw lastError;
-        }
+
+        // Continue to next provider
+        continue;
       }
     }
     
@@ -315,8 +315,9 @@ export class LLMHydrationService {
     preferredProvider?: ProviderId
   ): AsyncIterable<CompletionChunk> {
     // Check rate limit
-    if (!this.rateLimiter.allow('global')) {
-      throw new Error('Rate limit exceeded. Please wait before making more requests.');
+    const rateLimitResult = this.rateLimiter.allow('global');
+    if (!rateLimitResult.ok) {
+      throw new Error(`Rate limit exceeded. Retry after ${rateLimitResult.retryAfterMs}ms.`);
     }
     
     // Get providers to try
@@ -384,11 +385,10 @@ export class LLMHydrationService {
         });
       }
       
-      registration.status.consecutiveErrors = 0;
+      // Success - status already updated
     } catch (error) {
-      this.stats.errorsByProvider[provider.id] = 
+      this.stats.errorsByProvider[provider.id] =
         (this.stats.errorsByProvider[provider.id] ?? 0) + 1;
-      registration.status.consecutiveErrors++;
       throw error;
     }
   }
@@ -465,7 +465,6 @@ export class LLMHydrationService {
     const registration = this.providers.get(providerId);
     if (registration) {
       registration.circuitBreaker.reset();
-      registration.status.consecutiveErrors = 0;
     }
   }
   
@@ -487,18 +486,15 @@ export class LLMHydrationService {
    */
   static createMock(defaultResponse?: string): LLMHydrationService {
     const service = new LLMHydrationService({
-      providers: {
-        openai: { enabled: false },
-        anthropic: { enabled: false },
-        ollama: { enabled: false }
-      }
+      providers: [],
+      fallbackEnabled: false
     });
-    
+
     const mockProvider = new MockProvider();
     if (defaultResponse) {
       mockProvider.setDefaultResponse({ content: defaultResponse });
     }
-    
+
     service.registerProvider(mockProvider);
     return service;
   }

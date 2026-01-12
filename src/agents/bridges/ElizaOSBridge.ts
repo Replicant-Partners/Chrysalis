@@ -283,9 +283,8 @@ export class ElizaOSBridge extends BaseBridge {
         agentId: this.id,
         agentName: this.character.name,
         systemPrompt: this.buildSystemPrompt(),
-        defaultModel: this.elizaConfig.model,
-        defaultTemperature: this.elizaConfig.temperature,
-        maxHistoryMessages: 50
+        model: this.elizaConfig.model,
+        temperature: this.elizaConfig.temperature,
       });
       
       this.setStatus('connected');

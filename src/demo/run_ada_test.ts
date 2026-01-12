@@ -44,18 +44,18 @@ async function main() {
 
     console.log(`\n--- ${skills.length} Skills Learned ---`);
     skills.forEach((item: MemoryItem) => {
-      console.log(`Skill: ${item.payload.name}`);
-      console.log(`  Description: ${item.payload.description}`);
-      console.log(`  Confidence: ${item.payload.confidence}`);
+      console.log(`Skill: ${item.payload?.name ?? 'unknown'}`);
+      console.log(`  Description: ${item.payload?.description ?? 'N/A'}`);
+      console.log(`  Confidence: ${item.payload?.confidence ?? 'N/A'}`);
       console.log('---');
     });
 
     console.log(`\n--- ${knowledge.length} Knowledge Items Learned ---`);
     knowledge.forEach((item: MemoryItem) => {
-      console.log(`Knowledge Claim: ${item.payload.name} (${item.payload.type})`);
-      console.log(`  ID: ${item.payload.id}`);
-      console.log(`  Summary: ${item.payload.text}`);
-      console.log(`  Trust Score: ${item.payload.trust_score}`);
+      console.log(`Knowledge Claim: ${item.payload?.name ?? 'unknown'} (${item.payload?.type ?? 'unknown'})`);
+      console.log(`  ID: ${item.payload?.id ?? 'N/A'}`);
+      console.log(`  Summary: ${item.payload?.text ?? 'N/A'}`);
+      console.log(`  Trust Score: ${item.payload?.trust_score ?? 'N/A'}`);
       console.log('---');
     });
 

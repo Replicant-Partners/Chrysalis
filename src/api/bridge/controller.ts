@@ -261,7 +261,7 @@ export class BridgeAPIController {
     const request = body as TranslateRequest;
 
     try {
-      const { result, stored, event } = await this.service.translateAgent(
+      const { result, event } = await this.service.translateAgent(
         request.agent,
         request.targetFramework,
         request.options
@@ -280,7 +280,7 @@ export class BridgeAPIController {
         } : undefined,
         warnings: result.warnings,
         durationMs: result.durationMs,
-        stored,
+        stored: undefined,
       };
 
       sendJson(res, 200, createSuccessResponse(responseData));
@@ -413,7 +413,7 @@ export class BridgeAPIController {
     }
 
     try {
-      const { canonical, stored, event } = await this.service.ingestAgent(
+      const { canonical, event } = await this.service.ingestAgent(
         request.agent,
         request.options
       );
@@ -425,7 +425,7 @@ export class BridgeAPIController {
           extensionsCount: canonical.extensions.length,
           fidelityScore: canonical.metadata.fidelityScore,
         },
-        stored,
+        stored: undefined,
         eventId: event.eventId,
       }));
     } catch (error) {
@@ -510,11 +510,9 @@ export class BridgeAPIController {
       ? parseFloat(url.searchParams.get('minFidelity')!) 
       : undefined;
 
-    const allAgents = this.service.persistence.queryAgents({
-      framework: framework || undefined,
-      name,
-      minFidelity,
-    });
+    // Persistence is not yet implemented in IntegratedBridgeService
+    // Return empty list for now - should be implemented via TemporalStore
+    const allAgents: StoredAgent[] = [];
 
     const total = allAgents.length;
     const start = (pagination.page - 1) * pagination.per_page;
@@ -535,7 +533,8 @@ export class BridgeAPIController {
     agentUri: string
   ): Promise<void> {
     if (method === 'GET') {
-      const agent = this.service.persistence.getAgent(agentUri);
+      // Persistence is not yet implemented - return not found
+      const agent: StoredAgent | undefined = undefined;
       
       if (!agent) {
         const error: APIError = {
@@ -548,7 +547,7 @@ export class BridgeAPIController {
         return;
       }
 
-      const versions = this.service.persistence.getVersionHistory(agentUri);
+      const versions: StoredAgent[] = [];
 
       sendJson(res, 200, createSuccessResponse({
         agent,
@@ -556,7 +555,8 @@ export class BridgeAPIController {
         versions: versions.slice(0, 10), // Return last 10 versions
       }));
     } else if (method === 'DELETE') {
-      const deleted = this.service.persistence.deleteAgent(agentUri);
+      // Persistence not implemented - always report not found
+      const deleted = false;
       
       if (!deleted) {
         const error: APIError = {
@@ -598,12 +598,8 @@ export class BridgeAPIController {
       ? parseInt(url.searchParams.get('limit')!, 10) 
       : 50;
 
-    const translations = this.service.persistence.queryTranslations({
-      sourceFramework: sourceFramework || undefined,
-      targetFramework: targetFramework || undefined,
-      minFidelity,
-      limit,
-    });
+    // Persistence not yet implemented - return empty list
+    const translations: TranslationRecord[] = [];
 
     sendJson(res, 200, createSuccessResponse({
       translations,

@@ -579,6 +579,39 @@ export class AgentTerminalClient {
   getLLMClient(): AgentLLMClient | undefined {
     return this.llmClient;
   }
+
+  /**
+   * Chat with the LLM using optional context
+   */
+  async chat(
+    message: string,
+    options?: {
+      systemPrompt?: string;
+      includeMemoryContext?: boolean;
+    }
+  ): Promise<{ content: string }> {
+    if (!this.llmClient) {
+      throw new Error('No LLM client configured for this terminal client');
+    }
+
+    let contextualMessage = message;
+
+    // Add memory context if requested
+    if (options?.includeMemoryContext && this.memory) {
+      const memoryContext = await this.memory.assembleContext(message);
+      if (memoryContext) {
+        contextualMessage = `[Context]\n${memoryContext}\n\n[User Message]\n${message}`;
+      }
+    }
+
+    // Set system prompt if provided
+    if (options?.systemPrompt) {
+      this.llmClient.setSystemPrompt(options.systemPrompt);
+    }
+
+    const response = await this.llmClient.chat(contextualMessage);
+    return { content: response ?? '' };
+  }
   
   /**
    * Destroy the client and clean up

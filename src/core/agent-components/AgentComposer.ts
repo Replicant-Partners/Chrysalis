@@ -267,7 +267,7 @@ export class AgentComposerBuilder {
   private traits: string[] = [];
   private values: string[] = [];
   private capabilities: string[] = [];
-  private tools: AgentCapabilitiesData['tools'] = [];
+  private tools: NonNullable<AgentCapabilitiesData['tools']> = [];
   private enableMCP: boolean = false;
   private llmProvider: string = 'anthropic';
   private llmModel: string = 'claude-3-5-sonnet-20241022';

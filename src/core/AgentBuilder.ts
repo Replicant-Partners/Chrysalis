@@ -771,8 +771,11 @@ export class AgentBuilder {
    * Add preferred deployment context.
    */
   addDeploymentContext(context: string): this {
+    if (!this.deployment) {
+      this.deployment = { preferred_contexts: [] };
+    }
     this.deployment.preferred_contexts = [
-      ...(this.deployment.preferred_contexts || []),
+      ...(this.deployment.preferred_contexts ?? []),
       context,
     ];
     return this;
@@ -961,7 +964,11 @@ export class AgentBuilder {
         },
       },
       
-      deployment: this.deployment,
+      deployment: {
+        preferred_contexts: this.deployment?.preferred_contexts ?? [],
+        scaling: this.deployment?.scaling,
+        environment: this.deployment?.environment,
+      },
       
       metadata: {
         version: this.metadata.version || '1.0.0',

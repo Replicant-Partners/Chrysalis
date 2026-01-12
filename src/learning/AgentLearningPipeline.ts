@@ -450,9 +450,9 @@ export class AgentLearningPipeline {
         name: `auto_skill_${key.replace(/→/g, '_').toLowerCase()}`,
         description: `Automatically learned pattern: ${key}`,
         steps: pattern.steps,
-        preconditions: [],
+        preconditions: [] as string[],
         examples: [{
-          input: JSON.stringify(pattern.firstSeen[0].parameters),
+          input: pattern.firstSeen[0]?.parameters ?? {},
           output: 'success',
           context: 'Auto-detected from action patterns',
         }],

@@ -53,7 +53,7 @@ export class PersistentVectorStore {
    * Close the store
    */
   async close(): Promise<void> {
-    if (!this.initialized) return;
+    if (!this.initialized || !this.backend) return;
     await this.backend.close();
     this.initialized = false;
   }
@@ -62,7 +62,7 @@ export class PersistentVectorStore {
    * Check if store is ready
    */
   isReady(): boolean {
-    return this.initialized && this.backend.isReady();
+    return this.initialized && this.backend !== null && this.backend.isReady();
   }
 
   /**
@@ -76,85 +76,85 @@ export class PersistentVectorStore {
 
   async insert(record: Omit<VectorRecord, 'createdAt' | 'updatedAt'>): Promise<string> {
     this.ensureReady();
-    return this.backend.insert(record);
+    return this.backend!.insert(record);
   }
 
   async insertBatch(records: Array<Omit<VectorRecord, 'createdAt' | 'updatedAt'>>): Promise<BatchResult> {
     this.ensureReady();
-    return this.backend.insertBatch(records);
+    return this.backend!.insertBatch(records);
   }
 
   async update(id: string, updates: Partial<Omit<VectorRecord, 'id' | 'createdAt'>>): Promise<boolean> {
     this.ensureReady();
-    return this.backend.update(id, updates);
+    return this.backend!.update(id, updates);
   }
 
   async delete(id: string): Promise<boolean> {
     this.ensureReady();
-    return this.backend.delete(id);
+    return this.backend!.delete(id);
   }
 
   async deleteBatch(ids: string[]): Promise<BatchResult> {
     this.ensureReady();
-    return this.backend.deleteBatch(ids);
+    return this.backend!.deleteBatch(ids);
   }
 
   async get(id: string): Promise<VectorRecord | null> {
     this.ensureReady();
-    return this.backend.get(id);
+    return this.backend!.get(id);
   }
 
   async getBatch(ids: string[]): Promise<VectorRecord[]> {
     this.ensureReady();
-    return this.backend.getBatch(ids);
+    return this.backend!.getBatch(ids);
   }
 
   async exists(id: string): Promise<boolean> {
     this.ensureReady();
-    return this.backend.exists(id);
+    return this.backend!.exists(id);
   }
 
   async search(vector: number[], options?: VectorSearchOptions): Promise<VectorSearchResult[]> {
     this.ensureReady();
-    return this.backend.search(vector, options);
+    return this.backend!.search(vector, options);
   }
 
   async searchByMetadata(filter: Record<string, unknown>, options?: VectorSearchOptions): Promise<VectorRecord[]> {
     this.ensureReady();
-    return this.backend.searchByMetadata(filter, options);
+    return this.backend!.searchByMetadata(filter, options);
   }
 
   async listNamespaces(): Promise<string[]> {
     this.ensureReady();
-    return this.backend.listNamespaces();
+    return this.backend!.listNamespaces();
   }
 
   async deleteNamespace(namespace: string): Promise<number> {
     this.ensureReady();
-    return this.backend.deleteNamespace(namespace);
+    return this.backend!.deleteNamespace(namespace);
   }
 
   async getStats(): Promise<StorageStats> {
     this.ensureReady();
-    return this.backend.getStats();
+    return this.backend!.getStats();
   }
 
   async optimize(): Promise<void> {
     this.ensureReady();
-    return this.backend.optimize();
+    return this.backend!.optimize();
   }
 
   async backup(path: string): Promise<void> {
     this.ensureReady();
-    return this.backend.backup(path);
+    return this.backend!.backup(path);
   }
 
   async restore(path: string): Promise<void> {
     this.ensureReady();
-    return this.backend.restore(path);
+    return this.backend!.restore(path);
   }
 
-  private ensureReady(): asserts this is { backend: VectorPersistenceBackend } {
+  private ensureReady(): void {
     if (!this.initialized || !this.backend) {
       throw new Error('PersistentVectorStore not initialized. Call initialize() first.');
     }

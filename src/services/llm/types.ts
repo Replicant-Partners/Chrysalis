@@ -220,39 +220,62 @@ export interface LLMProvider {
 // =============================================================================
 
 /**
+ * Cost tracking configuration
+ */
+export interface CostTrackingConfig {
+  /** Maximum cost per request */
+  maxCostPerRequest: number;
+  /** Daily budget limit */
+  dailyBudget: number;
+  /** Monthly budget limit */
+  monthlyBudget: number;
+}
+
+/**
+ * Rate limiting configuration
+ */
+export interface RateLimitConfig {
+  /** Requests per minute */
+  requestsPerMinute: number;
+}
+
+/**
  * LLM Hydration Service configuration
  */
 export interface LLMServiceConfig {
   /** Provider configurations */
   providers: ProviderConfig[];
-  
+
   /** Default provider to use */
   defaultProvider: ProviderId;
-  
+
   /** Default model to use */
   defaultModel: string;
-  
+
   /** Default temperature */
   defaultTemperature: number;
-  
+
   /** Default max tokens */
   defaultMaxTokens: number;
-  
+
   /** Enable cost tracking */
   enableCostTracking: boolean;
-  
+
+  /** Cost tracking configuration */
+  costTracking?: CostTrackingConfig;
+
   /** Enable rate limiting */
   enableRateLimiting: boolean;
-  
-  /** Rate limit window in ms */
-  rateLimitWindowMs: number;
-  
-  /** Max requests per window */
-  rateLimitMax: number;
-  
+
+  /** Rate limiting configuration */
+  rateLimiting?: RateLimitConfig;
+
   /** Enable circuit breaker */
   enableCircuitBreaker: boolean;
-  
+
+  /** Enable fallback to other providers on failure */
+  fallbackEnabled: boolean;
+
   /** Fallback provider if primary fails */
   fallbackProvider?: ProviderId;
 }
@@ -267,10 +290,17 @@ export const DEFAULT_LLM_CONFIG: LLMServiceConfig = {
   defaultTemperature: 0.7,
   defaultMaxTokens: 4096,
   enableCostTracking: true,
+  costTracking: {
+    maxCostPerRequest: 1.00,
+    dailyBudget: 10.00,
+    monthlyBudget: 100.00
+  },
   enableRateLimiting: true,
-  rateLimitWindowMs: 60000,
-  rateLimitMax: 60,
+  rateLimiting: {
+    requestsPerMinute: 60
+  },
   enableCircuitBreaker: true,
+  fallbackEnabled: true,
   fallbackProvider: 'ollama'
 };
 
@@ -302,6 +332,15 @@ export interface ConversationContext {
   
   /** Last updated timestamp */
   updatedAt: Date;
+  
+  /** Conversation ID for tracking */
+  conversationId?: string;
+  
+  /** History alias */
+  history?: Message[];
+  
+  /** Tools available */
+  tools?: ToolDefinition[];
 }
 
 /**
@@ -325,4 +364,7 @@ export interface AgentLLMClient {
   
   /** Set system prompt */
   setSystemPrompt(prompt: string): void;
+  
+  /** Send a message and get a response (alias for chat) */
+  (content: string, options?: Partial<CompletionRequest>): Promise<CompletionResponse>;
 }

@@ -733,6 +733,23 @@ export class A2AClient extends EventEmitter {
   }
   
   /**
+   * Make POST request to the agent URL.
+   */
+  private async postRequest(request: JsonRpcRequest): Promise<Response> {
+    if (!this.agentCard?.url) {
+      throw new A2AError(A2A_ERROR_CODES.INTERNAL_ERROR, 'Agent not connected');
+    }
+    return this.fetchWithRetry(this.agentCard.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.config.headers,
+      },
+      body: JSON.stringify(request),
+    });
+  }
+
+  /**
    * Make HTTP request with retry.
    */
   private async httpRequest<T>(request: JsonRpcRequest): Promise<T> {

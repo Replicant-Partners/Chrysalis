@@ -247,6 +247,12 @@ print(query)  # "Marie Curie biography career achievements"
 3. **Zero Dependencies**: Core functionality works without external services
 4. **Type Safety**: Full type hints with Pydantic validation
 5. **Testing**: 84/84 tests passing (100% coverage of critical paths)
+6. **Short-term via Beads**: Append-only context chain (see `memory_system/beads.py`)
+7. **Zep hooks**: Placeholder integration points for KG/vector sync (see `memory_system/hooks/zep.py`)
+8. **Design reference**: See `docs/AGENTIC_MEMORY_DESIGN.md` and `docs/MEMU_MIGRATION_PLAN.md`
+6. **Short-term via Beads**: Append-only context chain (see `memory_system/beads.py`)
+7. **Zep hooks**: Placeholder integration points for KG/vector sync (see `memory_system/hooks/zep.py`)
+8. **Design reference**: See `docs/AGENTIC_MEMORY_DESIGN.md` and `docs/MEMU_MIGRATION_PLAN.md`
 
 ### Provider Fallback Chain
 
@@ -265,6 +271,12 @@ print(query)  # "Marie Curie biography career achievements"
 │Deterministic│ ← Always available (hash-based)
 └─────────────┘
 ```
+
+**Short-term / Hooks**
+- Short-term/context memory uses Beads (append-only blobs). See `memory_system/beads.py`.
+- Zep integration hooks (KG/vector) stubs live at `memory_system/hooks/zep.py`.
+- Full architecture/design: `docs/AGENTIC_MEMORY_DESIGN.md`.
+- Migration plan: `docs/MEMU_MIGRATION_PLAN.md`.
 
 ### Integration Patterns
 

@@ -299,13 +299,13 @@ export class LegendEmbeddingLoader {
       preconditions: [`Context requires ${legendName}'s perspective`],
       postconditions: [`Response reflects ${legendName}'s characteristics`],
       parameters: {
-        salts_used: embedding.salts_used,
-        skill_count: embedding.skill_count,
-        strategy: embedding.descriptor_strategy,
+        salts_used: { type: 'array', description: 'Salt values used for embedding', required: false, default: embedding.salts_used },
+        skill_count: { type: 'number', description: 'Number of skills', required: false, default: embedding.skill_count },
+        strategy: { type: 'string', description: 'Descriptor strategy', required: false, default: embedding.descriptor_strategy },
       },
       examples: [
         {
-          input: `How would ${legendName} approach this problem?`,
+          input: { query: `How would ${legendName} approach this problem?` },
           output: `Drawing on ${embedding.descriptors[0]} and ${embedding.descriptors[1]}...`,
           context: 'Persona embodiment',
         },

@@ -29,15 +29,19 @@ export class AgentBuilderAdapter {
         if (res.embedding) {
           const memoryItem: MemoryItem = {
             id: `${agentId}:skill:${skillData.skill.replace(/\s/g, '_')}`,
+            content: skillData.description || skillData.skill,
             type: 'skill',
+            timestamp: new Date().toISOString(),
+            source: 'agent',
             embedding: res.embedding,
+            metadata: { source_type: 'skillbuilder' },
+            privacy: 'PRIVATE',
             payload: {
               name: skillData.skill,
               description: skillData.description,
               confidence: skillData.confidence,
               source: 'skillbuilder',
             },
-            createdAt: new Date().toISOString(),
           };
           console.log("--- [AgentBuilderAdapter] Inserting skill:", memoryItem);
           await this.memoryClient.insert(memoryItem);
@@ -50,13 +54,17 @@ export class AgentBuilderAdapter {
         if (knowledge.embedding) {
           const memoryItem: MemoryItem = {
             id: `${agentId}:kc:${knowledge.entity.id}`,
+            content: knowledge.entity.text || knowledge.entity.name || '',
             type: 'knowledge_claim',
+            timestamp: new Date().toISOString(),
+            source: 'agent',
             embedding: knowledge.embedding,
+            metadata: { entity_type: knowledge.entity.type || 'unknown' },
+            privacy: 'PRIVATE',
             payload: {
               ...knowledge.entity,
               ...knowledge.attributes,
             },
-            createdAt: new Date().toISOString(),
           };
           console.log("--- [AgentBuilderAdapter] Inserting knowledge:", memoryItem);
           await this.memoryClient.insert(memoryItem);

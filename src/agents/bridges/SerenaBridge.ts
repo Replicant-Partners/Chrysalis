@@ -174,7 +174,9 @@ export class SerenaBridge extends BaseBridge {
           version: '1.0.0'
         }, {
           capabilities: {
-            tools: {}
+            sampling: {
+              tools: {}
+            }
           }
         });
         
