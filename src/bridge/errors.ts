@@ -478,43 +478,7 @@ export class TranslationError extends BridgeError {
   }
 }
 
-/**
- * Error when adapter is not registered
- * @deprecated Use TranslationError.adapterNotFound() factory method instead
- */
-export class AdapterNotFoundError extends BridgeError {
-  readonly framework: string;
-  readonly availableAdapters: string[];
-
-  constructor(framework: string, availableAdapters: string[] = [], context: ErrorContext = {}) {
-    super(
-      ErrorCode.ADAPTER_NOT_FOUND,
-      `No adapter registered for framework: ${framework}. Available: ${availableAdapters.join(', ') || 'none'}`,
-      { ...context, metadata: { ...context.metadata, framework, availableAdapters } }
-    );
-    this.framework = framework;
-    this.availableAdapters = availableAdapters;
-  }
-}
-
-/**
- * Error when framework is not supported
- * @deprecated Use TranslationError.unsupportedFramework() factory method instead
- */
-export class UnsupportedFrameworkError extends BridgeError {
-  readonly framework: string;
-  readonly supportedFrameworks: string[];
-
-  constructor(framework: string, supportedFrameworks: string[] = [], context: ErrorContext = {}) {
-    super(
-      ErrorCode.UNSUPPORTED_FRAMEWORK,
-      `Framework not supported: ${framework}. Supported: ${supportedFrameworks.join(', ')}`,
-      { ...context, metadata: { ...context.metadata, framework, supportedFrameworks } }
-    );
-    this.framework = framework;
-    this.supportedFrameworks = supportedFrameworks;
-  }
-}
+// AdapterNotFoundError and UnsupportedFrameworkError removed - use TranslationError.adapterNotFound() and .unsupportedFramework() factory methods
 
 // ============================================================================
 // Storage Errors
@@ -591,65 +555,7 @@ export class StorageError extends BridgeError {
   }
 }
 
-/**
- * Error when snapshot not found
- * @deprecated Use StorageError.snapshotNotFound() factory method instead
- */
-export class SnapshotNotFoundError extends StorageError {
-  readonly agentId: string;
-  readonly snapshotTimestamp?: Date;
-
-  constructor(agentId: string, snapshotTimestamp?: Date, context: ErrorContext = {}) {
-    const msg = snapshotTimestamp
-      ? `Snapshot not found for agent ${agentId} at ${snapshotTimestamp.toISOString()}`
-      : `No snapshots found for agent ${agentId}`;
-    super(ErrorCode.SNAPSHOT_NOT_FOUND, msg, {
-      ...context,
-      metadata: { ...context.metadata, agentId, timestamp: snapshotTimestamp?.toISOString() },
-    });
-    this.agentId = agentId;
-    this.snapshotTimestamp = snapshotTimestamp;
-  }
-}
-
-/**
- * Error when graph not found
- * @deprecated Use StorageError.graphNotFound() factory method instead
- */
-export class GraphNotFoundError extends StorageError {
-  readonly graphUri: string;
-
-  constructor(graphUri: string, context: ErrorContext = {}) {
-    super(ErrorCode.GRAPH_NOT_FOUND, `Graph not found: ${graphUri}`, {
-      ...context,
-      metadata: { ...context.metadata, graphUri },
-    });
-    this.graphUri = graphUri;
-  }
-}
-
-/**
- * Error when query fails
- * @deprecated Use StorageError.queryFailed() factory method instead
- */
-export class QueryError extends StorageError {
-  readonly queryType: string;
-  readonly queryParams?: Record<string, unknown>;
-
-  constructor(
-    message: string,
-    queryType: string,
-    queryParams?: Record<string, unknown>,
-    context: ErrorContext = {}
-  ) {
-    super(ErrorCode.QUERY_FAILED, message, {
-      ...context,
-      metadata: { ...context.metadata, queryType, queryParams },
-    });
-    this.queryType = queryType;
-    this.queryParams = queryParams;
-  }
-}
+// SnapshotNotFoundError, GraphNotFoundError, QueryError removed - use StorageError factory methods
 
 // ============================================================================
 // Temporal Errors
@@ -722,65 +628,7 @@ export class TemporalError extends BridgeError {
   }
 }
 
-/**
- * Error for temporal conflicts
- * @deprecated Use TemporalError.conflict() factory method instead
- */
-export class TemporalConflictError extends BridgeError {
-  readonly existingTimestamp: Date;
-  readonly newTimestamp: Date;
-  readonly agentId: string;
-
-  constructor(
-    agentId: string,
-    existingTimestamp: Date,
-    newTimestamp: Date,
-    context: ErrorContext = {}
-  ) {
-    super(
-      ErrorCode.TEMPORAL_CONFLICT,
-      `Temporal conflict for agent ${agentId}: existing=${existingTimestamp.toISOString()}, new=${newTimestamp.toISOString()}`,
-      {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          agentId,
-          existingTimestamp: existingTimestamp.toISOString(),
-          newTimestamp: newTimestamp.toISOString(),
-        },
-      }
-    );
-    this.agentId = agentId;
-    this.existingTimestamp = existingTimestamp;
-    this.newTimestamp = newTimestamp;
-  }
-}
-
-/**
- * Error for invalid time range
- * @deprecated Use TemporalError.invalidTimeRange() factory method instead
- */
-export class InvalidTimeRangeError extends BridgeError {
-  readonly start: Date;
-  readonly end: Date;
-
-  constructor(start: Date, end: Date, context: ErrorContext = {}) {
-    super(
-      ErrorCode.INVALID_TIME_RANGE,
-      `Invalid time range: start (${start.toISOString()}) must be before end (${end.toISOString()})`,
-      {
-        ...context,
-        metadata: {
-          ...context.metadata,
-          start: start.toISOString(),
-          end: end.toISOString(),
-        },
-      }
-    );
-    this.start = start;
-    this.end = end;
-  }
-}
+// TemporalConflictError, InvalidTimeRangeError removed - use TemporalError factory methods
 
 // ============================================================================
 // Configuration Errors
@@ -910,34 +758,7 @@ export class ResourceError extends BridgeError {
   }
 }
 
-/**
- * Error when resource is exhausted
- * @deprecated Use ResourceError.exhausted() factory method instead
- */
-export class ResourceExhaustedError extends BridgeError {
-  readonly resourceType: string;
-  readonly limit: number;
-  readonly current: number;
-
-  constructor(
-    resourceType: string,
-    limit: number,
-    current: number,
-    context: ErrorContext = {}
-  ) {
-    super(
-      ErrorCode.RESOURCE_EXHAUSTED,
-      `Resource exhausted: ${resourceType} (limit: ${limit}, current: ${current})`,
-      {
-        ...context,
-        metadata: { ...context.metadata, resourceType, limit, current },
-      }
-    );
-    this.resourceType = resourceType;
-    this.limit = limit;
-    this.current = current;
-  }
-}
+// ResourceExhaustedError removed - use ResourceError.exhausted() factory method
 
 /**
  * Error when operation times out
@@ -1070,49 +891,7 @@ export class ProtocolError extends BridgeError {
   }
 }
 
-/**
- * Error for serialization failures
- * @deprecated Use ProtocolError.serialization() factory method instead
- */
-export class SerializationError extends BridgeError {
-  readonly format: string;
-
-  constructor(format: string, message: string, context: ErrorContext = {}) {
-    super(ErrorCode.SERIALIZATION_FAILED, message, {
-      ...context,
-      metadata: { ...context.metadata, format },
-    });
-    this.format = format;
-  }
-}
-
-/**
- * Error for deserialization failures
- * @deprecated Use ProtocolError.deserialization() factory method instead
- */
-export class DeserializationError extends BridgeError {
-  readonly format: string;
-  readonly rawInput?: string;
-
-  constructor(format: string, message: string, rawInput?: string, context: ErrorContext = {}) {
-    super(ErrorCode.DESERIALIZATION_FAILED, message, {
-      ...context,
-      metadata: { ...context.metadata, format, rawInputLength: rawInput?.length },
-    });
-    this.format = format;
-    this.rawInput = rawInput;
-  }
-}
-
-/**
- * Error for invalid RDF
- * @deprecated Use ProtocolError.rdf() factory method instead
- */
-export class RDFError extends BridgeError {
-  constructor(message: string, context: ErrorContext = {}) {
-    super(ErrorCode.RDF_INVALID, message, context);
-  }
-}
+// SerializationError, DeserializationError, RDFError removed - use ProtocolError factory methods
 
 // ============================================================================
 // Error Utilities

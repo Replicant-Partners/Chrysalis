@@ -666,7 +666,7 @@ const USAMetadataSchema = S.object({
   description: S.optional(S.string()),
   author: S.optional(S.string()),
   tags: S.optional(S.array(S.string())),
-}, { required: ['name'] });
+}, { requiredProperties: ['name'] });
 
 /**
  * USA Agent identity schema
@@ -677,7 +677,7 @@ const USAIdentitySchema = S.object({
   backstory: S.optional(S.string()),
   personality_traits: S.optional(S.record(S.union([S.string(), S.number(), S.boolean()]))),
   constraints: S.optional(S.array(S.string())),
-}, { required: ['role', 'goal'] });
+}, { requiredProperties: ['role', 'goal'] });
 
 /**
  * USA Agent tool schema
@@ -687,7 +687,7 @@ const USAToolSchema = S.object({
   protocol: S.optional(S.string()),
   config: S.optional(S.record(S.any())),
   description: S.optional(S.string()),
-}, { required: ['name'] });
+}, { requiredProperties: ['name'] });
 
 /**
  * USA Agent LLM schema
@@ -697,7 +697,7 @@ const USALLMSchema = S.object({
   model: S.string({ minLength: 1 }),
   temperature: S.optional(S.number({ minimum: 0, maximum: 2 })),
   max_tokens: S.optional(S.integer({ minimum: 1 })),
-}, { required: ['provider', 'model'] });
+}, { requiredProperties: ['provider', 'model'] });
 
 /**
  * Complete USA Agent schema
@@ -746,7 +746,7 @@ export const USAAgentSchema = S.object({
       timeout: S.optional(S.integer({ minimum: 1 })),
       max_iterations: S.optional(S.integer({ minimum: 1 })),
     })),
-  }, { required: ['llm'] }),
+  }, { requiredProperties: ['llm'] }),
   protocols: S.optional(S.object({
     mcp: S.optional(S.object({
       enabled: S.boolean(),
@@ -760,7 +760,7 @@ export const USAAgentSchema = S.object({
       endpoint: S.optional(S.string({ format: 'uri' })),
     })),
   })),
-}, { required: ['apiVersion', 'kind', 'metadata', 'identity', 'execution'] });
+}, { requiredProperties: ['apiVersion', 'kind', 'metadata', 'identity', 'execution'] });
 
 /**
  * LMOS Agent schema (W3C WoT Thing Description based)
@@ -835,7 +835,7 @@ export const LMOSAgentSchema = S.object({
     http: S.optional(S.boolean()),
     websocket: S.optional(S.boolean()),
   })),
-}, { required: ['@context', 'id', 'title'] });
+}, { requiredProperties: ['@context', 'id', 'title'] });
 
 /**
  * MCP Agent schema
@@ -864,7 +864,7 @@ export const MCPAgentSchema = S.object({
       required: S.optional(S.boolean()),
     }))),
   }))),
-}, { required: ['name', 'version'] });
+}, { requiredProperties: ['name', 'version'] });
 
 // ============================================================================
 // Schema Registry

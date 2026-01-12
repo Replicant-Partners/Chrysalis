@@ -11,7 +11,7 @@
  * @version 1.0.0
  */
 
-import { DisposedError, AbortError, TimeoutError, type ErrorContext } from './errors';
+import { ResourceError, type ErrorContext } from './errors';
 import { type AsyncDisposable, type Disposable, type DisposableResource } from './types';
 
 // ============================================================================
@@ -52,7 +52,7 @@ export function createDisposalTracker(resourceType: string): DisposalTracker & {
     
     ensureNotDisposed() {
       if (disposed) {
-        throw new DisposedError(resourceType, { component: resourceType });
+        throw ResourceError.disposed(resourceType, { component: resourceType });
       }
     },
     
@@ -77,7 +77,7 @@ export class ManagedResource<T> implements DisposableResource<T> {
 
   get value(): T {
     if (this._disposed) {
-      throw new DisposedError('ManagedResource');
+      throw ResourceError.disposed('ManagedResource');
     }
     return this._value;
   }
@@ -135,7 +135,7 @@ export class DisposableStack implements AsyncDisposable, Disposable {
     disposable: T
   ): T {
     if (this._disposed) {
-      throw new DisposedError('DisposableStack');
+      throw ResourceError.disposed('DisposableStack');
     }
     
     this.disposables.push({
@@ -163,7 +163,7 @@ export class DisposableStack implements AsyncDisposable, Disposable {
    */
   defer(callback: () => void | Promise<void>): void {
     if (this._disposed) {
-      throw new DisposedError('DisposableStack');
+      throw ResourceError.disposed('DisposableStack');
     }
     this.disposables.push({ dispose: callback });
   }
@@ -256,7 +256,7 @@ export function createAbortController(timeoutMs?: number): {
   
   if (timeoutMs !== undefined && timeoutMs > 0) {
     timeoutId = setTimeout(() => {
-      controller.abort(new TimeoutError('Operation', timeoutMs));
+      controller.abort(ResourceError.timeout('Operation', timeoutMs));
     }, timeoutMs);
   }
   
@@ -298,7 +298,7 @@ export function linkAbortSignals(...signals: (AbortSignal | undefined)[]): Abort
  */
 export function throwIfAborted(signal?: AbortSignal, message?: string): void {
   if (signal?.aborted) {
-    throw new AbortError(
+    throw ResourceError.aborted(
       message ?? (signal.reason instanceof Error ? signal.reason.message : String(signal.reason))
     );
   }
@@ -310,12 +310,12 @@ export function throwIfAborted(signal?: AbortSignal, message?: string): void {
 export function waitForAbort(signal: AbortSignal): Promise<never> {
   return new Promise((_, reject) => {
     if (signal.aborted) {
-      reject(new AbortError(signal.reason?.message));
+      reject(ResourceError.aborted(signal.reason?.message));
       return;
     }
     
     signal.addEventListener('abort', () => {
-      reject(new AbortError(signal.reason?.message));
+      reject(ResourceError.aborted(signal.reason?.message));
     });
   });
 }
@@ -365,7 +365,7 @@ export class GracefulShutdown implements AsyncDisposable {
    */
   register(handler: ShutdownHandler): () => void {
     if (this.isShuttingDown) {
-      throw new DisposedError('GracefulShutdown');
+      throw ResourceError.disposed('GracefulShutdown');
     }
     
     this.handlers.push(handler);
@@ -534,7 +534,7 @@ export class ResourcePool<T> implements AsyncDisposable {
     throwIfAborted(signal);
     
     if (this.disposed) {
-      throw new DisposedError('ResourcePool');
+      throw ResourceError.disposed('ResourcePool');
     }
     
     // Try to get an available resource
@@ -629,7 +629,7 @@ export class ResourcePool<T> implements AsyncDisposable {
     
     return {
       get value() {
-        if (released) throw new DisposedError('PooledResource');
+        if (released) throw ResourceError.disposed('PooledResource');
         return resource;
       },
       

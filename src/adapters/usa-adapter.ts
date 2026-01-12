@@ -24,19 +24,8 @@ import {
   AdapterConfig
 } from './base-adapter';
 
-import {
-  Quad,
-  Subject,
-  NamedNode,
-  BlankNode,
-  DataFactory,
-  CHRYSALIS_NS,
-  RDF_NS,
-  XSD_NS,
-  chrysalis,
-  rdf,
-  xsd
-} from '../rdf/temporal-store';
+import type { Quad, NamedNode, BlankNode } from '../rdf/temporal-store';
+import { DataFactory, CHRYSALIS_NS, RDF_NS, XSD_NS, chrysalis, rdf } from '../rdf/temporal-store';
 
 // ============================================================================
 // USA Extension Namespace
@@ -300,10 +289,10 @@ interface USATranslationContext {
  * - finalizeCanonical(): Build final CanonicalAgent structure
  */
 export class USAAdapter extends BaseAdapter {
-  readonly framework = 'usa' as const;
-  readonly name = 'Chrysalis USA Adapter';
-  readonly version = '1.0.0';
-  readonly extensionNamespace = USA_NS;
+  public readonly framework = 'usa' as const;
+  public readonly name = 'Chrysalis USA Adapter';
+  public readonly version = '1.0.0';
+  public readonly extensionNamespace = USA_NS;
 
   constructor(config: AdapterConfig = {}) {
     super(config);
@@ -332,7 +321,7 @@ export class USAAdapter extends BaseAdapter {
    * });
    * ```
    */
-  async toCanonical(native: NativeAgent): Promise<CanonicalAgent> {
+  public async toCanonical(native: NativeAgent): Promise<CanonicalAgent> {
     // Initialize translation context
     const ctx = this.initTranslationContext(native);
 
@@ -850,7 +839,7 @@ export class USAAdapter extends BaseAdapter {
    * - chrysalis:endpointUrl
    */
   private translateProtocols(ctx: USATranslationContext): void {
-    const { agent, agentUri, quads, mappedFields, extensions } = ctx;
+    const { agent, agentUri, quads, mappedFields } = ctx;
     
     if (!agent.protocols) {
       return;
@@ -1072,7 +1061,7 @@ export class USAAdapter extends BaseAdapter {
    * @param canonical - The canonical RDF representation
    * @returns Promise resolving to the native USA agent specification
    */
-  async fromCanonical(canonical: CanonicalAgent): Promise<NativeAgent> {
+  public async fromCanonical(canonical: CanonicalAgent): Promise<NativeAgent> {
     const agent = this.initEmptyUSAAgent();
 
     // Extract each section using focused helper methods
@@ -1135,15 +1124,22 @@ export class USAAdapter extends BaseAdapter {
     agent.metadata.version = this.extractLiteral(quads, agentUri, `${CHRYSALIS_NS}version`) || '1.0.0';
     
     const description = this.extractLiteral(quads, agentUri, `${CHRYSALIS_NS}description`);
-    if (description) agent.metadata.description = description;
+    if (description) {
+      agent.metadata.description = description;
+    }
 
     const author = this.extractLiteral(quads, agentUri, `${CHRYSALIS_NS}author`);
-    if (author) agent.metadata.author = author;
+    if (author) {
+      agent.metadata.author = author;
+    }
 
     const tagsJson = this.extractLiteral(quads, agentUri, `${CHRYSALIS_NS}tags`);
     if (tagsJson) {
       try {
-        agent.metadata.tags = JSON.parse(tagsJson);
+        const parsedTags = JSON.parse(tagsJson) as unknown;
+        if (Array.isArray(parsedTags)) {
+          agent.metadata.tags = parsedTags as string[];
+        }
       } catch {
         // Ignore parse errors
       }
@@ -1173,7 +1169,9 @@ export class USAAdapter extends BaseAdapter {
       agent.identity.goal = this.extractLiteral(quads, identityUri, `${USA_NS}goal`) || '';
       
       const backstory = this.extractLiteral(quads, identityUri, `${USA_NS}backstory`);
-      if (backstory) agent.identity.backstory = backstory;
+      if (backstory) {
+        agent.identity.backstory = backstory;
+      }
     }
 
     // Restore personality traits from extensions
@@ -1212,18 +1210,24 @@ export class USAAdapter extends BaseAdapter {
           const tool: USATool = { name };
           
           const desc = this.extractLiteral(quads, toolUri, `${CHRYSALIS_NS}toolDescription`);
-          if (desc) tool.description = desc;
+          if (desc) {
+            tool.description = desc;
+          }
 
           const protocol = this.extractLiteral(quads, toolUri, `${CHRYSALIS_NS}protocolVersion`);
-          if (protocol) tool.protocol = protocol;
+          if (protocol) {
+            tool.protocol = protocol;
+          }
 
-          // Restore tool config from extensions
           const configExt = extensions.find(e =>
             e.namespace === 'usa' && e.property === `tool.${name}.config`
           );
           if (configExt) {
             try {
-              tool.config = JSON.parse(configExt.value);
+              const parsedConfig = JSON.parse(configExt.value) as unknown;
+              if (parsedConfig && typeof parsedConfig === 'object') {
+                tool.config = parsedConfig as Record<string, unknown>;
+              }
             } catch {
               // Ignore
             }
@@ -1284,7 +1288,9 @@ export class USAAdapter extends BaseAdapter {
     const { quads, uri: agentUri, extensions } = canonical;
 
     const memoryUri = this.extractUri(quads, agentUri, `${CHRYSALIS_NS}hasMemorySystem`);
-    if (!memoryUri) return;
+    if (!memoryUri) {
+      return;
+    }
 
     const architecture = this.extractLiteral(quads, memoryUri, `${USA_NS}memoryArchitecture`) || 'hierarchical';
     agent.capabilities.memory = { architecture };
@@ -1308,24 +1314,34 @@ export class USAAdapter extends BaseAdapter {
       const maxTokens = this.extractLiteral(quads, compUri, `${CHRYSALIS_NS}maxTokens`);
       const storage = this.extractLiteral(quads, compUri, `${CHRYSALIS_NS}storageBackend`);
 
-      if (!agent.capabilities.memory) continue;
+      if (!agent.capabilities.memory) {
+        continue;
+      }
 
       switch (typeUri) {
         case `${CHRYSALIS_NS}WorkingMemory`:
           agent.capabilities.memory.working = { enabled };
-          if (maxTokens) agent.capabilities.memory.working.max_tokens = parseInt(maxTokens);
+          if (maxTokens) {
+            agent.capabilities.memory.working.max_tokens = parseInt(maxTokens);
+          }
           break;
         case `${CHRYSALIS_NS}EpisodicMemory`:
           agent.capabilities.memory.episodic = { enabled };
-          if (storage) agent.capabilities.memory.episodic.storage = storage;
+          if (storage) {
+            agent.capabilities.memory.episodic.storage = storage;
+          }
           break;
         case `${CHRYSALIS_NS}SemanticMemory`:
           agent.capabilities.memory.semantic = { enabled };
-          if (storage) agent.capabilities.memory.semantic.storage = storage;
+          if (storage) {
+            agent.capabilities.memory.semantic.storage = storage;
+          }
           break;
         case `${CHRYSALIS_NS}ProceduralMemory`:
           agent.capabilities.memory.procedural = { enabled };
-          if (storage) agent.capabilities.memory.procedural.storage = storage;
+          if (storage) {
+            agent.capabilities.memory.procedural.storage = storage;
+          }
           break;
         case `${CHRYSALIS_NS}CoreMemory`:
           agent.capabilities.memory.core = { enabled };
@@ -1338,7 +1354,9 @@ export class USAAdapter extends BaseAdapter {
    * Restore memory-related extensions to agent.
    */
   private restoreMemoryExtensions(extensions: ExtensionProperty[], agent: USAAgent): void {
-    if (!agent.capabilities.memory) return;
+    if (!agent.capabilities.memory) {
+      return;
+    }
 
     // Restore RAG config for semantic memory
     this.restoreExtensionToAgent(extensions, 'ragConfig', (parsed) => {
@@ -1395,7 +1413,9 @@ export class USAAdapter extends BaseAdapter {
           this.extractMCPProtocol(quads, protoUri, extensions, agent);
           break;
         case `${CHRYSALIS_NS}A2ABinding`:
-          if (!agent.protocols) agent.protocols = {};
+          if (!agent.protocols) {
+            agent.protocols = {};
+          }
           agent.protocols.a2a = { enabled: true };
           break;
         case `${CHRYSALIS_NS}AgentProtocolBinding`:
@@ -1414,14 +1434,18 @@ export class USAAdapter extends BaseAdapter {
     extensions: ExtensionProperty[],
     agent: USAAgent
   ): void {
-    if (!agent.protocols) agent.protocols = {};
+    if (!agent.protocols) {
+      agent.protocols = {};
+    }
     agent.protocols.mcp = { enabled: true };
     
     const mcpConfig = this.extractLiteral(quads, protoUri, `${CHRYSALIS_NS}protocolConfig`);
     if (mcpConfig) {
       try {
-        const config = JSON.parse(mcpConfig);
-        if (config.role) agent.protocols.mcp.role = config.role;
+        const config = JSON.parse(mcpConfig) as { role?: string };
+        if (config.role) {
+          agent.protocols.mcp.role = config.role;
+        }
       } catch {
         // Ignore
       }
@@ -1439,11 +1463,15 @@ export class USAAdapter extends BaseAdapter {
    * Extract Agent Protocol binding.
    */
   private extractAgentProtocolBinding(quads: Quad[], protoUri: string, agent: USAAgent): void {
-    if (!agent.protocols) agent.protocols = {};
+    if (!agent.protocols) {
+      agent.protocols = {};
+    }
     agent.protocols.agent_protocol = { enabled: true };
     
     const endpoint = this.extractLiteral(quads, protoUri, `${CHRYSALIS_NS}endpointUrl`);
-    if (endpoint) agent.protocols.agent_protocol.endpoint = endpoint;
+    if (endpoint) {
+      agent.protocols.agent_protocol.endpoint = endpoint;
+    }
   }
 
   /**
@@ -1461,10 +1489,14 @@ export class USAAdapter extends BaseAdapter {
       agent.execution.llm.model = this.extractLiteral(quads, llmUri, `${CHRYSALIS_NS}llmModel`) || '';
       
       const temp = this.extractLiteral(quads, llmUri, `${CHRYSALIS_NS}temperature`);
-      if (temp) agent.execution.llm.temperature = parseFloat(temp);
+      if (temp) {
+        agent.execution.llm.temperature = parseFloat(temp);
+      }
 
       const maxTokens = this.extractLiteral(quads, llmUri, `${CHRYSALIS_NS}maxOutputTokens`);
-      if (maxTokens) agent.execution.llm.max_tokens = parseInt(maxTokens);
+      if (maxTokens) {
+        agent.execution.llm.max_tokens = parseInt(maxTokens);
+      }
 
       // Restore LLM parameters from extensions
       this.restoreExtensionToAgent(extensions, 'llmParameters', (params) => {
@@ -1519,7 +1551,7 @@ export class USAAdapter extends BaseAdapter {
   // Validation
   // ==========================================================================
 
-  validateNative(native: NativeAgent): ValidationResult {
+  public validateNative(native: NativeAgent): ValidationResult {
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
     const agent = native.data as unknown as USAAgent;
@@ -1633,7 +1665,7 @@ export class USAAdapter extends BaseAdapter {
   // Field Mappings
   // ==========================================================================
 
-  getFieldMappings(): FieldMapping[] {
+  public getFieldMappings(): FieldMapping[] {
     return [
       // Metadata mappings
       { sourcePath: 'metadata.name', predicate: `${CHRYSALIS_NS}name`, datatype: 'string', required: true },

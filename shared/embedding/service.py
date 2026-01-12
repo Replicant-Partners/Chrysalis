@@ -38,7 +38,8 @@ from .exceptions import (
     EmbeddingDimensionMismatchError,
 )
 from .providers.base import EmbeddingProvider
-from .providers.voyage import VoyageProvider
+from .providers.memu import MemuProvider
+from .providers.nomic import NomicProvider
 from .providers.openai import OpenAIProvider
 from .providers.deterministic import DeterministicProvider
 from .telemetry import EmbeddingTelemetry
@@ -59,14 +60,15 @@ class EmbeddingService:
     - Cost estimation
 
     Provider priority:
-    1. Voyage AI (primary - Anthropic's recommended)
-    2. OpenAI (fallback)
-    3. Deterministic (for tests/offline)
+    1. Memu (primary)
+    2. Nomic (fallback)
+    3. OpenAI (fallback)
+    4. Deterministic (tests/offline)
     """
 
     def __init__(
         self,
-        model: str = "voyage-3",
+        model: str = "memu-embed-v1",
         dimensions: int = 1024,
         fallback_model: str = "text-embedding-3-large",
         fallback_dimensions: int = 3072,
@@ -77,12 +79,12 @@ class EmbeddingService:
         Initialize embedding service.
 
         Args:
-            model: Voyage AI model name (default: voyage-3)
-            dimensions: Voyage embedding dimensions (default: 1024)
-            fallback_model: OpenAI fallback model name
+            model: Primary model name (default: memu-embed-v1)
+            dimensions: Primary embedding dimensions (default: 1024)
+            fallback_model: OpenAI fallback model name (only used when OpenAI selected)
             fallback_dimensions: OpenAI fallback dimensions
             telemetry: Optional telemetry adapter for tracking
-            forced_provider: Force provider ("voyage", "openai", "deterministic")
+            forced_provider: Force provider ("memu", "nomic", "openai", "deterministic")
         """
         self.model = model
         self.dimensions = dimensions
@@ -91,13 +93,17 @@ class EmbeddingService:
         self._telemetry = telemetry
 
         # Provider instances (initialized for fallback support)
-        self._voyage_provider: Optional[VoyageProvider] = None
+        self._memu_provider: Optional[MemuProvider] = None
+        self._nomic_provider: Optional[NomicProvider] = None
         self._openai_provider: Optional[OpenAIProvider] = None
         self._deterministic_provider: Optional[DeterministicProvider] = None
 
         # Primary provider (selected based on availability and configuration)
         self._primary_provider: Optional[EmbeddingProvider] = None
         self._fallback_providers: List[EmbeddingProvider] = []
+
+        # Allow legacy dimension coercion for LanceDB-only paths
+        self._allow_dimension_coercion = os.getenv("LEGACY_LANCEDB", "").lower() in ("1", "true", "yes")
 
         # Check for forced provider override
         forced = forced_provider or os.getenv("EMBEDDING_PROVIDER", "").lower()
@@ -122,20 +128,33 @@ class EmbeddingService:
 
     def _initialize_providers(self, forced_provider: str):
         """Initialize all available providers for fallback support."""
-        # Initialize Voyage provider if available and not forced otherwise
-        if forced_provider in ("", "voyage"):
-            voyage_api_key = os.getenv("VOYAGE_API_KEY")
-            if voyage_api_key:
+        # Initialize Memu provider if available and not forced otherwise
+        if forced_provider in ("", "memu"):
+            memu_api_key = os.getenv("MEMU_API_KEY")
+            if memu_api_key:
                 try:
-                    self._voyage_provider = VoyageProvider(
-                        api_key=voyage_api_key,
+                    self._memu_provider = MemuProvider(
+                        api_key=memu_api_key,
+                        endpoint=os.getenv("MEMU_ENDPOINT"),
                         model=self.model,
-                        dimensions=self.dimensions,
-                        use_sdk=True,
                     )
-                    logger.debug("Voyage provider initialized (available for fallback)")
+                    logger.debug("Memu provider initialized (available for fallback)")
                 except Exception as e:
-                    logger.debug(f"Voyage provider not available: {e}")
+                    logger.debug(f"Memu provider not available: {e}")
+
+        # Initialize Nomic provider if available and not forced otherwise
+        if forced_provider in ("", "nomic"):
+            nomic_api_key = os.getenv("NOMIC_API_KEY")
+            if nomic_api_key:
+                try:
+                    self._nomic_provider = NomicProvider(
+                        api_key=nomic_api_key,
+                        api_base=os.getenv("NOMIC_API_BASE"),
+                        model=os.getenv("NOMIC_MODEL", "nomic-embed-text-v1"),
+                    )
+                    logger.debug("Nomic provider initialized (available for fallback)")
+                except Exception as e:
+                    logger.debug(f"Nomic provider not available: {e}")
 
         # Initialize OpenAI provider if available and not forced otherwise
         if forced_provider in ("", "openai"):
@@ -153,8 +172,7 @@ class EmbeddingService:
 
         # Always initialize deterministic provider (for final fallback in test mode)
         try:
-            # Use appropriate dimensions based on what other providers use
-            det_dims = self.dimensions if self._voyage_provider else self.fallback_dimensions
+            det_dims = self.dimensions
             self._deterministic_provider = DeterministicProvider(dimensions=det_dims)
             logger.debug("Deterministic provider initialized (available for fallback)")
         except Exception as e:
@@ -162,21 +180,36 @@ class EmbeddingService:
 
     def _select_primary_provider(self, forced_provider: str):
         """Select primary provider based on availability and configuration."""
-        # Priority: Voyage > OpenAI > Deterministic
+        # Priority: Memu > Nomic > OpenAI > Deterministic
 
-        # Try Voyage first
-        if self._voyage_provider and (forced_provider in ("", "voyage")):
-            self._primary_provider = self._voyage_provider
-            self.dimensions = self._voyage_provider.get_dimensions()
-            self.model = self._voyage_provider.get_model_name()
+        # Try Memu first
+        if self._memu_provider and (forced_provider in ("", "memu")):
+            self._primary_provider = self._memu_provider
+            self.dimensions = self._memu_provider.get_dimensions()
+            self.model = self._memu_provider.get_model_name()
 
-            # Set up fallbacks (OpenAI, then Deterministic if allowed)
-            if self._openai_provider and forced_provider != "voyage":
+            if self._nomic_provider and forced_provider != "memu":
+                self._fallback_providers.append(self._nomic_provider)
+            if self._openai_provider and forced_provider not in ("memu", "nomic"):
                 self._fallback_providers.append(self._openai_provider)
             if self._deterministic_provider:
                 self._fallback_providers.append(self._deterministic_provider)
 
-            logger.info(f"Embedding provider: Voyage AI ({self.model}, {self.dimensions} dimensions)")
+            logger.info(f"Embedding provider: Memu ({self.model}, {self.dimensions} dimensions)")
+            return
+
+        # Try Nomic
+        if self._nomic_provider and (forced_provider in ("", "nomic")):
+            self._primary_provider = self._nomic_provider
+            self.dimensions = self._nomic_provider.get_dimensions()
+            self.model = self._nomic_provider.get_model_name()
+
+            if self._openai_provider and forced_provider not in ("nomic",):
+                self._fallback_providers.append(self._openai_provider)
+            if self._deterministic_provider:
+                self._fallback_providers.append(self._deterministic_provider)
+
+            logger.info(f"Embedding provider: Nomic ({self.model}, {self.dimensions} dimensions)")
             return
 
         # Try OpenAI as fallback
@@ -211,7 +244,7 @@ class EmbeddingService:
         # Truly no provider available
         raise EmbeddingError(
             "No embedding provider available. "
-            "Set VOYAGE_API_KEY or OPENAI_API_KEY, "
+            "Set MEMU_API_KEY or NOMIC_API_KEY or OPENAI_API_KEY, "
             "or force EMBEDDING_PROVIDER=deterministic for tests."
         )
 
@@ -220,7 +253,7 @@ class EmbeddingService:
         Generate embedding for text with telemetry and logging.
 
         Provider fallback order:
-        1. Primary provider (Voyage/OpenAI/Deterministic)
+        1. Primary provider (Memu/Nomic/OpenAI/Deterministic)
         2. Fallback providers (in order)
         3. RuntimeError if all fail
 
@@ -245,6 +278,16 @@ class EmbeddingService:
         try:
             embedding = self._primary_provider.embed(text)
             elapsed_ms = (time.perf_counter() - start_time) * 1000
+
+            # Coerce dimensions only for legacy LanceDB paths
+            if self._allow_dimension_coercion:
+                embedding = self._coerce_dimensions(
+                    embedding,
+                    expected_dims=self.dimensions,
+                    provider_name=self._primary_provider.get_provider_name(),
+                    model_name=self._primary_provider.get_model_name(),
+                    log_context=log_context,
+                )
 
             # Validate dimensions
             self._validate_dimensions(embedding, log_context)
@@ -293,26 +336,15 @@ class EmbeddingService:
                     embedding = fallback.embed(text)
                     elapsed_ms = (time.perf_counter() - start_time) * 1000
 
-                    # Validate dimensions (note: fallback may have different dimensions - just log, don't error)
-                    # Update dimensions if fallback has different dimensions
-                    actual_dims = len(embedding)
-                    if actual_dims != self.dimensions:
-                        logger.info(
-                            f"Fallback provider uses different dimensions: {actual_dims} (primary: {self.dimensions})",
-                            extra={
-                                **log_context,
-                                "fallback_dimensions": actual_dims,
-                                "primary_dimensions": self.dimensions,
-                            }
+                    # Coerce dimensions only for legacy LanceDB paths
+                    if self._allow_dimension_coercion:
+                        embedding = self._coerce_dimensions(
+                            embedding,
+                            expected_dims=self.dimensions,
+                            provider_name=fallback.get_provider_name(),
+                            model_name=fallback.get_model_name(),
+                            log_context=log_context,
                         )
-                        # Don't raise error for fallback dimension mismatch - just log
-                        if self._telemetry:
-                            self._telemetry.record_dimension_mismatch(
-                                provider=fallback_name,
-                                model=fallback_model,
-                                expected_dimensions=self.dimensions,
-                                actual_dimensions=actual_dims,
-                            )
 
                     # Log fallback success
                     fallback_name = fallback.get_provider_name()
@@ -421,6 +453,48 @@ class EmbeddingService:
         else:
             return EmbeddingProviderError
 
+    def _coerce_dimensions(
+        self,
+        embedding: List[float],
+        expected_dims: int,
+        provider_name: str,
+        model_name: str,
+        log_context: Dict[str, Any],
+    ) -> List[float]:
+        """Ensure embedding length matches expected dimensions by truncate/pad."""
+        actual_dims = len(embedding)
+        if actual_dims == expected_dims:
+            return embedding
+
+        if actual_dims > expected_dims:
+            logger.warning(
+                f"Dimension mismatch: truncating embedding {actual_dims}->{expected_dims}",
+                extra={**log_context, "actual_dimensions": actual_dims, "expected_dimensions": expected_dims, "provider": provider_name, "model": model_name},
+            )
+            if self._telemetry:
+                self._telemetry.record_dimension_mismatch(
+                    provider=provider_name,
+                    model=model_name,
+                    expected_dimensions=expected_dims,
+                    actual_dimensions=actual_dims,
+                )
+            return embedding[:expected_dims]
+
+        # Pad with zeros if shorter
+        pad = expected_dims - actual_dims
+        logger.warning(
+            f"Dimension mismatch: padding embedding {actual_dims}->{expected_dims}",
+            extra={**log_context, "actual_dimensions": actual_dims, "expected_dimensions": expected_dims, "provider": provider_name, "model": model_name},
+        )
+        if self._telemetry:
+            self._telemetry.record_dimension_mismatch(
+                provider=provider_name,
+                model=model_name,
+                expected_dimensions=expected_dims,
+                actual_dimensions=actual_dims,
+            )
+        return embedding + [0.0] * pad
+
     def _validate_dimensions(
         self,
         embedding: List[float],
@@ -507,7 +581,8 @@ class EmbeddingService:
         return {
             **primary_info,
             "fallbacks": fallback_info,
-            "has_voyage": self._voyage_provider is not None,
+            "has_memu": self._memu_provider is not None,
+            "has_nomic": self._nomic_provider is not None,
             "has_openai": self._openai_provider is not None,
             "has_deterministic": self._deterministic_provider is not None,
         }

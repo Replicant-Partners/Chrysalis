@@ -79,12 +79,20 @@ export interface MemoriesPayload {
 export interface MemoryItem {
   id: string;
   content: string;
-  type: 'episodic' | 'semantic' | 'working' | 'core';
+  type: 'episodic' | 'semantic' | 'working' | 'core' | 'skill' | 'knowledge_claim';
   timestamp: string;
   source: 'user' | 'agent' | 'sync' | 'inference';
   embedding?: number[];  // Optional for efficiency
   metadata: Record<string, string>;
   privacy: 'PUBLIC' | 'PRIVATE';
+  /** Optional structured payload for skill/knowledge items */
+  payload?: {
+    description?: string;
+    source_documents?: string[];
+    confidence?: number;
+    steps?: string[];
+    [key: string]: unknown;
+  };
 }
 
 /**

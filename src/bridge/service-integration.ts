@@ -111,6 +111,42 @@ export interface BridgeEvent<TPayload extends BridgeEventPayload = BridgeEventPa
 }
 
 // ============================================================================
+// Persistence Types
+// ============================================================================
+
+/**
+ * Stored agent record in persistence layer
+ */
+export interface StoredAgent {
+  id: string;
+  uri: string;
+  name: string;
+  framework: AgentFramework;
+  canonical: CanonicalAgent;
+  versionId: string;
+  graphUri: string;
+  createdAt: string;
+  updatedAt: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Translation record for audit/history
+ */
+export interface TranslationRecord {
+  id: string;
+  sourceFramework: AgentFramework;
+  targetFramework: AgentFramework;
+  agentUri: string;
+  agentId: string;
+  fidelityScore: number;
+  warnings: string[];
+  translatedAt: string;
+  correlationId?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// ============================================================================
 // Discovery Service
 // ============================================================================
 

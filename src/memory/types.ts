@@ -8,6 +8,9 @@
  * @module memory/types
  */
 
+// Re-export MemoryItem from GossipTypes for convenience
+export { MemoryItem } from '../core/patterns/GossipTypes';
+
 /**
  * Memory type classification
  */
@@ -19,7 +22,9 @@ export type MemoryType =
   | 'conversation'
   | 'knowledge'
   | 'skill'
-  | 'procedure';
+  | 'procedure'
+  | 'response'
+  | 'event';
 
 /**
  * Source of memory
@@ -28,6 +33,7 @@ export type MemorySource =
   | 'user'
   | 'agent'
   | 'tool'
+  | 'unknown'
   | 'system';
 
 /**
@@ -140,6 +146,8 @@ export interface BaseMemory {
   causality: MemoryCausality;
   signature?: MemorySignature;
   embedding?: number[];     // Vector embedding for similarity
+  /** Optional summary (required for episodic, optional for others) */
+  summary?: string;
 }
 
 /**

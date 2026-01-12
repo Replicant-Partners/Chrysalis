@@ -18,10 +18,8 @@
 import { EventEmitter } from 'events';
 import { encodeBasicAuth } from '../shared/encoding';
 import {
-  StreamEventSchema,
   parseStreamEvent,
-  ValidatedStreamEvent,
-  ValidationResult
+  ValidatedStreamEvent
 } from './schemas';
 import {
   // JSON-RPC types
@@ -597,8 +595,7 @@ export class A2AClient extends EventEmitter {
    * Make RPC call.
    */
   private async rpc<T>(method: A2AMethod, params?: unknown): Promise<T> {
-    const request = this.createRequest(method, params);
-    const response = await this.httpRequest<JsonRpcResponse<T>>(request);
+    const response = await this.httpRequest<JsonRpcResponse<T>>(this.createRequest(method, params));
     
     if (response.error) {
       throw new A2AError(response.error.code, response.error.message, response.error.data);
@@ -611,20 +608,7 @@ export class A2AClient extends EventEmitter {
    * Make streaming RPC call.
    */
   private async streamRpc(method: A2AMethod, params?: unknown): Promise<ReadableStream<Uint8Array>> {
-    const request = this.createRequest(method, params);
-    
-    const response = await this.fetchWithRetry(this.agentCard!.url, {
-      method: 'POST',
-      headers: this.buildHeaders(),
-      body: JSON.stringify(request)
-    });
-    
-    if (!response.ok) {
-      throw new A2AError(
-        A2A_ERROR_CODES.INTERNAL_ERROR,
-        `HTTP error: ${response.status} ${response.statusText}`
-      );
-    }
+    const response = await this.postRequest(this.createRequest(method, params));
     
     if (!response.body) {
       throw new A2AError(A2A_ERROR_CODES.INTERNAL_ERROR, 'No response body for streaming');
@@ -681,12 +665,12 @@ export class A2AClient extends EventEmitter {
   private async *streamEventsWithFinal(
     stream: ReadableStream<Uint8Array>,
     onEvent?: (event: ValidatedStreamEvent) => void
-  ): AsyncGenerator<ValidatedStreamEvent, Task, undefined> {
+  ): AsyncGenerator<StreamEvent, Task, undefined> {
     let finalTask: Task | undefined;
 
     for await (const event of this.parseStreamEvents(stream)) {
       onEvent?.(event);
-      yield event;
+      yield event as StreamEvent;
       if (event.type === 'done') {
         finalTask = event.task as Task;
       }
@@ -752,19 +736,7 @@ export class A2AClient extends EventEmitter {
    * Make HTTP request with retry.
    */
   private async httpRequest<T>(request: JsonRpcRequest): Promise<T> {
-    const response = await this.fetchWithRetry(this.agentCard!.url, {
-      method: 'POST',
-      headers: this.buildHeaders(),
-      body: JSON.stringify(request)
-    });
-    
-    if (!response.ok) {
-      throw new A2AError(
-        A2A_ERROR_CODES.INTERNAL_ERROR,
-        `HTTP error: ${response.status} ${response.statusText}`
-      );
-    }
-    
+    const response = await this.postRequest(request);
     return response.json() as Promise<T>;
   }
   

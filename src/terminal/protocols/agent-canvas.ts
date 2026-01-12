@@ -112,6 +112,16 @@ export interface CanvasAgent {
   
   // Error info
   lastError?: AgentError;
+  
+  // Convenience aliases (derived from spec)
+  /** Alias for spec.name */
+  name?: string;
+  /** Alias for importedAt */
+  createdAt?: number;
+  /** Alias for lastAwakeAt - when agent last became awake */
+  lastWakeTime?: number;
+  /** When agent last went to sleep */
+  lastSleepTime?: number;
 }
 
 /**
@@ -142,6 +152,20 @@ export interface AgentSpecSummary {
   
   // Tags from original spec
   tags: string[];
+  
+  // Extended info (optional)
+  /** Identity section from USA spec */
+  identity?: {
+    role: string;
+    goal: string;
+    backstory?: string;
+  };
+  /** List of tools/capabilities */
+  tools?: Array<{ name: string; description?: string }>;
+  /** List of skills */
+  skills?: Array<{ name: string; description?: string }>;
+  /** Import metadata for debugging */
+  _import_metadata?: Record<string, unknown>;
 }
 
 /**

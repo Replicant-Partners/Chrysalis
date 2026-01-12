@@ -25,29 +25,23 @@ export {
   // Base error class
   BridgeError,
   
-  // Specialized errors
+  // Specialized errors (category classes with factory methods)
   ValidationError,
   SchemaValidationError,
   RequiredFieldError,
   TypeMismatchError,
   TranslationError,
-  AdapterNotFoundError,
-  UnsupportedFrameworkError,
   StorageError,
-  SnapshotNotFoundError,
-  GraphNotFoundError,
-  QueryError,
+  TemporalError,
   ConfigurationError,
   DependencyError,
+  ResourceError,
+  ProtocolError,
+  
+  // Legacy error classes (still supported)
   TimeoutError,
   AbortError,
   DisposedError,
-  TemporalConflictError,
-  InvalidTimeRangeError,
-  ResourceExhaustedError,
-  SerializationError,
-  DeserializationError,
-  RDFError,
   AggregateError,
   
   // Error utilities
