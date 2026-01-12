@@ -38,7 +38,6 @@ from .exceptions import (
     EmbeddingDimensionMismatchError,
 )
 from .providers.base import EmbeddingProvider
-from .providers.memu import MemuProvider
 from .providers.nomic import NomicProvider
 from .providers.openai import OpenAIProvider
 from .providers.deterministic import DeterministicProvider
@@ -60,16 +59,15 @@ class EmbeddingService:
     - Cost estimation
 
     Provider priority:
-    1. Memu (primary)
-    2. Nomic (fallback)
-    3. OpenAI (fallback)
-    4. Deterministic (tests/offline)
+    1. Nomic (primary)
+    2. OpenAI (fallback)
+    3. Deterministic (tests/offline)
     """
 
     def __init__(
         self,
-        model: str = "memu-embed-v1",
-        dimensions: int = 1024,
+        model: str = "nomic-embed-text-v1",
+        dimensions: int = 768,
         fallback_model: str = "text-embedding-3-large",
         fallback_dimensions: int = 3072,
         telemetry: Optional[EmbeddingTelemetry] = None,
@@ -93,7 +91,6 @@ class EmbeddingService:
         self._telemetry = telemetry
 
         # Provider instances (initialized for fallback support)
-        self._memu_provider: Optional[MemuProvider] = None
         self._nomic_provider: Optional[NomicProvider] = None
         self._openai_provider: Optional[OpenAIProvider] = None
         self._deterministic_provider: Optional[DeterministicProvider] = None
@@ -128,20 +125,6 @@ class EmbeddingService:
 
     def _initialize_providers(self, forced_provider: str):
         """Initialize all available providers for fallback support."""
-        # Initialize Memu provider if available and not forced otherwise
-        if forced_provider in ("", "memu"):
-            memu_api_key = os.getenv("MEMU_API_KEY")
-            if memu_api_key:
-                try:
-                    self._memu_provider = MemuProvider(
-                        api_key=memu_api_key,
-                        endpoint=os.getenv("MEMU_ENDPOINT"),
-                        model=self.model,
-                    )
-                    logger.debug("Memu provider initialized (available for fallback)")
-                except Exception as e:
-                    logger.debug(f"Memu provider not available: {e}")
-
         # Initialize Nomic provider if available and not forced otherwise
         if forced_provider in ("", "nomic"):
             nomic_api_key = os.getenv("NOMIC_API_KEY")
@@ -180,23 +163,7 @@ class EmbeddingService:
 
     def _select_primary_provider(self, forced_provider: str):
         """Select primary provider based on availability and configuration."""
-        # Priority: Memu > Nomic > OpenAI > Deterministic
-
-        # Try Memu first
-        if self._memu_provider and (forced_provider in ("", "memu")):
-            self._primary_provider = self._memu_provider
-            self.dimensions = self._memu_provider.get_dimensions()
-            self.model = self._memu_provider.get_model_name()
-
-            if self._nomic_provider and forced_provider != "memu":
-                self._fallback_providers.append(self._nomic_provider)
-            if self._openai_provider and forced_provider not in ("memu", "nomic"):
-                self._fallback_providers.append(self._openai_provider)
-            if self._deterministic_provider:
-                self._fallback_providers.append(self._deterministic_provider)
-
-            logger.info(f"Embedding provider: Memu ({self.model}, {self.dimensions} dimensions)")
-            return
+        # Priority: Nomic > OpenAI > Deterministic
 
         # Try Nomic
         if self._nomic_provider and (forced_provider in ("", "nomic")):
@@ -244,7 +211,7 @@ class EmbeddingService:
         # Truly no provider available
         raise EmbeddingError(
             "No embedding provider available. "
-            "Set MEMU_API_KEY or NOMIC_API_KEY or OPENAI_API_KEY, "
+            "Set NOMIC_API_KEY or OPENAI_API_KEY, "
             "or force EMBEDDING_PROVIDER=deterministic for tests."
         )
 
@@ -581,7 +548,6 @@ class EmbeddingService:
         return {
             **primary_info,
             "fallbacks": fallback_info,
-            "has_memu": self._memu_provider is not None,
             "has_nomic": self._nomic_provider is not None,
             "has_openai": self._openai_provider is not None,
             "has_deterministic": self._deterministic_provider is not None,

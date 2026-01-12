@@ -164,8 +164,8 @@ except ImportError as e:
 
         def __init__(
             self,
-            model: str = "voyage-3",
-            dimensions: int = 1024,
+            model: str = "nomic-embed-text-v1",
+            dimensions: int = 768,
             fallback_model: str = "text-embedding-3-large",
             fallback_dimensions: int = 3072,
         ):

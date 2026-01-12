@@ -117,6 +117,9 @@ from .core import (
     MemoryEntry,
 )
 
+# Beads (short-term/context) stub
+from .beads import BeadsService
+
 # MCP server - commented out until mcp module is implemented
 # from .mcp import (
 #     SemanticServer,
@@ -131,6 +134,7 @@ __all__ = [
     "Memory",
     "MemoryConfig",
     "MemoryEntry",
+    "BeadsService",
     
     # Semantic
     "SemanticDecomposer",

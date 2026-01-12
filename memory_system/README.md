@@ -156,35 +156,35 @@ print(result.most_common)          # [("person", 3), ("organization", 1)]
 
 ### 5. Embedding Module
 
-Voyage AI (primary) + OpenAI (fallback) + Deterministic (testing).
+Nomic (primary) + OpenAI (fallback) + Deterministic (testing).
 
 ```python
 from memory_system.embedding import EmbeddingService
 
-# 3-tier fallback: Voyage → OpenAI → Deterministic
+# 3-tier fallback: Nomic → OpenAI → Deterministic
 service = EmbeddingService(
-    model="voyage-3",              # Voyage AI model
-    dimensions=1024,               # Voyage dimensions
+    model="nomic-embed-text-v1",   # Nomic model
+    dimensions=768,                # Nomic dimensions (default)
     fallback_model="text-embedding-3-large",
     fallback_dimensions=3072,
 )
 
 # Environment variables:
-# - VOYAGE_API_KEY: Voyage AI (primary, Anthropic recommended)
+# - NOMIC_API_KEY: Nomic (primary)
 # - OPENAI_API_KEY: OpenAI (fallback)
-# - EMBEDDING_PROVIDER: Force provider ("voyage", "openai", "deterministic")
+# - EMBEDDING_PROVIDER: Force provider ("nomic", "openai", "deterministic")
 
 vector = service.embed("Knowledge representation")
-print(len(vector))  # 1024 (Voyage) or 3072 (OpenAI) or configured
+print(len(vector))  # 768 (Nomic) or 3072 (OpenAI) or configured
 
 # Check active provider
 info = service.get_provider_info()
-print(info["provider"])   # "voyage" | "openai" | "deterministic"
+print(info["provider"])   # "nomic" | "openai" | "deterministic"
 print(info["model"])      # Current model
 ```
 
 **Provider Priority:**
-1. **Voyage AI** (if `VOYAGE_API_KEY` set) - Best performance
+1. **Nomic** (if `NOMIC_API_KEY` set) - Primary
 2. **OpenAI** (if `OPENAI_API_KEY` set) - Fallback
 3. **Deterministic** (hash-based) - Tests/offline
 
@@ -252,7 +252,7 @@ print(query)  # "Marie Curie biography career achievements"
 
 ```
 ┌─────────────┐
-│  Voyage AI  │ ← Primary (VOYAGE_API_KEY)
+│    Nomic    │ ← Primary (NOMIC_API_KEY)
 └──────┬──────┘
        │ failure/missing
        ↓
@@ -319,7 +319,7 @@ python3 -m pytest tests/ -v
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `VOYAGE_API_KEY` | Voyage AI embeddings | - |
+| `NOMIC_API_KEY` | Nomic embeddings (primary) | - |
 | `OPENAI_API_KEY` | OpenAI embeddings (fallback) | - |
 | `ANTHROPIC_API_KEY` | Claude semantic decomposition | - |
 | `EMBEDDING_PROVIDER` | Force provider | `""` (auto-detect) |
