@@ -612,6 +612,22 @@ export function createCanvasAgent(
 }
 
 /**
+ * Type guard to check if a value is a CanvasAgent
+ */
+export function isCanvasAgent(value: unknown): value is CanvasAgent {
+  if (typeof value !== 'object' || value === null) return false;
+  const agent = value as Record<string, unknown>;
+  return (
+    typeof agent.id === 'string' &&
+    typeof agent.spec === 'object' &&
+    typeof agent.state === 'string' &&
+    typeof agent.sourceFormat === 'string' &&
+    typeof agent.importedAt === 'number' &&
+    typeof agent.position === 'object'
+  );
+}
+
+/**
  * Canvas constants
  */
 export const AGENT_CANVAS_CONSTANTS = {

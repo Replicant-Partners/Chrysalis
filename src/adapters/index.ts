@@ -359,38 +359,59 @@ export {
 } from './anp-unified-adapter';
 
 // ============================================================================
-// Legacy Adapters (Existing Implementations)
+// Universal LLM-Powered Adapter (RECOMMENDED - Phase 2 Architecture)
+// ============================================================================
+//
+// The Universal Adapter replaces all protocol-specific adapters by delegating
+// translation logic to LLMs through structured prompts. Instead of 22 hand-coded
+// adapters (~15,000 lines), we have 1 adapter (~450 lines) + mapping principles.
+//
+// Key insight: Map by SEMANTIC CATEGORY MEANING, not syntactic field names.
+// The LLM applies mapping principles to protocol specifications dynamically.
+//
+// See: docs/architecture/UNIVERSAL_ADAPTER_DESIGN.md
+// See: src/adapters/universal/README.md
 // ============================================================================
 
-// Base adapter (RDF pattern foundation)
-export { BaseAdapter } from './base-adapter';
+export {
+  UniversalAdapter,
+  createUniversalAdapter,
+  PROTOCOL_REGISTRY
+} from './universal';
 
-// MCP Adapters (both patterns exist)
-// Note: MCPAdapter uses USA pattern, mcp-adapter uses RDF pattern
-export { MCPAdapter } from './MCPAdapter';
-// export { MCPAdapter as MCPAdapterRdf } from './mcp-adapter'; // RDF-based, has type errors
+export type {
+  ProtocolId,
+  ProtocolSpec,
+  TranslationResult,
+  LLMProvider
+} from './universal';
 
-// LangChain Adapter (RDF pattern)
-// Note: Has pre-existing TypeScript errors, import may fail
-// export { LangChainAdapter } from './langchain-adapter';
-
-// CrewAI Adapter (USA pattern)
-export { CrewAIAdapter } from './CrewAIAdapter';
-
-// USA Adapter
-export { USAAdapter, createUSAAdapter } from './usa-adapter';
-
-// LMOS Adapter
-// export { LMOSAdapter } from './lmos-adapter';
-
-// ElizaOS Adapter
-export { ElizaOSAdapter } from './ElizaOSAdapter';
-
-// Multi-Agent Adapter
-export { MultiAgentAdapter } from './MultiAgentAdapter';
-
-// Orchestrated Adapter
-export { OrchestratedAdapter } from './OrchestratedAdapter';
+// ============================================================================
+// LEGACY ADAPTERS REMOVED
+// ============================================================================
+//
+// The following adapters have been removed as part of the complexity reduction:
+// - BaseAdapter (base-adapter.ts)
+// - MCPAdapter (MCPAdapter.ts)
+// - CrewAIAdapter (CrewAIAdapter.ts)
+// - USAAdapter (usa-adapter.ts)
+// - ElizaOSAdapter (ElizaOSAdapter.ts)
+// - MultiAgentAdapter (MultiAgentAdapter.ts)
+// - OrchestratedAdapter (OrchestratedAdapter.ts)
+// - LangChainAdapter (langchain-adapter.ts)
+// - LMOSAdapter (lmos-adapter.ts)
+// - And others...
+//
+// USE UniversalAdapter INSTEAD:
+//   const adapter = createUniversalAdapter(llmProvider);
+//   const result = await adapter.translate(agent, 'mcp', 'usa');
+//
+// The Universal Adapter maps by SEMANTIC CATEGORY MEANING, delegating
+// translation logic to LLMs through structured prompts.
+//
+// See: docs/architecture/UNIVERSAL_ADAPTER_DESIGN.md
+// See: src/adapters/universal/README.md
+// ============================================================================
 
 // ============================================================================
 // Type Re-exports for Convenience

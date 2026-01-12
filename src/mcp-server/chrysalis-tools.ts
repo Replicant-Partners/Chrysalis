@@ -8,6 +8,17 @@
  * @version 1.0.0
  */
 
+/**
+ * Error thrown when a stub implementation is called.
+ * This replaces silent fake data returns with explicit failures.
+ */
+export class NotImplementedError extends Error {
+  constructor(feature: string) {
+    super(`${feature} is not yet implemented. This is a stub that requires integration with the actual system.`);
+    this.name = 'NotImplementedError';
+  }
+}
+
 import { MCPServer } from './mcp-server';
 import {
   MCPToolDefinition,
@@ -16,8 +27,7 @@ import {
   MCPPromptDefinition,
   CallToolResult,
   ResourceContent,
-  GetPromptResult,
-  MCPContent
+  GetPromptResult
 } from './types';
 
 // ============================================================================
@@ -469,148 +479,51 @@ export function registerChrysalisCapabilities(
 // ============================================================================
 
 function createMemoryQueryHandler() {
-  return async (name: string, args: Record<string, unknown>): Promise<CallToolResult> => {
-    const query = args.query as string;
-    const limit = (args.limit as number) || 10;
-    const threshold = (args.threshold as number) || 0.7;
-    
-    // TODO: Integrate with actual memory system
-    const results = [
-      { id: 'mem-1', content: `Result for: ${query}`, similarity: 0.92 },
-      { id: 'mem-2', content: 'Related information found', similarity: 0.85 }
-    ].filter(r => r.similarity >= threshold).slice(0, limit);
-    
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({ results, query, count: results.length }, null, 2)
-      }]
-    };
+  return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
+    // Stub: Requires integration with actual memory system (memory_system module)
+    throw new NotImplementedError('memory-query');
   };
 }
 
 function createMemoryStoreHandler() {
-  return async (name: string, args: Record<string, unknown>): Promise<CallToolResult> => {
-    const content = args.content as string;
-    const tags = args.tags as string[] | undefined;
-    
-    // TODO: Integrate with actual memory system
-    const id = `mem-${Date.now()}`;
-    
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({ success: true, id, message: 'Memory stored successfully' }, null, 2)
-      }]
-    };
+  return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
+    // Stub: Requires integration with actual memory system (memory_system module)
+    throw new NotImplementedError('memory-store');
   };
 }
 
 function createAgentInvokeHandler() {
-  return async (name: string, args: Record<string, unknown>): Promise<CallToolResult> => {
-    const agent = args.agent as string;
-    const task = args.task as string;
-    
-    // TODO: Integrate with actual agent system
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({
-          agent,
-          task,
-          status: 'completed',
-          result: `Agent ${agent} processed task: ${task}`
-        }, null, 2)
-      }]
-    };
+  return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
+    // Stub: Requires integration with agent registry (src/agents module)
+    throw new NotImplementedError('agent-invoke');
   };
 }
 
 function createAgentListHandler() {
-  return async (name: string, args: Record<string, unknown>): Promise<CallToolResult> => {
-    // TODO: Integrate with actual agent registry
-    const agents = [
-      { name: 'analyzer', capabilities: ['semantic-analysis', 'pattern-detection'] },
-      { name: 'memory-manager', capabilities: ['store', 'retrieve', 'organize'] },
-      { name: 'adapter-sync', capabilities: ['protocol-translation', 'version-migration'] }
-    ];
-    
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({ agents, count: agents.length }, null, 2)
-      }]
-    };
+  return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
+    // Stub: Requires integration with agent registry (src/agents module)
+    throw new NotImplementedError('agent-list');
   };
 }
 
 function createSemanticAnalyzerHandler() {
-  return async (name: string, args: Record<string, unknown>): Promise<CallToolResult> => {
-    const content = args.content as string;
-    const operations = args.operations as string[];
-    
-    // TODO: Integrate with actual semantic analyzer
-    const results: Record<string, unknown> = {};
-    
-    if (operations.includes('entities')) {
-      results.entities = ['entity1', 'entity2'];
-    }
-    if (operations.includes('sentiment')) {
-      results.sentiment = { score: 0.6, label: 'positive' };
-    }
-    if (operations.includes('summary')) {
-      results.summary = content.slice(0, 100) + '...';
-    }
-    
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(results, null, 2)
-      }]
-    };
+  return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
+    // Stub: Requires integration with semantic decomposer (memory_system/semantic module)
+    throw new NotImplementedError('semantic-analyze');
   };
 }
 
 function createPatternDetectorHandler() {
-  return async (name: string, args: Record<string, unknown>): Promise<CallToolResult> => {
-    const source = args.source as string;
-    const patterns = args.patterns as string[] | undefined;
-    
-    // TODO: Integrate with actual pattern detector
-    const detected = [
-      { pattern: 'method-rename', confidence: 0.9, location: 'line 42' }
-    ];
-    
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify({ detected, total: detected.length }, null, 2)
-      }]
-    };
+  return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
+    // Stub: Requires integration with ai-maintenance evolutionary patterns
+    throw new NotImplementedError('pattern-detect');
   };
 }
 
 function createAdapterStatusHandler() {
-  return async (name: string, args: Record<string, unknown>): Promise<CallToolResult> => {
-    const protocol = args.protocol as string | undefined;
-    
-    // TODO: Integrate with actual adapter registry
-    const adapters = {
-      mcp: { status: 'healthy', version: '1.0.0', lastSync: new Date().toISOString() },
-      a2a: { status: 'healthy', version: '1.0.0', lastSync: new Date().toISOString() },
-      anp: { status: 'initializing', version: '0.1.0', lastSync: null }
-    };
-    
-    const result = protocol 
-      ? { [protocol]: adapters[protocol as keyof typeof adapters] }
-      : adapters;
-    
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(result, null, 2)
-      }]
-    };
+  return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
+    // Stub: Requires integration with adapter registry (src/adapters module)
+    throw new NotImplementedError('adapter-status');
   };
 }
 
@@ -619,66 +532,30 @@ function createAdapterStatusHandler() {
 // ============================================================================
 
 function createMemoryStoreResourceHandler() {
-  return async (uri: string): Promise<ResourceContent[]> => {
-    // TODO: Integrate with actual memory system
-    return [{
-      uri,
-      mimeType: 'application/json',
-      text: JSON.stringify({
-        totalMemories: 1234,
-        lastUpdated: new Date().toISOString(),
-        categories: ['general', 'code', 'documentation']
-      }, null, 2)
-    }];
+  return async (_uri: string): Promise<ResourceContent[]> => {
+    // Stub: Requires integration with actual memory system
+    throw new NotImplementedError('memory-store-resource');
   };
 }
 
 function createAgentRegistryHandler() {
-  return async (uri: string): Promise<ResourceContent[]> => {
-    return [{
-      uri,
-      mimeType: 'application/json',
-      text: JSON.stringify({
-        agents: [
-          { name: 'analyzer', status: 'active' },
-          { name: 'memory-manager', status: 'active' },
-          { name: 'adapter-sync', status: 'idle' }
-        ],
-        totalAgents: 3
-      }, null, 2)
-    }];
+  return async (_uri: string): Promise<ResourceContent[]> => {
+    // Stub: Requires integration with agent registry
+    throw new NotImplementedError('agent-registry-resource');
   };
 }
 
 function createPatternsResourceHandler() {
-  return async (uri: string): Promise<ResourceContent[]> => {
-    return [{
-      uri,
-      mimeType: 'application/json',
-      text: JSON.stringify({
-        patterns: [
-          { id: 'method-rename', description: 'Method renamed pattern', applicators: 1 },
-          { id: 'parameter-add', description: 'Parameter added pattern', applicators: 1 },
-          { id: 'interface-extension', description: 'Interface extended pattern', applicators: 1 }
-        ],
-        totalPatterns: 6
-      }, null, 2)
-    }];
+  return async (_uri: string): Promise<ResourceContent[]> => {
+    // Stub: Requires integration with evolutionary patterns module
+    throw new NotImplementedError('patterns-resource');
   };
 }
 
 function createAdaptersResourceHandler() {
-  return async (uri: string): Promise<ResourceContent[]> => {
-    return [{
-      uri,
-      mimeType: 'application/json',
-      text: JSON.stringify({
-        adapters: ['mcp', 'a2a', 'anp', 'fipa', 'jade', 'ros2'],
-        healthy: 5,
-        degraded: 1,
-        lastGlobalSync: new Date().toISOString()
-      }, null, 2)
-    }];
+  return async (_uri: string): Promise<ResourceContent[]> => {
+    // Stub: Requires integration with adapter registry
+    throw new NotImplementedError('adapters-resource');
   };
 }
 
