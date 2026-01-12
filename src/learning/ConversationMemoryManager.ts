@@ -11,7 +11,7 @@
  * @module learning/ConversationMemoryManager
  */
 
-import { MemUAdapter } from '../memory/MemUAdapter';
+import { AgentMemoryAdapter } from '../memory/AgentMemoryAdapter';
 import {
   WorkingMemory,
   EpisodicMemory,
@@ -100,13 +100,13 @@ export const DEFAULT_CONVERSATION_MEMORY_CONFIG: ConversationMemoryConfig = {
  * ConversationMemoryManager - Bridges chat and MemU
  */
 export class ConversationMemoryManager {
-  private memory: MemUAdapter;
+  private memory: AgentMemoryAdapter;
   private config: ConversationMemoryConfig;
   private session: ConversationSession;
   private messageToMemoryMap: Map<string, string> = new Map();
   
   constructor(
-    memory: MemUAdapter,
+    memory: AgentMemoryAdapter,
     agentId: string,
     config?: Partial<ConversationMemoryConfig>
   ) {

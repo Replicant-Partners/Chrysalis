@@ -11,8 +11,8 @@
  */
 
 // Core adapter - import for local use, then re-export
-import { MemUAdapter } from './MemUAdapter';
-export { MemUAdapter };
+import { AgentMemoryAdapter } from './AgentMemoryAdapter';
+export { AgentMemoryAdapter };
 
 // Embedding providers
 export {
@@ -75,13 +75,13 @@ export function createMemoryAdapter(
     embeddingOptions?: Record<string, unknown>;
     memoryConfig?: Partial<import('./types').MemoryConfig>;
   }
-): InstanceType<typeof MemUAdapter> {
-  const { MemUAdapter: MemUAdapterClass } = require('./MemUAdapter');
+): InstanceType<typeof AgentMemoryAdapter> {
+  const { AgentMemoryAdapter: AdapterClass } = require('./AgentMemoryAdapter');
   const { createEmbeddingProvider } = require('./EmbeddingBridge');
   
   const embeddingProvider = options?.embeddingProvider 
     ? createEmbeddingProvider(options.embeddingProvider, options.embeddingOptions)
     : undefined;
   
-  return new MemUAdapterClass(agentId, options?.memoryConfig, embeddingProvider);
+  return new AdapterClass(agentId, options?.memoryConfig, embeddingProvider);
 }

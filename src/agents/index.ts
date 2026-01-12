@@ -16,8 +16,4 @@
 export * from './bridges';
 
 // Terminal connector
-export {
-  TerminalAgentConnector,
-  TerminalAgentConnectorConfig,
-  createTerminalAgentConnector
-} from './TerminalAgentConnector';
+export { TerminalAgentConnector } from './TerminalAgentConnector';

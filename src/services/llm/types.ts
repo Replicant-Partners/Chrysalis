@@ -193,6 +193,7 @@ export interface ProviderStatus {
   lastCheck: Date;
   error?: string;
   latencyMs?: number;
+  circuitState?: string;
 }
 
 /**
@@ -366,5 +367,4 @@ export interface AgentLLMClient {
   setSystemPrompt(prompt: string): void;
   
   /** Send a message and get a response (alias for chat) */
-  (content: string, options?: Partial<CompletionRequest>): Promise<CompletionResponse>;
 }

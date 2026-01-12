@@ -735,14 +735,14 @@ export class TemporalRDFStore extends EventEmitter {
     sourceFramework: string;
     extensions: Array<{ namespace: string; property: string; value: string; sourcePath: string }>;
     metadata: {
-      fidelityScore: number;
+      translationTimeMs: number;
       mappedFields: string[];
       unmappedFields: string[];
       lostFields: string[];
       warnings: Array<{ severity: string; code: string; message: string; sourcePath?: string }>;
-      timestamp: Date;
-      durationMs: number;
+      fidelityScore: number;
       adapterVersion: string;
+      translatedAt: string;
     };
   } {
     return {
@@ -751,14 +751,14 @@ export class TemporalRDFStore extends EventEmitter {
       sourceFramework: snapshot.sourceFormat || 'usa',
       extensions: [],
       metadata: {
-        fidelityScore: snapshot.fidelityScore ?? 1.0,
+        translationTimeMs: 0,
         mappedFields: [],
         unmappedFields: [],
         lostFields: [],
         warnings: [],
-        timestamp: snapshot.validFrom,
-        durationMs: 0,
-        adapterVersion: '1.0.0'
+        fidelityScore: snapshot.fidelityScore ?? 1.0,
+        adapterVersion: '1.0.0',
+        translatedAt: snapshot.validFrom.toISOString()
       }
     };
   }

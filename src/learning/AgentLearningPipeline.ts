@@ -9,7 +9,7 @@
  * @module learning/AgentLearningPipeline
  */
 
-import { MemUAdapter } from '../memory/MemUAdapter';
+import { AgentMemoryAdapter } from '../memory/AgentMemoryAdapter';
 import {
   EpisodicMemory,
   SemanticMemory,
@@ -100,7 +100,7 @@ export const DEFAULT_PIPELINE_CONFIG: LearningPipelineConfig = {
  * AgentLearningPipeline - Orchestrates all learning activities
  */
 export class AgentLearningPipeline {
-  private memory: MemUAdapter;
+  private memory: AgentMemoryAdapter;
   private agentId: string;
   private config: LearningPipelineConfig;
   private conversationManager: ConversationMemoryManager;
@@ -109,7 +109,7 @@ export class AgentLearningPipeline {
   private consolidationTimer?: ReturnType<typeof setInterval>;
   
   constructor(
-    memory: MemUAdapter,
+    memory: AgentMemoryAdapter,
     agentId: string,
     config?: Partial<LearningPipelineConfig>
   ) {

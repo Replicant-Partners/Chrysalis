@@ -11,10 +11,11 @@
  * @module agents/AgentChatController
  */
 
-import { MemUAdapter } from '../memory/MemUAdapter';
+import { AgentMemoryAdapter } from '../memory/AgentMemoryAdapter';
 import { AgentLearningPipeline, LearningEvent } from '../learning/AgentLearningPipeline';
 import { LegendEmbeddingLoader, LegendEmbeddingFile, LoadingStats } from '../learning/LegendEmbeddingLoader';
 import { AgentTerminalClient } from '../terminal/AgentTerminalClient';
+import { GatewayLLMClient } from '../services/gateway/GatewayLLMClient';
 import {
   ChatMessage,
   MemoryIndicator,
@@ -107,7 +108,7 @@ export type StatusHandler = (status: 'idle' | 'thinking' | 'recalling' | 'respon
  * AgentChatController - Bridges agent, chat, and memory
  */
 export class AgentChatController {
-  private memory: MemUAdapter;
+  private memory: AgentMemoryAdapter;
   private learning: AgentLearningPipeline;
   private embeddingLoader: LegendEmbeddingLoader;
   private agent: AgentBinding;
@@ -115,6 +116,7 @@ export class AgentChatController {
   private config: AgentChatControllerConfig;
   
   private terminalClient?: AgentTerminalClient;
+  private gatewayClient?: GatewayLLMClient;
   private messageHandlers: MessageHandler[] = [];
   private statusHandlers: StatusHandler[] = [];
   private currentStatus: 'idle' | 'thinking' | 'recalling' | 'responding' = 'idle';
@@ -127,10 +129,11 @@ export class AgentChatController {
   constructor(
     agent: AgentBinding,
     panePosition: ChatPanePosition,
-    memory: MemUAdapter,
+    memory: AgentMemoryAdapter,
     userId: string,
     userName: string,
     terminalClient?: AgentTerminalClient,
+    gatewayClient?: GatewayLLMClient,
     config?: Partial<AgentChatControllerConfig>
   ) {
     this.agent = agent;
@@ -139,6 +142,7 @@ export class AgentChatController {
     this.userId = userId;
     this.userName = userName;
     this.terminalClient = terminalClient;
+    this.gatewayClient = gatewayClient;
     this.config = { ...DEFAULT_AGENT_CHAT_CONFIG, ...config };
     
     // Initialize learning pipeline
@@ -252,7 +256,8 @@ export class AgentChatController {
       const context = await this.learning.getResponseContext(userMessage.content);
       
       // 5. Generate agent response
-      const responseContent = await this.generateResponse(userMessage.content, context);
+      const generated = await this.generateResponse(userMessage.content, context);
+      const responseContent = typeof generated === 'string' ? generated : generated.content;
       
       // 6. Create agent message
       this.setStatus('responding');
@@ -282,6 +287,10 @@ export class AgentChatController {
         recalledMemories: recalledMemories.map(m => m.memoryId),
         memoryIds: [agentMemoryId],
         processingTimeMs: Date.now() - startTime,
+        ...(typeof generated === 'object' ? {
+          gatewayRequestId: (generated as any).requestId,
+          gatewayDurationMs: (generated as any).durationMs,
+        } : {})
       };
       
       this.messageCount++;
@@ -392,7 +401,20 @@ export class AgentChatController {
    * Generate agent response
    * Note: In production, this would call the LLM through AgentTerminalClient
    */
-  private async generateResponse(userQuery: string, context: string): Promise<string> {
+  private async generateResponse(userQuery: string, context: string): Promise<string | { content: string; requestId?: string; durationMs?: number }> {
+    // Prefer the Go gateway if configured
+    if (this.gatewayClient) {
+      try {
+        const resp = await this.gatewayClient.chat(this.agent.agentId, [
+          { role: 'system', content: this.buildSystemPrompt(context) },
+          { role: 'user', content: userQuery }
+        ]);
+        return { content: resp.content, requestId: resp.requestId, durationMs: resp.durationMs };
+      } catch (err) {
+        console.warn('Gateway chat failed, falling back to terminal/mock:', err);
+      }
+    }
+
     // If we have a terminal client, use it
     if (this.terminalClient) {
       try {

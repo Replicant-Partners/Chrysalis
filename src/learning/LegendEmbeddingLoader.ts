@@ -10,7 +10,7 @@
  * @module learning/LegendEmbeddingLoader
  */
 
-import { MemUAdapter } from '../memory/MemUAdapter';
+import { AgentMemoryAdapter } from '../memory/AgentMemoryAdapter';
 import { SemanticMemory, ProceduralMemory } from '../memory/types';
 
 // =============================================================================
@@ -126,11 +126,11 @@ const DEFAULT_LOADING_OPTIONS: Required<LoadingOptions> = {
  * Loads builder-generated embeddings into the MemU memory system.
  */
 export class LegendEmbeddingLoader {
-  private memory: MemUAdapter;
+  private memory: AgentMemoryAdapter;
   private agentId: string;
   private loadedLegends: Set<string> = new Set();
 
-  constructor(memory: MemUAdapter, agentId: string) {
+  constructor(memory: AgentMemoryAdapter, agentId: string) {
     this.memory = memory;
     this.agentId = agentId;
   }

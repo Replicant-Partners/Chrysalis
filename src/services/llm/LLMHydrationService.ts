@@ -34,7 +34,7 @@ import { CircuitBreaker } from '../../utils/CircuitBreaker';
  */
 interface ProviderRegistration {
   provider: LLMProvider;
-  circuitBreaker: CircuitBreaker;
+  circuitBreaker: CircuitBreaker<CompletionResponse>;
   status: ProviderStatus;
 }
 
@@ -78,12 +78,13 @@ export class LLMHydrationService {
   constructor(config?: Partial<LLMServiceConfig>) {
     this.config = { ...DEFAULT_LLM_CONFIG, ...config };
 
-    // Initialize cost controller
+    // Initialize cost controller (map to BudgetConfig fields)
     this.costController = new CostController({
-      maxCostPerRequest: this.config.costTracking?.maxCostPerRequest ?? 1.00,
-      dailyLimit: this.config.costTracking?.dailyBudget ?? 10.00,
-      monthlyLimit: this.config.costTracking?.monthlyBudget ?? 100.00,
-      warningThreshold: 0.8
+      perOperationLimit: this.config.costTracking?.maxCostPerRequest ?? 1.0,
+      dailyLimit: this.config.costTracking?.dailyBudget ?? 10.0,
+      monthlyLimit: this.config.costTracking?.monthlyBudget ?? 100.0,
+      warningThreshold: 0.8,
+      onLimitExceeded: 'warn'
     });
 
     // Initialize rate limiter (requests per minute)
@@ -125,7 +126,7 @@ export class LLMHydrationService {
    * Register a provider with the service
    */
   registerProvider(provider: LLMProvider): void {
-    const circuitBreaker = new CircuitBreaker({
+    const circuitBreaker = new CircuitBreaker<CompletionResponse>({
       failureThreshold: 3,
       timeout: 30000, // 30 seconds
       resetTime: 60000, // 1 minute
@@ -275,13 +276,15 @@ export class LLMHydrationService {
 
       try {
         const response = await registration.circuitBreaker.execute(
-          async () => provider.complete(request)
+          async () => provider.complete(request),
+          async () => {
+            throw new Error(`Circuit open for provider ${provider.id}`);
+          }
         );
 
         // Update stats
         this.updateStats(provider.id, response);
 
-        // Track cost
         this.costController.trackUsage(
           request.agentId,
           'completion',
@@ -370,19 +373,19 @@ export class LLMHydrationService {
         this.stats.tokensByProvider[provider.id] = 
           (this.stats.tokensByProvider[provider.id] ?? 0) + finalUsage.totalTokens;
         
-        // Track cost
         const cost = calculateCost(
           finalUsage.promptTokens,
           finalUsage.completionTokens,
           request.model ?? 'gpt-4o-mini'
         );
         this.stats.totalCost += cost;
-        this.costController.track({
-          inputTokens: finalUsage.promptTokens,
-          outputTokens: finalUsage.completionTokens,
-          model: request.model ?? 'unknown',
-          estimatedCost: cost
-        });
+        this.costController.trackUsage(
+          request.agentId,
+          'completion',
+          request.model ?? 'unknown',
+          finalUsage.promptTokens,
+          finalUsage.completionTokens
+        );
       }
       
       // Success - status already updated
@@ -435,12 +438,12 @@ export class LLMHydrationService {
     remaining: number;
     budgetUsedPercent: number;
   } {
-    const summary = this.costController.getSummary();
+    const status = this.costController.getBudgetStatus();
     return {
-      total: summary.totalCost,
-      daily: summary.dailyCost,
-      remaining: summary.remainingBudget,
-      budgetUsedPercent: summary.budgetUsedPercent
+      total: this.stats.totalCost,
+      daily: status.dailySpend,
+      remaining: Math.max(0, status.dailyLimit - status.dailySpend),
+      budgetUsedPercent: status.dailyLimit > 0 ? (status.dailySpend / status.dailyLimit) * 100 : 0
     };
   }
   

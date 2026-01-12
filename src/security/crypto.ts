@@ -72,7 +72,7 @@ export async function deriveKeyFromPassword(
   password: string,
   salt: Buffer
 ): Promise<Buffer> {
-  return scryptAsync(password, salt, KEY_LENGTH, {
+  return (scryptAsync as any)(password, salt, KEY_LENGTH, {
     N: SCRYPT_N,
     r: SCRYPT_R,
     p: SCRYPT_P

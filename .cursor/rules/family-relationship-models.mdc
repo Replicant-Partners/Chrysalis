@@ -1,4 +1,9 @@
 ---
+description: Family relationship modeling specification for multi-generational access controls and privacy-preserving monitoring in elder care systems.
+---
+
+# === USER INSTRUCTIONS ===
+---
 description: Specifications for managing multi-generational family relationships, permissions, and caregiver access patterns in elder care applications
 ---
 
@@ -46,6 +51,47 @@ Importance Score: 80
 - Maximum 3-step workflows for elder-family interaction
 
 The system implements specialized patterns for managing complex family relationships while preserving elder dignity and privacy. Key innovations include multi-generational access controls, privacy-preserving monitoring, and elder-optimized family interactions.
+
+$END$
+
+ If you're using this file in context, clearly say in italics in one small line that "Context added by Giga family-relationship-models" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
+# === END USER INSTRUCTIONS ===
+
+# family-relationship-models
+
+Family Relationship Management System
+
+1. Family Permissions Architecture (Importance Score: 95)
+Path: projects/GaryVision/teams/team_5_family_features.py
+- Multi-generational access control model with family relationship graph
+- Role-based permissions (child, parent, grandparent, caregiver)
+- Relationship validation and verification system
+- Privacy controls based on relationship proximity
+- Family event coordination with selective visibility
+- Relationship-based data inheritance rules
+
+2. Caregiver Dashboard (Importance Score: 90)
+Path: projects/GaryVision/teams/team_5_family_features.py
+- Privacy-preserving monitoring system for caregivers
+- Activity summaries with configurable detail levels
+- Health status tracking with family-specific visibility rules
+- Emergency contact prioritization based on relationship proximity
+- Multi-caregiver coordination system
+
+3. Multi-Generational UX Adaptation (Importance Score: 85)
+Path: projects/GaryVision/teams/team_5_family_features.py
+- Age-appropriate interface adaptations
+- Family-specific terminology customization
+- Simplified navigation for elderly family members
+- Enhanced accessibility features for older generations
+- Family event photo organization with relationship tagging
+
+Core Business Rules:
+- Relationship graph determines access levels
+- Privacy settings inherit through family tree
+- Caregiver access requires family approval
+- Emergency contacts prioritized by relationship closeness
+- Photo sharing respects family privacy preferences
 
 $END$
 

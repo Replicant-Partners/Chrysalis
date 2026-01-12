@@ -55,7 +55,6 @@ export class QualityToolOrchestrator {
             parallel: true,
             timeout_ms: 300000, // 5 minutes default
             continue_on_error: true,
-            success_policy: 'any',
             config: {},
             ...options,
         };
@@ -163,15 +162,8 @@ export class QualityToolOrchestrator {
 
         const totalExecutionTime = Date.now() - startTime;
 
-        const success = this.resolveSuccess(
-            opts.success_policy || 'any',
-            opts.continue_on_error ?? true,
-            succeeded,
-            failed
-        );
-
         return {
-            success,
+            success: opts.continue_on_error ? succeeded > 0 : failed === 0,
             tools_executed: results.length,
             tools_succeeded: succeeded,
             tools_failed: failed,
@@ -181,23 +173,6 @@ export class QualityToolOrchestrator {
             errors,
             timestamp: new Date().toISOString(),
         };
-    }
-
-    /**
-     * Resolve success based on policy
-     */
-    private resolveSuccess(
-        policy: 'all' | 'any',
-        continueOnError: boolean,
-        succeeded: number,
-        failed: number
-    ): boolean {
-        if (policy === 'all') {
-            return failed === 0;
-        }
-
-        // policy === 'any'
-        return continueOnError ? succeeded > 0 : failed === 0;
     }
 
     /**

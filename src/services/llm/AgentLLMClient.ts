@@ -46,6 +46,7 @@ export interface AgentClientConfig {
  * - Stream responses
  */
 export class AgentLLMClient implements IAgentLLMClient {
+  readonly agentId: string;
   private service: LLMHydrationService;
   private config: AgentClientConfig;
   private context: ConversationContext;
@@ -58,12 +59,20 @@ export class AgentLLMClient implements IAgentLLMClient {
       temperature: 0.7,
       ...config
     };
+    this.agentId = config.agentId;
     
+    const now = new Date();
+    const convId = this.generateConversationId();
     this.context = {
+      id: convId,
       agentId: config.agentId,
-      conversationId: this.generateConversationId(),
+      conversationId: convId,
       systemPrompt: config.systemPrompt,
-      tools: config.tools
+      tools: config.tools,
+      messages: [],
+      maxHistorySize: config.maxContextTokens ?? 8000,
+      createdAt: now,
+      updatedAt: now,
     };
     
     // Add system prompt to history if provided
@@ -88,7 +97,8 @@ export class AgentLLMClient implements IAgentLLMClient {
   getContext(): ConversationContext {
     return {
       ...this.context,
-      history: [...this.conversationHistory]
+      messages: [...this.conversationHistory],
+      updatedAt: new Date()
     };
   }
   
@@ -163,15 +173,18 @@ export class AgentLLMClient implements IAgentLLMClient {
   /**
    * Send a message and get a response
    */
-  async chat(userMessage: string): Promise<string> {
+  async chat(userMessage: string, options?: Partial<CompletionRequest>): Promise<CompletionResponse> {
     // Add user message
     this.conversationHistory.push({
       role: 'user',
       content: userMessage
     });
     
-    // Build request
-    const request = this.buildRequest();
+    // Build request with optional overrides
+    const request = {
+      ...this.buildRequest(),
+      ...options,
+    };
     
     try {
       // Get completion
@@ -189,7 +202,7 @@ export class AgentLLMClient implements IAgentLLMClient {
       
       this.trimContextIfNeeded();
       
-      return response.content;
+      return response;
     } catch (error) {
       // Remove the user message on error
       this.conversationHistory.pop();
@@ -200,14 +213,14 @@ export class AgentLLMClient implements IAgentLLMClient {
   /**
    * Send a message with full response details
    */
-  async complete(userMessage: string): Promise<CompletionResponse> {
+  async complete(userMessage: string, options?: Partial<CompletionRequest>): Promise<CompletionResponse> {
     // Add user message
     this.conversationHistory.push({
       role: 'user',
       content: userMessage
     });
     
-    const request = this.buildRequest();
+    const request = this.buildRequest(options);
     
     try {
       const response = await this.service.complete(
@@ -234,14 +247,14 @@ export class AgentLLMClient implements IAgentLLMClient {
   /**
    * Stream a response
    */
-  async *stream(userMessage: string): AsyncIterable<CompletionChunk> {
+  async *stream(userMessage: string, options?: Partial<CompletionRequest>): AsyncIterable<CompletionChunk> {
     // Add user message
     this.conversationHistory.push({
       role: 'user',
       content: userMessage
     });
     
-    const request = this.buildRequest();
+    const request = this.buildRequest(options);
     let fullContent = '';
     let toolCalls: ToolCall[] | undefined;
     
@@ -271,15 +284,28 @@ export class AgentLLMClient implements IAgentLLMClient {
   }
   
   /**
+   * Alias to satisfy interface
+   */
+  async *streamChat(userMessage: string, options?: Partial<CompletionRequest>): AsyncIterable<CompletionChunk> {
+    for await (const chunk of this.stream(userMessage, options)) {
+      yield chunk;
+    }
+  }
+  
+  /**
    * Build a completion request from current context
    */
-  private buildRequest(): CompletionRequest {
+  private buildRequest(overrides?: Partial<CompletionRequest>): CompletionRequest {
     return {
       messages: [...this.conversationHistory],
-      model: this.config.model,
-      temperature: this.config.temperature,
-      tools: this.context.tools,
-      agentId: this.config.agentId
+      model: overrides?.model ?? this.config.model,
+      temperature: overrides?.temperature ?? this.config.temperature,
+      maxTokens: overrides?.maxTokens,
+      stop: overrides?.stop,
+      tools: overrides?.tools ?? this.context.tools,
+      toolChoice: overrides?.toolChoice,
+      agentId: this.config.agentId,
+      metadata: overrides?.metadata
     };
   }
   
@@ -389,7 +415,7 @@ export class AgentLLMClient implements IAgentLLMClient {
     return {
       messageCount: this.conversationHistory.length,
       estimatedTokens: this.estimateTokenCount(),
-      conversationId: this.context.conversationId
+      conversationId: this.context.conversationId || this.context.id
     };
   }
 }

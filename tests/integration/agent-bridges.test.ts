@@ -51,7 +51,7 @@ import {
 
 import { ChrysalisTerminal } from '../../src/terminal/ChrysalisTerminal';
 import { LLMHydrationService } from '../../src/services/llm/LLMHydrationService';
-import { MemUAdapter } from '../../src/memory/MemUAdapter';
+import { AgentMemoryAdapter } from '../../src/memory/AgentMemoryAdapter';
 
 // ============================================================================
 // Mock Implementations for Testing

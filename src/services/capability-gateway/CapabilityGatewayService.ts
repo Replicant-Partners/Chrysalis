@@ -12,7 +12,7 @@ import {
   APIError,
   ErrorCode,
   ErrorCategory,
-} from '../../shared/api-core/src/models';
+} from '../../../shared/api-core/src/models';
 import {
   readJsonBody,
   sendJson,
@@ -20,8 +20,8 @@ import {
   notFound,
   methodNotAllowed,
   badRequest,
-} from '../../shared/api-core/src/http';
-import { authenticateRequest } from '../../shared/api-core/src/auth';
+} from '../../../shared/api-core/src/http';
+import { authenticateRequest } from '../../../shared/api-core/src/auth';
 import { LedgerClient } from '../../demo/milestone1/ledger-client';
 import { AgentBuilderAdapter, RoleModel } from '../../integrations/agentbuilder/AgentBuilderAdapter';
 import { ApiKeyStore } from '../auth/ApiKeyStore';

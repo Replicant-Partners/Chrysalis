@@ -4,7 +4,7 @@
 - Treat long-term memory as **KG + embeddings** (Nomic primary, OpenAI fallback, deterministic for tests).
 - Treat short-term/context as **Beads**: append-only text blobs (turns, tool outputs) with span references.
 - Distributed/local-first: keep local caches (embeddings, KG slice, skills, persona, beads) and sync to cloud (Zep for KG/vector; object storage for blobs/persona/skills snapshots).
-- Remove Memu/Voyage; Nomic + Zep are the plan-of-record (Plan A/B).
+- Remove MemU/Voyage; Zep/RDF/Beads are the plan-of-record (Plan A/B).
 - Provide clear data models, APIs, and builder functions to accumulate knowledge over time.
 
 ## Data Models (JSON/Pydantic-friendly)
@@ -64,7 +64,7 @@
 - Sync success > 99%; no data loss under transient network (durable queue + backoff).
 
 ## Migration Notes
-- Memu provider removed; Voyage removed.  
+- MemU provider removed; Voyage removed.  
 - Defaults: Nomic 768 dims, OpenAI 3072 fallback.  
 - Keep `LEGACY_LANCEDB` off by default; if present elsewhere, guard behind feature flag.  
 - Update docs (this file, memory_system/README, pipeline READMEs).  

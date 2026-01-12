@@ -11,7 +11,8 @@
  * @module services/llm/WalletIntegratedLLMService
  */
 
-import { LLMHydrationService, LLMHydrationConfig } from './LLMHydrationService';
+import { LLMHydrationService } from './LLMHydrationService';
+import type { LLMServiceConfig } from './types';
 import { CompletionRequest, CompletionResponse, CompletionChunk, ProviderId } from './types';
 import {
   KeyProvider,
@@ -35,14 +36,6 @@ export interface KeyProviderIntegrationConfig {
   requireReady?: boolean;
   /** If true, use env vars as fallback if primary provider unavailable */
   fallbackToEnv?: boolean;
-}
-
-/**
- * @deprecated Use KeyProviderIntegrationConfig instead
- */
-export interface WalletIntegrationConfig extends KeyProviderIntegrationConfig {
-  /** @deprecated Use requireReady instead */
-  requireWallet?: boolean;
 }
 
 /**
@@ -78,22 +71,16 @@ export class WalletIntegratedLLMService extends LLMHydrationService {
   private walletKeyProvider?: WalletKeyProvider;
   
   constructor(
-    config: Partial<LLMHydrationConfig> & KeyProviderIntegrationConfig = {}
+    config: Partial<LLMServiceConfig> & KeyProviderIntegrationConfig = {}
   ) {
-    // Initialize with empty keys - we'll fetch from key provider
     super({
       ...config,
-      providers: {
-        openai: { apiKey: '' },
-        anthropic: { apiKey: '' },
-        ollama: {},
-        ...config.providers
-      }
+      providers: config.providers ?? []
     });
     
     // Set up key provider (dependency injection)
     this.keyProvider = this.createKeyProvider(config);
-    this.requireReady = config.requireReady ?? config.requireWallet ?? false;
+    this.requireReady = config.requireReady ?? false;
     
     // Subscribe to key change events
     this.setupKeyProviderListeners();
@@ -376,7 +363,7 @@ export class WalletIntegratedLLMService extends LLMHydrationService {
  * Create a wallet-integrated LLM service with default configuration
  */
 export function createWalletIntegratedLLMService(
-  config?: Partial<LLMHydrationConfig> & KeyProviderIntegrationConfig
+  config?: Partial<LLMServiceConfig> & KeyProviderIntegrationConfig
 ): WalletIntegratedLLMService {
   return new WalletIntegratedLLMService(config);
 }
@@ -386,7 +373,7 @@ export function createWalletIntegratedLLMService(
  */
 export function createLLMServiceWithKeyProvider(
   keyProvider: KeyProvider,
-  config?: Partial<LLMHydrationConfig>
+  config?: Partial<LLMServiceConfig>
 ): WalletIntegratedLLMService {
   return new WalletIntegratedLLMService({
     ...config,

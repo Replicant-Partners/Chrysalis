@@ -12,6 +12,7 @@
  */
 
 import { QualityToolOrchestrator, QualityOrchestrationResult } from '../tools/QualityToolOrchestrator';
+import { QualityResultAggregator } from '../tools/QualityResultAggregator';
 import { QualityIssue, QualityToolResult } from '../tools/QualityToolInterface';
 import { QualityPatternRecognizer } from '../patterns/QualityPatternRecognizer';
 import { PatternMatchResult, PatternLearningContext } from '../patterns/QualityPattern';
@@ -34,6 +35,7 @@ export interface QualityPatternIntegrationResult {
  */
 export class QualityPatternIntegration {
     private orchestrator: QualityToolOrchestrator;
+    private aggregator: QualityResultAggregator;
     private recognizer: QualityPatternRecognizer;
 
     constructor(
@@ -41,6 +43,7 @@ export class QualityPatternIntegration {
         recognizer: QualityPatternRecognizer
     ) {
         this.orchestrator = orchestrator;
+        this.aggregator = new QualityResultAggregator();
         this.recognizer = recognizer;
     }
 

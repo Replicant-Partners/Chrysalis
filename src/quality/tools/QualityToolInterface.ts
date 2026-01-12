@@ -137,10 +137,4 @@ export interface QualityToolExecutionOptions {
     timeout_ms?: number;
     continue_on_error?: boolean;
     config?: Record<string, QualityToolConfig>;
-    /**
-     * Success policy:
-     * - 'all' requires all tools to succeed
-     * - 'any' (default) succeeds if at least one tool succeeds when continue_on_error is true
-     */
-    success_policy?: 'all' | 'any';
 }

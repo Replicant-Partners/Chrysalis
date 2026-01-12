@@ -19,7 +19,7 @@ import {
   type WidgetNode,
   type CanvasNode
 } from '../../src/terminal';
-import { MemUAdapter, MockEmbeddingProvider } from '../../src/memory';
+import { AgentMemoryAdapter, MockEmbeddingProvider } from '../../src/memory';
 import * as Y from 'yjs';
 
 describe('ChrysalisTerminal Integration', () => {
@@ -302,7 +302,7 @@ describe('ChrysalisTerminal Integration', () => {
 describe('Agent Terminal Client Integration', () => {
   let terminal: ChrysalisTerminal;
   let agentClient: AgentTerminalClient;
-  let memoryAdapter: MemUAdapter;
+  let memoryAdapter: AgentMemoryAdapter;
 
   beforeEach(() => {
     terminal = new ChrysalisTerminal({
@@ -311,7 +311,7 @@ describe('Agent Terminal Client Integration', () => {
       enableSync: false
     });
 
-    memoryAdapter = new MemUAdapter('test-learning-agent', undefined, new MockEmbeddingProvider());
+    memoryAdapter = new AgentMemoryAdapter('test-learning-agent', undefined, new MockEmbeddingProvider());
 
     agentClient = createAgentTerminalClient({
       agentId: 'test-learning-agent',

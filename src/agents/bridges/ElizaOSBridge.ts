@@ -416,10 +416,11 @@ export class ElizaOSBridge extends BaseBridge {
       }
       
       // Call the LLM with character personality
-      const responseText = await this.withTimeout(
+      const completion = await this.withTimeout(
         this.llmClient.chat(fullMessage),
         this.config.timeout
       );
+      const responseText = completion.content;
       
       // Store in conversation history
       this.conversationHistory.push(message);

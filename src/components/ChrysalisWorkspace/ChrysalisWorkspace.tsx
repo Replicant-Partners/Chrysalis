@@ -24,14 +24,17 @@ import {
   ChrysalisWorkspaceProps,
   ChatMessage,
   ChatPanePosition,
+  AgentBinding,
   PanelSizes,
   WorkspaceSession,
   ChatParticipant,
   DEFAULT_WORKSPACE_CONFIG,
 } from './types';
-import { MemUAdapter } from '../../memory/MemUAdapter';
+import { AgentMemoryAdapter } from '../../memory/AgentMemoryAdapter';
 import { AgentChatController, AgentResponse } from '../../agents/AgentChatController';
 import { AgentLearningPipeline, DocumentInput, LegendEmbeddingLoader, LegendEmbeddingFile } from '../../learning';
+import { AgentCanvasState, AgentPosition, CanvasAgent, AgentSpecSummary } from '../../terminal/protocols';
+import { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
 
 // =============================================================================
 // Styles
@@ -173,6 +176,31 @@ function createMessage(
   };
 }
 
+/**
+ * Build a minimal canvas spec from an agent binding.
+ */
+function buildAgentSpec(agentName: string, agentRole: string): AgentSpecSummary {
+  return {
+    name: agentName,
+    role: agentRole || 'agent',
+    goal: 'Assist the user in the commons canvas.',
+    version: '0.1.0',
+  };
+}
+
+function createCanvasAgentFromBinding(binding: AgentBinding, position: AgentPosition): CanvasAgent {
+  const spec = buildAgentSpec(binding.agentName, binding.agentType);
+  const now = Date.now();
+  return {
+    id: binding.agentId,
+    spec,
+    state: 'awake',
+    position,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
 // =============================================================================
 // Resize Handle Component
 // =============================================================================
@@ -256,7 +284,19 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
   const config = useMemo(() => ({
     ...DEFAULT_WORKSPACE_CONFIG,
     ...configOverrides,
+    defaultPanelSizes: {
+      ...DEFAULT_WORKSPACE_CONFIG.defaultPanelSizes,
+      ...configOverrides?.defaultPanelSizes,
+    }
   }), [configOverrides]);
+
+  // Optional Go gateway client (lean HTTP bridge)
+  const gatewayClient = useMemo(() => new GatewayLLMClient({
+    baseUrl: config.gateway?.baseUrl,
+    authToken: config.gateway?.authToken,
+    model: config.gateway?.model,
+    stream: config.gateway?.stream,
+  }), [config.gateway?.authToken, config.gateway?.baseUrl, config.gateway?.model, config.gateway?.stream]);
   
   // Panel sizing state
   const [panelSizes, setPanelSizes] = useState<PanelSizes>(config.defaultPanelSizes);
@@ -267,6 +307,33 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
   const [rightMessages, setRightMessages] = useState<ChatMessage[]>([]);
   const [leftTyping, setLeftTyping] = useState(false);
   const [rightTyping, setRightTyping] = useState(false);
+  const [snapToGrid, setSnapToGrid] = useState<boolean>(config.canvasSnapToGrid);
+  const [showGrid, setShowGrid] = useState<boolean>(config.canvasShowGrid);
+  const [gridSize, setGridSize] = useState<number>(config.canvasGridSize);
+  const [gatewayStatus, setGatewayStatus] = useState<{ lastRequestId?: string; lastDurationMs?: number; error?: string }>({});
+  const [canvasState, setCanvasState] = useState<AgentCanvasState>(() => {
+    const now = Date.now();
+    return {
+      id: `canvas-${now}`,
+      metadata: {
+        id: `canvas-${now}`,
+        name: 'Agent Commons',
+        createdAt: now,
+        updatedAt: now,
+        createdBy: userId,
+        description: 'Lean agent commons without registries.',
+      },
+      agents: [],
+      layouts: {},
+    };
+  });
+
+  // Sync canvas toggles if config changes at runtime
+  useEffect(() => {
+    setSnapToGrid(config.canvasSnapToGrid);
+    setShowGrid(config.canvasShowGrid);
+    setGridSize(config.canvasGridSize);
+  }, [config.canvasSnapToGrid, config.canvasShowGrid, config.canvasGridSize]);
   
   // Session state
   const [session, setSession] = useState<WorkspaceSession | null>(null);
@@ -275,7 +342,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
   const [isDropTarget, setIsDropTarget] = useState(false);
   
   // Memory system refs (persisted across renders)
-  const memoryAdapterRef = useRef<MemUAdapter | null>(null);
+  const memoryAdapterRef = useRef<AgentMemoryAdapter | null>(null);
   const leftControllerRef = useRef<AgentChatController | null>(null);
   const rightControllerRef = useRef<AgentChatController | null>(null);
   const learningPipelineRef = useRef<AgentLearningPipeline | null>(null);
@@ -301,11 +368,52 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       joinedAt: Date.now(),
     }] : []),
   ], [userId, userName, primaryAgent, secondaryAgent]);
+
+  // Seed canvas with active agents (primary/secondary) in a lean layout.
+  useEffect(() => {
+    setCanvasState((prev) => {
+      const next = { ...prev, agents: [...prev.agents], layouts: { ...prev.layouts } };
+      const seen = new Set<string>();
+
+      const upsertAgent = (binding: AgentBinding, position: AgentPosition) => {
+        seen.add(binding.agentId);
+        const existing = next.agents.find(a => a.id === binding.agentId);
+        if (!existing) {
+          const agent = createCanvasAgentFromBinding(binding, position);
+          next.agents.push(agent);
+          next.layouts[agent.id] = {
+            agentId: agent.id,
+            position,
+            collapsed: false,
+            pinned: false,
+            selected: next.selectedAgentId === agent.id,
+            updatedAt: Date.now(),
+          };
+        }
+      };
+
+      upsertAgent(primaryAgent, { x: 120, y: 120, width: 240, height: 140 });
+      if (secondaryAgent) {
+        upsertAgent(secondaryAgent, { x: 420, y: 120, width: 240, height: 140 });
+      }
+
+      // Drop agents that are no longer bound to the workspace.
+      next.agents = next.agents.filter(a => seen.has(a.id));
+      for (const key of Object.keys(next.layouts)) {
+        if (!seen.has(key)) {
+          delete next.layouts[key];
+        }
+      }
+
+      next.metadata = { ...next.metadata, updatedAt: Date.now() };
+      return next;
+    });
+  }, [primaryAgent, secondaryAgent]);
   
   // Initialize memory system
   useEffect(() => {
     // Use external adapter or create internal one
-    const adapter = externalMemoryAdapter ?? new MemUAdapter(primaryAgent.agentId);
+    const adapter = externalMemoryAdapter ?? new AgentMemoryAdapter(primaryAgent.agentId);
     memoryAdapterRef.current = adapter;
     
     // Create learning pipeline for document processing
@@ -319,6 +427,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       userId,
       userName,
       undefined, // No terminal client for now (uses mock responses)
+      gatewayClient,
       { showMemoryIndicators: config.showMemoryIndicators }
     );
     
@@ -333,6 +442,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
         userId,
         userName,
         undefined,
+        gatewayClient,
         { showMemoryIndicators: config.showMemoryIndicators }
       );
     }
@@ -346,11 +456,11 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
         content: event.memory.content.slice(0, 100),
       });
     });
-    
+
     return () => {
       unsubscribe();
     };
-  }, [primaryAgent.agentId, secondaryAgent?.agentId, userId, userName, externalMemoryAdapter, config.showMemoryIndicators]);
+  }, [primaryAgent.agentId, secondaryAgent?.agentId, userId, userName, externalMemoryAdapter, config.showMemoryIndicators, primaryAgent.agentName, secondaryAgent?.agentName]);
   
   // Initialize session
   useEffect(() => {
@@ -388,9 +498,9 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     };
   }, [sessionId, primaryAgent.agentId, secondaryAgent?.agentId, userId, userName]);
   
-  // YJS sync effect (if yjsDoc provided)
+  // YJS sync effect (opt-in)
   useEffect(() => {
-    if (!yjsDoc) return;
+    if (!config.enableYjs || !yjsDoc) return;
     
     const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
     const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
@@ -415,7 +525,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       leftChatArray.unobserve(syncLeftChat);
       rightChatArray.unobserve(syncRightChat);
     };
-  }, [yjsDoc]);
+  }, [yjsDoc, config.enableYjs]);
   
   // Handle panel resize
   const handleLeftResize = useCallback((delta: number) => {
@@ -449,13 +559,84 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       };
     });
   }, []);
+
+  // Canvas interactions (lean commons)
+  const handleSelectCanvasAgent = useCallback((agentId: string) => {
+    setCanvasState(prev => ({
+      ...prev,
+      selectedAgentId: agentId,
+      metadata: { ...prev.metadata, updatedAt: Date.now() },
+    }));
+  }, []);
+
+  const handleAddCanvasAgent = useCallback(() => {
+    setCanvasState(prev => {
+      const id = `agent-${Date.now()}`;
+      const position: AgentPosition = {
+        x: 200 + prev.agents.length * 40,
+        y: 200,
+        width: 220,
+        height: 130,
+      };
+      const spec = buildAgentSpec(`Agent ${prev.agents.length + 1}`, 'auxiliary');
+      const newAgent: CanvasAgent = {
+        id,
+        spec,
+        state: 'dormant',
+        position,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      return {
+        ...prev,
+        agents: [...prev.agents, newAgent],
+        layouts: {
+          ...prev.layouts,
+          [id]: { agentId: id, position, collapsed: false, pinned: false, selected: false, updatedAt: Date.now() },
+        },
+        metadata: { ...prev.metadata, updatedAt: Date.now() },
+        selectedAgentId: id,
+      };
+    });
+  }, []);
+
+  const handleMoveCanvasAgent = useCallback((agentId: string, position: Partial<AgentPosition>) => {
+    setCanvasState(prev => {
+      const next = { ...prev, agents: [...prev.agents], layouts: { ...prev.layouts } };
+      const agent = next.agents.find(a => a.id === agentId);
+      if (!agent) return prev;
+      agent.position = { ...agent.position, ...position };
+      agent.updatedAt = Date.now();
+      if (next.layouts[agentId]) {
+        next.layouts[agentId] = {
+          ...next.layouts[agentId],
+          position: { ...next.layouts[agentId].position, ...position },
+          updatedAt: Date.now(),
+        };
+      }
+      next.metadata = { ...next.metadata, updatedAt: Date.now() };
+      return next;
+    });
+  }, []);
+
+  const handleSetCanvasAgentState = useCallback((agentId: string, state: any) => {
+    setCanvasState(prev => {
+      const next = { ...prev, agents: [...prev.agents] };
+      const agent = next.agents.find(a => a.id === agentId);
+      if (!agent) return prev;
+      agent.state = state;
+      agent.updatedAt = Date.now();
+      next.metadata = { ...next.metadata, updatedAt: Date.now() };
+      return next;
+    });
+  }, []);
   
-  // Handle sending messages - Left pane (Primary Agent with MemU)
+  // Handle sending messages - Left pane
   const handleSendLeftMessage = useCallback(async (content: string) => {
     const message = createMessage(content, userId, userName, 'user');
     
     // Add user message to local state or YJS
-    if (yjsDoc) {
+    if (config.enableYjs && yjsDoc) {
       const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
       leftChatArray.push([message]);
     } else {
@@ -471,9 +652,22 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       
       try {
         const response: AgentResponse = await controller.processUserMessage({ content });
+        if ((response as any)?.requestId) {
+          setGatewayStatus({
+            lastRequestId: (response as any).requestId,
+            lastDurationMs: (response as any).durationMs,
+          });
+        }
+        const reqId = (response as any).requestId || (response.message.metadata as any)?.gatewayRequestId;
+        if (reqId) {
+          setGatewayStatus({
+            lastRequestId: reqId,
+            lastDurationMs: (response as any).durationMs || (response.message.metadata as any)?.gatewayDurationMs,
+          });
+        }
         
         // Add agent response with memory indicators
-        if (yjsDoc) {
+        if (config.enableYjs && yjsDoc) {
           const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
           leftChatArray.push([response.message]);
         } else {
@@ -502,7 +696,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
           'agent'
         );
         
-        if (yjsDoc) {
+        if (config.enableYjs && yjsDoc) {
           const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
           leftChatArray.push([errorMessage]);
         } else {
@@ -523,7 +717,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
           'agent'
         );
         
-        if (yjsDoc) {
+        if (config.enableYjs && yjsDoc) {
           const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
           leftChatArray.push([agentResponse]);
         } else {
@@ -533,15 +727,15 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
         onAgentResponse?.(agentResponse, 'left');
       }, 500);
     }
-  }, [userId, userName, primaryAgent, yjsDoc, onMessageSent, onAgentResponse, onMemoryEvent]);
+  }, [userId, userName, primaryAgent, yjsDoc, onMessageSent, onAgentResponse, onMemoryEvent, config.enableYjs]);
   
-  // Handle sending messages - Right pane (Secondary Agent with MemU)
+  // Handle sending messages - Right pane
   const handleSendRightMessage = useCallback(async (content: string) => {
     if (!secondaryAgent) return;
     
     const message = createMessage(content, userId, userName, 'user');
     
-    if (yjsDoc) {
+    if (config.enableYjs && yjsDoc) {
       const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
       rightChatArray.push([message]);
     } else {
@@ -558,7 +752,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       try {
         const response: AgentResponse = await controller.processUserMessage({ content });
         
-        if (yjsDoc) {
+        if (config.enableYjs && yjsDoc) {
           const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
           rightChatArray.push([response.message]);
         } else {
@@ -586,7 +780,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
           'agent'
         );
         
-        if (yjsDoc) {
+        if (config.enableYjs && yjsDoc) {
           const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
           rightChatArray.push([errorMessage]);
         } else {
@@ -621,44 +815,43 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
   
   // Handle clear chat
   const handleClearLeftChat = useCallback(() => {
-    if (yjsDoc) {
+    if (config.enableYjs && yjsDoc) {
       const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
       leftChatArray.delete(0, leftChatArray.length);
     } else {
       setLeftMessages([]);
     }
-  }, [yjsDoc]);
+  }, [yjsDoc, config.enableYjs]);
   
   const handleClearRightChat = useCallback(() => {
-    if (yjsDoc) {
+    if (config.enableYjs && yjsDoc) {
       const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
       rightChatArray.delete(0, rightChatArray.length);
     } else {
       setRightMessages([]);
     }
-  }, [yjsDoc]);
+  }, [yjsDoc, config.enableYjs]);
   
   // Handle document drop on canvas
   const handleDragOver = useCallback((e: React.DragEvent) => {
+    if (!config.enableDocumentDrop) return;
     e.preventDefault();
     e.stopPropagation();
-    if (config.enableDocumentDrop) {
-      setIsDropTarget(true);
-    }
+    setIsDropTarget(true);
   }, [config.enableDocumentDrop]);
   
   const handleDragLeave = useCallback((e: React.DragEvent) => {
+    if (!config.enableDocumentDrop) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDropTarget(false);
-  }, []);
+  }, [config.enableDocumentDrop]);
   
   const handleDrop = useCallback(async (e: React.DragEvent) => {
+    if (!config.enableDocumentDrop) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDropTarget(false);
-    
-    if (!config.enableDocumentDrop) return;
     
     const files = Array.from(e.dataTransfer.files);
     const supportedFiles = files.filter(f =>
@@ -764,19 +957,24 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {/* AgentCanvas Component */}
+        {config.enableYjs && (
+          <div style={{ position: 'absolute', top: 8, right: 12, zIndex: 5, fontSize: 12, color: '#9aa4b5' }}>
+            YJS sync enabled
+          </div>
+        )}
+        {/* AgentCanvas Component (lean stub) */}
         <AgentCanvas
-          showToolbar={true}
-          showMinimap={false}
-          onAgentSelect={(agentId) => {
-            console.log('[ChrysalisWorkspace] Agent selected:', agentId);
-          }}
-          onChatRequest={(agentId) => {
-            console.log('[ChrysalisWorkspace] Chat requested with:', agentId);
-          }}
-          onImportComplete={(result) => {
-            console.log('[ChrysalisWorkspace] Import complete:', result);
-          }}
+          canvas={canvasState}
+          onSelectAgent={handleSelectCanvasAgent}
+          onAddAgent={handleAddCanvasAgent}
+          onMoveAgent={handleMoveCanvasAgent}
+          onStateChange={handleSetCanvasAgentState}
+          snapToGrid={snapToGrid}
+          gridSize={gridSize}
+          showGrid={showGrid}
+          onToggleSnap={setSnapToGrid}
+          onToggleGrid={setShowGrid}
+          onGridSizeChange={setGridSize}
         />
         
         {/* Drop Overlay for Embedding Files */}
@@ -791,10 +989,17 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       
       {/* Right Resize Handle */}
       <ResizeHandle onResize={handleRightResize} position="right" />
-      
+
       {/* Right Chat Pane */}
       {secondaryAgent ? (
         <div style={{ ...styles.rightPanel, width: `${panelSizes.rightWidth}%` }}>
+          {gatewayStatus.lastRequestId && (
+            <div style={{ padding: '4px 8px', fontSize: 12, color: '#9aa4b5' }}>
+              Gateway req {gatewayStatus.lastRequestId}
+              {typeof gatewayStatus.lastDurationMs === 'number' && ` · ${gatewayStatus.lastDurationMs} ms`}
+              {gatewayStatus.error && ` · error: ${gatewayStatus.error}`}
+            </div>
+          )}
           <ChatPane
             paneId="right"
             agent={secondaryAgent}

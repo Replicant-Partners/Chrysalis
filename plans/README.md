@@ -4,17 +4,7 @@ This directory contains **active planning documents** for ongoing and future wor
 
 ## Current Plans
 
-### UI Integration Plans
-
-1. **[CHRYSALIS_UI_MEMU_INTEGRATION.md](CHRYSALIS_UI_MEMU_INTEGRATION.md)**
-   - **Status**: Active
-   - **Purpose**: Integration plan for Chrysalis UI with MEMU
-   - **Owner**: TBD
-
-2. **[PHASE_12_14_DUAL_CHAT_CANVAS_MEMU_PLAN.md](PHASE_12_14_DUAL_CHAT_CANVAS_MEMU_PLAN.md)**
-   - **Status**: Active
-   - **Purpose**: Dual chat canvas and MEMU integration phases 12-14
-   - **Owner**: TBD
+*(MemU-related plans removed; lean memory path is current.)*
 
 ## Archived Plans
 

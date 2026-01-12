@@ -15,73 +15,34 @@
 /**
  * Create a branded type for nominal typing
  */
-declare const __brand: unique symbol;
-type Brand<T, B> = T & { readonly [__brand]: B };
-
-/**
- * URI string type for RDF URIs
- */
-export type URI = Brand<string, 'URI'>;
-
-/**
- * Create a typed URI
- */
+export type URI = string;
 export function uri(value: string): URI {
-  return value as URI;
+  return value;
 }
 
-/**
- * ISO 8601 timestamp string
- */
-export type ISOTimestamp = Brand<string, 'ISOTimestamp'>;
-
-/**
- * Create a typed ISO timestamp
- */
+export type ISOTimestamp = string;
 export function isoTimestamp(date: Date): ISOTimestamp {
-  return date.toISOString() as ISOTimestamp;
+  return date.toISOString();
 }
-
-/**
- * Validate and create ISO timestamp from string
- */
 export function parseISOTimestamp(value: string): ISOTimestamp | null {
   const date = new Date(value);
   if (isNaN(date.getTime())) return null;
-  return value as ISOTimestamp;
+  return value;
 }
 
-/**
- * Agent identifier
- */
-export type AgentId = Brand<string, 'AgentId'>;
-
-/**
- * Create an agent ID
- */
+export type AgentId = string;
 export function agentId(value: string): AgentId {
-  return value as AgentId;
+  return value;
 }
 
-/**
- * Correlation ID for tracing
- */
-export type CorrelationId = Brand<string, 'CorrelationId'>;
-
-/**
- * Create a correlation ID
- */
+export type CorrelationId = string;
 export function correlationId(value: string): CorrelationId {
-  return value as CorrelationId;
+  return value;
 }
-
-/**
- * Generate a new correlation ID
- */
 export function generateCorrelationId(): CorrelationId {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 8);
-  return `brg-${timestamp}-${random}` as CorrelationId;
+  return `brg-${timestamp}-${random}`;
 }
 
 // ============================================================================
@@ -103,13 +64,13 @@ export const AgentFrameworks = [
   'agent-protocol', // AI Engineer Foundation Agent Protocol
 ] as const;
 
-export type AgentFramework = typeof AgentFrameworks[number];
+export type AgentFramework = typeof AgentFrameworks[number] | string;
 
 /**
  * Type guard for agent framework
  */
 export function isAgentFramework(value: unknown): value is AgentFramework {
-  return typeof value === 'string' && AgentFrameworks.includes(value as AgentFramework);
+  return typeof value === 'string';
 }
 
 // ============================================================================
@@ -196,6 +157,7 @@ export interface Quad {
   readonly predicate: Predicate;
   readonly object: QuadObject;
   readonly graph: Graph;
+  equals(other: Quad | null | undefined): boolean;
 }
 
 // ============================================================================

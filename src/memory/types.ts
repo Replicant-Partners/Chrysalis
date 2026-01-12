@@ -185,7 +185,7 @@ export interface SemanticMemory extends BaseMemory {
 
 /**
  * Procedural memory - learned skills and procedures
- * New tier for MemU integration
+ * Memory type definitions
  */
 export interface ProceduralMemory extends BaseMemory {
   tier: 'procedural';

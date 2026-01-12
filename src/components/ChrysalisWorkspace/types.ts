@@ -7,7 +7,7 @@
  */
 
 import * as Y from 'yjs';
-import type { MemUAdapter } from '../../memory/MemUAdapter';
+import type { AgentMemoryAdapter } from '../../memory/AgentMemoryAdapter';
 
 // =============================================================================
 // Chat Types
@@ -129,6 +129,22 @@ export interface WorkspaceConfig {
   // Canvas configuration
   enableDocumentDrop: boolean;
   enableSkillLearning: boolean;
+
+  // Gateway (Go service) configuration for lean path
+  gateway?: {
+    baseUrl?: string;
+    authToken?: string;
+    model?: string;
+    stream?: boolean;
+  };
+
+  // Canvas rendering
+  canvasSnapToGrid: boolean;
+  canvasGridSize: number;
+  canvasShowGrid: boolean;
+
+  // Collaboration (YJS) toggle; off by default for lean path
+  enableYjs: boolean;
 }
 
 /**
@@ -144,8 +160,12 @@ export const DEFAULT_WORKSPACE_CONFIG: WorkspaceConfig = {
   maxMessagesPerPane: 500,
   showMemoryIndicators: true,
   showTypingIndicators: true,
-  enableDocumentDrop: true,
+  enableDocumentDrop: false,
   enableSkillLearning: true,
+  canvasSnapToGrid: true,
+  canvasGridSize: 20,
+  canvasShowGrid: true,
+  enableYjs: false,
 };
 
 // =============================================================================
@@ -230,7 +250,7 @@ export interface ChrysalisWorkspaceProps {
   yjsDoc?: Y.Doc;
   
   // Memory system (optional - if not provided, creates internal adapter)
-  memoryAdapter?: MemUAdapter;
+  memoryAdapter?: AgentMemoryAdapter;
   
   // Configuration
   config?: Partial<WorkspaceConfig>;

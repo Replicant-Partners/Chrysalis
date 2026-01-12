@@ -39,7 +39,4 @@ export {
 } from './ApiKeyWallet';
 
 // Secure Canvas Manager
-export {
-  SecureCanvasManager,
-  createSecureCanvasManager
-} from './SecureCanvasManager';
+// SecureCanvasManager removed in lean canvas mode

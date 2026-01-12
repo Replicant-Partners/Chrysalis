@@ -28,7 +28,7 @@ export type {
 } from './ConversationMemoryManager';
 export { DEFAULT_CONVERSATION_MEMORY_CONFIG } from './ConversationMemoryManager';
 
-// Legend embedding loader (bridges builder pipelines to MemU)
+// Legend embedding loader (bridges builder pipelines to memory)
 export { LegendEmbeddingLoader } from './LegendEmbeddingLoader';
 export type {
   KnowledgeEmbedding,
