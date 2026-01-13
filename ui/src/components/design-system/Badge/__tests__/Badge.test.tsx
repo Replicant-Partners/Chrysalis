@@ -34,14 +34,17 @@ describe('Badge', () => {
 
   it('should show pulsing dot when withDot is true', () => {
     const { container } = render(<Badge withDot>Live</Badge>);
-    const dot = container.querySelector('.dot');
-    expect(dot).toBeInTheDocument();
+    // CSS Modules hash class names, so we check for presence of span with dot class
+    const badge = container.querySelector('span');
+    const spans = badge?.querySelectorAll('span');
+    expect(spans?.length).toBeGreaterThan(1); // Should have text span + dot span
   });
 
   it('should not show dot by default', () => {
     const { container } = render(<Badge>No Dot</Badge>);
-    const dot = container.querySelector('.dot');
-    expect(dot).not.toBeInTheDocument();
+    const badge = container.querySelector('span');
+    const spans = badge?.querySelectorAll('span');
+    expect(spans?.length).toBe(1); // Should only have text span
   });
 
   it('should merge custom className', () => {
@@ -67,7 +70,9 @@ describe('Badge', () => {
   it('should render live variant with dot', () => {
     const { container } = render(<Badge variant="live" withDot>Live</Badge>);
     
-    expect(container.querySelector('span')?.className).toContain('live');
-    expect(container.querySelector('.dot')).toBeInTheDocument();
+    const badge = container.querySelector('span');
+    expect(badge?.className).toContain('live');
+    const spans = badge?.querySelectorAll('span');
+    expect(spans?.length).toBeGreaterThan(1); // Has dot span
   });
 });

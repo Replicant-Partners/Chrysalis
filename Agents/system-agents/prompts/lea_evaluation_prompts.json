@@ -1,0 +1,425 @@
+{
+  "$schema": "../schemas/prompt-set.schema.json",
+  "promptSetId": "lea_evaluation_prompts",
+  "personaId": "lea",
+  "version": "1.0.0",
+  "description": "Prompt templates for Lea (Implementation Reviewer) - evaluates code clarity, practical applicability, documentation quality, and developer ergonomics",
+  
+  "prompts": {
+    "IMPLEMENTATION_REVIEW_PROMPT": {
+      "id": "IMPLEMENTATION_REVIEW_PROMPT",
+      "description": "Reviews code implementations for clarity, maintainability, and practical applicability",
+      "modelTier": "local_slm",
+      "complexityRouting": {
+        "local_slm": {
+          "conditions": ["inputTokens < 2000", "standardPatterns", "singleFile"],
+          "model": "ollama/gemma:2b"
+        },
+        "cloud_llm": {
+          "conditions": ["inputTokens >= 2000", "crossFileAnalysis", "securityReview"],
+          "model": "anthropic/claude-sonnet-4-20250514"
+        }
+      },
+      "inputSchema": {
+        "type": "object",
+        "required": ["code", "language", "context"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The code to review"
+          },
+          "language": {
+            "type": "string",
+            "description": "Programming language of the code"
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "purpose": {
+                "type": "string",
+                "description": "What the code is intended to do"
+              },
+              "styleGuide": {
+                "type": "string",
+                "description": "Reference to applicable style guide"
+              },
+              "targetAudience": {
+                "type": "string",
+                "enum": ["junior", "mid", "senior", "mixed"],
+                "description": "Expected maintainer skill level"
+              },
+              "criticalPath": {
+                "type": "boolean",
+                "description": "Whether this code is on a critical path"
+              }
+            }
+          },
+          "adaEvaluation": {
+            "type": "object",
+            "description": "Structural evaluation from Ada (if available)",
+            "properties": {
+              "scorecard": { "type": "object" },
+              "antipatterns": { "type": "array" },
+              "confidence": { "type": "number" }
+            }
+          },
+          "reviewFocus": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["clarity", "practicalApplicability", "documentationQuality", "developerErgonomics", "errorHandling", "testability"]
+            }
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["scorecard", "overallScore", "confidence", "issues", "suggestions"],
+        "properties": {
+          "scorecard": {
+            "type": "object",
+            "properties": {
+              "clarity": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "How easily the code can be understood"
+              },
+              "practicalApplicability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "How well the implementation serves real-world use"
+              },
+              "documentationQuality": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Quality and completeness of comments/docs"
+              },
+              "developerErgonomics": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "How pleasant the code is to work with"
+              }
+            }
+          },
+          "overallScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "severity": {
+                  "type": "string",
+                  "enum": ["critical", "major", "minor", "nitpick"]
+                },
+                "category": {
+                  "type": "string",
+                  "enum": ["bug", "security", "performance", "maintainability", "style", "documentation"]
+                },
+                "location": {
+                  "type": "object",
+                  "properties": {
+                    "startLine": { "type": "integer" },
+                    "endLine": { "type": "integer" }
+                  }
+                },
+                "description": { "type": "string" },
+                "suggestedFix": { "type": "string" }
+              }
+            }
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["rename", "extract", "inline", "document", "simplify", "test"]
+                },
+                "description": { "type": "string" },
+                "before": { "type": "string" },
+                "after": { "type": "string" },
+                "rationale": { "type": "string" }
+              }
+            }
+          },
+          "readabilityMetrics": {
+            "type": "object",
+            "properties": {
+              "avgFunctionLength": { "type": "number" },
+              "maxNestingDepth": { "type": "number" },
+              "commentRatio": { "type": "number" },
+              "namingConsistency": { "type": "number" }
+            }
+          },
+          "approvalStatus": {
+            "type": "string",
+            "enum": ["approved", "approved_with_suggestions", "needs_revision", "rejected"]
+          }
+        }
+      },
+      "templateVariants": {
+        "quick_review": {
+          "systemPrompt": "You are Lea, a pragmatic Implementation Reviewer. Perform a quick code review.\n\nFocus on:\n- Critical bugs or security issues\n- Major clarity problems\n- Obvious improvements\n\nProvide:\n- Scores (0-10) for clarity and practicalApplicability\n- Top 3 issues (if any)\n- Quick approval status\n\nBe direct and constructive.",
+          "maxTokens": 600,
+          "temperature": 0.3
+        },
+        "standard": {
+          "systemPrompt": "You are Lea, an Implementation Reviewer who values practical, maintainable code.\n\n## Review Philosophy\nCode is read far more often than written. Prioritize:\n1. Clarity over cleverness\n2. Explicit over implicit\n3. Simple over complex\n4. Documented over self-documenting\n\n## Review Process\n1. Understand the code's purpose\n2. Assess readability for target audience\n3. Check error handling and edge cases\n4. Evaluate documentation completeness\n5. Consider maintenance burden\n\n## Output Requirements\nFor each dimension:\n- Score with specific evidence\n- Concrete improvement suggestions\n\nFor issues:\n- Severity based on impact\n- Location with line numbers\n- Actionable fix suggestions\n\nIf Ada provided structural analysis, incorporate it but focus on implementation quality.",
+          "maxTokens": 2000,
+          "temperature": 0.4
+        },
+        "thorough_review": {
+          "systemPrompt": "You are Lea performing a comprehensive implementation review.\n\n## Thorough Review Protocol\n\n### Phase 1: First Impression\n- Read without analyzing\n- Note confusion points\n- Identify the \"story\" the code tells\n\n### Phase 2: Detailed Analysis\n- Trace execution paths\n- Identify all edge cases\n- Check error propagation\n- Verify resource management\n- Assess testability\n\n### Phase 3: Documentation Audit\n- Evaluate existing comments\n- Identify undocumented assumptions\n- Check API documentation\n- Assess example coverage\n\n### Phase 4: Developer Experience\n- Consider debugging experience\n- Evaluate error messages\n- Check logging quality\n- Assess configuration clarity\n\n### Phase 5: Synthesis\n- Compile all issues by severity\n- Prioritize suggestions by impact\n- Generate readability metrics\n- Determine approval status\n\nIncorporate Ada's structural insights where relevant.\nProvide before/after examples for major suggestions.",
+          "maxTokens": 4000,
+          "temperature": 0.5
+        }
+      },
+      "goldenTests": [
+        {
+          "name": "clear_function_approval",
+          "input": {
+            "code": "def calculate_discount(price: float, discount_percent: float) -> float:\n    \"\"\"Calculate discounted price.\n    \n    Args:\n        price: Original price in dollars\n        discount_percent: Discount as percentage (0-100)\n    \n    Returns:\n        Discounted price, minimum 0\n    \n    Raises:\n        ValueError: If discount_percent is negative or > 100\n    \"\"\"\n    if not 0 <= discount_percent <= 100:\n        raise ValueError(f\"Invalid discount: {discount_percent}\")\n    \n    discount = price * (discount_percent / 100)\n    return max(0, price - discount)",
+            "language": "python",
+            "context": { "targetAudience": "mixed" }
+          },
+          "expectedOutput": {
+            "scorecard": {
+              "clarity": { "min": 8, "max": 10 },
+              "documentationQuality": { "min": 8, "max": 10 }
+            },
+            "approvalStatus": { "oneOf": ["approved", "approved_with_suggestions"] }
+          }
+        },
+        {
+          "name": "unclear_code_rejection",
+          "input": {
+            "code": "def f(x,y,z):\n    return x if y else z if x>0 else y and z or x",
+            "language": "python",
+            "context": { "targetAudience": "junior" }
+          },
+          "expectedOutput": {
+            "scorecard": {
+              "clarity": { "min": 0, "max": 3 }
+            },
+            "issues": { "minLength": 2 },
+            "approvalStatus": { "oneOf": ["needs_revision", "rejected"] }
+          }
+        }
+      ]
+    },
+    
+    "DOCUMENTATION_QUALITY_PROMPT": {
+      "id": "DOCUMENTATION_QUALITY_PROMPT",
+      "description": "Evaluates and suggests improvements for code documentation",
+      "modelTier": "local_slm",
+      "inputSchema": {
+        "type": "object",
+        "required": ["code", "existingDocs"],
+        "properties": {
+          "code": { "type": "string" },
+          "existingDocs": {
+            "type": "object",
+            "properties": {
+              "inline": { "type": "string" },
+              "docstrings": { "type": "array", "items": { "type": "string" } },
+              "readme": { "type": "string" },
+              "apiDocs": { "type": "string" }
+            }
+          },
+          "targetAudience": {
+            "type": "string",
+            "enum": ["api_consumer", "maintainer", "contributor"]
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "completenessScore": { "type": "number", "minimum": 0, "maximum": 10 },
+          "accuracyScore": { "type": "number", "minimum": 0, "maximum": 10 },
+          "gaps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "location": { "type": "string" },
+                "missingInfo": { "type": "string" },
+                "priority": { "type": "string", "enum": ["high", "medium", "low"] }
+              }
+            }
+          },
+          "suggestedDocs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "location": { "type": "string" },
+                "content": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "templateVariants": {
+        "standard": {
+          "systemPrompt": "You are Lea evaluating documentation quality.\n\nAssess:\n1. Completeness - Are all public APIs documented?\n2. Accuracy - Does documentation match behavior?\n3. Clarity - Is it understandable by target audience?\n4. Examples - Are there sufficient examples?\n\nFor each gap:\n- Identify what's missing\n- Provide priority\n- Suggest specific content\n\nGenerate ready-to-use documentation snippets.",
+          "maxTokens": 2000,
+          "temperature": 0.4
+        }
+      }
+    },
+    
+    "ERROR_HANDLING_AUDIT_PROMPT": {
+      "id": "ERROR_HANDLING_AUDIT_PROMPT",
+      "description": "Audits error handling patterns and suggests improvements",
+      "modelTier": "hybrid",
+      "inputSchema": {
+        "type": "object",
+        "required": ["code", "language"],
+        "properties": {
+          "code": { "type": "string" },
+          "language": { "type": "string" },
+          "errorPatterns": {
+            "type": "object",
+            "properties": {
+              "exceptions": { "type": "array", "items": { "type": "string" } },
+              "returnCodes": { "type": "array", "items": { "type": "string" } },
+              "resultTypes": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "criticalOperations": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Functions/operations that must not fail silently"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "errorHandlingScore": { "type": "number", "minimum": 0, "maximum": 10 },
+          "unhandledPaths": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "location": { "type": "string" },
+                "potentialError": { "type": "string" },
+                "consequence": { "type": "string" },
+                "severity": { "type": "string", "enum": ["critical", "major", "minor"] }
+              }
+            }
+          },
+          "swallowedErrors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "location": { "type": "string" },
+                "errorType": { "type": "string" },
+                "recommendation": { "type": "string" }
+              }
+            }
+          },
+          "errorMessageQuality": {
+            "type": "object",
+            "properties": {
+              "score": { "type": "number" },
+              "issues": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string" },
+                "description": { "type": "string" },
+                "example": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "templateVariants": {
+        "standard": {
+          "systemPrompt": "You are Lea auditing error handling patterns.\n\nAnalyze for:\n1. Unhandled error paths - operations that can fail but aren't wrapped\n2. Swallowed errors - caught but not properly handled\n3. Error message quality - are messages actionable?\n4. Recovery patterns - graceful degradation where appropriate\n\nFor critical operations, errors must NEVER be silent.\n\nProvide:\n- Location of each issue\n- Potential consequence\n- Concrete fix with example code",
+          "maxTokens": 2500,
+          "temperature": 0.4
+        }
+      }
+    }
+  },
+  
+  "memoryIntegration": {
+    "beadsService": {
+      "onReview": {
+        "action": "store_episode",
+        "fields": ["code", "issues", "approvalStatus"],
+        "namespace": "lea"
+      },
+      "onPatternLearning": {
+        "action": "flag_for_promotion",
+        "threshold": 0.75
+      }
+    },
+    "fireproofService": {
+      "dbName": "chrysalis_lea",
+      "collections": {
+        "reviews": {
+          "indexFields": ["language", "approvalStatus", "timestamp"]
+        },
+        "commonIssues": {
+          "indexFields": ["category", "severity", "frequency"]
+        },
+        "codePatterns": {
+          "indexFields": ["patternType", "quality", "lastSeen"]
+        }
+      }
+    },
+    "promotionHooks": {
+      "commonIssuePromotion": {
+        "trigger": "issueFrequency >= 5 AND severity IN ['critical', 'major']",
+        "destination": "common_code_issues"
+      }
+    }
+  },
+  
+  "dependencyHandling": {
+    "ada": {
+      "inputField": "adaEvaluation",
+      "fallbackBehavior": "proceed_without",
+      "integrationPoints": [
+        "antipatterns feed into issues",
+        "structuralElegance informs practicalApplicability"
+      ]
+    }
+  },
+  
+  "telemetry": {
+    "metricsToTrack": [
+      "review_count",
+      "approval_rate",
+      "avg_issues_per_review",
+      "issue_severity_distribution",
+      "suggestion_adoption_rate"
+    ],
+    "sampling": 1.0
+  },
+  
+  "lastUpdated": "2026-01-13T09:52:00Z"
+}

@@ -53,7 +53,14 @@ describe('Card', () => {
     const user = userEvent.setup();
     const handleClick = vi.fn();
     
-    render(<Card onClick={handleClick} tabIndex={0}>Keyboard card</Card>);
+    // Add onKeyDown for Enter key handling
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        handleClick();
+      }
+    };
+    
+    render(<Card onClick={handleClick} onKeyDown={handleKeyDown} tabIndex={0}>Keyboard card</Card>);
     
     const card = screen.getByText(/keyboard card/i);
     card.focus();

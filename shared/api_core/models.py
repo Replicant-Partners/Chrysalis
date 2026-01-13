@@ -68,7 +68,7 @@ class ErrorDetail:
 
 
 @dataclass
-class APIError:
+class APIError(Exception):
     """Standard API error structure."""
     code: ErrorCode
     message: str
@@ -79,6 +79,9 @@ class APIError:
     documentation_url: Optional[str] = None
     retry_after: Optional[int] = None
     suggestions: List[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        super().__init__(self.message)
 
     @classmethod
     def from_exception(

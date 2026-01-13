@@ -1,0 +1,22 @@
+[
+  {
+    "fileName": "main-overview.mdc",
+    "description": "Comprehensive overview of the Universal Protocol Translation System, including semantic mapping architecture, protocol registry system, and high-level data flows"
+  },
+  {
+    "fileName": "semantic-categories.mdc",
+    "description": "Detailed documentation of the semantic category system, including category definitions, mapping rules, and meaning-based field translation algorithms"
+  },
+  {
+    "fileName": "protocol-registry.mdc",
+    "description": "Complete specification of the protocol registry system, including semantic hints, trust levels, fallback schemas, and field mapping mechanisms"
+  },
+  {
+    "fileName": "morphing-algorithms.mdc",
+    "description": "In-depth documentation of the agent morphing algorithms, including bidirectional translation processes, confidence scoring, and semantic preservation techniques"
+  },
+  {
+    "fileName": "data-flow-patterns.mdc",
+    "description": "Comprehensive documentation of data flows between components, including protocol translation paths, semantic preservation mechanisms, and extension field handling"
+  }
+]

@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { ThreeFrameLayout } from './components/ThreeFrameLayout/ThreeFrameLayout';
+import { CanvasNavigator, type CanvasTab, type Agent, type CanvasType } from './components/CanvasNavigator';
 import { ChatPane } from './components/ChatPane/ChatPane';
 import { JSONCanvas } from './components/JSONCanvas/JSONCanvas';
 import { WalletModal } from './components/Wallet';
@@ -155,11 +156,38 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
     autoConnect: true
   });
 
-  // Local UI state
+  // Local UI state - Canvas navigation
+  const [canvases, setCanvases] = useState<CanvasTab[]>([
+    { id: 'canvas-0', index: 0, type: 'settings', title: 'Settings', isFixed: true },
+    { id: 'canvas-1', index: 1, type: 'scrapbook', title: 'Canvas 1', isFixed: false },
+    { id: 'canvas-2', index: 2, type: 'storyboard', title: 'Canvas 2', isFixed: false },
+    { id: 'canvas-3', index: 3, type: 'remixer', title: 'Canvas 3', isFixed: false },
+    { id: 'canvas-4', index: 4, type: 'video', title: 'Canvas 4', isFixed: false },
+  ]);
+  const [activeCanvasId, setActiveCanvasId] = useState('canvas-0');
+  
+  // Agent roster
+  const [agents] = useState<Agent[]>([
+    { id: 'ada', name: 'Ada Lovelace', role: 'Creative Coach', status: 'active' },
+    { id: 'dgv', name: 'DGV', role: 'Action Executor', status: 'active' },
+    { id: 'milton', name: 'Milton', role: 'Ops Guardian', status: 'idle' },
+  ]);
+
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [voyeurOpen, setVoyeurOpen] = useState(false);
 
-  // Handlers
+  // Canvas handlers
+  const handleCanvasSelect = useCallback((canvasId: string) => {
+    setActiveCanvasId(canvasId);
+  }, []);
+
+  const handleCanvasTypeChange = useCallback((canvasId: string, newType: CanvasType) => {
+    setCanvases(prev => prev.map(canvas => 
+      canvas.id === canvasId ? { ...canvas, type: newType } : canvas
+    ));
+  }, []);
+
+  // Chat handlers
   const handleHumanSendMessage = useCallback((content: string) => {
     terminal.actions.sendHumanMessage(content);
   }, [terminal.actions]);
@@ -179,6 +207,7 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
   // Computed values
   const participantCount = terminal.session?.participants.length || 0;
   const widgetCount = terminal.canvas.nodes.filter(n => n.type === 'widget').length;
+  const activeCanvas = canvases.find(c => c.id === activeCanvasId);
 
   return (
     <div style={{ 
@@ -201,25 +230,55 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
               />
             }
       leftPane={
-        <ChatPane
-          side="left"
-          messages={terminal.leftPane.messages}
-          isTyping={terminal.leftPane.isTyping}
-          onSendMessage={handleAgentSendMessage}
-          onTypingChange={terminal.actions.setAgentTyping}
-          title="🤖 Learning Agent"
+        <CanvasNavigator
+          canvases={canvases}
+          activeCanvasId={activeCanvasId}
+          agents={agents}
+          onCanvasSelect={handleCanvasSelect}
+          onCanvasTypeChange={handleCanvasTypeChange}
         />
       }
       centerPane={
-        <JSONCanvas
-          nodes={terminal.canvas.nodes}
-          edges={terminal.canvas.edges}
-          viewport={terminal.canvas.viewport}
-          onViewportChange={handleViewportChange}
-          onNodeSelect={setSelectedNodeId}
-          onNodeMove={handleNodeMove}
-          selectedNodeId={selectedNodeId}
-        />
+        <div style={{ 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          background: 'var(--color-slate-900)'
+        }}>
+          <div style={{ 
+            padding: 'var(--space-4)', 
+            borderBottom: '1px solid var(--color-slate-800)',
+            background: 'var(--color-slate-850)'
+          }}>
+            <h2 style={{ 
+              margin: 0, 
+              fontSize: 'var(--font-size-lg)',
+              fontWeight: 'var(--font-weight-semibold)',
+              color: 'var(--color-text-primary)'
+            }}>
+              {activeCanvas?.type === 'settings' ? '⚙️ ' : ''}{activeCanvas?.title}
+              <span style={{ 
+                marginLeft: 'var(--space-3)',
+                fontSize: 'var(--font-size-sm)',
+                color: 'var(--color-text-tertiary)',
+                fontWeight: 'var(--font-weight-normal)'
+              }}>
+                {activeCanvas?.type}
+              </span>
+            </h2>
+          </div>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <JSONCanvas
+              nodes={terminal.canvas.nodes}
+              edges={terminal.canvas.edges}
+              viewport={terminal.canvas.viewport}
+              onViewportChange={handleViewportChange}
+              onNodeSelect={setSelectedNodeId}
+              onNodeMove={handleNodeMove}
+              selectedNodeId={selectedNodeId}
+            />
+          </div>
+        </div>
       }
       rightPane={
         <ChatPane

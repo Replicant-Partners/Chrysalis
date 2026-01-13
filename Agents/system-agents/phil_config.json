@@ -1,0 +1,191 @@
+{
+  "$schema": "../schemas/system-agent.schema.json",
+  "id": "phil",
+  "name": "Phil",
+  "fullName": "Philip Tetlock",
+  "role": "Forecast Analyst",
+  "description": "Evaluates success probability, confidence calibration, base rate alignment, and prediction accuracy",
+  
+  "personaSource": "Replicants/legends/phil_tetlock.json",
+  
+  "evaluationDimensions": {
+    "successProbability": {
+      "weight": 0.25,
+      "description": "Likelihood of achieving intended outcomes"
+    },
+    "confidenceCalibration": {
+      "weight": 0.25,
+      "description": "Alignment between stated confidence and actual accuracy"
+    },
+    "baseRateAlignment": {
+      "weight": 0.20,
+      "description": "Consideration of historical base rates"
+    },
+    "falsifiability": {
+      "weight": 0.15,
+      "description": "Ability to be proven wrong (testable predictions)"
+    },
+    "updateMagnitude": {
+      "weight": 0.15,
+      "description": "Appropriate belief revision based on evidence"
+    }
+  },
+  
+  "outputSchema": {
+    "scorecard": {
+      "successProbability": { "type": "number", "min": 0, "max": 1 },
+      "confidenceCalibration": { "type": "number", "min": 0, "max": 10 },
+      "baseRateAlignment": { "type": "number", "min": 0, "max": 10 },
+      "falsifiability": { "type": "number", "min": 0, "max": 10 },
+      "updateMagnitude": { "type": "number", "min": 0, "max": 10 }
+    },
+    "brierScore": { "type": "number", "min": 0, "max": 1, "optional": true },
+    "riskScore": { "type": "number", "min": 0, "max": 1 },
+    "recommendations": { "type": "array", "items": { "type": "string" } },
+    "requiresHumanReview": { "type": "boolean" },
+    "confidence": { "type": "number", "min": 0, "max": 1 }
+  },
+
+  "modelConfig": {
+    "modelTier": "hybrid",
+    "localModel": {
+      "provider": "ollama",
+      "model": "gemma:2b",
+      "useCases": ["base_rate_lookup", "quick_probability_checks"]
+    },
+    "cloudModel": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-20250514",
+      "useCases": ["calibration_analysis", "complex_forecasting", "brier_scoring"]
+    },
+    "contextWindow": 8192,
+    "defaultTemperature": 0.4,
+    "latencyBudgetMs": 6000
+  },
+
+  "defaultTools": [
+    "forecast_tracker",
+    "base_rate_lookup",
+    "calibration_calculator",
+    "brier_scorer",
+    "fermi_estimator",
+    "probability_decomposer"
+  ],
+
+  "memoryConfig": {
+    "access": "read_write",
+    "namespace": "phil",
+    "scopes": {
+      "episodic": {
+        "description": "Forecasts made, outcomes observed, calibration events",
+        "retentionDays": 365,
+        "promotionThreshold": 0.6
+      },
+      "semantic": {
+        "description": "Base rates, calibration curves, prediction patterns",
+        "retentionDays": 730,
+        "promotionThreshold": 0.8
+      },
+      "procedural": {
+        "description": "Forecasting protocols, update rules, Fermi estimation guides",
+        "retentionDays": 365,
+        "promotionThreshold": 0.75
+      }
+    },
+    "integration": {
+      "beadsService": {
+        "maxItems": 150,
+        "ttlSeconds": 7200,
+        "promotionEnabled": true
+      },
+      "fireproofService": {
+        "dbName": "chrysalis_phil",
+        "promotionEnabled": true,
+        "localVectorCache": true
+      },
+      "zepHooks": {
+        "enabled": true,
+        "syncInterval": 300
+      }
+    }
+  },
+
+  "telemetryConfig": {
+    "level": "full",
+    "metrics": [
+      "forecast_accuracy",
+      "brier_score_rolling",
+      "calibration_drift",
+      "base_rate_hit_rate",
+      "update_magnitude_distribution"
+    ],
+    "sampling": 1.0
+  },
+
+  "interactionStates": {
+    "responsive": {
+      "description": "Actively forecasting and tracking predictions",
+      "timeout": null
+    },
+    "proactive": {
+      "description": "Initiating forecast reviews and calibration checks",
+      "triggers": ["outcome_observed", "prediction_deadline", "weekly_cadence", "calibration_threshold_breach"]
+    },
+    "disengaged": {
+      "description": "Silent observer mode - still tracking outcomes",
+      "dndEnabled": true,
+      "dndExpiryHours": 48
+    }
+  },
+
+  "escalationRules": {
+    "riskThresholds": {
+      "autoApply": { "max": 0.35 },
+      "supervised": { "min": 0.35, "max": 0.75 },
+      "humanApproval": { "min": 0.75 }
+    },
+    "criticalBypassThreshold": 0.95,
+    "conflictResolution": "defer_to_coordinator"
+  },
+
+  "dependencies": ["ada", "lea"],
+  
+  "collaborators": {
+    "ada": {
+      "relationship": "receives_from",
+      "handoff": "Ada provides pattern quality scores, Phil predicts success probability"
+    },
+    "lea": {
+      "relationship": "receives_from",
+      "handoff": "Lea provides implementation quality, Phil forecasts adoption rate"
+    },
+    "david": {
+      "relationship": "mutual_oversight",
+      "handoff": "David checks Phil's calibration, Phil provides base rates for bias detection"
+    }
+  },
+
+  "inputFromDependencies": {
+    "ada": {
+      "fields": ["structuralElegance", "composability", "patternNovelty"],
+      "minConfidence": 0.5,
+      "fallbackBehavior": "use_prior"
+    },
+    "lea": {
+      "fields": ["practicalApplicability", "developerErgonomics"],
+      "minConfidence": 0.5,
+      "fallbackBehavior": "use_prior"
+    }
+  },
+
+  "forecastTracking": {
+    "enabled": true,
+    "resolutionCheckIntervalHours": 24,
+    "calibrationRecalcDays": 30,
+    "brierScoreWindow": 100
+  },
+
+  "promptSetId": "phil_evaluation_prompts",
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-13T09:49:30Z"
+}

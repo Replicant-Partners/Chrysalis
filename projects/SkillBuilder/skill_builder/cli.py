@@ -84,6 +84,36 @@ def create_parser() -> argparse.ArgumentParser:
     )
     setup_parser.set_defaults(func=cmd_setup)
 
+    # Non-interactive run command
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Run SkillBuilder pipeline from a spec file",
+    )
+    run_parser.add_argument(
+        "--spec",
+        required=True,
+        help="Path to a FrontendSpec YAML file",
+    )
+    run_parser.add_argument(
+        "--iterations",
+        type=int,
+        default=None,
+        help="Override deepening cycles (0-11)",
+    )
+    run_parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Override output directory for artifacts",
+    )
+    run_parser.add_argument(
+        "--telemetry",
+        action="store_true",
+        default=False,
+        help="Enable telemetry export (default disabled for CLI runs)",
+    )
+    run_parser.set_defaults(func=cmd_run)
+
     # Batch merge command
     merge_parser = subparsers.add_parser(
         "batch-merge",
@@ -430,6 +460,60 @@ def cmd_setup(args: argparse.Namespace) -> int:
     except Exception as e:
         print(f"Error checking setup: {e}", file=sys.stderr)
         return 1
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    """Run SkillBuilder pipeline using a supplied spec YAML."""
+    from skill_builder.pipeline.runner import run_pipeline
+    from skill_builder.pipeline.models import FrontendSpec
+
+    spec_path = Path(getattr(args, "spec", "")).expanduser()
+    if not spec_path.exists():
+        print(f"❌ Spec file not found: {spec_path}", file=sys.stderr)
+        return 1
+
+    try:
+        spec = FrontendSpec.from_yaml(spec_path)
+    except Exception as exc:  # noqa: BLE001
+        print(f"❌ Failed to load spec: {exc}", file=sys.stderr)
+        return 1
+
+    iterations = getattr(args, "iterations", None)
+    if iterations is not None:
+        bounded = max(0, min(11, int(iterations)))
+        spec = spec.with_overrides(deepening_cycles=bounded)
+
+    output_override = getattr(args, "output_dir", None)
+    if output_override:
+        out_path = Path(output_override).expanduser()
+        out_path.mkdir(parents=True, exist_ok=True)
+        spec = spec.with_overrides(out_dir=out_path)
+
+    telemetry_enabled = bool(getattr(args, "telemetry", False))
+
+    print(f"--- Running SkillBuilder for spec: {spec.mode_name}")
+    print(f"    Source: {spec_path}")
+    if iterations is not None:
+        print(f"    Deepening cycles override: {spec.deepening_cycles}")
+    if output_override:
+        print(f"    Output dir: {spec.out_dir / spec.mode_name}")
+    print(f"    Telemetry: {'enabled' if telemetry_enabled else 'disabled'}")
+
+    result = run_pipeline(spec, telemetry_enabled=telemetry_enabled)
+
+    if not result.success:
+        print(f"❌ Pipeline failed: {result.error}", file=sys.stderr)
+        return 1
+
+    print(f"✅ SkillBuilder run completed in {result.duration_ms:.0f} ms")
+    print(f"   Output directory: {result.output_dir}")
+    if result.written_files:
+        for artifact in result.written_files:
+            print(f"     - {artifact.name}")
+    print(f"   Skills generated: {len(result.skills)}")
+    print(f"   Semantic map entries: {len(result.semantic_map)}")
+
+    return 0
 
 
 def cmd_batch_merge(args: argparse.Namespace) -> int:

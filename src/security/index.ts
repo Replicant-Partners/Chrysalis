@@ -38,5 +38,15 @@ export {
   createApiKeyWallet
 } from './ApiKeyWallet';
 
+export {
+  ApiKeyRegistry,
+  ApiKeyRegistryRecord,
+  ApiKeyScope,
+  KeyRegistryEvent,
+  KeyRegistryEventHandler,
+  getApiKeyRegistry,
+  createApiKeyRegistry
+} from './ApiKeyRegistry';
+
 // Secure Canvas Manager
 // SecureCanvasManager removed in lean canvas mode

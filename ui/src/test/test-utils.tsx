@@ -14,12 +14,13 @@ import { WalletProvider } from '../contexts/WalletContext';
  */
 interface AllTheProvidersProps {
   children: ReactNode;
+  voyeurOptions?: any;
 }
 
-function AllTheProviders({ children }: AllTheProvidersProps) {
+function AllTheProviders({ children, voyeurOptions }: AllTheProvidersProps) {
   return (
     <WalletProvider>
-      <VoyeurProvider autoConnect={false}>
+      <VoyeurProvider autoConnect={false} {...voyeurOptions}>
         {children}
       </VoyeurProvider>
     </WalletProvider>

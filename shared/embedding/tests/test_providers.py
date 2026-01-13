@@ -1,5 +1,8 @@
 """
 Tests for embedding providers.
+
+Note: Voyage provider was deprecated due to dimension incompatibilities.
+OpenAI is now the primary provider.
 """
 import os
 import pytest
@@ -7,7 +10,6 @@ from unittest.mock import Mock, patch
 
 from shared.embedding.providers.deterministic import DeterministicProvider
 from shared.embedding.providers.openai import OpenAIProvider
-from shared.embedding.providers.voyage import VoyageProvider
 from shared.embedding.exceptions import EmbeddingError
 
 
@@ -74,9 +76,10 @@ class TestOpenAIProvider:
 
     def test_openai_provider_requires_api_key(self):
         """Test that OpenAI provider requires API key."""
-        with patch.dict(os.environ, {"OPENAI_API_KEY": "", "GPT_API_KEY": ""}, clear=True):
-            with pytest.raises(ValueError, match="OpenAI API key required"):
-                OpenAIProvider()
+        with patch('shared.embedding.providers.openai._OPENAI_AVAILABLE', True):
+            with patch.dict(os.environ, {"OPENAI_API_KEY": "", "GPT_API_KEY": ""}, clear=True):
+                with pytest.raises(ValueError, match="OpenAI API key required"):
+                    OpenAIProvider()
 
     @patch('shared.embedding.providers.openai._OPENAI_AVAILABLE', True)
     @patch('shared.embedding.providers.openai.OpenAI')
@@ -124,58 +127,3 @@ class TestOpenAIProvider:
                     provider = OpenAIProvider(api_key="test-key")
                     cost = provider.estimate_cost("test text with multiple words")
                     assert cost >= 0.0
-
-
-class TestVoyageProvider:
-    """Test Voyage provider."""
-
-    def test_voyage_provider_requires_api_key(self):
-        """Test that Voyage provider requires API key."""
-        with patch.dict(os.environ, {"VOYAGE_API_KEY": ""}, clear=True):
-            with pytest.raises(ValueError, match="Voyage API key required"):
-                VoyageProvider()
-
-    @patch('shared.embedding.providers.voyage._VOYAGE_AVAILABLE', True)
-    @patch('shared.embedding.providers.voyage.voyageai.Client')
-    def test_voyage_sdk_initialization(self, mock_voyage_client_class):
-        """Test Voyage SDK initialization."""
-        mock_client = Mock()
-        mock_voyage_client_class.return_value = mock_client
-
-        with patch.dict(os.environ, {"VOYAGE_API_KEY": "test-key"}):
-            provider = VoyageProvider(api_key="test-key", use_sdk=True)
-
-            assert provider.get_provider_name() == "voyage"
-            assert provider.get_dimensions() == 1024
-            assert provider.get_model_name() == "voyage-3"
-
-    @patch('shared.embedding.providers.voyage._VOYAGE_AVAILABLE', False)
-    def test_voyage_http_fallback(self):
-        """Test Voyage HTTP fallback when SDK not available."""
-        with patch.dict(os.environ, {"VOYAGE_API_KEY": "test-key"}):
-            provider = VoyageProvider(api_key="test-key", use_sdk=False)
-            assert provider.get_provider_name() == "voyage"
-
-    @patch('shared.embedding.providers.voyage._VOYAGE_AVAILABLE', True)
-    @patch('shared.embedding.providers.voyage.voyageai.Client')
-    def test_voyage_embed_success(self, mock_voyage_client_class):
-        """Test successful Voyage embedding."""
-        mock_client = Mock()
-        mock_result = Mock()
-        mock_result.embeddings = [[0.1] * 1024]
-        mock_client.embed.return_value = mock_result
-        mock_voyage_client_class.return_value = mock_client
-
-        with patch.dict(os.environ, {"VOYAGE_API_KEY": "test-key"}):
-            provider = VoyageProvider(api_key="test-key", use_sdk=True)
-            embedding = provider.embed("test text")
-
-            assert len(embedding) == 1024
-            mock_client.embed.assert_called_once()
-
-    def test_estimate_cost(self):
-        """Test cost estimation."""
-        with patch.dict(os.environ, {"VOYAGE_API_KEY": "test-key"}):
-            provider = VoyageProvider(api_key="test-key", use_sdk=False)
-            cost = provider.estimate_cost("test text")
-            assert cost >= 0.0

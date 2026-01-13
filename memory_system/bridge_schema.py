@@ -82,6 +82,7 @@ class BridgeMemoryLayer(str, Enum):
     PROCEDURAL = "procedural"
     WORKING = "working"
     ARCHIVAL = "archival"
+    DURABLE = "durable"  # Fireproof-backed durable tier (local-first with sync)
 
 
 @dataclass

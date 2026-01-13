@@ -52,6 +52,14 @@ from .result import (
 )
 from .filtering import apply_filter, apply_sorting
 from .list_helpers import apply_list_filters, process_list_items, process_list_request
+from .credentials import (
+    ProviderCredentials,
+    CredentialProvider,
+    HeaderCredentialProvider,
+    create_credentials_middleware,
+    get_request_credentials,
+    enforce_credentials,
+)
 
 # Flask-specific utilities (optional, requires Flask)
 try:
@@ -141,6 +149,13 @@ __all__ = [
     "SortParams",
     "ValidationError",
     "RequestValidator",
+    # Credentials
+    "ProviderCredentials",
+    "CredentialProvider",
+    "HeaderCredentialProvider",
+    "create_credentials_middleware",
+    "get_request_credentials",
+    "enforce_credentials",
     # Result Types (monadic error handling)
     "Result",
     "Success",

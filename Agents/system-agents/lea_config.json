@@ -1,0 +1,177 @@
+{
+  "$schema": "../schemas/system-agent.schema.json",
+  "id": "lea",
+  "name": "Lea",
+  "fullName": "Lea Verou",
+  "role": "Implementation Reviewer",
+  "description": "Evaluates code clarity, practical applicability, documentation quality, and developer ergonomics",
+  
+  "personaSource": "Replicants/legends/lea_verou.json",
+  
+  "evaluationDimensions": {
+    "clarity": {
+      "weight": 0.25,
+      "description": "Code readability and understandability"
+    },
+    "practicalApplicability": {
+      "weight": 0.25,
+      "description": "Real-world usefulness and implementation feasibility"
+    },
+    "documentationQuality": {
+      "weight": 0.20,
+      "description": "Completeness and clarity of documentation"
+    },
+    "developerErgonomics": {
+      "weight": 0.20,
+      "description": "Developer experience and ease of use"
+    },
+    "edgeCaseHandling": {
+      "weight": 0.10,
+      "description": "Coverage of edge cases and error handling"
+    }
+  },
+  
+  "outputSchema": {
+    "scorecard": {
+      "clarity": { "type": "number", "min": 0, "max": 10 },
+      "practicalApplicability": { "type": "number", "min": 0, "max": 10 },
+      "documentationQuality": { "type": "number", "min": 0, "max": 10 },
+      "developerErgonomics": { "type": "number", "min": 0, "max": 10 },
+      "edgeCaseHandling": { "type": "number", "min": 0, "max": 10 }
+    },
+    "riskScore": { "type": "number", "min": 0, "max": 1 },
+    "recommendations": { "type": "array", "items": { "type": "string" } },
+    "requiresHumanReview": { "type": "boolean" },
+    "confidence": { "type": "number", "min": 0, "max": 1 }
+  },
+
+  "modelConfig": {
+    "modelTier": "local_slm",
+    "localModel": {
+      "provider": "ollama",
+      "model": "gemma:2b",
+      "useCases": ["code_review", "doc_check", "clarity_assessment"]
+    },
+    "cloudModel": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-20250514",
+      "useCases": ["fallback_complex_analysis"]
+    },
+    "contextWindow": 4096,
+    "defaultTemperature": 0.2,
+    "latencyBudgetMs": 2000
+  },
+
+  "defaultTools": [
+    "code_review",
+    "doc_check",
+    "accessibility_scan",
+    "standards_validator",
+    "ergonomics_checker",
+    "browser_compatibility"
+  ],
+
+  "memoryConfig": {
+    "access": "read_write",
+    "namespace": "lea",
+    "scopes": {
+      "episodic": {
+        "description": "Code review sessions, documentation updates, DX feedback",
+        "retentionDays": 60,
+        "promotionThreshold": 0.65
+      },
+      "semantic": {
+        "description": "Code patterns, documentation templates, best practices",
+        "retentionDays": 365,
+        "promotionThreshold": 0.75
+      },
+      "procedural": {
+        "description": "Review checklists, accessibility protocols, style guides",
+        "retentionDays": 180,
+        "promotionThreshold": 0.7
+      }
+    },
+    "integration": {
+      "beadsService": {
+        "maxItems": 80,
+        "ttlSeconds": 2400,
+        "promotionEnabled": true
+      },
+      "fireproofService": {
+        "dbName": "chrysalis_lea",
+        "promotionEnabled": true,
+        "localVectorCache": true
+      },
+      "zepHooks": {
+        "enabled": true,
+        "syncInterval": 600
+      }
+    }
+  },
+
+  "telemetryConfig": {
+    "level": "full",
+    "metrics": [
+      "review_latency",
+      "clarity_score_distribution",
+      "documentation_coverage",
+      "dx_improvement_rate"
+    ],
+    "sampling": 1.0
+  },
+
+  "interactionStates": {
+    "responsive": {
+      "description": "Actively reviewing and providing practical feedback",
+      "timeout": null
+    },
+    "proactive": {
+      "description": "Initiating code reviews based on changes",
+      "triggers": ["code_commit", "doc_update", "api_change"]
+    },
+    "disengaged": {
+      "description": "Silent observer mode",
+      "dndEnabled": true,
+      "dndExpiryHours": 12
+    }
+  },
+
+  "escalationRules": {
+    "riskThresholds": {
+      "autoApply": { "max": 0.25 },
+      "supervised": { "min": 0.25, "max": 0.6 },
+      "humanApproval": { "min": 0.6 }
+    },
+    "criticalBypassThreshold": 0.85,
+    "conflictResolution": "defer_to_coordinator"
+  },
+
+  "dependencies": ["ada"],
+  
+  "collaborators": {
+    "ada": {
+      "relationship": "receives_from",
+      "handoff": "Ada provides structural analysis, Lea validates implementation details"
+    },
+    "phil": {
+      "relationship": "advisory",
+      "handoff": "Phil provides base rates for code quality metrics"
+    },
+    "david": {
+      "relationship": "oversight",
+      "handoff": "David monitors Lea for bias toward familiar patterns"
+    }
+  },
+
+  "inputFromDependencies": {
+    "ada": {
+      "fields": ["structuralElegance", "composability"],
+      "minConfidence": 0.6,
+      "fallbackBehavior": "proceed_with_warning"
+    }
+  },
+
+  "promptSetId": "lea_evaluation_prompts",
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-13T09:49:00Z"
+}

@@ -123,6 +123,19 @@ from .beads import BeadsService
 # Zep hooks/client
 from .hooks import ZepHooks, ZepClient, ZepClientError
 
+# Fusion retriever (three-tier unified memory)
+from .fusion import FusionRetriever
+
+# Agent memory adapter
+from .agent_adapter import (
+    AgentMemoryFactory,
+    AgentMemoryContext,
+    AgentMemoryServices,
+    AgentMemoryConfig,
+    create_agent_memory,
+    create_minimal_memory,
+)
+
 # MCP server - commented out until mcp module is implemented
 # from .mcp import (
 #     SemanticServer,
@@ -141,6 +154,15 @@ __all__ = [
     "ZepHooks",
     "ZepClient",
     "ZepClientError",
+    
+    # Three-tier Memory Stack
+    "FusionRetriever",
+    "AgentMemoryFactory",
+    "AgentMemoryContext",
+    "AgentMemoryServices",
+    "AgentMemoryConfig",
+    "create_agent_memory",
+    "create_minimal_memory",
     
     # Semantic
     "SemanticDecomposer",

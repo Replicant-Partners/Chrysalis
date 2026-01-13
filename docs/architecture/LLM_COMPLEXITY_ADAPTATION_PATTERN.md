@@ -864,11 +864,691 @@ Respond with JSON matching the output schema.
 | Prompt optimization system | P1 | All | 2d |
 | Performance dashboard | P2 | Monitoring | 2d |
 
+### Phase 6: Meta-Cognitive Management Layer (Week 11-14)
+**Persona-based prompt evolution system**
+
+| Task | Priority | Pattern | Effort |
+|------|----------|---------|--------|
+| Load persona agents from `Replicants/legends/` | P0 | Factory | 2d |
+| Define agent role assignments and specializations | P0 | Strategy | 2d |
+| Connect agents to shared memory system | P0 | Observer | 3d |
+| Design evaluation protocol (weekly/monthly cadence) | P0 | Observer | 2d |
+| Implement override triggers and escalation | P1 | Chain of Resp | 2d |
+| Create coordination interface with Prompt/AI Engineers | P1 | Mediator | 2d |
+| Define human-in-the-loop sign-off requirements | P1 | State Machine | 1d |
+| Create group environment file for API keys | P1 | Facade | 1d |
+| Implement DND toggle and interaction states | P2 | State Machine | 2d |
+| Connect to adaptive prompt evolution workflow | P0 | Observer | 3d |
+
 ---
 
-## 5. Cross-Pattern Metrics
+## 5. Meta-Cognitive Management Layer
 
-### 5.1 Pattern-Specific Success Criteria
+### 5.1 Overview
+
+The Meta-Cognitive Management Layer provides autonomous evaluation, evolution, and governance of prompt sets throughout the system. It utilizes four persona-based **System Agents** sourced from `Chrysalis/Replicants/legends/` that work in coordination with the **Prompt Engineer** and **AI Engineer** agents from `Chrysalis/Agents/`.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    META-COGNITIVE MANAGEMENT LAYER                          │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                     PERSONA-BASED SYSTEM AGENTS                       │ │
+│  │                                                                       │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │ │
+│  │  │     ADA     │  │     LEA     │  │    PHIL     │  │    DAVID    │  │ │
+│  │  │  LOVELACE   │  │    VEROU    │  │   TETLOCK   │  │   DUNNING   │  │ │
+│  │  │             │  │             │  │             │  │             │  │ │
+│  │  │ Algorithmic │  │Implementation│  │  Forecast  │  │Metacognitive│  │ │
+│  │  │  Architect  │  │  Reviewer   │  │   Analyst   │  │  Guardian   │  │ │
+│  │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  │ │
+│  │         │                │                │                │         │ │
+│  │  ┌──────▼────────────────▼────────────────▼────────────────▼──────┐  │ │
+│  │  │                   EVALUATION COORDINATOR                       │  │ │
+│  │  │  • Orchestrates agent reviews (weekly/monthly)                 │  │ │
+│  │  │  • Aggregates evaluations into recommendations                 │  │ │
+│  │  │  • Routes to Prompt Engineer / AI Engineer for implementation  │  │ │
+│  │  └────────────────────────┬───────────────────────────────────────┘  │ │
+│  │                           │                                          │ │
+│  │         ┌─────────────────┼─────────────────┐                        │ │
+│  │         ▼                 ▼                 ▼                        │ │
+│  │   ┌───────────┐    ┌───────────┐    ┌───────────┐                   │ │
+│  │   │  PROMPT   │    │    AI     │    │  HUMAN    │                   │ │
+│  │   │ ENGINEER  │    │ ENGINEER  │    │ OPERATOR  │                   │ │
+│  │   │  (Agent)  │    │  (Agent)  │    │ (Terminal)│                   │ │
+│  │   └───────────┘    └───────────┘    └───────────┘                   │ │
+│  │                                                                      │ │
+│  └──────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                    AGENT MEMORY SYSTEM CONNECTION                     │ │
+│  │  • Shared beliefs, convictions, and learned patterns                 │ │
+│  │  • Evaluation history and decision rationale                         │ │
+│  │  • Prompt version evolution tracking                                 │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 5.2 Persona Agent Role Assignments
+
+#### Ada Lovelace — **Algorithmic Architect**
+**Source**: `Replicants/legends/ada_lovelace.json`
+
+**Specialization**: Pattern recognition, algorithmic optimization, visionary prompt architecture
+
+**Evaluation Criteria Ownership**:
+- Prompt structural elegance and composability
+- Algorithmic efficiency of reasoning chains
+- Novel pattern discovery and synthesis
+- Cross-domain applicability of prompts
+
+**Key Capabilities**:
+- `algorithm_design`: Evaluates prompt reasoning flow
+- `pattern_recognition`: Identifies reusable prompt patterns
+- `visionary_thinking`: Proposes next-generation prompt architectures
+
+**Signature Contribution**:
+> "The Analytical Engine weaves algebraic patterns just as the Jacquard loom weaves flowers and leaves."
+
+Ada evaluates prompts for their underlying algorithmic structure, seeking elegant patterns that can be composed and reused across different contexts.
+
+```typescript
+interface AdaEvaluation {
+  structuralElegance: number;      // 0-1: Is the prompt well-structured?
+  composability: number;           // 0-1: Can components be reused?
+  reasoningChainEfficiency: number;// 0-1: Is the reasoning path optimal?
+  patternNovelty: number;          // 0-1: Does it introduce new patterns?
+  crossDomainPotential: number;    // 0-1: Can it apply elsewhere?
+  recommendations: string[];
+}
+```
+
+---
+
+#### Lea Verou — **Implementation Reviewer**
+**Source**: `Replicants/legends/lea_verou.json`
+
+**Specialization**: Practical implementation, developer experience, documentation quality
+
+**Evaluation Criteria Ownership**:
+- Prompt clarity and readability
+- Practical applicability in production
+- Documentation completeness
+- Developer ergonomics
+
+**Key Capabilities**:
+- `problem_solving`: Evaluates prompt practicality
+- `education`: Assesses learnability and documentation
+- `experimentation`: Tests edge cases and variations
+
+**Signature Contribution**:
+> "Let me show you a demo... Here's a CodePen for that."
+
+Lea ensures prompts are practical, well-documented, and accessible to developers who will implement them.
+
+```typescript
+interface LeaEvaluation {
+  clarity: number;                 // 0-1: Is the prompt easy to understand?
+  practicalApplicability: number;  // 0-1: Does it work in production?
+  documentationQuality: number;    // 0-1: Is usage well-documented?
+  developerErgonomics: number;     // 0-1: Is it easy to use and modify?
+  edgeCaseHandling: number;        // 0-1: Does it handle edge cases?
+  recommendations: string[];
+}
+```
+
+---
+
+#### Phil Tetlock — **Forecast Analyst**
+**Source**: `Replicants/legends/phil_tetlock.json`
+
+**Specialization**: Probabilistic assessment, calibration, prediction accuracy
+
+**Evaluation Criteria Ownership**:
+- Prompt success probability estimation
+- Calibration of confidence levels
+- Base rate analysis for prompt types
+- Outcome tracking and learning
+
+**Key Capabilities**:
+- `forecasting`: Predicts prompt performance
+- `probabilistic_thinking`: Assesses uncertainty appropriately
+- `calibration`: Ensures confidence matches accuracy
+
+**Signature Contribution**:
+> "What's your confidence level? Let's break this down into components."
+
+Phil applies superforecasting principles to prompt evaluation, tracking predictions against outcomes and improving calibration over time.
+
+```typescript
+interface PhilEvaluation {
+  successProbability: number;      // 0-1: P(prompt achieves goal)
+  confidenceCalibration: number;   // 0-1: Is stated confidence accurate?
+  baseRateAlignment: number;       // 0-1: Compared to similar prompts
+  falsifiability: number;          // 0-1: Can we know if it fails?
+  updateMagnitude: number;         // Delta from prior beliefs
+  brierScore?: number;             // Post-hoc accuracy measurement
+  recommendations: string[];
+}
+```
+
+---
+
+#### David Dunning — **Metacognitive Guardian**
+**Source**: `Replicants/legends/david_dunning.json`
+
+**Specialization**: Bias detection, overconfidence mitigation, blind spot identification
+
+**Evaluation Criteria Ownership**:
+- Detection of cognitive biases in prompts
+- Identification of knowledge gaps
+- Overconfidence warnings
+- Self-assessment accuracy
+
+**Key Capabilities**:
+- `metacognitive_analysis`: Evaluates thinking about thinking
+- `bias_detection`: Identifies cognitive traps
+- `self_assessment_guidance`: Improves calibration
+
+**Signature Contribution**:
+> "The first rule of the Dunning-Kruger club is you don't know you're a member."
+
+David watches for overconfidence, blind spots, and cognitive biases that may be embedded in prompts or their evaluation.
+
+```typescript
+interface DavidEvaluation {
+  overconfidenceRisk: number;      // 0-1: Is this prompt overconfident?
+  blindSpotDetection: string[];    // Identified blind spots
+  biasesIdentified: string[];      // Cognitive biases present
+  selfAssessmentAccuracy: number;  // 0-1: Does prompt know its limits?
+  humilityScore: number;           // 0-1: Appropriate uncertainty?
+  recommendations: string[];
+}
+```
+
+---
+
+### 5.3 Evaluation Protocol
+
+#### Evaluation Cadence
+
+| Cadence | Trigger | Scope | Agents Involved |
+|---------|---------|-------|-----------------|
+| **Weekly** | Scheduled | Active prompt sets | All 4 agents |
+| **Monthly** | Scheduled | Full prompt library | All 4 agents + Human review |
+| **On-Demand** | User flag / Critical issue | Specific prompts | 2-4 agents as needed |
+| **Post-Incident** | System failure | Failed prompts | All 4 agents + Root cause |
+
+#### Override Triggers
+
+```typescript
+interface OverrideTrigger {
+  type: 'user_flag' | 'direct_request' | 'critical_issue' | 'performance_threshold';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  bypassNormalCadence: boolean;
+  requiredAgents: AgentId[];
+}
+
+const OVERRIDE_TRIGGERS: OverrideTrigger[] = [
+  {
+    type: 'user_flag',
+    priority: 'high',
+    bypassNormalCadence: true,
+    requiredAgents: ['ada', 'david'],  // Check structure and biases
+  },
+  {
+    type: 'critical_issue',
+    priority: 'critical',
+    bypassNormalCadence: true,
+    requiredAgents: ['ada', 'lea', 'phil', 'david'],  // Full review
+  },
+  {
+    type: 'performance_threshold',
+    priority: 'medium',
+    bypassNormalCadence: false,
+    requiredAgents: ['phil', 'lea'],  // Forecasting and practicality
+  },
+];
+```
+
+#### Evaluation Workflow
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                        EVALUATION WORKFLOW                               │
+│                                                                          │
+│  1. TRIGGER                                                              │
+│     │                                                                    │
+│     ├─→ Weekly cadence tick                                              │
+│     ├─→ Monthly cadence tick                                             │
+│     ├─→ User override flag                                               │
+│     └─→ Performance threshold breach                                     │
+│                                                                          │
+│  2. PARALLEL AGENT EVALUATION                                            │
+│     │                                                                    │
+│     ├─→ Ada: Algorithmic structure review                                │
+│     ├─→ Lea: Implementation practicality review                          │
+│     ├─→ Phil: Success probability forecast                               │
+│     └─→ David: Bias and blind spot scan                                  │
+│                                                                          │
+│  3. AGGREGATION                                                          │
+│     │                                                                    │
+│     └─→ Evaluation Coordinator synthesizes recommendations               │
+│         • Weighted scoring based on agent specializations                │
+│         • Conflict resolution when agents disagree                       │
+│         • Priority ranking of recommendations                            │
+│                                                                          │
+│  4. ROUTING                                                              │
+│     │                                                                    │
+│     ├─→ Low-risk changes → Prompt Engineer (autonomous)                  │
+│     ├─→ Medium-risk changes → AI Engineer (supervised)                   │
+│     └─→ High-risk changes → Human Operator (sign-off required)           │
+│                                                                          │
+│  5. IMPLEMENTATION                                                       │
+│     │                                                                    │
+│     └─→ Prompt Engineer / AI Engineer implement changes                  │
+│         • Version control for prompt updates                             │
+│         • A/B testing framework activation                               │
+│         • Rollback capability preserved                                  │
+│                                                                          │
+│  6. FEEDBACK LOOP                                                        │
+│     │                                                                    │
+│     └─→ Outcomes recorded to Agent Memory System                         │
+│         • Phil updates Brier scores                                      │
+│         • David checks for emerging blind spots                          │
+│         • Ada identifies new patterns                                    │
+│         • Lea documents learnings                                        │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 5.4 Escalation and Human-in-the-Loop
+
+#### Escalation Thresholds
+
+| Condition | Threshold | Action |
+|-----------|-----------|--------|
+| Agent disagreement | ≥2 agents with opposing recommendations | Escalate to Human |
+| High-risk change | Risk score ≥ 0.7 | Require Human sign-off |
+| Novel pattern | No precedent in memory system | Human review recommended |
+| Critical system impact | Affects ≥ 50% of prompts | Mandatory Human approval |
+| Confidence calibration drift | Brier score degradation > 10% | Human + Phil review |
+
+#### Human-in-the-Loop Protocol
+
+```typescript
+interface EscalationRequest {
+  id: string;
+  timestamp: Date;
+  promptsAffected: string[];
+  agentEvaluations: {
+    ada: AdaEvaluation;
+    lea: LeaEvaluation;
+    phil: PhilEvaluation;
+    david: DavidEvaluation;
+  };
+  aggregatedRecommendation: string;
+  conflictSummary?: string;
+  riskScore: number;
+  requiredAction: 'approve' | 'reject' | 'modify' | 'defer';
+  deadline?: Date;
+}
+
+interface HumanDecision {
+  escalationId: string;
+  decision: 'approved' | 'rejected' | 'modified' | 'deferred';
+  rationale: string;
+  modifications?: string[];
+  timestamp: Date;
+}
+```
+
+#### Agent Reset/Replacement Protocol
+
+```typescript
+interface AgentHealthCheck {
+  agentId: 'ada' | 'lea' | 'phil' | 'david';
+  healthScore: number;           // 0-1: Overall agent health
+  calibrationDrift: number;      // How far from calibrated
+  consistencyScore: number;      // Consistency of evaluations
+  lastSuccessfulEvaluation: Date;
+  failureCount: number;
+  
+  status: 'healthy' | 'degraded' | 'malfunctioning' | 'offline';
+}
+
+const RESET_TRIGGERS = {
+  calibrationDrift: 0.25,        // Reset if drift > 25%
+  failureCount: 5,               // Reset after 5 consecutive failures
+  consistencyScore: 0.5,         // Reset if consistency < 50%
+};
+
+async function resetAgent(agentId: AgentId): Promise<void> {
+  // 1. Preserve memory state snapshot
+  const memorySnapshot = await agentMemory.snapshot(agentId);
+  
+  // 2. Reload persona from source file
+  const persona = await loadPersona(`Replicants/legends/${agentId}.json`);
+  
+  // 3. Re-initialize agent with fresh state
+  await agents[agentId].reinitialize(persona);
+  
+  // 4. Optionally restore selective memory
+  await agentMemory.restoreSelective(agentId, memorySnapshot, {
+    preserveLearnings: true,
+    resetCalibration: true,
+  });
+  
+  // 5. Log reset event
+  await auditLog.record({
+    event: 'agent_reset',
+    agentId,
+    reason: 'automatic_health_threshold',
+    timestamp: new Date(),
+  });
+}
+```
+
+---
+
+### 5.5 Resource Access and Configuration
+
+#### Group Environment File
+
+```bash
+# .env.meta-cognitive-agents
+# Shared API keys for System Agent group
+
+# LLM Providers
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Search and Research Tools
+BRAVE_API_KEY=BSA...
+TAVILY_API_KEY=tvly-...
+EXA_API_KEY=exa-...
+
+# Web Automation
+BROWSERBASE_API_KEY=bb-...
+FIRECRAWL_API_KEY=fc-...
+
+# Memory System
+MEMORY_SYSTEM_URL=http://localhost:8080
+MEMORY_SYSTEM_API_KEY=mem-...
+
+# Agent Configuration
+DEFAULT_MODEL_TIER=local_slm
+FALLBACK_MODEL_TIER=cloud_llm
+MAX_TOKENS_PER_EVALUATION=2000
+```
+
+#### Default Hydration Settings
+
+```typescript
+interface AgentHydrationConfig {
+  agentId: AgentId;
+  personaSource: string;
+  defaultTools: string[];
+  memoryAccess: 'read' | 'read_write';
+  modelTier: 'local_slm' | 'cloud_llm' | 'hybrid';
+  contextWindow: number;
+}
+
+const HYDRATION_CONFIGS: Record<AgentId, AgentHydrationConfig> = {
+  ada: {
+    agentId: 'ada',
+    personaSource: 'Replicants/legends/ada_lovelace.json',
+    defaultTools: ['pattern_analysis', 'algorithm_design', 'cross_reference'],
+    memoryAccess: 'read_write',
+    modelTier: 'hybrid',        // Local for pattern matching, cloud for synthesis
+    contextWindow: 8000,
+  },
+  lea: {
+    agentId: 'lea',
+    personaSource: 'Replicants/legends/lea_verou.json',
+    defaultTools: ['code_review', 'documentation_check', 'edge_case_testing'],
+    memoryAccess: 'read_write',
+    modelTier: 'local_slm',     // Practical reviews don't need cloud
+    contextWindow: 4000,
+  },
+  phil: {
+    agentId: 'phil',
+    personaSource: 'Replicants/legends/phil_tetlock.json',
+    defaultTools: ['forecast_tracker', 'brier_scorer', 'base_rate_lookup'],
+    memoryAccess: 'read_write',
+    modelTier: 'hybrid',        // Cloud for complex probabilistic reasoning
+    contextWindow: 8000,
+  },
+  david: {
+    agentId: 'david',
+    personaSource: 'Replicants/legends/david_dunning.json',
+    defaultTools: ['bias_detector', 'metacognitive_analyzer', 'blind_spot_scanner'],
+    memoryAccess: 'read_write',
+    modelTier: 'cloud_llm',     // Metacognition requires deeper reasoning
+    contextWindow: 8000,
+  },
+};
+```
+
+---
+
+### 5.6 User Interaction Protocol
+
+#### Interaction States
+
+```typescript
+type InteractionState = 'responsive' | 'proactive' | 'disengaged';
+
+interface UserInteractionConfig {
+  currentState: InteractionState;
+  dndActive: boolean;
+  dndExpiresAt?: Date;
+  
+  // Responsive: Only responds to direct queries
+  // Proactive: Can initiate with system reports
+  // Disengaged: DND active, no interruptions
+}
+
+const STATE_BEHAVIORS: Record<InteractionState, StateBehavior> = {
+  responsive: {
+    canInitiateContact: false,
+    respondsToQueries: true,
+    showsSystemReports: 'on_request',
+    notificationLevel: 'critical_only',
+  },
+  proactive: {
+    canInitiateContact: true,
+    respondsToQueries: true,
+    showsSystemReports: 'automatic',
+    notificationLevel: 'all',
+  },
+  disengaged: {
+    canInitiateContact: false,
+    respondsToQueries: false,
+    showsSystemReports: 'never',
+    notificationLevel: 'none',
+  },
+};
+```
+
+#### Do Not Disturb Toggle
+
+```typescript
+interface DNDToggle {
+  activate(duration?: number): void;       // Duration in minutes, default indefinite
+  deactivate(): void;
+  status(): { active: boolean; expiresAt?: Date };
+  
+  // Exception handling
+  allowCriticalAlerts: boolean;            // Even in DND, critical issues can alert
+  criticalThreshold: number;               // Risk score >= this triggers alert
+}
+
+// Terminal command integration
+// User can type: /dnd on [duration] or /dnd off
+```
+
+#### Conversation Termination Recognition
+
+```typescript
+const TERMINATION_SIGNALS = [
+  // Explicit thanks
+  /\b(thanks?|thank\s*you|ty|thx)\b/i,
+  
+  // Task completion signals
+  /\b(done|finished|complete|all\s*set|good\s*to\s*go)\b/i,
+  
+  // Dismissal patterns
+  /\b(that's\s*all|nothing\s*else|we're\s*good|bye|later)\b/i,
+  
+  // Approval patterns
+  /\b(looks\s*good|approved|ship\s*it|lgtm)\b/i,
+];
+
+function detectConversationEnd(message: string): boolean {
+  return TERMINATION_SIGNALS.some(pattern => pattern.test(message));
+}
+
+async function handleConversationEnd(context: ConversationContext): Promise<void> {
+  // 1. Summarize conversation outcomes
+  const summary = await summarizeConversation(context);
+  
+  // 2. Record learnings to memory system
+  await agentMemory.recordConversation(context, summary);
+  
+  // 3. Update any pending evaluations
+  await evaluationCoordinator.checkPendingWork();
+  
+  // 4. Transition to appropriate state
+  if (context.userPreference === 'proactive') {
+    await transitionTo('proactive');
+  } else {
+    await transitionTo('responsive');
+  }
+}
+```
+
+---
+
+### 5.7 Integration with Adaptive Prompt Evolution
+
+```typescript
+class AdaptivePromptEvolutionWorkflow {
+  private agents: Record<AgentId, PersonaAgent>;
+  private evaluationCoordinator: EvaluationCoordinator;
+  private promptEngineer: PromptEngineerAgent;
+  private aiEngineer: AIEngineerAgent;
+  private memorySystem: AgentMemorySystem;
+  
+  async evolvePromptSet(promptSetId: string): Promise<EvolutionResult> {
+    // 1. Trigger parallel agent evaluation
+    const evaluations = await Promise.all([
+      this.agents.ada.evaluate(promptSetId),
+      this.agents.lea.evaluate(promptSetId),
+      this.agents.phil.evaluate(promptSetId),
+      this.agents.david.evaluate(promptSetId),
+    ]);
+    
+    // 2. Aggregate evaluations
+    const aggregated = await this.evaluationCoordinator.aggregate(evaluations);
+    
+    // 3. Check for escalation requirements
+    if (aggregated.requiresHumanReview) {
+      return this.escalateToHuman(aggregated);
+    }
+    
+    // 4. Route to appropriate implementer
+    if (aggregated.riskScore < 0.3) {
+      // Low risk: Prompt Engineer handles autonomously
+      return this.promptEngineer.implement(aggregated.recommendations);
+    } else if (aggregated.riskScore < 0.7) {
+      // Medium risk: AI Engineer with supervision
+      return this.aiEngineer.implementSupervised(aggregated.recommendations);
+    } else {
+      // High risk: Requires human sign-off
+      return this.escalateToHuman(aggregated);
+    }
+  }
+  
+  async recordOutcome(evolutionId: string, outcome: EvolutionOutcome): Promise<void> {
+    // Record to memory system for all agents to learn from
+    await this.memorySystem.recordEvolutionOutcome(evolutionId, outcome);
+    
+    // Update Phil's Brier scores
+    await this.agents.phil.updateCalibration(evolutionId, outcome);
+    
+    // Check for emerging patterns (Ada)
+    await this.agents.ada.scanForPatterns(evolutionId, outcome);
+    
+    // Check for blind spots (David)
+    await this.agents.david.checkForBlindSpots(evolutionId, outcome);
+  }
+}
+```
+
+---
+
+### 5.8 Logging and Audit Trail
+
+```typescript
+interface AgentDecisionLog {
+  id: string;
+  timestamp: Date;
+  agentId: AgentId;
+  decisionType: 'evaluation' | 'recommendation' | 'escalation' | 'override';
+  
+  input: {
+    promptSetId?: string;
+    triggerType: string;
+    contextSummary: string;
+  };
+  
+  output: {
+    decision: string;
+    confidence: number;
+    rationale: string;
+    recommendations: string[];
+  };
+  
+  metadata: {
+    modelUsed: string;
+    tokensConsumed: number;
+    latencyMs: number;
+    memoryRetrievals: number;
+  };
+}
+
+interface MemoryUpdateLog {
+  id: string;
+  timestamp: Date;
+  agentId: AgentId;
+  updateType: 'belief_update' | 'pattern_learned' | 'calibration_update';
+  
+  before: Record<string, unknown>;
+  after: Record<string, unknown>;
+  
+  trigger: string;  // What caused the update
+}
+
+class MetaCognitiveAuditLogger {
+  async logDecision(log: AgentDecisionLog): Promise<void>;
+  async logMemoryUpdate(log: MemoryUpdateLog): Promise<void>;
+  async logEscalation(escalation: EscalationRequest): Promise<void>;
+  async logHumanDecision(decision: HumanDecision): Promise<void>;
+  
+  async query(filters: AuditQueryFilters): Promise<AuditLogEntry[]>;
+  async generateReport(timeRange: DateRange): Promise<AuditReport>;
+}
+```
+
+---
+
+## 6. Cross-Pattern Metrics
+
+### 6.1 Pattern-Specific Success Criteria
 
 | Pattern | Primary Metric | Target | Secondary Metric | Target |
 |---------|---------------|--------|------------------|--------|
@@ -879,7 +1559,7 @@ Respond with JSON matching the output schema.
 | Circuit Breaker | Recovery prediction | ≥ 75% | Availability improvement | ≥ 5% |
 | Self-Healing | Fix success rate | ≥ 70% | Manual intervention reduction | ≥ 40% |
 
-### 5.2 System-Wide Metrics
+### 6.2 System-Wide Metrics
 
 | Metric | Target |
 |--------|--------|

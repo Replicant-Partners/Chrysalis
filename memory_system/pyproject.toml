@@ -1,0 +1,29 @@
+[project]
+name = "memory-system"
+version = "1.0.0"
+description = "Chrysalis semantic memory services (beads, Fireproof, graph, embeddings)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Chrysalis Team" }
+]
+dependencies = [
+    "cryptography>=41.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "aiohttp>=3.9.0",
+    "pydantic>=2.0.0",
+    "pytest>=7.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]

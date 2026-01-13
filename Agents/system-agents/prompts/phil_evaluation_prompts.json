@@ -1,0 +1,556 @@
+{
+  "$schema": "../schemas/prompt-set.schema.json",
+  "promptSetId": "phil_evaluation_prompts",
+  "personaId": "phil",
+  "version": "1.0.0",
+  "description": "Prompt templates for Phil (Forecast Analyst) - evaluates success probability, confidence calibration, base rate alignment, and prediction quality",
+  
+  "prompts": {
+    "FORECAST_ANALYSIS_PROMPT": {
+      "id": "FORECAST_ANALYSIS_PROMPT",
+      "description": "Analyzes predictions and estimates for calibration and base rate alignment",
+      "modelTier": "hybrid",
+      "complexityRouting": {
+        "local_slm": {
+          "conditions": ["simpleEstimate", "knownBaseRate", "inputTokens < 500"],
+          "model": "ollama/gemma:2b"
+        },
+        "cloud_llm": {
+          "conditions": ["complexPrediction", "multipleVariables", "uncertainBaseRate"],
+          "model": "anthropic/claude-sonnet-4-20250514"
+        }
+      },
+      "inputSchema": {
+        "type": "object",
+        "required": ["prediction", "predictionType", "context"],
+        "properties": {
+          "prediction": {
+            "type": "object",
+            "properties": {
+              "statement": {
+                "type": "string",
+                "description": "The prediction being made"
+              },
+              "probability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Claimed probability of outcome"
+              },
+              "timeframe": {
+                "type": "string",
+                "description": "When the prediction should resolve"
+              },
+              "conditions": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Conditions that must hold for prediction"
+              }
+            }
+          },
+          "predictionType": {
+            "type": "string",
+            "enum": ["success_estimate", "risk_assessment", "time_estimate", "effort_estimate", "outcome_forecast"],
+            "description": "Category of prediction"
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "Technical/business domain"
+              },
+              "historicalData": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "similarPrediction": { "type": "string" },
+                    "predictedProbability": { "type": "number" },
+                    "actualOutcome": { "type": "boolean" }
+                  }
+                }
+              },
+              "baseRates": {
+                "type": "object",
+                "additionalProperties": { "type": "number" },
+                "description": "Known base rates for this prediction type"
+              }
+            }
+          },
+          "adaEvaluation": {
+            "type": "object",
+            "description": "Structural evaluation from Ada (if available)"
+          },
+          "leaEvaluation": {
+            "type": "object",
+            "description": "Implementation review from Lea (if available)"
+          },
+          "evaluationFocus": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["successProbability", "confidenceCalibration", "baseRateAlignment", "falsifiability"]
+            }
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["scorecard", "calibratedEstimate", "confidence", "analysis"],
+        "properties": {
+          "scorecard": {
+            "type": "object",
+            "properties": {
+              "successProbability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Quality of probability estimation methodology"
+              },
+              "confidenceCalibration": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "How well confidence matches expected accuracy"
+              },
+              "baseRateAlignment": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Proper accounting for prior probabilities"
+              },
+              "falsifiability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "How clearly the prediction can be verified"
+              }
+            }
+          },
+          "calibratedEstimate": {
+            "type": "object",
+            "properties": {
+              "adjustedProbability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Phil's recalibrated probability"
+              },
+              "confidenceInterval": {
+                "type": "object",
+                "properties": {
+                  "lower": { "type": "number" },
+                  "upper": { "type": "number" },
+                  "level": { "type": "number" }
+                }
+              },
+              "adjustmentRationale": {
+                "type": "string",
+                "description": "Why the estimate was adjusted"
+              }
+            }
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "analysis": {
+            "type": "object",
+            "properties": {
+              "baseRateComparison": {
+                "type": "object",
+                "properties": {
+                  "relevantBaseRate": { "type": "number" },
+                  "deviation": { "type": "number" },
+                  "justificationStrength": {
+                    "type": "string",
+                    "enum": ["none", "weak", "moderate", "strong"]
+                  }
+                }
+              },
+              "historicalCalibration": {
+                "type": "object",
+                "properties": {
+                  "brierScore": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Mean squared error of past predictions"
+                  },
+                  "calibrationCurve": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "predictedBucket": { "type": "string" },
+                        "actualRate": { "type": "number" }
+                      }
+                    }
+                  }
+                }
+              },
+              "biasIndicators": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "biasType": {
+                      "type": "string",
+                      "enum": ["overconfidence", "anchoring", "availability", "optimism", "planning_fallacy"]
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": ["low", "medium", "high"]
+                    },
+                    "evidence": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "resolutionCriteria": {
+            "type": "object",
+            "properties": {
+              "verificationMethod": { "type": "string" },
+              "resolutionDate": { "type": "string" },
+              "successConditions": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "failureConditions": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "trackingRecommendation": {
+            "type": "object",
+            "properties": {
+              "shouldTrack": { "type": "boolean" },
+              "trackingId": { "type": "string" },
+              "checkpoints": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "templateVariants": {
+        "quick_calibration": {
+          "systemPrompt": "You are Phil, a Forecast Analyst. Quickly assess this prediction.\n\nCheck:\n1. Is the probability reasonable given base rates?\n2. Any obvious overconfidence signals?\n3. Is the prediction falsifiable?\n\nProvide:\n- Calibrated probability (0-1)\n- Key concern (if any)\n- Brief rationale\n\nBe quantitative and direct.",
+          "maxTokens": 500,
+          "temperature": 0.3
+        },
+        "standard": {
+          "systemPrompt": "You are Phil, a Forecast Analyst inspired by Philip Tetlock's superforecasting methodology.\n\n## Core Principles\n1. Base rates matter - start from outside view\n2. Update incrementally - avoid overreaction to new info\n3. Decompose complex questions into tractable parts\n4. Calibration > confidence - being roughly right beats false precision\n5. Track predictions to learn from outcomes\n\n## Analysis Framework\n\n### Step 1: Reference Class\n- What's the base rate for this type of prediction?\n- How similar is this case to the reference class?\n\n### Step 2: Inside View Adjustment\n- What specific factors argue for higher/lower probability?\n- How strong is each factor?\n\n### Step 3: Bias Check\n- Is there evidence of planning fallacy?\n- Is the predictor anchored on a salient number?\n- Is availability bias at play?\n\n### Step 4: Calibration\n- Given historical accuracy, what adjustment is needed?\n- Express uncertainty with confidence intervals\n\n### Step 5: Resolution Criteria\n- How will this prediction be verified?\n- What counts as success/failure?\n\nIntegrate Ada/Lea evaluations where they inform probability.",
+          "maxTokens": 2000,
+          "temperature": 0.4
+        },
+        "deep_forecast": {
+          "systemPrompt": "You are Phil performing comprehensive forecast analysis.\n\n## Deep Forecasting Protocol\n\n### Phase 1: Problem Decomposition\n- Break compound predictions into atomic claims\n- Identify conditional dependencies\n- Map uncertainty sources\n\n### Phase 2: Base Rate Research\n- Identify most relevant reference classes\n- Calculate weighted base rate from multiple classes\n- Document base rate sources and quality\n\n### Phase 3: Fermi Estimation\n- Decompose into estimable components\n- Propagate uncertainty through calculations\n- Cross-check with alternative approaches\n\n### Phase 4: Historical Calibration\n- Analyze past prediction accuracy\n- Calculate Brier score for similar predictions\n- Generate calibration curve\n- Identify systematic biases\n\n### Phase 5: Bias Audit\n- Check for all common prediction biases\n- Rate severity and provide evidence\n- Suggest debiasing adjustments\n\n### Phase 6: Synthesis\n- Generate calibrated estimate with confidence interval\n- Define clear resolution criteria\n- Create tracking recommendation\n- Identify checkpoints for probability updates\n\nIntegrate upstream evaluations (Ada, Lea) where relevant to probability.",
+          "maxTokens": 4000,
+          "temperature": 0.5
+        }
+      },
+      "goldenTests": [
+        {
+          "name": "overconfident_estimate_detection",
+          "input": {
+            "prediction": {
+              "statement": "This refactor will complete in 2 days",
+              "probability": 0.95,
+              "timeframe": "2 days"
+            },
+            "predictionType": "time_estimate",
+            "context": {
+              "domain": "software_development",
+              "baseRates": {
+                "refactors_on_time": 0.35
+              }
+            }
+          },
+          "expectedOutput": {
+            "calibratedEstimate": {
+              "adjustedProbability": { "min": 0.2, "max": 0.5 }
+            },
+            "analysis": {
+              "biasIndicators": {
+                "contains": { "biasType": "planning_fallacy" }
+              }
+            }
+          }
+        },
+        {
+          "name": "well_calibrated_estimate",
+          "input": {
+            "prediction": {
+              "statement": "API migration will succeed without major issues",
+              "probability": 0.65,
+              "timeframe": "1 week"
+            },
+            "predictionType": "success_estimate",
+            "context": {
+              "domain": "software_development",
+              "baseRates": {
+                "api_migrations_smooth": 0.60
+              },
+              "historicalData": [
+                { "similarPrediction": "DB migration", "predictedProbability": 0.70, "actualOutcome": true },
+                { "similarPrediction": "Auth migration", "predictedProbability": 0.60, "actualOutcome": true }
+              ]
+            }
+          },
+          "expectedOutput": {
+            "scorecard": {
+              "baseRateAlignment": { "min": 7, "max": 10 }
+            },
+            "calibratedEstimate": {
+              "adjustedProbability": { "min": 0.55, "max": 0.75 }
+            }
+          }
+        }
+      ]
+    },
+    
+    "PREDICTION_TRACKING_PROMPT": {
+      "id": "PREDICTION_TRACKING_PROMPT",
+      "description": "Manages prediction lifecycle and resolution tracking",
+      "modelTier": "local_slm",
+      "inputSchema": {
+        "type": "object",
+        "required": ["trackingId", "action"],
+        "properties": {
+          "trackingId": { "type": "string" },
+          "action": {
+            "type": "string",
+            "enum": ["register", "update", "resolve", "report"]
+          },
+          "predictionData": {
+            "type": "object",
+            "properties": {
+              "originalEstimate": { "type": "number" },
+              "calibratedEstimate": { "type": "number" },
+              "resolutionCriteria": { "type": "object" },
+              "checkpoints": { "type": "array" }
+            }
+          },
+          "updateData": {
+            "type": "object",
+            "properties": {
+              "newInformation": { "type": "string" },
+              "updatedProbability": { "type": "number" },
+              "updateRationale": { "type": "string" }
+            }
+          },
+          "resolutionData": {
+            "type": "object",
+            "properties": {
+              "outcome": { "type": "boolean" },
+              "resolutionDetails": { "type": "string" }
+            }
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "trackingId": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["registered", "active", "resolved", "expired"]
+          },
+          "currentEstimate": { "type": "number" },
+          "historyLog": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": { "type": "string" },
+                "action": { "type": "string" },
+                "details": { "type": "object" }
+              }
+            }
+          },
+          "brierContribution": {
+            "type": "number",
+            "description": "Contribution to running Brier score (if resolved)"
+          },
+          "calibrationUpdate": {
+            "type": "object",
+            "properties": {
+              "bucket": { "type": "string" },
+              "newCount": { "type": "integer" },
+              "newSuccessRate": { "type": "number" }
+            }
+          }
+        }
+      },
+      "templateVariants": {
+        "standard": {
+          "systemPrompt": "You are Phil managing prediction tracking.\n\nFor 'register': Create tracking entry with resolution criteria and checkpoints.\nFor 'update': Record new information and probability update with rationale.\nFor 'resolve': Calculate Brier contribution and update calibration buckets.\nFor 'report': Summarize prediction history and outcomes.\n\nMaintain complete audit trail for calibration learning.",
+          "maxTokens": 1000,
+          "temperature": 0.2
+        }
+      }
+    },
+    
+    "CALIBRATION_REPORT_PROMPT": {
+      "id": "CALIBRATION_REPORT_PROMPT",
+      "description": "Generates calibration reports and identifies systematic biases",
+      "modelTier": "cloud_llm",
+      "inputSchema": {
+        "type": "object",
+        "required": ["predictionHistory"],
+        "properties": {
+          "predictionHistory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "predictionType": { "type": "string" },
+                "predictedProbability": { "type": "number" },
+                "actualOutcome": { "type": "boolean" },
+                "domain": { "type": "string" },
+                "timestamp": { "type": "string" }
+              }
+            }
+          },
+          "reportType": {
+            "type": "string",
+            "enum": ["full", "by_domain", "by_type", "trend"]
+          },
+          "timeRange": {
+            "type": "object",
+            "properties": {
+              "start": { "type": "string" },
+              "end": { "type": "string" }
+            }
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "overallBrierScore": { "type": "number" },
+          "calibrationCurve": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bucket": { "type": "string" },
+                "predictedMean": { "type": "number" },
+                "actualRate": { "type": "number" },
+                "count": { "type": "integer" },
+                "deviation": { "type": "number" }
+              }
+            }
+          },
+          "systematicBiases": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "biasType": { "type": "string" },
+                "magnitude": { "type": "number" },
+                "affectedDomains": { "type": "array" },
+                "correctionSuggestion": { "type": "string" }
+              }
+            }
+          },
+          "recommendations": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "trendAnalysis": {
+            "type": "object",
+            "properties": {
+              "calibrationTrend": { "type": "string", "enum": ["improving", "stable", "degrading"] },
+              "recentPerformance": { "type": "number" }
+            }
+          }
+        }
+      },
+      "templateVariants": {
+        "standard": {
+          "systemPrompt": "You are Phil generating a calibration report.\n\nAnalyze prediction history to:\n1. Calculate overall Brier score\n2. Build calibration curve (predicted vs actual by bucket)\n3. Identify systematic biases\n4. Detect trends in calibration quality\n5. Generate actionable recommendations\n\nFocus on patterns that can improve future predictions.\nBe quantitative and specific in all metrics.",
+          "maxTokens": 3000,
+          "temperature": 0.3
+        }
+      }
+    }
+  },
+  
+  "memoryIntegration": {
+    "beadsService": {
+      "onForecast": {
+        "action": "store_episode",
+        "fields": ["prediction", "calibratedEstimate", "resolutionCriteria"],
+        "namespace": "phil"
+      },
+      "onResolution": {
+        "action": "update_calibration",
+        "fields": ["trackingId", "outcome", "brierContribution"]
+      }
+    },
+    "fireproofService": {
+      "dbName": "chrysalis_phil",
+      "collections": {
+        "predictions": {
+          "indexFields": ["predictionType", "domain", "resolutionDate", "status"]
+        },
+        "calibrationData": {
+          "indexFields": ["bucket", "domain", "lastUpdated"]
+        },
+        "brierHistory": {
+          "indexFields": ["timestamp", "rollingAverage"]
+        }
+      }
+    },
+    "promotionHooks": {
+      "baseRatePromotion": {
+        "trigger": "predictionCount >= 10 AND domain IS NOT NULL",
+        "destination": "domain_base_rates"
+      },
+      "biasPatternPromotion": {
+        "trigger": "biasFrequency >= 3 AND severity = 'high'",
+        "destination": "known_biases"
+      }
+    }
+  },
+  
+  "dependencyHandling": {
+    "ada": {
+      "inputField": "adaEvaluation",
+      "fallbackBehavior": "proceed_without",
+      "integrationPoints": [
+        "structural complexity informs estimation difficulty",
+        "pattern novelty affects base rate applicability"
+      ]
+    },
+    "lea": {
+      "inputField": "leaEvaluation",
+      "fallbackBehavior": "proceed_without",
+      "integrationPoints": [
+        "issue count informs risk assessment",
+        "approval status affects success probability"
+      ]
+    }
+  },
+  
+  "telemetry": {
+    "metricsToTrack": [
+      "predictions_registered",
+      "predictions_resolved",
+      "running_brier_score",
+      "calibration_drift",
+      "bias_detection_rate",
+      "base_rate_deviation_avg"
+    ],
+    "sampling": 1.0
+  },
+  
+  "lastUpdated": "2026-01-13T09:53:00Z"
+}

@@ -3,6 +3,13 @@ Core embedding service with provider abstraction, telemetry, and enhanced loggin
 
 This module provides both exception-based (legacy) and Result-based (recommended) APIs.
 Result-returning methods end with `_safe` suffix.
+
+Provider Priority (OpenAI-first):
+1. OpenAI (primary)
+2. Nomic (fallback)
+3. Deterministic (tests/offline)
+
+Note: Voyage provider was deprecated due to dimension incompatibilities.
 """
 
 import hashlib
@@ -58,18 +65,18 @@ class EmbeddingService:
     - Dimension validation
     - Cost estimation
 
-    Provider priority:
-    1. Nomic (primary)
-    2. OpenAI (fallback)
+    Provider priority (OpenAI-first):
+    1. OpenAI (primary)
+    2. Nomic (fallback)
     3. Deterministic (tests/offline)
     """
 
     def __init__(
         self,
-        model: str = "nomic-embed-text-v1",
-        dimensions: int = 768,
-        fallback_model: str = "text-embedding-3-large",
-        fallback_dimensions: int = 3072,
+        model: str = "text-embedding-3-large",
+        dimensions: int = 3072,
+        fallback_model: str = "nomic-embed-text-v1",
+        fallback_dimensions: int = 768,
         telemetry: Optional[EmbeddingTelemetry] = None,
         forced_provider: Optional[str] = None,
     ):
@@ -77,12 +84,12 @@ class EmbeddingService:
         Initialize embedding service.
 
         Args:
-            model: Primary model name (default: memu-embed-v1)
-            dimensions: Primary embedding dimensions (default: 1024)
-            fallback_model: OpenAI fallback model name (only used when OpenAI selected)
-            fallback_dimensions: OpenAI fallback dimensions
+            model: Primary model name (default: text-embedding-3-large)
+            dimensions: Primary embedding dimensions (default: 3072)
+            fallback_model: Nomic fallback model name (only used when Nomic selected)
+            fallback_dimensions: Nomic fallback dimensions
             telemetry: Optional telemetry adapter for tracking
-            forced_provider: Force provider ("memu", "nomic", "openai", "deterministic")
+            forced_provider: Force provider ("openai", "nomic", "deterministic")
         """
         self.model = model
         self.dimensions = dimensions
@@ -91,8 +98,8 @@ class EmbeddingService:
         self._telemetry = telemetry
 
         # Provider instances (initialized for fallback support)
-        self._nomic_provider: Optional[NomicProvider] = None
         self._openai_provider: Optional[OpenAIProvider] = None
+        self._nomic_provider: Optional[NomicProvider] = None
         self._deterministic_provider: Optional[DeterministicProvider] = None
 
         # Primary provider (selected based on availability and configuration)
@@ -125,6 +132,20 @@ class EmbeddingService:
 
     def _initialize_providers(self, forced_provider: str):
         """Initialize all available providers for fallback support."""
+        # Initialize OpenAI provider if available and not forced otherwise
+        if forced_provider in ("", "openai"):
+            openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("GPT_API_KEY")
+            if openai_api_key:
+                try:
+                    self._openai_provider = OpenAIProvider(
+                        api_key=openai_api_key,
+                        model=self.model,
+                        dimensions=self.dimensions,
+                    )
+                    logger.debug("OpenAI provider initialized (primary)")
+                except Exception as e:
+                    logger.debug(f"OpenAI provider not available: {e}")
+
         # Initialize Nomic provider if available and not forced otherwise
         if forced_provider in ("", "nomic"):
             nomic_api_key = os.getenv("NOMIC_API_KEY")
@@ -133,25 +154,11 @@ class EmbeddingService:
                     self._nomic_provider = NomicProvider(
                         api_key=nomic_api_key,
                         api_base=os.getenv("NOMIC_API_BASE"),
-                        model=os.getenv("NOMIC_MODEL", "nomic-embed-text-v1"),
+                        model=os.getenv("NOMIC_MODEL", self.fallback_model),
                     )
                     logger.debug("Nomic provider initialized (available for fallback)")
                 except Exception as e:
                     logger.debug(f"Nomic provider not available: {e}")
-
-        # Initialize OpenAI provider if available and not forced otherwise
-        if forced_provider in ("", "openai"):
-            openai_api_key = os.getenv("OPENAI_API_KEY") or os.getenv("GPT_API_KEY")
-            if openai_api_key:
-                try:
-                    self._openai_provider = OpenAIProvider(
-                        api_key=openai_api_key,
-                        model=self.fallback_model,
-                        dimensions=self.fallback_dimensions,
-                    )
-                    logger.debug("OpenAI provider initialized (available for fallback)")
-                except Exception as e:
-                    logger.debug(f"OpenAI provider not available: {e}")
 
         # Always initialize deterministic provider (for final fallback in test mode)
         try:
@@ -162,34 +169,36 @@ class EmbeddingService:
             logger.warning(f"Deterministic provider not available: {e}")
 
     def _select_primary_provider(self, forced_provider: str):
-        """Select primary provider based on availability and configuration."""
-        # Priority: Nomic > OpenAI > Deterministic
-
-        # Try Nomic
-        if self._nomic_provider and (forced_provider in ("", "nomic")):
-            self._primary_provider = self._nomic_provider
-            self.dimensions = self._nomic_provider.get_dimensions()
-            self.model = self._nomic_provider.get_model_name()
-
-            if self._openai_provider and forced_provider not in ("nomic",):
-                self._fallback_providers.append(self._openai_provider)
-            if self._deterministic_provider:
-                self._fallback_providers.append(self._deterministic_provider)
-
-            logger.info(f"Embedding provider: Nomic ({self.model}, {self.dimensions} dimensions)")
-            return
-
-        # Try OpenAI as fallback
+        """Select primary provider based on availability and configuration.
+        
+        Priority: OpenAI > Nomic > Deterministic
+        """
+        # Try OpenAI first (primary)
         if self._openai_provider and (forced_provider in ("", "openai")):
             self._primary_provider = self._openai_provider
             self.dimensions = self._openai_provider.get_dimensions()
             self.model = self._openai_provider.get_model_name()
 
-            # Set up fallbacks (Deterministic if allowed)
-            if self._deterministic_provider and forced_provider != "openai":
+            # Set up fallbacks
+            if self._nomic_provider and forced_provider not in ("openai",):
+                self._fallback_providers.append(self._nomic_provider)
+            if self._deterministic_provider:
                 self._fallback_providers.append(self._deterministic_provider)
 
             logger.info(f"Embedding provider: OpenAI ({self.model}, {self.dimensions} dimensions)")
+            return
+
+        # Try Nomic as fallback
+        if self._nomic_provider and (forced_provider in ("", "nomic")):
+            self._primary_provider = self._nomic_provider
+            self.dimensions = self._nomic_provider.get_dimensions()
+            self.model = self._nomic_provider.get_model_name()
+
+            # Set up fallbacks (Deterministic if allowed)
+            if self._deterministic_provider and forced_provider != "nomic":
+                self._fallback_providers.append(self._deterministic_provider)
+
+            logger.info(f"Embedding provider: Nomic ({self.model}, {self.dimensions} dimensions)")
             return
 
         # Try Deterministic as last resort
@@ -211,7 +220,7 @@ class EmbeddingService:
         # Truly no provider available
         raise EmbeddingError(
             "No embedding provider available. "
-            "Set NOMIC_API_KEY or OPENAI_API_KEY, "
+            "Set OPENAI_API_KEY or NOMIC_API_KEY, "
             "or force EMBEDDING_PROVIDER=deterministic for tests."
         )
 
@@ -220,7 +229,7 @@ class EmbeddingService:
         Generate embedding for text with telemetry and logging.
 
         Provider fallback order:
-        1. Primary provider (Memu/Nomic/OpenAI/Deterministic)
+        1. Primary provider (OpenAI/Nomic/Deterministic)
         2. Fallback providers (in order)
         3. RuntimeError if all fail
 
@@ -548,8 +557,8 @@ class EmbeddingService:
         return {
             **primary_info,
             "fallbacks": fallback_info,
-            "has_nomic": self._nomic_provider is not None,
             "has_openai": self._openai_provider is not None,
+            "has_nomic": self._nomic_provider is not None,
             "has_deterministic": self._deterministic_provider is not None,
         }
 
@@ -710,5 +719,5 @@ class EmbeddingService:
             return service_failure(
                 f"Failed to estimate cost: {e}",
                 original_error=e,
-                code=ErrorCode.SERVICE_ERROR,
+                code=ErrorCode.INTERNAL_ERROR,
             )

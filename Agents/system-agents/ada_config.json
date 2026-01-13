@@ -1,0 +1,168 @@
+{
+  "$schema": "../schemas/system-agent.schema.json",
+  "id": "ada",
+  "name": "Ada",
+  "fullName": "Ada Lovelace",
+  "role": "Algorithmic Architect",
+  "description": "Evaluates structural elegance, composability, and pattern quality of LLM-adaptive system components",
+  
+  "personaSource": "Replicants/legends/ada_lovelace.json",
+  
+  "evaluationDimensions": {
+    "structuralElegance": {
+      "weight": 0.25,
+      "description": "Measures architectural clarity and mathematical beauty of patterns"
+    },
+    "composability": {
+      "weight": 0.25,
+      "description": "Evaluates how well components combine and interact"
+    },
+    "reasoningChainEfficiency": {
+      "weight": 0.20,
+      "description": "Assesses logical flow and computational efficiency"
+    },
+    "patternNovelty": {
+      "weight": 0.15,
+      "description": "Identifies innovative approaches and cross-domain patterns"
+    },
+    "crossDomainPotential": {
+      "weight": 0.15,
+      "description": "Evaluates applicability beyond immediate context"
+    }
+  },
+  
+  "outputSchema": {
+    "scorecard": {
+      "structuralElegance": { "type": "number", "min": 0, "max": 10 },
+      "composability": { "type": "number", "min": 0, "max": 10 },
+      "reasoningChainEfficiency": { "type": "number", "min": 0, "max": 10 },
+      "patternNovelty": { "type": "number", "min": 0, "max": 10 },
+      "crossDomainPotential": { "type": "number", "min": 0, "max": 10 }
+    },
+    "riskScore": { "type": "number", "min": 0, "max": 1 },
+    "recommendations": { "type": "array", "items": { "type": "string" } },
+    "requiresHumanReview": { "type": "boolean" },
+    "confidence": { "type": "number", "min": 0, "max": 1 }
+  },
+
+  "modelConfig": {
+    "modelTier": "hybrid",
+    "localModel": {
+      "provider": "ollama",
+      "model": "gemma:2b",
+      "useCases": ["pattern_matching", "quick_classification"]
+    },
+    "cloudModel": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-20250514",
+      "useCases": ["synthesis", "complex_reasoning", "cross_domain_analysis"]
+    },
+    "contextWindow": 8192,
+    "defaultTemperature": 0.3,
+    "latencyBudgetMs": 5000
+  },
+
+  "defaultTools": [
+    "pattern_analysis",
+    "algorithm_design",
+    "structural_evaluation",
+    "composability_checker",
+    "interdisciplinary_synthesis"
+  ],
+
+  "memoryConfig": {
+    "access": "read_write",
+    "namespace": "ada",
+    "scopes": {
+      "episodic": {
+        "description": "Evaluation sessions, architectural decisions, pattern discoveries",
+        "retentionDays": 90,
+        "promotionThreshold": 0.7
+      },
+      "semantic": {
+        "description": "Learned heuristics, elegant patterns, composability rules",
+        "retentionDays": 365,
+        "promotionThreshold": 0.8
+      },
+      "procedural": {
+        "description": "Evaluation playbooks, structural analysis protocols",
+        "retentionDays": 180,
+        "promotionThreshold": 0.75
+      }
+    },
+    "integration": {
+      "beadsService": {
+        "maxItems": 100,
+        "ttlSeconds": 3600,
+        "promotionEnabled": true
+      },
+      "fireproofService": {
+        "dbName": "chrysalis_ada",
+        "promotionEnabled": true,
+        "localVectorCache": true
+      },
+      "zepHooks": {
+        "enabled": true,
+        "syncInterval": 300
+      }
+    }
+  },
+
+  "telemetryConfig": {
+    "level": "full",
+    "metrics": [
+      "evaluation_latency",
+      "pattern_recognition_accuracy",
+      "recommendation_adoption_rate",
+      "cross_domain_correlation_count"
+    ],
+    "sampling": 1.0
+  },
+
+  "interactionStates": {
+    "responsive": {
+      "description": "Actively evaluating and providing feedback",
+      "timeout": null
+    },
+    "proactive": {
+      "description": "Initiating pattern reviews based on triggers",
+      "triggers": ["new_prompt_deployment", "architecture_change", "weekly_cadence"]
+    },
+    "disengaged": {
+      "description": "Silent observer mode",
+      "dndEnabled": true,
+      "dndExpiryHours": 24
+    }
+  },
+
+  "escalationRules": {
+    "riskThresholds": {
+      "autoApply": { "max": 0.3 },
+      "supervised": { "min": 0.3, "max": 0.7 },
+      "humanApproval": { "min": 0.7 }
+    },
+    "criticalBypassThreshold": 0.9,
+    "conflictResolution": "defer_to_coordinator"
+  },
+
+  "dependencies": [],
+  
+  "collaborators": {
+    "lea": {
+      "relationship": "complementary",
+      "handoff": "Ada evaluates structure, Lea evaluates implementation details"
+    },
+    "phil": {
+      "relationship": "advisory",
+      "handoff": "Ada identifies patterns, Phil predicts success probability"
+    },
+    "david": {
+      "relationship": "oversight",
+      "handoff": "David monitors Ada for overconfidence in elegant solutions"
+    }
+  },
+
+  "promptSetId": "ada_evaluation_prompts",
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-13T09:48:00Z"
+}

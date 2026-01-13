@@ -1,0 +1,572 @@
+{
+  "$schema": "../schemas/prompt-set.schema.json",
+  "promptSetId": "david_evaluation_prompts",
+  "personaId": "david",
+  "version": "1.0.0",
+  "description": "Prompt templates for David (Metacognitive Guardian) - detects overconfidence, blind spots, cognitive biases, and monitors self-assessment accuracy",
+  
+  "prompts": {
+    "METACOGNITIVE_AUDIT_PROMPT": {
+      "id": "METACOGNITIVE_AUDIT_PROMPT",
+      "description": "Audits evaluations and predictions for cognitive biases and blind spots",
+      "modelTier": "cloud_llm",
+      "complexityRouting": {
+        "local_slm": {
+          "conditions": ["quickBiasCheck", "singleEvaluation", "inputTokens < 500"],
+          "model": "ollama/gemma:2b"
+        },
+        "cloud_llm": {
+          "conditions": ["fullAudit", "multipleEvaluations", "conflictDetection"],
+          "model": "anthropic/claude-opus-4-20250514"
+        }
+      },
+      "inputSchema": {
+        "type": "object",
+        "required": ["evaluations", "auditContext"],
+        "properties": {
+          "evaluations": {
+            "type": "object",
+            "description": "Evaluations from upstream personas to audit",
+            "properties": {
+              "ada": {
+                "type": "object",
+                "properties": {
+                  "scorecard": { "type": "object" },
+                  "confidence": { "type": "number" },
+                  "recommendations": { "type": "array" }
+                }
+              },
+              "lea": {
+                "type": "object",
+                "properties": {
+                  "scorecard": { "type": "object" },
+                  "confidence": { "type": "number" },
+                  "issues": { "type": "array" },
+                  "approvalStatus": { "type": "string" }
+                }
+              },
+              "phil": {
+                "type": "object",
+                "properties": {
+                  "scorecard": { "type": "object" },
+                  "calibratedEstimate": { "type": "object" },
+                  "confidence": { "type": "number" },
+                  "biasIndicators": { "type": "array" }
+                }
+              }
+            }
+          },
+          "auditContext": {
+            "type": "object",
+            "properties": {
+              "originalArtifact": {
+                "type": "string",
+                "description": "The artifact that was evaluated"
+              },
+              "evaluationHistory": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "persona": { "type": "string" },
+                    "confidence": { "type": "number" },
+                    "outcome": { "type": "string" }
+                  }
+                },
+                "description": "Historical performance of evaluators"
+              },
+              "knownBiases": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Previously identified systematic biases"
+              }
+            }
+          },
+          "auditFocus": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["overconfidenceRisk", "blindSpotDetection", "biasesIdentified", "selfAssessmentAccuracy", "humilityScore"]
+            }
+          },
+          "triggerReason": {
+            "type": "string",
+            "enum": ["routine", "high_confidence", "unanimous_agreement", "conflict_detected", "novel_pattern", "manual_request"],
+            "description": "Why this audit was triggered"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["scorecard", "riskScore", "recommendations", "confidence"],
+        "properties": {
+          "scorecard": {
+            "type": "object",
+            "properties": {
+              "overconfidenceRisk": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Risk of unjustified certainty (higher = more concerning)"
+              },
+              "blindSpotDetection": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Identified unconsidered factors"
+              },
+              "biasesIdentified": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "biasType": { "type": "string" },
+                    "affectedPersona": { "type": "string" },
+                    "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+                    "evidence": { "type": "string" }
+                  }
+                }
+              },
+              "selfAssessmentAccuracy": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "How well confidence matches demonstrated competence"
+              },
+              "humilityScore": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Appropriate acknowledgment of uncertainty"
+              }
+            }
+          },
+          "riskScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Overall metacognitive risk (0 = safe, 1 = high risk)"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Confidence in this audit"
+          },
+          "conflictAnalysis": {
+            "type": "object",
+            "properties": {
+              "conflictsDetected": { "type": "boolean" },
+              "conflicts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "personas": { "type": "array", "items": { "type": "string" } },
+                    "dimension": { "type": "string" },
+                    "nature": { "type": "string" },
+                    "resolution": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["reconsider", "seek_outside_view", "decompose", "defer", "proceed_cautiously", "escalate_to_human"]
+                },
+                "target": { "type": "string" },
+                "rationale": { "type": "string" },
+                "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] }
+              }
+            }
+          },
+          "requiresHumanReview": {
+            "type": "boolean",
+            "description": "Whether human oversight is recommended"
+          },
+          "humanReviewReason": {
+            "type": "string",
+            "description": "Why human review is needed (if applicable)"
+          },
+          "metacognitiveNotes": {
+            "type": "object",
+            "properties": {
+              "uncertaintyAcknowledgment": { "type": "string" },
+              "potentialBlindSpots": { "type": "array", "items": { "type": "string" } },
+              "assumptionsToVerify": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      },
+      "templateVariants": {
+        "quick_check": {
+          "systemPrompt": "You are David, a Metacognitive Guardian. Perform quick bias check.\n\nScan for:\n1. Obvious overconfidence (confidence > 0.85 without strong evidence)\n2. Unanimous agreement (suspicious - check for groupthink)\n3. Missing considerations\n\nOutput:\n- Risk score (0-1)\n- Top concern (if any)\n- Proceed/caution recommendation\n\nBe direct and skeptical.",
+          "maxTokens": 500,
+          "temperature": 0.5
+        },
+        "standard": {
+          "systemPrompt": "You are David, a Metacognitive Guardian inspired by David Dunning's research on self-assessment accuracy.\n\n## Core Philosophy\nThose who know most know they know little. Watch for:\n1. Confidence uncorrelated with competence\n2. Unknown unknowns - what hasn't been considered?\n3. Systematic biases that persist across evaluations\n4. Unanimous agreement without deliberation (red flag)\n\n## Audit Framework\n\n### Step 1: Overconfidence Assessment\n- Compare stated confidence to evidence quality\n- Check for hedging language (or lack thereof)\n- Look for acknowledged limitations\n\n### Step 2: Blind Spot Scan\n- What perspectives are missing?\n- What edge cases weren't considered?\n- What assumptions are implicit?\n\n### Step 3: Bias Detection\n- Anchoring: Is a salient number dominating?\n- Availability: Are recent examples overweighted?\n- Confirmation: Was contradictory evidence sought?\n- Familiarity: Is novelty under/overvalued?\n\n### Step 4: Conflict Resolution\n- Where do personas disagree?\n- Is disagreement substantive or superficial?\n- What does the disagreement reveal?\n\n### Step 5: Human Review Decision\n- Is the combined evaluation safe to act on?\n- What would change our assessment?\n\nBe constructively skeptical. Humility is a feature, not a bug.",
+          "maxTokens": 2500,
+          "temperature": 0.5
+        },
+        "deep_audit": {
+          "systemPrompt": "You are David performing a comprehensive metacognitive audit.\n\n## Deep Audit Protocol\n\n### Phase 1: Individual Persona Analysis\nFor each persona (Ada, Lea, Phil):\n- Assess confidence calibration\n- Identify potential biases\n- Check for blind spots\n- Note areas of uncertainty\n\n### Phase 2: Cross-Persona Analysis\n- Map agreements and disagreements\n- Analyze conflict nature and severity\n- Identify shared blind spots (most dangerous)\n- Check for herding/groupthink\n\n### Phase 3: Historical Calibration\n- Compare current confidence to historical accuracy\n- Identify systematic over/under-confidence\n- Check for domain-specific biases\n- Look for improvement or degradation trends\n\n### Phase 4: Dunning-Kruger Assessment\n- For each persona, assess meta-awareness\n- Is uncertainty acknowledged appropriately?\n- Are limitations stated clearly?\n- Is there evidence of second-order thinking?\n\n### Phase 5: Red Team Exercise\n- What's the strongest argument against the evaluations?\n- What evidence would invalidate conclusions?\n- What's being assumed that shouldn't be?\n- What question hasn't been asked?\n\n### Phase 6: Risk Synthesis\n- Calculate overall metacognitive risk\n- Identify critical concerns\n- Determine human review necessity\n- Generate prioritized recommendations\n\n### Phase 7: Self-Reflection\n- Acknowledge your own uncertainty\n- Note potential blind spots in this audit\n- State assumptions that need verification\n\nBe thorough, skeptical, and humble about your own limitations.",
+          "maxTokens": 5000,
+          "temperature": 0.6
+        }
+      },
+      "goldenTests": [
+        {
+          "name": "overconfidence_detection",
+          "input": {
+            "evaluations": {
+              "ada": { "confidence": 0.95, "scorecard": { "structuralElegance": 9 } },
+              "lea": { "confidence": 0.92, "approvalStatus": "approved" },
+              "phil": { "confidence": 0.90, "calibratedEstimate": { "adjustedProbability": 0.85 } }
+            },
+            "auditContext": {
+              "evaluationHistory": [
+                { "persona": "ada", "confidence": 0.90, "outcome": "incorrect" },
+                { "persona": "lea", "confidence": 0.88, "outcome": "partially_correct" }
+              ]
+            },
+            "triggerReason": "high_confidence"
+          },
+          "expectedOutput": {
+            "scorecard": {
+              "overconfidenceRisk": { "min": 6, "max": 10 }
+            },
+            "riskScore": { "min": 0.4, "max": 1.0 },
+            "requiresHumanReview": true
+          }
+        },
+        {
+          "name": "healthy_disagreement",
+          "input": {
+            "evaluations": {
+              "ada": { "confidence": 0.70, "scorecard": { "structuralElegance": 7 } },
+              "lea": { "confidence": 0.65, "approvalStatus": "approved_with_suggestions" },
+              "phil": { "confidence": 0.60, "calibratedEstimate": { "adjustedProbability": 0.55 } }
+            },
+            "auditContext": {},
+            "triggerReason": "routine"
+          },
+          "expectedOutput": {
+            "scorecard": {
+              "humilityScore": { "min": 7, "max": 10 }
+            },
+            "riskScore": { "min": 0, "max": 0.3 },
+            "requiresHumanReview": false
+          }
+        }
+      ]
+    },
+    
+    "BIAS_DETECTION_PROMPT": {
+      "id": "BIAS_DETECTION_PROMPT",
+      "description": "Focused detection of specific cognitive biases",
+      "modelTier": "hybrid",
+      "inputSchema": {
+        "type": "object",
+        "required": ["content", "contentType"],
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Content to analyze for biases"
+          },
+          "contentType": {
+            "type": "string",
+            "enum": ["evaluation", "prediction", "recommendation", "analysis"]
+          },
+          "biasesToCheck": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "anchoring",
+                "availability",
+                "confirmation",
+                "overconfidence",
+                "hindsight",
+                "planning_fallacy",
+                "sunk_cost",
+                "status_quo",
+                "bandwagon",
+                "authority",
+                "halo_effect",
+                "fundamental_attribution"
+              ]
+            }
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "detectedBiases": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "biasType": { "type": "string" },
+                "confidence": { "type": "number" },
+                "evidence": { "type": "string" },
+                "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+                "debiasingSuggestion": { "type": "string" }
+              }
+            }
+          },
+          "biasFreeBehaviors": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Examples of good epistemic hygiene observed"
+          },
+          "overallBiasRisk": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "templateVariants": {
+        "standard": {
+          "systemPrompt": "You are David detecting cognitive biases.\n\nFor each bias type:\n1. Define what it looks like in this context\n2. Scan for specific indicators\n3. Assess confidence and severity\n4. Suggest debiasing approach\n\nAlso note good epistemic practices observed.\n\nBe specific about evidence - don't just label biases, prove them.",
+          "maxTokens": 2000,
+          "temperature": 0.5
+        }
+      }
+    },
+    
+    "BLIND_SPOT_SCAN_PROMPT": {
+      "id": "BLIND_SPOT_SCAN_PROMPT",
+      "description": "Identifies unconsidered factors and perspectives",
+      "modelTier": "cloud_llm",
+      "inputSchema": {
+        "type": "object",
+        "required": ["analysisContent", "domain"],
+        "properties": {
+          "analysisContent": {
+            "type": "string",
+            "description": "The analysis to check for blind spots"
+          },
+          "domain": {
+            "type": "string",
+            "description": "Domain context"
+          },
+          "perspectivesConsidered": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Perspectives explicitly addressed"
+          },
+          "stakeholders": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Stakeholders affected by the analysis"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "blindSpots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "category": {
+                  "type": "string",
+                  "enum": ["technical", "business", "user", "operational", "security", "ethical", "temporal"]
+                },
+                "description": { "type": "string" },
+                "impact": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+                "suggestedAction": { "type": "string" }
+              }
+            }
+          },
+          "missingPerspectives": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "unaskedQuestions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Important questions not addressed"
+          },
+          "edgeCasesUnexplored": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "templateVariants": {
+        "standard": {
+          "systemPrompt": "You are David scanning for blind spots.\n\n## Blind Spot Categories\n1. Technical: Performance, security, scalability issues not considered\n2. Business: Cost, timeline, resource implications overlooked\n3. User: UX, accessibility, edge users ignored\n4. Operational: Deployment, monitoring, maintenance gaps\n5. Security: Threat vectors not addressed\n6. Ethical: Fairness, privacy, societal impact\n7. Temporal: Future changes, deprecation, evolution\n\n## Analysis Method\n- What stakeholders weren't consulted?\n- What questions weren't asked?\n- What edge cases weren't explored?\n- What assumptions weren't validated?\n- What second-order effects weren't considered?\n\nFor each blind spot:\n- Describe specifically what was missed\n- Assess potential impact\n- Suggest remediation\n\nBe thorough but prioritize by impact.",
+          "maxTokens": 2500,
+          "temperature": 0.6
+        }
+      }
+    },
+    
+    "SELF_ASSESSMENT_CALIBRATION_PROMPT": {
+      "id": "SELF_ASSESSMENT_CALIBRATION_PROMPT",
+      "description": "Calibrates persona self-assessment accuracy over time",
+      "modelTier": "local_slm",
+      "inputSchema": {
+        "type": "object",
+        "required": ["persona", "assessmentHistory"],
+        "properties": {
+          "persona": {
+            "type": "string",
+            "enum": ["ada", "lea", "phil", "david"]
+          },
+          "assessmentHistory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": { "type": "string" },
+                "statedConfidence": { "type": "number" },
+                "actualOutcome": { "type": "string", "enum": ["correct", "partially_correct", "incorrect"] },
+                "domain": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "calibrationScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "How well confidence matches accuracy"
+          },
+          "systematicBiases": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "domain": { "type": "string" },
+                "direction": { "type": "string", "enum": ["overconfident", "underconfident"] },
+                "magnitude": { "type": "number" }
+              }
+            }
+          },
+          "recommendedAdjustments": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "description": "Confidence multiplier per domain"
+            }
+          },
+          "trend": {
+            "type": "string",
+            "enum": ["improving", "stable", "degrading"]
+          }
+        }
+      },
+      "templateVariants": {
+        "standard": {
+          "systemPrompt": "You are David calibrating self-assessment accuracy.\n\nAnalyze the assessment history to:\n1. Calculate calibration score (confidence vs outcomes)\n2. Identify systematic biases by domain\n3. Recommend confidence adjustments\n4. Assess improvement trend\n\nProvide specific multipliers for each domain where bias exists.\nFormat adjustments as: domain -> multiplier (e.g., 0.85 means reduce confidence by 15%).",
+          "maxTokens": 1500,
+          "temperature": 0.3
+        }
+      }
+    }
+  },
+  
+  "memoryIntegration": {
+    "beadsService": {
+      "onAudit": {
+        "action": "store_episode",
+        "fields": ["evaluations", "riskScore", "biasesIdentified", "recommendations"],
+        "namespace": "david"
+      },
+      "onBiasDetection": {
+        "action": "flag_for_promotion",
+        "threshold": 0.8
+      }
+    },
+    "fireproofService": {
+      "dbName": "chrysalis_david",
+      "collections": {
+        "audits": {
+          "indexFields": ["riskScore", "requiresHumanReview", "timestamp"]
+        },
+        "biasRegistry": {
+          "indexFields": ["biasType", "affectedPersona", "severity", "frequency"]
+        },
+        "blindSpots": {
+          "indexFields": ["category", "impact", "lastSeen"]
+        },
+        "calibrationData": {
+          "indexFields": ["persona", "domain", "calibrationScore"]
+        }
+      }
+    },
+    "promotionHooks": {
+      "recurringBiasPromotion": {
+        "trigger": "biasFrequency >= 3 AND severity = 'high'",
+        "destination": "known_systematic_biases"
+      },
+      "blindSpotPatternPromotion": {
+        "trigger": "blindSpotOccurrences >= 5",
+        "destination": "common_blind_spots"
+      }
+    }
+  },
+  
+  "dependencyHandling": {
+    "ada": {
+      "inputField": "evaluations.ada",
+      "fallbackBehavior": "proceed_with_heightened_scrutiny",
+      "auditFocus": ["structural_overconfidence", "pattern_bias"]
+    },
+    "lea": {
+      "inputField": "evaluations.lea",
+      "fallbackBehavior": "proceed_with_heightened_scrutiny",
+      "auditFocus": ["familiarity_bias", "approval_bias"]
+    },
+    "phil": {
+      "inputField": "evaluations.phil",
+      "fallbackBehavior": "proceed_with_heightened_scrutiny",
+      "auditFocus": ["calibration_accuracy", "base_rate_neglect"]
+    }
+  },
+  
+  "escalationIntegration": {
+    "humanReviewTriggers": [
+      "riskScore >= 0.7",
+      "overconfidenceRisk >= 8",
+      "conflictsDetected AND conflictSeverity = 'high'",
+      "criticalBiasDetected",
+      "allPersonasUnanimous AND confidence > 0.9"
+    ],
+    "autoApproveConditions": [
+      "riskScore < 0.2",
+      "noHighSeverityBiases",
+      "humilityScore >= 7"
+    ]
+  },
+  
+  "telemetry": {
+    "metricsToTrack": [
+      "audits_performed",
+      "avg_risk_score",
+      "human_review_rate",
+      "bias_detection_rate",
+      "blind_spot_discovery_rate",
+      "overconfidence_correction_rate",
+      "calibration_improvement_trend"
+    ],
+    "sampling": 1.0
+  },
+  
+  "lastUpdated": "2026-01-13T09:55:00Z"
+}

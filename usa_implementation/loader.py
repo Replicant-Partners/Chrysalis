@@ -1,13 +1,26 @@
 """
 Uniform Semantic Agent Loader
-Supports both v1 and v2 types
+Supports both v1 and v2 types with optional memory system integration.
+
+The loader provides:
+- Basic loading: load_agent() returns AgentSpec
+- Memory-enabled loading: load_agent_with_memory() returns LoadedAgent with FusionRetriever
 """
 import yaml
 import json
+import logging
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Union, Any
+from typing import Union, Any, Optional, TYPE_CHECKING
+
 from .core import types as types_v1
 from .core import types_v2
+
+if TYPE_CHECKING:
+    from memory_system.agent_adapter import AgentMemoryServices, AgentMemoryContext
+    from memory_system.fusion import FusionRetriever
+
+logger = logging.getLogger("central_logger")
 
 
 class UniformSemanticAgentLoader:
@@ -147,3 +160,181 @@ def save_agent(spec: Any, file_path: str, format: str = "yaml"):
         format: Output format ('yaml' or 'json')
     """
     UniformSemanticAgentLoader.save_to_file(spec, file_path, format)
+
+
+# =============================================================================
+# MEMORY-ENABLED LOADING (requires memory_system package)
+# =============================================================================
+
+@dataclass
+class LoadedAgent:
+    """
+    Container for a loaded agent with its memory services.
+    
+    Provides unified access to both the agent specification and
+    the three-tier memory stack (Beads + Fireproof + Zep).
+    
+    Usage:
+        loaded = await load_agent_with_memory("agent.yaml")
+        
+        # Access spec
+        print(loaded.spec.metadata.name)
+        
+        # Use memory
+        result = await loaded.fusion.retrieve_async("query")
+        loaded.fusion.ingest("important fact", importance=0.9)
+        
+        # Cleanup when done
+        await loaded.close()
+    """
+    spec: Any  # AgentSpec (v1 or v2)
+    memory_services: Optional[Any] = None  # AgentMemoryServices when memory enabled
+    _context: Optional[Any] = field(default=None, repr=False)  # AgentMemoryContext
+    
+    @property
+    def fusion(self) -> Optional[Any]:
+        """Get the FusionRetriever for three-tier memory access."""
+        if self.memory_services:
+            return self.memory_services.fusion
+        return None
+    
+    @property
+    def has_memory(self) -> bool:
+        """Check if memory services are available."""
+        return self.memory_services is not None
+    
+    @property
+    def name(self) -> str:
+        """Convenience accessor for agent name."""
+        return self.spec.metadata.name
+    
+    @property
+    def version(self) -> str:
+        """Convenience accessor for agent version."""
+        return self.spec.metadata.version
+    
+    async def close(self) -> None:
+        """Clean up memory services."""
+        if self._context:
+            await self._context.shutdown()
+        elif self.memory_services:
+            await self.memory_services.close()
+    
+    async def __aenter__(self) -> "LoadedAgent":
+        """Async context manager entry."""
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Async context manager exit."""
+        await self.close()
+
+
+async def load_agent_with_memory(
+    file_path: str,
+    type_module: Any = None,
+    enable_memory: bool = True,
+) -> LoadedAgent:
+    """
+    Load an agent specification with initialized memory services.
+    
+    This function:
+    1. Loads the AgentSpec from file
+    2. Parses the memory configuration from capabilities.memory
+    3. Creates a FusionRetriever with appropriate tiers:
+       - BeadsService (short-term) - always enabled
+       - FireproofService (hybrid) - if storage.fireproof configured
+       - ZepHooks (long-term) - if storage.vector_db configured
+    
+    Args:
+        file_path: Path to agent specification file (.yaml, .yml, or .json)
+        type_module: Type module to use (defaults to auto-detect v1/v2)
+        enable_memory: Whether to initialize memory services (default: True)
+    
+    Returns:
+        LoadedAgent with spec and memory_services
+    
+    Example:
+        async with await load_agent_with_memory("my-agent.yaml") as agent:
+            # Ingest data
+            agent.fusion.ingest("User prefers dark mode", importance=0.8)
+            
+            # Retrieve context
+            result = await agent.fusion.retrieve_async("user preferences")
+            print(result["beads"])  # Short-term context
+            print(result["fireproof"])  # Durable local cache
+            print(result["remote_embeddings"])  # Long-term from Zep
+    """
+    # Load the spec
+    spec = load_agent(file_path, type_module)
+    
+    if not enable_memory:
+        return LoadedAgent(spec=spec)
+    
+    # Check if this is a v2 spec with memory configuration
+    api_version = getattr(spec, 'api_version', 'usa/v1')
+    has_memory_config = (
+        api_version == 'usa/v2' and
+        spec.capabilities and
+        spec.capabilities.memory is not None
+    )
+    
+    if not has_memory_config:
+        logger.info(
+            "loader.load_agent_with_memory.no_memory_config",
+            extra={"agent": spec.metadata.name, "api_version": api_version}
+        )
+        return LoadedAgent(spec=spec)
+    
+    # Import memory system components
+    try:
+        from memory_system.agent_adapter import AgentMemoryContext
+        
+        # Create and initialize memory context
+        context = AgentMemoryContext(spec)
+        services = await context.initialize()
+        
+        logger.info(
+            "loader.load_agent_with_memory.success",
+            extra={
+                "agent": spec.metadata.name,
+                "has_fireproof": services.fireproof is not None,
+                "has_zep": services.zep_hooks is not None,
+            }
+        )
+        
+        return LoadedAgent(
+            spec=spec,
+            memory_services=services,
+            _context=context,
+        )
+        
+    except ImportError as e:
+        logger.warning(
+            "loader.load_agent_with_memory.import_error",
+            extra={"error": str(e), "agent": spec.metadata.name}
+        )
+        return LoadedAgent(spec=spec)
+    except Exception as e:
+        logger.error(
+            "loader.load_agent_with_memory.failed",
+            extra={"error": str(e), "agent": spec.metadata.name}
+        )
+        return LoadedAgent(spec=spec)
+
+
+def load_agent_sync(file_path: str, type_module: Any = None) -> LoadedAgent:
+    """
+    Synchronously load an agent without memory services.
+    
+    Use this when you don't need the three-tier memory stack,
+    or when calling from sync code that can't await.
+    
+    Args:
+        file_path: Path to agent specification file
+        type_module: Type module to use (defaults to auto-detect)
+    
+    Returns:
+        LoadedAgent with spec only (no memory_services)
+    """
+    spec = load_agent(file_path, type_module)
+    return LoadedAgent(spec=spec)

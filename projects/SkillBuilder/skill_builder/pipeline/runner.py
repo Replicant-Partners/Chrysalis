@@ -14,15 +14,28 @@ Design Pattern: Facade + Template Method + Bridge
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional, Sequence
+from typing import Any, List, Optional, Sequence
 import uuid
 
 import yaml
 
 from skill_builder.pipeline.models import FrontendSpec, SkillCard, SemanticMapEntry, SearchHit, Citation, ResearchArtifacts, TelemetryEvent
+from skill_builder.pipeline.consolidation import consolidate_skill_cards
+from skill_builder.memory import (
+    builder_memory_enabled,
+    strict_memory_persistence_enabled,
+    create_memory_port,
+    run_async_task,
+    store_skills_async,
+    builder_version,
+    builder_agent_id,
+    skill_artifacts_from_result,
+)
+from memory_system.ports import SkillArtifactBatch
 from skill_builder.pipeline.mode_merge import ModeBatchMergeSpec, run_batch_mode_merge as _run_batch_mode_merge_core
 from skill_builder.pipeline.external_bridge import run_go_search_swarm, run_clojure_synthesis
 from skill_builder.pipeline.embeddings import EmbeddingService
@@ -40,6 +53,44 @@ from skill_builder.pipeline.telemetry import (
     DEFAULT_CALIBRATION_MODEL_PATH,
     BasicCalibrationModel,
 )
+
+
+logger = logging.getLogger(__name__)
+
+
+def _serialize_skill_cards(skills: Sequence[SkillCard]) -> List[dict[str, Any]]:
+    serialized: List[dict[str, Any]] = []
+    for skill in skills:
+        serialized.append(
+            {
+                "name": skill.name,
+                "description": skill.description,
+                "triggers": list(skill.triggers),
+                "artifacts": list(skill.artifacts),
+                "constraints": list(skill.constraints),
+                "evidence_urls": list(skill.evidence_urls),
+                "confidence": skill.confidence,
+                "acquired_details": {
+                    "provenance": "skillbuilder-pipeline",
+                },
+            }
+        )
+    return serialized
+
+
+def _serialize_semantic_map(entries: Sequence[SemanticMapEntry]) -> List[dict[str, Any]]:
+    serialized: List[dict[str, Any]] = []
+    for entry in entries:
+        serialized.append(
+            {
+                "schema_type": entry.schema_type,
+                "name": entry.name,
+                "description": entry.description,
+                "properties": entry.properties,
+                "source_urls": list(entry.source_urls),
+            }
+        )
+    return serialized
 
 
 @dataclass
@@ -373,6 +424,18 @@ class PipelineRunner:
                 final_embeddings = tuple(skill_embeddings)
                 final_map = tuple(semantic_map)
 
+            # Consolidate skills and semantic map before artifact generation
+            if final_skills:
+                consolidated_skills = consolidate_skill_cards(final_skills)
+                consolidated_embeddings: list[list[float]] = []
+                for skill in consolidated_skills:
+                    text_to_embed = f"Skill: {skill.name}\nDescription: {skill.description}"
+                    consolidated_embeddings.append(self.embedder.embed(text_to_embed))
+                final_skills = tuple(consolidated_skills)
+                final_embeddings = tuple(consolidated_embeddings)
+
+            memory_persisted = self._persist_skills_to_memory(final_skills, final_embeddings, final_map)
+
             # Step 3: Write artifacts from last cycle
             out_dir = self.spec.out_dir / self.spec.mode_name
             out_dir.mkdir(parents=True, exist_ok=True)
@@ -461,6 +524,57 @@ class PipelineRunner:
             return strat
         # auto / hybrid: alternate starting with segmentation
         return "segmentation" if cycle_idx % 2 == 0 else "drilldown"
+
+    def _persist_skills_to_memory(
+        self,
+        skills: Sequence[SkillCard],
+        embeddings: Sequence[Sequence[float]],
+        semantic_map: Sequence[SemanticMapEntry],
+    ) -> bool:
+        if not skills or not builder_memory_enabled():
+            return False
+
+        try:
+            agent_id = builder_agent_id()
+            artifacts = skill_artifacts_from_result(
+                agent_id=agent_id,
+                skills=_serialize_skill_cards(skills),
+                embeddings=embeddings,
+                semantic_map=_serialize_semantic_map(semantic_map),
+                occupation=self.spec.mode_name,
+            )
+
+            if not artifacts:
+                logger.info(
+                    "SkillBuilder memory persistence skipped (no artifacts)",
+                    extra={"run_id": self.run_id, "mode_name": self.spec.mode_name},
+                )
+                return False
+
+            batch = SkillArtifactBatch(
+                agent_id=agent_id,
+                skills=artifacts,
+                run_id=self.run_id,
+                builder_version=builder_version(),
+            )
+
+            port = create_memory_port(agent_id=agent_id)
+            warn_message = (
+                f"SkillBuilder memory persistence failed for mode={self.spec.mode_name}, run_id={self.run_id}"
+            )
+            run_async_task(
+                store_skills_async(port, batch),
+                warn_message=warn_message,
+            )
+            return True
+        except Exception as exc:  # noqa: BLE001
+            if strict_memory_persistence_enabled():
+                raise
+            logger.warning(
+                "SkillBuilder memory persistence encountered an error",
+                extra={"error": str(exc), "run_id": self.run_id, "mode_name": self.spec.mode_name},
+            )
+            return False
 
 
 def run_pipeline(

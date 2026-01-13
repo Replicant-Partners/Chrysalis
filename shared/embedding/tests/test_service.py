@@ -1,5 +1,8 @@
 """
 Tests for core EmbeddingService.
+
+Note: Default dimensions changed to 3072 (OpenAI text-embedding-3-large).
+Voyage provider was deprecated.
 """
 import os
 import pytest
@@ -19,7 +22,8 @@ class TestEmbeddingServiceInitialization:
             service = EmbeddingService()
             info = service.get_provider_info()
             assert info["provider"] == "deterministic"
-            assert service.dimensions == 1024
+            # Dimensions use the default (3072) which deterministic inherits
+            assert service.dimensions == 3072
 
     def test_deterministic_via_forced_provider_param(self):
         """Test forcing deterministic via parameter."""
@@ -27,15 +31,25 @@ class TestEmbeddingServiceInitialization:
         info = service.get_provider_info()
         assert info["provider"] == "deterministic"
 
-    def test_no_provider_raises_error(self):
-        """Test that RuntimeError is raised when no provider is available."""
+    def test_deterministic_custom_dimensions(self):
+        """Test that custom dimensions work with deterministic provider."""
+        service = EmbeddingService(dimensions=1024, forced_provider="deterministic")
+        info = service.get_provider_info()
+        assert info["provider"] == "deterministic"
+        assert service.dimensions == 1024
+
+    def test_deterministic_is_always_available(self):
+        """Test that deterministic provider is always available as fallback."""
         with patch.dict(os.environ, {
-            "VOYAGE_API_KEY": "",
             "OPENAI_API_KEY": "",
+            "GPT_API_KEY": "",
+            "NOMIC_API_KEY": "",
             "EMBEDDING_PROVIDER": ""
         }, clear=True):
-            with pytest.raises(EmbeddingError, match="No embedding provider available"):
-                EmbeddingService()
+            # Should fall back to deterministic, not raise
+            service = EmbeddingService()
+            info = service.get_provider_info()
+            assert info["provider"] == "deterministic"
 
 
 class TestEmbeddingServiceEmbed:
@@ -97,6 +111,8 @@ class TestEmbeddingServiceEmbed:
             "EMBEDDING_STRICT_DIMENSIONS": "true"
         }):
             service = EmbeddingService(dimensions=10)
+            # Clear fallbacks so we get the expected error
+            service._fallback_providers = []
 
             # Mock provider to return wrong dimensions
             mock_provider = Mock(spec=DeterministicProvider)
@@ -107,8 +123,8 @@ class TestEmbeddingServiceEmbed:
             mock_provider.estimate_cost.return_value = 0.0
             service._primary_provider = mock_provider
 
-            # Should raise error in strict mode
-            with pytest.raises(EmbeddingDimensionMismatchError):
+            # Should raise EmbeddingError wrapping EmbeddingDimensionMismatchError
+            with pytest.raises(EmbeddingError):
                 service.embed("test")
 
 
@@ -162,8 +178,18 @@ class TestEmbeddingServiceProviderInfo:
 
             assert info["provider"] == "deterministic"
             assert info["model"] == "deterministic"
-            assert info["dimensions"] == 1024
+            # Default dimensions is now 3072 (OpenAI default)
+            assert info["dimensions"] == 3072
             assert info["has_deterministic"] is True
+
+    def test_provider_info_custom_dimensions(self):
+        """Test provider info with custom dimensions."""
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
+            service = EmbeddingService(dimensions=1024)
+            info = service.get_provider_info()
+
+            assert info["provider"] == "deterministic"
+            assert info["dimensions"] == 1024
 
     def test_estimate_cost(self):
         """Test cost estimation."""

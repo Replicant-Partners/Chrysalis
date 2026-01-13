@@ -1,0 +1,248 @@
+# =============================================================================
+# Fireproof Memory Agent Example
+# =============================================================================
+# 
+# This example demonstrates how to configure an agent with Fireproof-enabled
+# three-tier memory using the USA v2 specification.
+#
+# Memory Tiers:
+#   1. Short-term (Beads) - Rolling context window, always enabled
+#   2. Hybrid/Durable (Fireproof) - Local-first storage with optional sync
+#   3. Long-term (Zep) - Remote vector DB and knowledge graph
+#
+# Usage:
+#   from usa_implementation.loader import load_agent_with_memory
+#   
+#   async with await load_agent_with_memory("fireproof_memory_agent.yaml") as agent:
+#       # Ingest data (auto-promotes high-importance items to Fireproof)
+#       agent.fusion.ingest("User prefers dark mode", importance=0.9)
+#       
+#       # Retrieve context from all tiers
+#       result = await agent.fusion.retrieve_async("user preferences")
+#
+# =============================================================================
+
+apiVersion: usa/v2
+kind: Agent
+
+metadata:
+  name: fireproof-memory-demo
+  version: "1.0.0"
+  description: Example agent demonstrating Fireproof memory integration
+  author: Chrysalis Team
+  tags:
+    - memory
+    - fireproof
+    - local-first
+    - example
+
+identity:
+  role: Research Assistant
+  goal: Demonstrate three-tier memory with Fireproof durable caching
+  backstory: |
+    A research assistant that maintains persistent memory across sessions
+    using Fireproof's local-first architecture with optional remote sync.
+  constraints:
+    - Prioritize locally cached data for faster retrieval
+    - Sync to remote only when explicitly enabled
+    - Respect user privacy by defaulting to local storage
+
+capabilities:
+  tools:
+    - name: search
+      protocol: mcp
+      config:
+        server: brave-search
+  
+  skills:
+    - name: research
+      type: information_retrieval
+      parameters:
+        depth: comprehensive
+  
+  reasoning:
+    strategy: chain_of_thought
+    max_iterations: 20
+    allow_backtracking: true
+  
+  # ==========================================================================
+  # MEMORY CONFIGURATION
+  # ==========================================================================
+  # This section configures the three-tier memory stack:
+  # - working: Short-term context (BeadsService)
+  # - storage.fireproof: Hybrid durable tier (FireproofService)
+  # - storage.vector_db: Long-term remote (ZepHooks)
+  # ==========================================================================
+  memory:
+    # Memory architecture pattern
+    # Options: hierarchical, structured, dual_agent, flat, custom
+    architecture: hierarchical
+    
+    # -----------------------------------------------------------------------
+    # WORKING MEMORY (Short-term / BeadsService)
+    # -----------------------------------------------------------------------
+    # Fast, in-memory context window for recent interactions.
+    # Always enabled - provides the base layer of context.
+    working:
+      enabled: true
+      # Maximum tokens to retain in working memory
+      max_tokens: 8192
+      # Buffer type: rolling (FIFO), sliding, or fixed
+      buffer_type: rolling
+    
+    # -----------------------------------------------------------------------
+    # EPISODIC MEMORY (Experience storage)
+    # -----------------------------------------------------------------------
+    # Stores conversation events and experiences
+    episodic:
+      enabled: true
+      storage: hybrid  # Uses both Fireproof and Zep
+      retention_days: 30  # null for unlimited
+      temporal_indexing: true
+      metadata_fields:
+        - timestamp
+        - actor
+        - event_type
+        - importance
+    
+    # -----------------------------------------------------------------------
+    # SEMANTIC MEMORY (Knowledge storage)
+    # -----------------------------------------------------------------------
+    # Long-term facts and knowledge
+    semantic:
+      enabled: true
+      storage: hybrid
+      rag:
+        enabled: true
+        top_k: 5
+        min_relevance: 0.7
+        reranking: false
+      knowledge_graph: false  # Enable for KG support
+    
+    # -----------------------------------------------------------------------
+    # EMBEDDINGS CONFIGURATION
+    # -----------------------------------------------------------------------
+    # Embedding model for vector operations
+    embeddings:
+      model: openai/text-embedding-3-small
+      dimensions: 1536
+      batch_size: 100
+      provider: openai
+    
+    # -----------------------------------------------------------------------
+    # STORAGE BACKEND CONFIGURATION
+    # -----------------------------------------------------------------------
+    storage:
+      # Primary storage strategy
+      primary: hybrid
+      
+      # ------------------------------------------------------------------
+      # FIREPROOF DURABLE TIER (NEW)
+      # ------------------------------------------------------------------
+      # Local-first storage with CRDT sync support.
+      # Provides offline-capable persistence between Beads and Zep.
+      #
+      # Key benefits:
+      # - Works offline - no network required
+      # - Sub-millisecond local reads
+      # - Automatic conflict resolution (CRDT)
+      # - Optional remote sync when network available
+      # ------------------------------------------------------------------
+      fireproof:
+        enabled: true
+        
+        # Database name (unique per agent)
+        database_name: fireproof-demo-memory
+        
+        # Promotion threshold: access count before promoting from Beads
+        # Lower value = more aggressive promotion (more items in Fireproof)
+        # Higher value = less promotion (only frequently accessed items)
+        promotion_threshold: 3
+        
+        # Remote sync configuration
+        sync_enabled: false  # Set to true to enable remote sync
+        sync_interval_seconds: 300  # 5 minutes
+        remote_url: null  # Set to Fireproof sync gateway URL
+        
+        # Client-side encryption (requires encryption key in env)
+        encryption_enabled: false
+        
+        # Additional Fireproof configuration
+        config:
+          crdt_merge_enabled: true
+          local_vector_cache: true
+      
+      # ------------------------------------------------------------------
+      # VECTOR DATABASE (Long-term / Zep)
+      # ------------------------------------------------------------------
+      # Remote vector storage for long-term memory
+      vector_db:
+        provider: zep
+        collection: demo-agent-memory
+        config:
+          api_url: ${ZEP_API_URL}
+          api_key: ${ZEP_API_KEY}
+      
+      # Optional cache layer
+      cache: null  # Options: redis, valkey, memcached
+    
+    # -----------------------------------------------------------------------
+    # MEMORY OPERATIONS
+    # -----------------------------------------------------------------------
+    operations:
+      # Retrieval strategy
+      retrieval:
+        strategy: agentic_rag  # Agent-controlled retrieval
+        hybrid_search: true  # Combine vector + keyword
+        reranking: false
+        max_results: 10
+      
+      # Consolidation (memory compaction)
+      consolidation:
+        strategy: periodic
+        frequency: daily
+        async_processing: true
+      
+      # Forgetting/pruning
+      forgetting:
+        enabled: false
+        strategy: utility_based
+        threshold: 0.3
+
+protocols:
+  mcp:
+    enabled: true
+    role: client
+    servers:
+      - name: memory-server
+        command: npx
+        args:
+          - -y
+          - "@anthropic/memory-mcp"
+  
+  a2a:
+    enabled: false
+
+execution:
+  llm:
+    provider: anthropic
+    model: claude-3-opus-20240229
+    temperature: 0.7
+    max_tokens: 4096
+  
+  runtime:
+    timeout: 300
+    max_iterations: 20
+    error_handling: graceful_degradation
+    retry_policy:
+      max_attempts: 3
+      backoff: exponential
+      initial_delay: 1
+
+deployment:
+  context: development
+  environment:
+    LOG_LEVEL: DEBUG
+    FIREPROOF_ENABLED: "true"
+    FIREPROOF_PROMOTION_ENABLED: "true"
+    FIREPROOF_LOCAL_VECTORS: "true"

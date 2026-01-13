@@ -1,0 +1,380 @@
+{
+  "$schema": "./schemas/routing-config.schema.json",
+  "routingConfigId": "system_agents_routing",
+  "version": "1.0.0",
+  "description": "Chat pane and user routing configuration for System Agents Layer",
+  
+  "chatPanes": {
+    "@ada": {
+      "personaId": "ada",
+      "displayName": "Ada - Algorithmic Architect",
+      "description": "Structural analysis and pattern evaluation",
+      "icon": "🏗️",
+      "defaultPrompt": "STRUCTURE_EVALUATION_PROMPT",
+      "availablePrompts": [
+        "STRUCTURE_EVALUATION_PROMPT",
+        "PATTERN_RECOGNITION_PROMPT",
+        "COMPOSITION_GRAPH_PROMPT"
+      ],
+      "quickActions": [
+        {
+          "label": "Analyze Structure",
+          "promptId": "STRUCTURE_EVALUATION_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Quick Check",
+          "promptId": "STRUCTURE_EVALUATION_PROMPT",
+          "variant": "quick_check"
+        },
+        {
+          "label": "Deep Analysis",
+          "promptId": "STRUCTURE_EVALUATION_PROMPT",
+          "variant": "deep_analysis"
+        },
+        {
+          "label": "Find Patterns",
+          "promptId": "PATTERN_RECOGNITION_PROMPT",
+          "variant": "standard"
+        }
+      ],
+      "inputHints": {
+        "placeholder": "Paste code, prompt, or design artifact for structural analysis...",
+        "supportedTypes": ["code", "prompt", "architecture", "workflow", "schema"]
+      },
+      "outputDisplay": {
+        "showScorecard": true,
+        "showDiagram": true,
+        "showRecommendations": true
+      }
+    },
+    
+    "@lea": {
+      "personaId": "lea",
+      "displayName": "Lea - Implementation Reviewer",
+      "description": "Code review and documentation quality",
+      "icon": "👩‍💻",
+      "defaultPrompt": "IMPLEMENTATION_REVIEW_PROMPT",
+      "availablePrompts": [
+        "IMPLEMENTATION_REVIEW_PROMPT",
+        "DOCUMENTATION_QUALITY_PROMPT",
+        "ERROR_HANDLING_AUDIT_PROMPT"
+      ],
+      "quickActions": [
+        {
+          "label": "Review Code",
+          "promptId": "IMPLEMENTATION_REVIEW_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Quick Review",
+          "promptId": "IMPLEMENTATION_REVIEW_PROMPT",
+          "variant": "quick_review"
+        },
+        {
+          "label": "Thorough Review",
+          "promptId": "IMPLEMENTATION_REVIEW_PROMPT",
+          "variant": "thorough_review"
+        },
+        {
+          "label": "Check Docs",
+          "promptId": "DOCUMENTATION_QUALITY_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Error Audit",
+          "promptId": "ERROR_HANDLING_AUDIT_PROMPT",
+          "variant": "standard"
+        }
+      ],
+      "inputHints": {
+        "placeholder": "Paste code for implementation review...",
+        "supportedTypes": ["code"],
+        "languageDetection": true
+      },
+      "outputDisplay": {
+        "showScorecard": true,
+        "showIssues": true,
+        "showSuggestions": true,
+        "showApprovalStatus": true
+      }
+    },
+    
+    "@phil": {
+      "personaId": "phil",
+      "displayName": "Phil - Forecast Analyst",
+      "description": "Probability calibration and prediction tracking",
+      "icon": "📊",
+      "defaultPrompt": "FORECAST_ANALYSIS_PROMPT",
+      "availablePrompts": [
+        "FORECAST_ANALYSIS_PROMPT",
+        "PREDICTION_TRACKING_PROMPT",
+        "CALIBRATION_REPORT_PROMPT"
+      ],
+      "quickActions": [
+        {
+          "label": "Analyze Forecast",
+          "promptId": "FORECAST_ANALYSIS_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Quick Calibration",
+          "promptId": "FORECAST_ANALYSIS_PROMPT",
+          "variant": "quick_calibration"
+        },
+        {
+          "label": "Deep Forecast",
+          "promptId": "FORECAST_ANALYSIS_PROMPT",
+          "variant": "deep_forecast"
+        },
+        {
+          "label": "Track Prediction",
+          "promptId": "PREDICTION_TRACKING_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Calibration Report",
+          "promptId": "CALIBRATION_REPORT_PROMPT",
+          "variant": "standard"
+        }
+      ],
+      "inputHints": {
+        "placeholder": "Describe a prediction or estimate for calibration analysis...",
+        "supportedTypes": ["prediction", "estimate", "forecast"]
+      },
+      "outputDisplay": {
+        "showScorecard": true,
+        "showCalibratedEstimate": true,
+        "showBiasIndicators": true,
+        "showTrackingRecommendation": true
+      }
+    },
+    
+    "@david": {
+      "personaId": "david",
+      "displayName": "David - Metacognitive Guardian",
+      "description": "Bias detection and overconfidence monitoring",
+      "icon": "🛡️",
+      "defaultPrompt": "METACOGNITIVE_AUDIT_PROMPT",
+      "availablePrompts": [
+        "METACOGNITIVE_AUDIT_PROMPT",
+        "BIAS_DETECTION_PROMPT",
+        "BLIND_SPOT_SCAN_PROMPT",
+        "SELF_ASSESSMENT_CALIBRATION_PROMPT"
+      ],
+      "quickActions": [
+        {
+          "label": "Audit Evaluations",
+          "promptId": "METACOGNITIVE_AUDIT_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Quick Check",
+          "promptId": "METACOGNITIVE_AUDIT_PROMPT",
+          "variant": "quick_check"
+        },
+        {
+          "label": "Deep Audit",
+          "promptId": "METACOGNITIVE_AUDIT_PROMPT",
+          "variant": "deep_audit"
+        },
+        {
+          "label": "Detect Biases",
+          "promptId": "BIAS_DETECTION_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Scan Blind Spots",
+          "promptId": "BLIND_SPOT_SCAN_PROMPT",
+          "variant": "standard"
+        }
+      ],
+      "inputHints": {
+        "placeholder": "Provide evaluations or analysis for metacognitive audit...",
+        "supportedTypes": ["evaluation", "prediction", "recommendation", "analysis"]
+      },
+      "outputDisplay": {
+        "showScorecard": true,
+        "showRiskScore": true,
+        "showBiasesDetected": true,
+        "showBlindSpots": true,
+        "showHumanReviewRequired": true
+      }
+    },
+    
+    "@evaluate": {
+      "personaId": "coordinator",
+      "displayName": "Full Evaluation Pipeline",
+      "description": "Run complete evaluation through all personas",
+      "icon": "🔄",
+      "defaultPrompt": "COORDINATED_EVALUATION",
+      "pipelineMode": true,
+      "pipelineStages": ["ada", "lea", "phil", "david"],
+      "quickActions": [
+        {
+          "label": "Full Evaluation",
+          "pipelineMode": "full",
+          "variant": "standard"
+        },
+        {
+          "label": "Quick Evaluation",
+          "pipelineMode": "full",
+          "variant": "quick"
+        },
+        {
+          "label": "Structure + Review",
+          "pipelineMode": "partial",
+          "stages": ["ada", "lea"]
+        },
+        {
+          "label": "Review + Forecast",
+          "pipelineMode": "partial",
+          "stages": ["lea", "phil"]
+        }
+      ],
+      "inputHints": {
+        "placeholder": "Submit artifact for comprehensive evaluation...",
+        "supportedTypes": ["code", "prompt", "architecture", "workflow", "schema", "prediction"]
+      },
+      "outputDisplay": {
+        "showAggregatedScore": true,
+        "showPersonaBreakdown": true,
+        "showConflicts": true,
+        "showFinalVerdict": true,
+        "showRecommendations": true
+      }
+    }
+  },
+  
+  "userRouting": {
+    "defaultPersona": "@evaluate",
+    "contextAwareRouting": {
+      "enabled": true,
+      "rules": [
+        {
+          "condition": "artifactType == 'code' AND length < 100",
+          "route": "@lea",
+          "reason": "Short code snippets routed to quick review"
+        },
+        {
+          "condition": "artifactType == 'prediction' OR artifactType == 'estimate'",
+          "route": "@phil",
+          "reason": "Predictions routed to forecast analyst"
+        },
+        {
+          "condition": "artifactType == 'architecture' OR artifactType == 'schema'",
+          "route": "@ada",
+          "reason": "Architectural artifacts routed to structural analysis"
+        },
+        {
+          "condition": "requestType == 'bias_check' OR requestType == 'review_review'",
+          "route": "@david",
+          "reason": "Meta-level requests routed to metacognitive guardian"
+        }
+      ]
+    },
+    "userPreferences": {
+      "allowPersonaSelection": true,
+      "rememberLastPersona": true,
+      "defaultVariant": "standard"
+    },
+    "escalationPath": {
+      "onHighRisk": "@david",
+      "onConflict": "@david",
+      "onUncertainty": "@evaluate"
+    }
+  },
+  
+  "mentionParsing": {
+    "enabled": true,
+    "mentionPrefix": "@",
+    "validMentions": ["ada", "lea", "phil", "david", "evaluate"],
+    "mentionBehavior": {
+      "inlineInvocation": true,
+      "contextInheritance": true,
+      "chainableMentions": true
+    },
+    "examples": [
+      {
+        "input": "@ada analyze this code",
+        "parsed": { "persona": "ada", "action": "analyze", "content": "this code" }
+      },
+      {
+        "input": "@lea @phil review and estimate this",
+        "parsed": { "personas": ["lea", "phil"], "action": "review_and_estimate", "content": "this" }
+      },
+      {
+        "input": "@evaluate the entire design",
+        "parsed": { "persona": "coordinator", "action": "full_pipeline", "content": "the entire design" }
+      }
+    ]
+  },
+  
+  "sessionManagement": {
+    "contextRetention": {
+      "enabled": true,
+      "maxTurns": 10,
+      "contextFields": ["artifact", "evaluations", "recommendations"]
+    },
+    "handoffProtocol": {
+      "enabled": true,
+      "preserveContext": true,
+      "notifyOnHandoff": true
+    },
+    "stateTransitions": {
+      "idle": {
+        "onMessage": "active",
+        "timeout": null
+      },
+      "active": {
+        "onComplete": "idle",
+        "onEscalate": "awaiting_human",
+        "timeoutMinutes": 30
+      },
+      "awaiting_human": {
+        "onHumanResponse": "active",
+        "timeoutMinutes": 1440
+      }
+    }
+  },
+  
+  "integrationPoints": {
+    "chatUI": {
+      "provider": "chrysalis_ui",
+      "websocketEndpoint": "/ws/agents",
+      "restEndpoint": "/api/agents/evaluate"
+    },
+    "memorySystem": {
+      "beadsService": {
+        "endpoint": "memory://beads",
+        "namespace": "system_agents"
+      },
+      "fireproofService": {
+        "endpoint": "memory://fireproof",
+        "databases": ["chrysalis_ada", "chrysalis_lea", "chrysalis_phil", "chrysalis_david"]
+      }
+    },
+    "horizontal1": {
+      "llmAdapter": "llm://adapter/infer",
+      "complexityRouter": "llm://router/route",
+      "promptRegistry": "llm://registry/prompts"
+    }
+  },
+  
+  "telemetry": {
+    "routingMetrics": [
+      "route_selection_count_by_persona",
+      "context_aware_routing_accuracy",
+      "user_override_rate",
+      "escalation_frequency",
+      "session_duration_avg"
+    ],
+    "userMetrics": [
+      "persona_preference_distribution",
+      "evaluation_completion_rate",
+      "human_review_resolution_time"
+    ]
+  },
+  
+  "lastUpdated": "2026-01-13T09:58:00Z"
+}

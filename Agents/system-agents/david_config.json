@@ -1,0 +1,217 @@
+{
+  "$schema": "../schemas/system-agent.schema.json",
+  "id": "david",
+  "name": "David",
+  "fullName": "David Dunning",
+  "role": "Metacognitive Guardian",
+  "description": "Monitors for overconfidence, blind spots, cognitive biases, and self-assessment accuracy across all personas",
+  
+  "personaSource": "Replicants/legends/david_dunning.json",
+  
+  "evaluationDimensions": {
+    "overconfidenceRisk": {
+      "weight": 0.25,
+      "description": "Risk of unjustified certainty in evaluations"
+    },
+    "blindSpotDetection": {
+      "weight": 0.25,
+      "description": "Identification of unconsidered factors or perspectives"
+    },
+    "biasesIdentified": {
+      "weight": 0.20,
+      "description": "Recognition of cognitive biases affecting judgment"
+    },
+    "selfAssessmentAccuracy": {
+      "weight": 0.15,
+      "description": "Alignment between stated confidence and demonstrated competence"
+    },
+    "humilityScore": {
+      "weight": 0.15,
+      "description": "Appropriate acknowledgment of uncertainty and limitations"
+    }
+  },
+  
+  "outputSchema": {
+    "scorecard": {
+      "overconfidenceRisk": { "type": "number", "min": 0, "max": 10 },
+      "blindSpotDetection": { "type": "array", "items": { "type": "string" } },
+      "biasesIdentified": { "type": "array", "items": { "type": "string" } },
+      "selfAssessmentAccuracy": { "type": "number", "min": 0, "max": 10 },
+      "humilityScore": { "type": "number", "min": 0, "max": 10 }
+    },
+    "riskScore": { "type": "number", "min": 0, "max": 1 },
+    "recommendations": { "type": "array", "items": { "type": "string" } },
+    "requiresHumanReview": { "type": "boolean" },
+    "confidence": { "type": "number", "min": 0, "max": 1 }
+  },
+
+  "modelConfig": {
+    "modelTier": "cloud_llm",
+    "localModel": {
+      "provider": "ollama",
+      "model": "gemma:2b",
+      "useCases": ["quick_bias_pattern_match"]
+    },
+    "cloudModel": {
+      "provider": "anthropic",
+      "model": "claude-opus-4-20250514",
+      "useCases": ["metacognitive_analysis", "blind_spot_detection", "bias_identification", "overconfidence_assessment"]
+    },
+    "contextWindow": 8192,
+    "defaultTemperature": 0.5,
+    "latencyBudgetMs": 10000
+  },
+
+  "defaultTools": [
+    "bias_detector",
+    "blind_spot_scanner",
+    "dunning_kruger_assessment",
+    "metacognitive_frameworks",
+    "overconfidence_calibrator",
+    "reflection_protocols"
+  ],
+
+  "memoryConfig": {
+    "access": "read_write",
+    "namespace": "david",
+    "scopes": {
+      "episodic": {
+        "description": "Bias detection events, blind spot discoveries, overconfidence incidents",
+        "retentionDays": 180,
+        "promotionThreshold": 0.75
+      },
+      "semantic": {
+        "description": "Bias patterns, blind spot categories, metacognitive heuristics",
+        "retentionDays": 730,
+        "promotionThreshold": 0.85
+      },
+      "procedural": {
+        "description": "Metacognitive protocols, self-assessment checklists, debiasing procedures",
+        "retentionDays": 365,
+        "promotionThreshold": 0.8
+      }
+    },
+    "integration": {
+      "beadsService": {
+        "maxItems": 200,
+        "ttlSeconds": 10800,
+        "promotionEnabled": true
+      },
+      "fireproofService": {
+        "dbName": "chrysalis_david",
+        "promotionEnabled": true,
+        "localVectorCache": true
+      },
+      "zepHooks": {
+        "enabled": true,
+        "syncInterval": 180
+      }
+    }
+  },
+
+  "telemetryConfig": {
+    "level": "full",
+    "metrics": [
+      "bias_detection_rate",
+      "blind_spot_discovery_count",
+      "overconfidence_correction_rate",
+      "metacognitive_intervention_outcomes",
+      "humility_score_trends"
+    ],
+    "sampling": 1.0
+  },
+
+  "interactionStates": {
+    "responsive": {
+      "description": "Actively monitoring and providing metacognitive feedback",
+      "timeout": null
+    },
+    "proactive": {
+      "description": "Initiating metacognitive reviews based on signals",
+      "triggers": [
+        "high_confidence_evaluation",
+        "unanimous_persona_agreement",
+        "repeated_pattern_usage",
+        "monthly_cadence",
+        "calibration_drift_detected"
+      ]
+    },
+    "disengaged": {
+      "description": "Silent observer mode - still logging patterns",
+      "dndEnabled": true,
+      "dndExpiryHours": 72
+    }
+  },
+
+  "escalationRules": {
+    "riskThresholds": {
+      "autoApply": { "max": 0.2 },
+      "supervised": { "min": 0.2, "max": 0.5 },
+      "humanApproval": { "min": 0.5 }
+    },
+    "criticalBypassThreshold": 0.85,
+    "conflictResolution": "escalate_to_human"
+  },
+
+  "dependencies": ["ada", "lea", "phil"],
+  
+  "collaborators": {
+    "ada": {
+      "relationship": "oversight",
+      "handoff": "David monitors Ada for overconfidence in elegant solutions"
+    },
+    "lea": {
+      "relationship": "oversight",
+      "handoff": "David monitors Lea for familiarity bias in code patterns"
+    },
+    "phil": {
+      "relationship": "mutual_oversight",
+      "handoff": "David monitors Phil's calibration, Phil provides base rates for bias frequency"
+    }
+  },
+
+  "inputFromDependencies": {
+    "ada": {
+      "fields": ["confidence", "patternNovelty"],
+      "minConfidence": 0.0,
+      "fallbackBehavior": "proceed_with_heightened_scrutiny"
+    },
+    "lea": {
+      "fields": ["confidence", "practicalApplicability"],
+      "minConfidence": 0.0,
+      "fallbackBehavior": "proceed_with_heightened_scrutiny"
+    },
+    "phil": {
+      "fields": ["successProbability", "confidenceCalibration", "brierScore"],
+      "minConfidence": 0.0,
+      "fallbackBehavior": "proceed_with_heightened_scrutiny"
+    }
+  },
+
+  "metacognitiveChecks": {
+    "overconfidenceThreshold": 0.85,
+    "unanimityWarning": true,
+    "noveltyBiasCheck": true,
+    "anchoring BiasCheck": true,
+    "confirmationBiasCheck": true,
+    "availabilityBiasCheck": true
+  },
+
+  "resetProtocol": {
+    "triggers": [
+      "calibrationDrift > 0.3",
+      "consecutiveFailures >= 3",
+      "humanOverride"
+    ],
+    "actions": [
+      "snapshot_memory",
+      "reload_persona",
+      "optionally_restore_selective_learnings",
+      "log_reset_event"
+    ]
+  },
+
+  "promptSetId": "david_evaluation_prompts",
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-13T09:50:00Z"
+}

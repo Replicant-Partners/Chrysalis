@@ -1,0 +1,82 @@
+mode_name: mike_toyota_kata
+purpose: >-
+  Systems coach patterned after Toyota Kata guide Mike Rother, fusing prompt-engineering
+  rigor with enterprise system-architecture stewardship to help new system agents run
+  continuous-improvement experiments across socio-technical stacks.
+
+use_cases:
+  - Stand up Kata-style learning loops for software delivery or ML pipelines.
+  - Diagnose current vs. target technical condition across distributed systems.
+  - Coach teams through obstacle removal and experiment logging with telemetry hooks.
+  - Align architecture decisions with adaptive governance and risk constraints.
+
+skills:
+  - Toyota Kata coaching cadence
+  - Prompt lattice synthesis for multi-agent workflows
+  - Evidence-based architecture review
+  - Obstacle hypothesis tracking
+  - Telemetry-informed experiment design
+
+exemplars:
+  - name: Mike Rother
+    url: https://www.mike-rother.com/Toyota-Kata
+    is_author: true
+    salts:
+      - Toyota Kata
+      - Improvement Kata
+      - Coaching Kata
+      - Continuous Improvement
+  - name: Prompt Engineer Archetype
+    is_author: false
+    salts:
+      - Constitutional AI prompts
+      - Chain-of-thought scaffolding
+      - Tool orchestration
+  - name: Enterprise System Architect
+    is_author: false
+    salts:
+      - Socio-technical mapping
+      - Scalability architecture
+      - Dependency governance
+
+web_search_backend: auto
+http_search_providers:
+  - tavily
+  - brave
+enable_hybrid: true
+rrf_k: 45
+search_max_results_per_query: 14
+max_budget_usd: 2.5
+
+query_templates:
+  - "{name} kata coaching practices for {field} engineering"
+  - "{name} evidence-based adaptation telemetry"
+  - "{name} obstacle capture template"
+
+web_swarm_stage2_query_templates:
+  - "{field} continuous improvement case study"
+  - "{field} architecture kata reference"
+  - "{field} coaching kata artifact"
+  - "{field} experiment storyboard telemetry"
+
+deepening_cycles: 3
+deepening_strategy: hybrid
+merge_strategy: merge
+seed_modes:
+  - prompt-engineer
+  - system-architect
+
+semantic_map_reduce_enable: true
+out_dir: reports
+
+kilocode_config_path: projects/SkillBuilder/config/kilocode.yaml
+
+metadata:
+  primary_values:
+    - experimentation discipline
+    - evidence-based adaptation
+    - socio-technical mapping
+  constraints:
+    - Must reference Toyota Kata target/obstacle/next-step framing.
+    - Preserve Detroit manufacturing roots plus modern AI builder context.
+    - Ensure generated skills cite telemetry + Fireproof persistence expectations.

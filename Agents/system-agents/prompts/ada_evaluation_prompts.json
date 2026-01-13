@@ -1,0 +1,407 @@
+{
+  "$schema": "../schemas/prompt-set.schema.json",
+  "promptSetId": "ada_evaluation_prompts",
+  "personaId": "ada",
+  "version": "1.0.0",
+  "description": "Prompt templates for Ada (Algorithmic Architect) - evaluates structural elegance, composability, and reasoning chain efficiency",
+  
+  "prompts": {
+    "STRUCTURE_EVALUATION_PROMPT": {
+      "id": "STRUCTURE_EVALUATION_PROMPT",
+      "description": "Evaluates code/prompt structure for algorithmic elegance and composability",
+      "modelTier": "hybrid",
+      "complexityRouting": {
+        "local_slm": {
+          "conditions": ["inputTokens < 1000", "patternMatchOnly"],
+          "model": "ollama/gemma:2b"
+        },
+        "cloud_llm": {
+          "conditions": ["inputTokens >= 1000", "novelStructure", "deepAnalysis"],
+          "model": "anthropic/claude-sonnet-4-20250514"
+        }
+      },
+      "inputSchema": {
+        "type": "object",
+        "required": ["artifact", "artifactType", "context"],
+        "properties": {
+          "artifact": {
+            "type": "string",
+            "description": "The code, prompt, or design artifact to evaluate"
+          },
+          "artifactType": {
+            "type": "string",
+            "enum": ["code", "prompt", "architecture", "workflow", "schema"],
+            "description": "Classification of the artifact being evaluated"
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "projectPatterns": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Established patterns in the project"
+              },
+              "constraints": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Technical or business constraints"
+              },
+              "precedents": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Similar artifacts previously evaluated"
+              }
+            }
+          },
+          "evaluationFocus": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["structuralElegance", "composability", "reasoningChainEfficiency", "patternNovelty"]
+            },
+            "description": "Specific dimensions to prioritize"
+          },
+          "memoryContext": {
+            "type": "object",
+            "properties": {
+              "relevantBeads": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Bead IDs from memory system"
+              },
+              "semanticNeighbors": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Related concepts from vector store"
+              }
+            }
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["scorecard", "overallScore", "confidence", "recommendations"],
+        "properties": {
+          "scorecard": {
+            "type": "object",
+            "properties": {
+              "structuralElegance": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "How well the structure maps to the problem domain"
+              },
+              "composability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "How easily components can be reused and combined"
+              },
+              "reasoningChainEfficiency": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Efficiency of logical flow and reasoning steps"
+              },
+              "patternNovelty": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Appropriate use of novel vs established patterns"
+              }
+            }
+          },
+          "overallScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Weighted aggregate score"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Confidence in the evaluation"
+          },
+          "structuralAnalysis": {
+            "type": "object",
+            "properties": {
+              "primitives": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Identified structural primitives"
+              },
+              "compositionGraph": {
+                "type": "string",
+                "description": "Mermaid diagram of composition relationships"
+              },
+              "symmetries": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Identified structural symmetries"
+              },
+              "antipatterns": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Detected structural antipatterns"
+              }
+            }
+          },
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "category": {
+                  "type": "string",
+                  "enum": ["refactor", "decompose", "abstract", "simplify", "extend"]
+                },
+                "description": { "type": "string" },
+                "impact": {
+                  "type": "string",
+                  "enum": ["low", "medium", "high"]
+                },
+                "effort": {
+                  "type": "string",
+                  "enum": ["trivial", "small", "medium", "large"]
+                }
+              }
+            }
+          },
+          "memoryActions": {
+            "type": "object",
+            "properties": {
+              "promoteToSemantic": {
+                "type": "boolean",
+                "description": "Whether to promote this evaluation to semantic memory"
+              },
+              "patternSignature": {
+                "type": "string",
+                "description": "Unique signature for pattern matching"
+              },
+              "relatedPatterns": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Patterns to link in knowledge graph"
+              }
+            }
+          }
+        }
+      },
+      "templateVariants": {
+        "quick_check": {
+          "systemPrompt": "You are Ada, an Algorithmic Architect. Perform a rapid structural assessment focusing on obvious issues.\n\nEvaluate ONLY for:\n- Clear structural violations\n- Obvious composability issues\n- Glaring inefficiencies\n\nProvide scores 0-10 and brief justification. Be concise.",
+          "maxTokens": 500,
+          "temperature": 0.3
+        },
+        "standard": {
+          "systemPrompt": "You are Ada, an Algorithmic Architect inspired by Ada Lovelace's analytical approach to computational structures.\n\n## Core Philosophy\nView every artifact as a composition of primitive patterns. Elegant structures are:\n1. Minimal - no unnecessary elements\n2. Composable - parts combine predictably\n3. Symmetric - similar problems solved similarly\n4. Extensible - growth paths are clear\n\n## Evaluation Framework\nFor each dimension, provide:\n- Score (0-10)\n- Evidence from the artifact\n- Comparison to ideal structure\n\n## Output Requirements\n- Identify structural primitives\n- Map composition relationships\n- Detect antipatterns\n- Recommend improvements with effort/impact assessment\n\nBe analytical, precise, and constructive.",
+          "maxTokens": 2000,
+          "temperature": 0.5
+        },
+        "deep_analysis": {
+          "systemPrompt": "You are Ada, an Algorithmic Architect performing comprehensive structural analysis.\n\n## Deep Analysis Protocol\n\n### Phase 1: Decomposition\n- Identify all structural primitives\n- Map hierarchy and composition\n- Trace data/control flow\n- Enumerate invariants\n\n### Phase 2: Pattern Recognition\n- Match against known patterns (GoF, functional, domain-specific)\n- Identify novel patterns worth cataloging\n- Detect pattern misapplications\n- Find hidden symmetries\n\n### Phase 3: Quality Assessment\n- Evaluate each dimension with detailed reasoning\n- Cross-reference with project precedents\n- Consider constraint satisfaction\n- Assess extensibility vectors\n\n### Phase 4: Synthesis\n- Generate composition graph (Mermaid)\n- Prioritize recommendations by ROI\n- Identify memory-worthy patterns\n- Suggest knowledge graph links\n\nProvide thorough analysis with all evidence chains.",
+          "maxTokens": 4000,
+          "temperature": 0.6
+        }
+      },
+      "goldenTests": [
+        {
+          "name": "simple_function_evaluation",
+          "input": {
+            "artifact": "def calculate_total(items):\n    return sum(item.price * item.quantity for item in items)",
+            "artifactType": "code",
+            "context": { "projectPatterns": ["functional_style", "generator_expressions"] }
+          },
+          "expectedOutput": {
+            "scorecard": {
+              "structuralElegance": { "min": 8, "max": 10 },
+              "composability": { "min": 7, "max": 10 }
+            },
+            "overallScore": { "min": 7.5, "max": 10 }
+          }
+        },
+        {
+          "name": "complex_antipattern_detection",
+          "input": {
+            "artifact": "class GodClass:\n    def __init__(self):\n        self.db = Database()\n        self.cache = Cache()\n        self.logger = Logger()\n        self.emailer = Emailer()\n    def do_everything(self, action):\n        if action == 'save': ...\n        elif action == 'send': ...\n        elif action == 'log': ...",
+            "artifactType": "code",
+            "context": { "projectPatterns": ["single_responsibility"] }
+          },
+          "expectedOutput": {
+            "structuralAnalysis": {
+              "antipatterns": { "contains": ["god_class", "feature_envy"] }
+            },
+            "overallScore": { "min": 0, "max": 4 }
+          }
+        }
+      ]
+    },
+    
+    "PATTERN_RECOGNITION_PROMPT": {
+      "id": "PATTERN_RECOGNITION_PROMPT",
+      "description": "Identifies and catalogs structural patterns for knowledge graph",
+      "modelTier": "cloud_llm",
+      "inputSchema": {
+        "type": "object",
+        "required": ["artifact", "existingPatterns"],
+        "properties": {
+          "artifact": { "type": "string" },
+          "existingPatterns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "signature": { "type": "string" },
+                "frequency": { "type": "integer" }
+              }
+            }
+          },
+          "noveltyThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.7
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "matchedPatterns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "patternId": { "type": "string" },
+                "confidence": { "type": "number" },
+                "location": { "type": "string" }
+              }
+            }
+          },
+          "novelPatterns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "proposedId": { "type": "string" },
+                "signature": { "type": "string" },
+                "description": { "type": "string" },
+                "catalogRecommendation": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "templateVariants": {
+        "standard": {
+          "systemPrompt": "You are Ada performing pattern recognition.\n\nGiven an artifact and existing pattern catalog, identify:\n1. Which known patterns appear (with confidence and location)\n2. Novel patterns worth cataloging (above novelty threshold)\n\nFor novel patterns, provide:\n- Proposed ID (snake_case)\n- Structural signature (abstract representation)\n- Clear description\n- Recommendation on catalog inclusion\n\nFocus on reusable, generalizable patterns.",
+          "maxTokens": 1500,
+          "temperature": 0.4
+        }
+      }
+    },
+    
+    "COMPOSITION_GRAPH_PROMPT": {
+      "id": "COMPOSITION_GRAPH_PROMPT",
+      "description": "Generates structural composition diagrams",
+      "modelTier": "local_slm",
+      "inputSchema": {
+        "type": "object",
+        "required": ["components", "relationships"],
+        "properties": {
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "type": { "type": "string" },
+                "properties": { "type": "object" }
+              }
+            }
+          },
+          "relationships": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "from": { "type": "string" },
+                "to": { "type": "string" },
+                "type": { "type": "string", "enum": ["contains", "uses", "extends", "implements", "depends_on"] }
+              }
+            }
+          },
+          "format": {
+            "type": "string",
+            "enum": ["mermaid", "dot", "plantuml"],
+            "default": "mermaid"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "diagram": { "type": "string" },
+          "format": { "type": "string" },
+          "legend": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      },
+      "templateVariants": {
+        "standard": {
+          "systemPrompt": "Generate a composition diagram in the requested format.\n\nRules:\n- Use consistent node styling per type\n- Label all edges with relationship type\n- Group related components\n- Include legend\n\nOutput only the diagram code and legend.",
+          "maxTokens": 1000,
+          "temperature": 0.2
+        }
+      }
+    }
+  },
+  
+  "memoryIntegration": {
+    "beadsService": {
+      "onEvaluation": {
+        "action": "store_episode",
+        "fields": ["artifact", "scorecard", "recommendations"],
+        "namespace": "ada"
+      },
+      "onPatternDiscovery": {
+        "action": "flag_for_promotion",
+        "threshold": 0.8
+      }
+    },
+    "fireproofService": {
+      "dbName": "chrysalis_ada",
+      "collections": {
+        "evaluations": {
+          "indexFields": ["artifactType", "overallScore", "timestamp"]
+        },
+        "patterns": {
+          "indexFields": ["signature", "frequency", "lastSeen"]
+        }
+      }
+    },
+    "promotionHooks": {
+      "semanticPromotion": {
+        "trigger": "patternNovelty >= 8 AND confidence >= 0.85",
+        "destination": "long_term_patterns"
+      }
+    }
+  },
+  
+  "telemetry": {
+    "metricsToTrack": [
+      "evaluation_count",
+      "avg_structural_elegance",
+      "pattern_discovery_rate",
+      "antipattern_detection_rate",
+      "recommendation_adoption_rate"
+    ],
+    "sampling": 1.0
+  },
+  
+  "lastUpdated": "2026-01-13T09:51:00Z"
+}

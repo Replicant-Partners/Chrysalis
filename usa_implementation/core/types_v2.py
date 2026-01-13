@@ -461,11 +461,56 @@ class GraphDBConfig:
 
 
 @dataclass
+class FireproofDurableConfig:
+    """Fireproof durable memory tier configuration for local-first persistence with remote sync"""
+    enabled: bool = False
+    database_name: Optional[str] = None  # Fireproof database name
+    promotion_threshold: int = 3  # Access count before promoting from short-term
+    sync_enabled: bool = True  # Enable remote sync
+    sync_interval_seconds: int = 300  # Sync interval (5 minutes default)
+    remote_url: Optional[str] = None  # Remote sync endpoint
+    encryption_enabled: bool = False  # Enable client-side encryption
+    config: Dict[str, Any] = field(default_factory=dict)  # Additional Fireproof config
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> 'FireproofDurableConfig':
+        if isinstance(data, bool):
+            return cls(enabled=data)
+        return cls(
+            enabled=data.get('enabled', False),
+            database_name=data.get('database_name'),
+            promotion_threshold=data.get('promotion_threshold', 3),
+            sync_enabled=data.get('sync_enabled', True),
+            sync_interval_seconds=data.get('sync_interval_seconds', 300),
+            remote_url=data.get('remote_url'),
+            encryption_enabled=data.get('encryption_enabled', False),
+            config=data.get('config', {})
+        )
+    
+    def to_dict(self) -> dict:
+        result = {
+            "enabled": self.enabled,
+            "promotion_threshold": self.promotion_threshold,
+            "sync_enabled": self.sync_enabled,
+            "sync_interval_seconds": self.sync_interval_seconds,
+            "encryption_enabled": self.encryption_enabled
+        }
+        if self.database_name:
+            result["database_name"] = self.database_name
+        if self.remote_url:
+            result["remote_url"] = self.remote_url
+        if self.config:
+            result["config"] = self.config
+        return result
+
+
+@dataclass
 class StorageConfig:
     """Storage backend configuration"""
     primary: str  # Primary storage type
     vector_db: Optional[VectorDBConfig] = None
     graph_db: Optional[GraphDBConfig] = None
+    fireproof: Optional[FireproofDurableConfig] = None  # Fireproof durable tier
     cache: Optional[str] = None  # redis, valkey, memcached
     backup: Optional[str] = None
     
@@ -479,10 +524,15 @@ class StorageConfig:
         if 'graph_db' in data:
             graph_db = GraphDBConfig.from_dict(data['graph_db'])
         
+        fireproof = None
+        if 'fireproof' in data:
+            fireproof = FireproofDurableConfig.from_dict(data['fireproof'])
+        
         return cls(
             primary=data['primary'],
             vector_db=vector_db,
             graph_db=graph_db,
+            fireproof=fireproof,
             cache=data.get('cache'),
             backup=data.get('backup')
         )
@@ -493,6 +543,8 @@ class StorageConfig:
             result["vector_db"] = self.vector_db.to_dict()
         if self.graph_db:
             result["graph_db"] = self.graph_db.to_dict()
+        if self.fireproof:
+            result["fireproof"] = self.fireproof.to_dict()
         if self.cache:
             result["cache"] = self.cache
         if self.backup:

@@ -26,6 +26,7 @@ class MemoryType(str, Enum):
     SHORT_TERM = "short_term"
     LONG_TERM = "long_term"
     VECTOR = "vector"
+    HYBRID = "hybrid"  # Fireproof-backed hybrid tier (local durable + remote sync)
 
 
 class ReasoningStrategy(str, Enum):

@@ -94,7 +94,7 @@ function MessageItem({ message, side }: MessageItemProps) {
 
 function TypingIndicator({ side }: { side: 'left' | 'right' }) {
   return (
-    <div className={styles.typingIndicator}>
+    <div className={styles.typingIndicator} data-testid="typing-indicator">
       <span className={styles.typingDot} />
       <span className={styles.typingDot} />
       <span className={styles.typingDot} />

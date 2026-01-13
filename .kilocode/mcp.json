@@ -1,0 +1,48 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {
+        "DEFAULT_MINIMUM_TOKENS": ""
+      }
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "BSAPEQWOUQnuMA4C9v_KbkViRr3zzxG"
+      }
+    },
+    "e2b": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@e2b/mcp-server"
+      ],
+      "env": {
+        "E2B_API_KEY": "e2b_0cbffabd9b752a4f603d0f6fa5f4ce9840d665b3"
+      }
+    },
+    "oxylabs": {
+      "command": "uvx",
+      "args": [
+        "oxylabs-mcp"
+      ],
+      "env": {
+        "OXYLABS_USERNAME": "mdz@axolotl.partners",
+        "OXYLABS_PASSWORD": "2026$#Scrapper"
+      }
+    },
+    "microsoft-learn": {
+      "type": "streamable-http",
+      "url": "https://learn.microsoft.com/api/mcp"
+    }
+  }
+}

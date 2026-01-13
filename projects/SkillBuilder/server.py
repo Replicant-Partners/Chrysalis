@@ -4,19 +4,30 @@ SkillBuilder Service - Unified API Standard
 Generates agent skills from occupation and corpus text using exemplar-driven research.
 """
 
+import logging
 import sys
 from pathlib import Path
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify
 from datetime import datetime, timezone
-import os
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Sequence
 import uuid
 
-# Add shared directory to path
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
-SHARED_PATH = PROJECT_ROOT / "shared"
-if str(SHARED_PATH) not in sys.path:
-    sys.path.insert(0, str(SHARED_PATH))
+# Add shared directory to path (search up the tree)
+CURRENT_PATH = Path(__file__).resolve()
+SHARED_PATH = None
+PROJECT_ROOT = None
+for parent in CURRENT_PATH.parents:
+    candidate = parent / "shared"
+    if candidate.exists():
+        SHARED_PATH = candidate
+        PROJECT_ROOT = parent
+        break
+
+if SHARED_PATH is None or PROJECT_ROOT is None:
+    raise RuntimeError("Unable to locate 'shared' directory for SkillBuilder server")
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.api_core import (
     APIResponse,
@@ -37,16 +48,33 @@ from shared.api_core import (
     authenticate_request,
     create_error_handler,
     create_all_middleware,
+    create_credentials_middleware,
+    get_request_credentials,
 )
 
-from skill_builder.pipeline.models import FrontendSpec
+from skill_builder.pipeline.models import FrontendSpec, SkillCard, SemanticMapEntry
 from skill_builder.pipeline.runner import run_pipeline
+from skill_builder.pipeline.consolidation import consolidate_skill_cards
+from skill_builder.memory import (
+    builder_memory_enabled,
+    strict_memory_persistence_enabled,
+    create_memory_port,
+    run_async_task,
+    store_skills_async,
+    new_run_id,
+    builder_version,
+    builder_agent_id,
+    skill_artifacts_from_result,
+)
+from memory_system.ports import SkillArtifactBatch
 
 app = Flask(__name__)
+logger = logging.getLogger(__name__)
 
 # Setup middleware
 create_error_handler(app)
 create_all_middleware(app, api_version="v1")
+create_credentials_middleware(app)
 
 # Setup Swagger/OpenAPI documentation
 try:
@@ -64,6 +92,95 @@ except ImportError:
 
 # In-memory skill store (replace with database in production)
 skills_store: Dict[str, Dict[str, Any]] = {}
+
+
+def _serialize_skill_cards(skills: Sequence[SkillCard]) -> List[dict[str, Any]]:
+    serialized: List[dict[str, Any]] = []
+    for skill in skills:
+        serialized.append(
+            {
+                "name": skill.name,
+                "description": skill.description,
+                "triggers": list(skill.triggers),
+                "artifacts": list(skill.artifacts),
+                "constraints": list(skill.constraints),
+                "evidence_urls": list(skill.evidence_urls),
+                "confidence": skill.confidence,
+                "acquired_details": {
+                    "provenance": "skillbuilder-server",
+                },
+            }
+        )
+    return serialized
+
+
+def _serialize_semantic_map(entries: Sequence[SemanticMapEntry]) -> List[dict[str, Any]]:
+    serialized: List[dict[str, Any]] = []
+    for entry in entries:
+        serialized.append(
+            {
+                "schema_type": entry.schema_type,
+                "name": entry.name,
+                "description": entry.description,
+                "properties": entry.properties,
+                "source_urls": list(entry.source_urls),
+            }
+        )
+    return serialized
+
+
+def _persist_skills_to_memory(
+    *,
+    skills: Sequence[SkillCard],
+    embeddings: Sequence[Sequence[float]],
+    semantic_map: Sequence[SemanticMapEntry],
+    run_id: str,
+    occupation: str,
+) -> bool:
+    if not skills or not builder_memory_enabled():
+        return False
+
+    try:
+        agent_id = builder_agent_id()
+        artifacts = skill_artifacts_from_result(
+            agent_id=agent_id,
+            skills=_serialize_skill_cards(skills),
+            embeddings=embeddings,
+            semantic_map=_serialize_semantic_map(semantic_map),
+            occupation=occupation,
+        )
+
+        if not artifacts:
+            logger.info(
+                "SkillBuilder memory persistence skipped (no artifacts)",
+                extra={"run_id": run_id, "occupation": occupation},
+            )
+            return False
+
+        batch = SkillArtifactBatch(
+            agent_id=agent_id,
+            skills=artifacts,
+            run_id=run_id,
+            builder_version=builder_version(),
+        )
+
+        port = create_memory_port(agent_id=agent_id)
+        warn_message = (
+            f"SkillBuilder memory persistence failed for occupation={occupation}, run_id={run_id}"
+        )
+        run_async_task(
+            store_skills_async(port, batch),
+            warn_message=warn_message,
+        )
+        return True
+    except Exception as exc:  # noqa: BLE001
+        if strict_memory_persistence_enabled():
+            raise
+        logger.warning(
+            "SkillBuilder memory persistence encountered an error",
+            extra={"error": str(exc), "run_id": run_id, "occupation": occupation},
+        )
+        return False
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -98,6 +215,7 @@ def create_skills():
     """Generate skills for an occupation."""
     try:
         data = request.get_json() or {}
+        run_id = new_run_id()
 
         # Validate request
         occupation = RequestValidator.require_string(data, 'occupation', min_length=1)
@@ -107,17 +225,16 @@ def create_skills():
 
         corpus_text = data.get('corpus_text')
 
-        # Extract API keys from Authorization header (not request body)
-        # For now, we'll keep the legacy support but log a warning
+        credentials = get_request_credentials()
+
         api_keys = data.get('apiKeys', {})
         if api_keys:
-            # Log warning but still process (for backwards compatibility during transition)
             import logging
             logger = logging.getLogger(__name__)
-            logger.warning("API keys passed in request body - use Authorization header instead")
-            # Set API keys as environment variables (legacy behavior)
-            for key, value in api_keys.items():
-                os.environ[key] = value
+            logger.warning(
+                "apiKeys passed in request body are ignored; supply Authorization header instead",
+                extra={"path": request.path}
+            )
 
         # Create spec
         spec = FrontendSpec(
@@ -128,15 +245,27 @@ def create_skills():
         )
 
         # Run pipeline
-        result = run_pipeline(spec)
+        result = run_pipeline(spec, run_id=run_id)
+
+        skills_tuple = consolidate_skill_cards(result.skills)
+        embeddings = result.embeddings
+        semantic_map = result.semantic_map
 
         # Combine skills and their embeddings
-        response_skill = []
-        for skill, embedding in zip(result.skills, result.embeddings):
-            response_skill.append({
+        response_skills = []
+        for skill, embedding in zip(skills_tuple, embeddings):
+            response_skills.append({
                 "skill": skill.to_yaml_block(),
                 "embedding": embedding
             })
+
+        memory_persisted = _persist_skills_to_memory(
+            skills=skills_tuple,
+            embeddings=embeddings,
+            semantic_map=semantic_map,
+            run_id=run_id,
+            occupation=occupation,
+        )
 
         # Store skills
         skill_id = str(uuid.uuid4())
@@ -146,6 +275,8 @@ def create_skills():
             'skills': response_skills,
             'deepening_cycles': deepening_cycles,
             'total_skills': len(response_skills),
+            'run_id': run_id,
+            'memory_persisted': memory_persisted,
         }
 
         # Return standardized response
@@ -154,6 +285,8 @@ def create_skills():
             'occupation': occupation,
             'skills': response_skills,
             'total_skills': len(response_skills),
+            'run_id': run_id,
+            'memory_persisted': memory_persisted,
         }, status=201)
 
     except ValidationError as e:

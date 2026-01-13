@@ -10,11 +10,12 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Configure API keys
-export TAVILY_API_KEY="..."  # or BRAVE_API_KEY
+# Configure API keys (at least one provider)
+export TAVILY_API_KEY="..."   # or BRAVE_API_KEY / HUGGINGFACE_TOKEN
 
-# Create a mode
-python -m semantic_mode create
+# Run the SkillBuilder CLI
+python -m skill_builder create            # interactive wizard
+python -m skill_builder run --spec path/to/spec.yaml --iterations 4
 ```
 
 ## Interactive Wizard
@@ -43,7 +44,7 @@ reports/<mode-name>/
 ## Setup
 
 ```bash
-python -m semantic_mode setup
+python -m skill_builder setup
 ```
 
 Verifies:

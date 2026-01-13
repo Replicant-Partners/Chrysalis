@@ -1,0 +1,352 @@
+{
+  "$schema": "./schemas/prompt-registry.schema.json",
+  "registryId": "system_agents_prompt_registry",
+  "version": "1.0.0",
+  "description": "Central registry for System Agents Layer (Horizontal 2) prompts, integrated with LLM Adaptive Layer (Horizontal 1)",
+  
+  "promptSets": {
+    "ada_evaluation_prompts": {
+      "source": "./prompts/ada_evaluation_prompts.json",
+      "personaId": "ada",
+      "prompts": [
+        "STRUCTURE_EVALUATION_PROMPT",
+        "PATTERN_RECOGNITION_PROMPT",
+        "COMPOSITION_GRAPH_PROMPT"
+      ],
+      "status": "active"
+    },
+    "lea_evaluation_prompts": {
+      "source": "./prompts/lea_evaluation_prompts.json",
+      "personaId": "lea",
+      "prompts": [
+        "IMPLEMENTATION_REVIEW_PROMPT",
+        "DOCUMENTATION_QUALITY_PROMPT",
+        "ERROR_HANDLING_AUDIT_PROMPT"
+      ],
+      "status": "active"
+    },
+    "phil_evaluation_prompts": {
+      "source": "./prompts/phil_evaluation_prompts.json",
+      "personaId": "phil",
+      "prompts": [
+        "FORECAST_ANALYSIS_PROMPT",
+        "PREDICTION_TRACKING_PROMPT",
+        "CALIBRATION_REPORT_PROMPT"
+      ],
+      "status": "active"
+    },
+    "david_evaluation_prompts": {
+      "source": "./prompts/david_evaluation_prompts.json",
+      "personaId": "david",
+      "prompts": [
+        "METACOGNITIVE_AUDIT_PROMPT",
+        "BIAS_DETECTION_PROMPT",
+        "BLIND_SPOT_SCAN_PROMPT",
+        "SELF_ASSESSMENT_CALIBRATION_PROMPT"
+      ],
+      "status": "active"
+    }
+  },
+  
+  "promptIndex": {
+    "STRUCTURE_EVALUATION_PROMPT": {
+      "setId": "ada_evaluation_prompts",
+      "personaId": "ada",
+      "category": "evaluation",
+      "defaultTier": "hybrid",
+      "schemaVersion": "1.0.0"
+    },
+    "PATTERN_RECOGNITION_PROMPT": {
+      "setId": "ada_evaluation_prompts",
+      "personaId": "ada",
+      "category": "analysis",
+      "defaultTier": "cloud_llm",
+      "schemaVersion": "1.0.0"
+    },
+    "COMPOSITION_GRAPH_PROMPT": {
+      "setId": "ada_evaluation_prompts",
+      "personaId": "ada",
+      "category": "visualization",
+      "defaultTier": "local_slm",
+      "schemaVersion": "1.0.0"
+    },
+    "IMPLEMENTATION_REVIEW_PROMPT": {
+      "setId": "lea_evaluation_prompts",
+      "personaId": "lea",
+      "category": "review",
+      "defaultTier": "local_slm",
+      "schemaVersion": "1.0.0"
+    },
+    "DOCUMENTATION_QUALITY_PROMPT": {
+      "setId": "lea_evaluation_prompts",
+      "personaId": "lea",
+      "category": "review",
+      "defaultTier": "local_slm",
+      "schemaVersion": "1.0.0"
+    },
+    "ERROR_HANDLING_AUDIT_PROMPT": {
+      "setId": "lea_evaluation_prompts",
+      "personaId": "lea",
+      "category": "audit",
+      "defaultTier": "hybrid",
+      "schemaVersion": "1.0.0"
+    },
+    "FORECAST_ANALYSIS_PROMPT": {
+      "setId": "phil_evaluation_prompts",
+      "personaId": "phil",
+      "category": "prediction",
+      "defaultTier": "hybrid",
+      "schemaVersion": "1.0.0"
+    },
+    "PREDICTION_TRACKING_PROMPT": {
+      "setId": "phil_evaluation_prompts",
+      "personaId": "phil",
+      "category": "tracking",
+      "defaultTier": "local_slm",
+      "schemaVersion": "1.0.0"
+    },
+    "CALIBRATION_REPORT_PROMPT": {
+      "setId": "phil_evaluation_prompts",
+      "personaId": "phil",
+      "category": "reporting",
+      "defaultTier": "cloud_llm",
+      "schemaVersion": "1.0.0"
+    },
+    "METACOGNITIVE_AUDIT_PROMPT": {
+      "setId": "david_evaluation_prompts",
+      "personaId": "david",
+      "category": "audit",
+      "defaultTier": "cloud_llm",
+      "schemaVersion": "1.0.0"
+    },
+    "BIAS_DETECTION_PROMPT": {
+      "setId": "david_evaluation_prompts",
+      "personaId": "david",
+      "category": "detection",
+      "defaultTier": "hybrid",
+      "schemaVersion": "1.0.0"
+    },
+    "BLIND_SPOT_SCAN_PROMPT": {
+      "setId": "david_evaluation_prompts",
+      "personaId": "david",
+      "category": "detection",
+      "defaultTier": "cloud_llm",
+      "schemaVersion": "1.0.0"
+    },
+    "SELF_ASSESSMENT_CALIBRATION_PROMPT": {
+      "setId": "david_evaluation_prompts",
+      "personaId": "david",
+      "category": "calibration",
+      "defaultTier": "local_slm",
+      "schemaVersion": "1.0.0"
+    }
+  },
+  
+  "complexityRouting": {
+    "modelTiers": {
+      "local_slm": {
+        "provider": "ollama",
+        "models": ["gemma:2b", "gemma:7b"],
+        "defaultModel": "gemma:2b",
+        "latencyBudgetMs": 2000,
+        "useCases": ["quick_checks", "standard_evaluations", "tracking", "visualization"]
+      },
+      "cloud_llm": {
+        "provider": "anthropic",
+        "models": ["claude-sonnet-4-20250514", "claude-opus-4-20250514"],
+        "defaultModel": "claude-sonnet-4-20250514",
+        "latencyBudgetMs": 15000,
+        "useCases": ["deep_analysis", "metacognitive_audit", "calibration_reports", "blind_spot_detection"]
+      },
+      "hybrid": {
+        "strategy": "local_first_escalate",
+        "localThreshold": {
+          "inputTokens": 1000,
+          "complexity": "standard"
+        },
+        "escalationTriggers": [
+          "localConfidence < 0.7",
+          "inputTokens >= 2000",
+          "complexity = 'high'",
+          "novelPattern = true"
+        ]
+      }
+    },
+    "cachePolicy": {
+      "enabled": true,
+      "keyPattern": "${promptId}:${schemaVersion}:${hash(input)}",
+      "ttlSeconds": {
+        "local_slm": 3600,
+        "cloud_llm": 7200,
+        "hybrid": 5400
+      },
+      "maxEntries": 10000
+    }
+  },
+  
+  "evaluationCoordinator": {
+    "description": "Coordinates multi-persona evaluations with dependency-aware sequencing",
+    "defaultFlow": ["ada", "lea", "phil", "david"],
+    "parallelizable": {
+      "stage1": ["ada"],
+      "stage2": ["lea"],
+      "stage3": ["phil"],
+      "stage4": ["david"]
+    },
+    "dependencyGraph": {
+      "lea": ["ada"],
+      "phil": ["ada", "lea"],
+      "david": ["ada", "lea", "phil"]
+    },
+    "aggregation": {
+      "method": "weighted_average",
+      "weights": {
+        "ada": 0.25,
+        "lea": 0.30,
+        "phil": 0.20,
+        "david": 0.25
+      },
+      "conflictResolution": "escalate_to_david",
+      "unanimityBonus": 0.1,
+      "unanimityPenalty": -0.05
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "aggregatedScore": { "type": "number" },
+        "confidence": { "type": "number" },
+        "personaScores": {
+          "type": "object",
+          "properties": {
+            "ada": { "type": "object" },
+            "lea": { "type": "object" },
+            "phil": { "type": "object" },
+            "david": { "type": "object" }
+          }
+        },
+        "conflicts": { "type": "array" },
+        "recommendations": { "type": "array" },
+        "finalVerdict": {
+          "type": "string",
+          "enum": ["approve", "approve_with_changes", "revise", "reject", "escalate_to_human"]
+        },
+        "requiresHumanReview": { "type": "boolean" }
+      }
+    }
+  },
+  
+  "horizontal1Integration": {
+    "description": "Integration points with LLM Adaptive Layer (Horizontal 1)",
+    "sharedPrompts": {
+      "ERROR_CLASSIFICATION_PROMPT": {
+        "layer": "horizontal1",
+        "usedBy": ["lea"],
+        "integrationPoint": "error_handling_audit"
+      },
+      "PERFORMANCE_ANALYSIS_PROMPT": {
+        "layer": "horizontal1",
+        "usedBy": ["phil"],
+        "integrationPoint": "success_prediction"
+      },
+      "SELF_HEALING_PROMPT": {
+        "layer": "horizontal1",
+        "usedBy": ["ada", "lea"],
+        "integrationPoint": "recommendation_generation"
+      }
+    },
+    "adapterContract": {
+      "interface": "LLMAdapter.infer",
+      "parameters": {
+        "taskType": "from_prompt_category",
+        "promptTemplateId": "from_promptIndex",
+        "input": "persona_specific_input",
+        "outputSchema": "from_prompt_outputSchema",
+        "options": {
+          "modelHint": "from_complexityRouting",
+          "latencyBudgetMs": "from_modelTier",
+          "cachePolicy": "from_cachePolicy",
+          "telemetryContext": "auto_generated"
+        }
+      }
+    }
+  },
+  
+  "memorySystemIntegration": {
+    "description": "Shared memory system configuration across all personas",
+    "beadsService": {
+      "maxItemsPerPersona": 200,
+      "ttlSeconds": 7200,
+      "promotionEnabled": true,
+      "sharedNamespace": "system_agents"
+    },
+    "fireproofService": {
+      "databases": {
+        "chrysalis_ada": { "persona": "ada" },
+        "chrysalis_lea": { "persona": "lea" },
+        "chrysalis_phil": { "persona": "phil" },
+        "chrysalis_david": { "persona": "david" }
+      },
+      "sharedCollections": {
+        "evaluation_history": {
+          "indexFields": ["timestamp", "artifactId", "personaId", "score"]
+        },
+        "pattern_catalog": {
+          "indexFields": ["patternId", "discoveredBy", "frequency"]
+        }
+      }
+    },
+    "promotionHooks": {
+      "cross_persona_learning": {
+        "trigger": "pattern_frequency >= 3 AND discoverers.length >= 2",
+        "destination": "shared_patterns",
+        "action": "merge_and_promote"
+      }
+    }
+  },
+  
+  "telemetryContract": {
+    "description": "Telemetry emitted per prompt invocation",
+    "fields": {
+      "promptId": "string",
+      "personaId": "string",
+      "modelUsed": "string",
+      "modelTier": "string",
+      "tokensIn": "number",
+      "tokensOut": "number",
+      "latencyMs": "number",
+      "cacheHit": "boolean",
+      "confidence": "number",
+      "inputSize": "number",
+      "outputSchemaVersion": "string",
+      "outcomeLabel": "string|null",
+      "escalated": "boolean",
+      "humanReviewRequired": "boolean"
+    },
+    "sampling": 1.0,
+    "aggregationInterval": 60
+  },
+  
+  "governanceHooks": {
+    "preInvocation": [
+      "validate_input_schema",
+      "check_rate_limits",
+      "verify_persona_health"
+    ],
+    "postInvocation": [
+      "validate_output_schema",
+      "emit_telemetry",
+      "update_memory",
+      "check_escalation_triggers"
+    ],
+    "errorHandling": {
+      "retryPolicy": {
+        "maxRetries": 2,
+        "backoffMs": [1000, 3000],
+        "retryOn": ["timeout", "rate_limit", "transient_error"]
+      },
+      "fallbackChain": ["local_slm", "cached", "escalate_to_human"]
+    }
+  },
+  
+  "lastUpdated": "2026-01-13T09:56:00Z"
+}

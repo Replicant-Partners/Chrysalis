@@ -4,11 +4,11 @@ KnowledgeBuilder Service - Unified API Standard
 Collects and structures knowledge about entities using multi-source search and fact extraction.
 """
 
+import logging
 import sys
 from pathlib import Path
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify
 from datetime import datetime, timezone
-import os
 from typing import Optional, Dict, List, Any
 
 # Add shared directory to path
@@ -36,15 +36,31 @@ from shared.api_core import (
     authenticate_request,
     create_error_handler,
     create_all_middleware,
+    create_credentials_middleware,
+    get_request_credentials,
 )
 
+from memory_system.ports import KnowledgeArtifactBatch
+from src.memory import (
+    builder_memory_enabled,
+    strict_memory_persistence_enabled,
+    create_memory_port,
+    run_async_task,
+    store_knowledge_async,
+    new_run_id,
+    builder_version,
+    builder_agent_id,
+    artifacts_from_results,
+)
 from src.pipeline.simple_pipeline import run_knowledge_pipeline, SimplePipeline
 
 app = Flask(__name__)
+logger = logging.getLogger(__name__)
 
 # Setup middleware
 create_error_handler(app)
 create_all_middleware(app, api_version="v1")
+create_credentials_middleware(app)
 
 # Setup Swagger/OpenAPI documentation
 try:
@@ -62,6 +78,48 @@ except ImportError:
 
 # In-memory knowledge store (replace with database in production)
 knowledge_store: Dict[str, Dict[str, Any]] = {}
+
+
+def _persist_results_to_memory(results: List[Dict[str, Any]], knowledge_id: str, run_id: str) -> bool:
+    """Persist pipeline results into the shared memory stack when enabled."""
+
+    if not builder_memory_enabled():
+        return False
+
+    try:
+        agent_id = builder_agent_id()
+        artifacts = artifacts_from_results(agent_id, results)
+        if not artifacts:
+            logger.info(
+                "KnowledgeBuilder memory persistence skipped (no artifacts)",
+                extra={"knowledge_id": knowledge_id, "run_id": run_id},
+            )
+            return False
+
+        batch = KnowledgeArtifactBatch(
+            agent_id=agent_id,
+            artifacts=artifacts,
+            run_id=run_id,
+            builder_version=builder_version(),
+        )
+
+        port = create_memory_port(agent_id=agent_id)
+        warn_message = (
+            f"KnowledgeBuilder memory persistence failed for knowledge_id={knowledge_id}, run_id={run_id}"
+        )
+        run_async_task(
+            store_knowledge_async(port, batch),
+            warn_message=warn_message,
+        )
+        return True
+    except Exception as exc:  # noqa: BLE001
+        if strict_memory_persistence_enabled():
+            raise
+        logger.warning(
+            "KnowledgeBuilder memory persistence encountered an error",
+            extra={"error": str(exc), "knowledge_id": knowledge_id, "run_id": run_id},
+        )
+        return False
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -96,6 +154,7 @@ def create_knowledge():
     """Create knowledge entry for an entity."""
     try:
         data = request.get_json() or {}
+        run_id = new_run_id()
 
         # Validate request
         identifier = RequestValidator.require_string(data, 'identifier', min_length=1)
@@ -104,29 +163,31 @@ def create_knowledge():
         if not isinstance(deepening_cycles, int) or deepening_cycles < 0:
             deepening_cycles = 0
 
-        # Extract API keys from Authorization header (not request body)
-        # For now, we'll keep the legacy support but log a warning
+        credentials = get_request_credentials()
+
         api_keys = data.get('apiKeys', {})
         if api_keys:
-            # Log warning but still process (for backwards compatibility during transition)
             import logging
             logger = logging.getLogger(__name__)
-            logger.warning("API keys passed in request body - use Authorization header instead")
-            # Set API keys as environment variables (legacy behavior)
-            for key, value in api_keys.items():
-                os.environ[key] = value
+            logger.warning(
+                "apiKeys passed in request body are ignored; supply Authorization header instead",
+                extra={"path": request.path}
+            )
 
         # Run knowledge pipeline
         results = run_knowledge_pipeline(identifier, entity_type, deepening_cycles)
 
         # Store knowledge entries
         knowledge_id = f"{entity_type or 'Entity'}:{identifier}".lower().replace(' ', '_')
+        memory_persisted = _persist_results_to_memory(results, knowledge_id, run_id)
         knowledge_store[knowledge_id] = {
             'knowledge_id': knowledge_id,
             'identifier': identifier,
             'entity_type': entity_type,
             'knowledge_items': results,
             'deepening_cycles': deepening_cycles,
+            'run_id': run_id,
+            'memory_persisted': memory_persisted,
         }
 
         # Return standardized response
@@ -135,6 +196,8 @@ def create_knowledge():
             'identifier': identifier,
             'entity_type': entity_type,
             'knowledge_items': results,
+            'run_id': run_id,
+            'memory_persisted': memory_persisted,
         })
 
     except ValidationError as e:

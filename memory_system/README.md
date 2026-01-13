@@ -1,8 +1,8 @@
 # Memory System - Semantic Services Package
 
-**Last Updated**: January 12, 2026  
-**Version**: 3.1.0  
-**Tests**: 28/28 passing
+**Last Updated**: January 13, 2026
+**Version**: 3.3.0
+**Tests**: 9 fusion/Zep/beads tests + Fireproof integration tests
 
 Consolidated semantic processing, graph operations, and knowledge management utilities for Chrysalis.
 
@@ -69,53 +69,104 @@ graph = create_graph_store("sqlite", db_path="knowledge.db")
 
 ## Module Reference
 
+### Fireproof (Hybrid Memory Layer) - NEW
+
+Local-first, CRDT-based durable document store bridging short-term (Beads) and long-term (Zep) memory.
+
+```python
+from memory_system.fireproof import FireproofService, FireproofConfig
+
+# Initialize with testing config (in-memory)
+config = FireproofConfig.for_testing()
+fireproof = FireproofService(config=config)
+await fireproof.initialize()
+
+# Store documents
+doc_id = await fireproof.put({"type": "bead", "content": "Important context"})
+
+# Query documents
+beads = await fireproof.query_beads(limit=10, min_importance=0.7)
+
+# Metadata capture for LLM observability
+from memory_system.fireproof import PromptMetadataCapture
+
+capture = PromptMetadataCapture(fireproof)
+async with capture.capture_async(session_id="sess-1", model="claude-3") as meta:
+    # ... LLM call ...
+    meta.tokens_out = 150
+    meta.score = 4.5
+```
+
+**Feature Flags** (environment variables):
+- `FIREPROOF_ENABLED` - Master enable switch
+- `FIREPROOF_SYNC_ENABLED` - Enable background sync to Zep
+- `FIREPROOF_PROMOTION_ENABLED` - Enable bead promotion
+- `FIREPROOF_METADATA_CAPTURE` - Enable LLM metadata capture
+- `FIREPROOF_LOCAL_VECTORS` - Enable local vector caching
+
+See [`docs/FIREPROOF_INTEGRATION_PROPOSAL.md`](../docs/FIREPROOF_INTEGRATION_PROPOSAL.md) for architecture details.
+
 ### Beads (Short-term Memory)
 
-Append-only context chain for ephemeral memory.
+Append-only context chain for ephemeral memory with optional retention (max_items, ttl), blob offload, and Fireproof promotion hooks.
 
 ```python
 from memory_system.beads import BeadsService
+from memory_system.fireproof import FireproofService
+from memory_system.fireproof.hooks import BeadPromotionHook
 
-beads = BeadsService(db_path=":memory:", max_entries=100)
-beads.append("user_123", "conversation context", blob=b"optional_data")
-recent = beads.recent("user_123", limit=10)
+# Basic usage
+beads = BeadsService(path=":memory:", max_items=100, ttl_seconds=3600)
+
+# With Fireproof promotion (high-importance beads persisted beyond TTL)
+fireproof = FireproofService(config=FireproofConfig.for_testing())
+await fireproof.initialize()
+hook = BeadPromotionHook(fireproof, threshold=0.7)
+
+beads = BeadsService(
+    path=":memory:",
+    promotion_hook=hook.promote,
+    promotion_threshold=0.7,
+)
+
+# Append (auto-promotes if importance >= 0.7)
+bead_id = beads.append("conversation turn", role="assistant", importance=0.9)
+
+# Fetch recent
+recent = beads.recent(limit=10)
 ```
 
-### Embedding Service
+### Embedding Service (Nomic-first)
 
-Multi-provider embedding with automatic fallback.
+Multi-provider embedding with automatic fallback (Nomic → OpenAI → Deterministic).
 
 ```python
-from memory_system.embedding import EmbeddingService
+from shared.embedding import EmbeddingService
 
-# Provider fallback: Voyage → OpenAI → Ollama → Deterministic
-service = EmbeddingService(provider="auto")
-vector = service.embed("Knowledge representation")
-print(len(vector))  # Dimension varies by provider
+service = EmbeddingService()  # defaults: Nomic primary, OpenAI fallback, deterministic last
+vec = service.embed("Knowledge representation")
 ```
 
 **Environment Variables**:
-- `VOYAGE_API_KEY` - Voyage AI (primary)
-- `OPENAI_API_KEY` - OpenAI (fallback)
-- `EMBEDDING_PROVIDER` - Force specific provider
+- `NOMIC_API_KEY` (primary)
+- `OPENAI_API_KEY` (fallback)
+- `EMBEDDING_PROVIDER` to force provider (e.g., deterministic for offline tests)
 
-### Graph Store
+### Graph Store + Zep KG
 
-NetworkX and SQLite-based knowledge graphs.
+NetworkX/SQLite for local graphs; Zep for managed KG.
 
 ```python
-from memory_system.graph import GraphStoreFactory
+from memory_system.graph import GraphStore
+from memory_system.hooks import ZepHooks
 
-# In-memory graph
-graph = GraphStoreFactory.create("networkx")
+# Local
+graph = GraphStore(backend="sqlite", path="knowledge.db")
 
-# Persistent graph
-graph = GraphStoreFactory.create("sqlite", db_path="knowledge.db")
-
-# Operations
-graph.add_node("Python", node_type="language")
-graph.add_edge("Django", "Python", edge_type="built_with")
-path = graph.find_path("Django", "Python")
+# Remote KG via Zep
+zep = ZepHooks(endpoint="https://zep.example.com", api_key="...", project="default")
+zep.on_store_kg(nodes=[{"id": "Python", "type": "lang"}], edges=[{"source": "Django", "target": "Python", "type": "built_with"}])
+kg = zep.on_retrieve_kg(node_ids=["Python"], hops=2)
 ```
 
 ### Semantic Decomposition
@@ -222,16 +273,24 @@ await protocol.gossip_memory(memory)
 ```bash
 cd memory_system
 python3 -m pytest tests/ -v
+
+# Run Fireproof tests specifically
+python3 -m pytest fireproof/tests/ -v
 ```
 
-**Test Results**: 28/28 passing
+**Test Results**: 9 core tests + Fireproof integration tests
 
 | Test File | Tests | Status |
 |-----------|-------|--------|
 | `test_beads.py` | 3 | ✅ |
-| `test_security_integration.py` | 3 | ✅ |
-| `test_singleton.py` | 18 | ✅ |
 | `test_zep_client.py` | 4 | ✅ |
+| `test_fusion.py` | 2 | ✅ |
+| `fireproof/tests/test_fireproof.py` | 25+ | ✅ |
+
+```bash
+# Run all memory system tests
+pytest memory_system/tests/ memory_system/fireproof/tests/ -v
+```
 
 ---
 
@@ -240,7 +299,7 @@ python3 -m pytest tests/ -v
 ```
 memory_system/
 ├── __init__.py          # Package exports
-├── beads.py             # Short-term context chain
+├── beads.py             # Short-term context chain (+ Fireproof promotion)
 ├── bridge_schema.py     # TypeScript bridge types
 ├── byzantine.py         # Byzantine validation
 ├── chrysalis_memory.py  # High-level memory API
@@ -248,7 +307,7 @@ memory_system/
 ├── core.py              # Memory primitives
 ├── crdt_merge.py        # CRDT implementations
 ├── embeddings.py        # Legacy embedding interface
-├── fusion.py            # Retrieval fusion
+├── fusion.py            # Retrieval fusion (+ Fireproof tier)
 ├── gossip.py            # Gossip protocol
 ├── identity.py          # Memory identity/signing
 ├── retrieval.py         # Retrieval engine
@@ -259,17 +318,27 @@ memory_system/
 ├── analysis/            # Shannon entropy analysis
 ├── converters/          # Document/code converters
 ├── embedding/           # Multi-provider embeddings
+├── fireproof/           # NEW: Local-first CRDT document store
+│   ├── __init__.py      # Module exports
+│   ├── config.py        # Configuration with feature flags
+│   ├── hooks.py         # Promotion and metadata capture hooks
+│   ├── schemas.py       # Document type definitions
+│   ├── service.py       # FireproofService implementation
+│   ├── sync.py          # Zep synchronization adapter
+│   └── tests/           # Fireproof test suite
 ├── graph/               # Knowledge graph stores
 ├── hooks/               # Integration hooks (Zep)
 ├── lsp/                 # LSP adapters
 ├── resolvers/           # Entity resolvers
 ├── semantic/            # Semantic decomposition
-└── tests/               # Test suite
+└── tests/               # Core test suite
 ```
 
 ---
 
 ## Environment Variables
+
+### Embedding & LLM
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
@@ -277,6 +346,22 @@ memory_system/
 | `OPENAI_API_KEY` | OpenAI embeddings | - |
 | `ANTHROPIC_API_KEY` | Claude decomposition | - |
 | `EMBEDDING_PROVIDER` | Force provider | auto |
+
+### Fireproof (NEW)
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `FIREPROOF_ENABLED` | Master enable switch | `false` |
+| `FIREPROOF_DB_NAME` | Database name | `chrysalis-memory` |
+| `FIREPROOF_DB_PATH` | SQLite path | `:memory:` |
+| `FIREPROOF_SYNC_ENABLED` | Enable Zep sync | `false` |
+| `FIREPROOF_SYNC_GATEWAY` | Sync gateway URL | - |
+| `FIREPROOF_SYNC_INTERVAL` | Sync interval (seconds) | `60` |
+| `FIREPROOF_PROMOTION_ENABLED` | Enable bead promotion | `false` |
+| `FIREPROOF_PROMOTION_THRESHOLD` | Min importance for promotion | `0.7` |
+| `FIREPROOF_METADATA_CAPTURE` | Enable LLM metadata capture | `false` |
+| `FIREPROOF_LOCAL_VECTORS` | Enable local vector cache | `false` |
+| `FIREPROOF_ENCRYPTION` | Enable encryption | `false` |
 
 ---
 
@@ -299,8 +384,9 @@ See `docs/AGENTIC_MEMORY_DESIGN.md` for full integration architecture.
 | [Status](../docs/STATUS.md) | Implementation status |
 | [Architecture](../ARCHITECTURE.md) | System design |
 | [Memory Design](../docs/AGENTIC_MEMORY_DESIGN.md) | Memory architecture |
+| [Fireproof Integration](../docs/FIREPROOF_INTEGRATION_PROPOSAL.md) | Fireproof architecture proposal |
 
 ---
 
-**Maintainer**: Chrysalis Team  
+**Maintainer**: Chrysalis Team
 **License**: MIT (see repository LICENSE)
