@@ -1,12 +1,12 @@
 # Chrysalis Documentation
 
-**Last Updated**: January 11, 2026
+**Last Updated**: January 12, 2026
 
 ---
 
 ## Navigation
 
-This directory contains all Chrysalis documentation. See the **[Documentation Index](INDEX.md)** for complete navigation.
+See the **[Documentation Index](INDEX.md)** for complete navigation.
 
 ---
 
@@ -14,30 +14,35 @@ This directory contains all Chrysalis documentation. See the **[Documentation In
 
 | Document | Purpose |
 |----------|---------|
-| **[INDEX.md](INDEX.md)** | Complete documentation index and navigation hub |
-| **[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)** | Authoritative implementation status |
-| **[DOCUMENTATION_INVENTORY.md](DOCUMENTATION_INVENTORY.md)** | Complete documentation audit |
+| **[STATUS.md](STATUS.md)** | Current implementation status (**start here**) |
+| **[INDEX.md](INDEX.md)** | Documentation navigation hub |
+| **[ARCHITECTURE.md](../ARCHITECTURE.md)** | System architecture |
 
 ---
 
 ## Key Documentation
 
 ### Status & Planning
-- [Implementation Status](IMPLEMENTATION_STATUS.md) — Current build state, known issues, roadmap
+
+- [STATUS.md](STATUS.md) — Current build state, test results, next steps
 
 ### Getting Started
-- [Quick Start](guides/QUICK_START.md) — Get running quickly
-- [Configuration](CONFIGURATION.md) — Environment setup
-- [Troubleshooting](guides/TROUBLESHOOTING.md) — Common issues
+
+- [guides/QUICK_START.md](guides/QUICK_START.md) — Get running quickly
+- [CONFIGURATION.md](CONFIGURATION.md) — Environment setup
+- [guides/TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) — Problem resolution
 
 ### Architecture
-- [Architecture](../ARCHITECTURE.md) — System design (root level)
-- [API Reference](api/API_REFERENCE_INDEX.md) — Complete API documentation
+
+- [ARCHITECTURE.md](../ARCHITECTURE.md) — System design (root level)
+- [architecture/](architecture/) — Architecture deep-dives
+- [current/UNIFIED_SPEC_V3.1.md](current/UNIFIED_SPEC_V3.1.md) — Technical specification
 
 ### Reference
-- [Current Specifications](current/) — Active technical specs
-- [Research](research/) — Research foundation
-- [Archive](archive/) — Historical documentation
+
+- [api/](api/) — API documentation
+- [research/](research/) — Research foundation
+- [archive/](archive/) — Historical documentation
 
 ---
 
@@ -54,16 +59,17 @@ This directory contains all Chrysalis documentation. See the **[Documentation In
 
 ```
 docs/
-├── INDEX.md                    # Navigation hub
-├── IMPLEMENTATION_STATUS.md    # Authoritative status
-├── README.md                   # This file
-├── api/                        # API documentation
-├── architecture/               # Architecture details
-├── current/                    # Active specifications
-├── guides/                     # How-to guides
-├── research/                   # Research foundation
-├── quality/                    # Quality documentation
-└── archive/                    # Historical documentation
+├── INDEX.md              # Navigation hub
+├── STATUS.md             # Authoritative status
+├── README.md             # This file
+│
+├── architecture/         # Architecture details
+├── api/                  # API documentation
+├── current/              # Active specifications
+├── guides/               # How-to guides
+├── research/             # Research foundation
+├── adr/                  # Architecture Decision Records
+└── archive/              # Historical documentation
 ```
 
 ---

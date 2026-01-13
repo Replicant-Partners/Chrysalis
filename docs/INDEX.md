@@ -1,14 +1,13 @@
 # Chrysalis Documentation Index
 
-**Version**: 2.0.0  
-**Last Updated**: January 11, 2026  
+**Last Updated**: January 12, 2026  
 **Status**: Active
 
 ---
 
 ## Navigation Hub
 
-This index serves as the central navigation point for all Chrysalis documentation. Documents are organized by purpose and audience.
+This index is the central navigation point for all Chrysalis documentation.
 
 ---
 
@@ -16,12 +15,12 @@ This index serves as the central navigation point for all Chrysalis documentatio
 
 | I want to... | Go to... |
 |--------------|----------|
-| Get started quickly | [Quick Start Guide](guides/QUICK_START.md) |
-| Check implementation status | [Implementation Status](IMPLEMENTATION_STATUS.md) |
-| Understand the architecture | [Architecture](../ARCHITECTURE.md) |
-| Configure the system | [Configuration](CONFIGURATION.md) |
-| Troubleshoot issues | [Troubleshooting](guides/TROUBLESHOOTING.md) |
-| Contribute to the project | [Contributing](../CONTRIBUTING.md) |
+| Check current status | [STATUS.md](STATUS.md) |
+| Understand the architecture | [ARCHITECTURE.md](../ARCHITECTURE.md) |
+| Get started quickly | [guides/QUICK_START.md](guides/QUICK_START.md) |
+| Configure the system | [CONFIGURATION.md](CONFIGURATION.md) |
+| Troubleshoot issues | [guides/TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) |
+| Use the memory system | [memory_system/README.md](../memory_system/README.md) |
 
 ---
 
@@ -29,209 +28,145 @@ This index serves as the central navigation point for all Chrysalis documentatio
 
 ```
 docs/
-├── INDEX.md                    # This file - navigation hub
-├── IMPLEMENTATION_STATUS.md    # Authoritative status (single source of truth)
-├── DOCUMENTATION_INVENTORY.md  # Complete audit of all documentation
+├── INDEX.md                 # This file - navigation hub
+├── STATUS.md                # Single source of truth for status
+├── README.md                # Documentation overview
 │
-├── getting-started/            # New user documentation
-│   └── ...
+├── architecture/            # Architecture deep-dives
+│   ├── overview.md
+│   ├── memory-system.md
+│   └── universal-patterns.md
 │
-├── guides/                     # How-to guides
-│   ├── QUICK_START.md          # Getting started guide
-│   └── TROUBLESHOOTING.md      # Problem resolution
+├── api/                     # API documentation
+│   ├── API_REFERENCE_INDEX.md
+│   └── openapi/
 │
-├── api/                        # API documentation
-│   ├── README.md               # API overview
-│   ├── API_REFERENCE_INDEX.md  # Complete API reference
-│   └── AUTHENTICATION.md       # Auth documentation
+├── guides/                  # How-to guides
+│   ├── QUICK_START.md
+│   └── TROUBLESHOOTING.md
 │
-├── architecture/               # Architecture details
-│   ├── memory-system.md        # Memory architecture
-│   └── universal-patterns.md   # Pattern documentation
+├── current/                 # Active specifications
+│   └── UNIFIED_SPEC_V3.1.md
 │
-├── current/                    # Active specifications
-│   ├── UNIFIED_SPEC_V3.1.md    # Technical specification
-│   ├── DOCUMENTATION_STANDARDS.md
-│   └── ...
+├── research/                # Research foundation
+│   └── universal-patterns/
 │
-├── research/                   # Research foundation
-│   ├── INDEX.md                # Research index
-│   ├── universal-patterns/     # Pattern research
-│   └── deep-research/          # Deep dive research
+├── adr/                     # Architecture Decision Records
+│   └── ADR-*.md
 │
-├── quality/                    # Quality documentation
-│   └── ...
-│
-└── archive/                    # Historical documentation
-    ├── README.md               # Archive index
-    └── [dated directories]     # Organized by date
+└── archive/                 # Historical documentation
+    └── README.md
 ```
-
----
-
-## By Audience
-
-### For New Users
-
-1. **[Quick Start Guide](guides/QUICK_START.md)** - Get running in 15 minutes
-2. **[Configuration](CONFIGURATION.md)** - Environment setup
-3. **[Troubleshooting](guides/TROUBLESHOOTING.md)** - Common issues
-
-### For Developers
-
-1. **[Implementation Status](IMPLEMENTATION_STATUS.md)** - Current state and known issues
-2. **[Architecture](../ARCHITECTURE.md)** - System design
-3. **[API Reference](api/API_REFERENCE_INDEX.md)** - Complete API documentation
-4. **[Data Models](DATA_MODELS.md)** - Data structures and schemas
-5. **[Contributing](../CONTRIBUTING.md)** - How to contribute
-
-### For Architects
-
-1. **[Architecture Specification](../ARCHITECTURE.md)** - Full system design
-2. **[Unified Specification v3.1](current/UNIFIED_SPEC_V3.1.md)** - Technical specification
-3. **[Universal Patterns](research/universal-patterns/)** - Research foundation
-4. **[Memory System](architecture/memory-system.md)** - Memory architecture
-
-### For Operations
-
-1. **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Deployment options
-2. **[Configuration](CONFIGURATION.md)** - Environment variables
-3. **[Observability Guide](current/OBSERVABILITY_GUIDE.md)** - Voyeur and metrics
 
 ---
 
 ## Core Documentation
 
-### Implementation & Status
+### Status & Implementation
 
 | Document | Purpose | Authority |
 |----------|---------|-----------|
-| **[Implementation Status](IMPLEMENTATION_STATUS.md)** | Current build state, known issues | **Authoritative** |
-| **[Documentation Inventory](DOCUMENTATION_INVENTORY.md)** | Complete documentation audit | Reference |
+| **[STATUS.md](STATUS.md)** | Current build state, test results, next steps | **Authoritative** |
+| **[ARCHITECTURE.md](../ARCHITECTURE.md)** | System design and component architecture | **Authoritative** |
+
+### Getting Started
+
+| Document | Purpose |
+|----------|---------|
+| [QUICK_START.md](guides/QUICK_START.md) | Get running in 15 minutes |
+| [CONFIGURATION.md](CONFIGURATION.md) | Environment and configuration |
+| [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) | Problem resolution |
 
 ### Architecture
 
-| Document | Purpose | Authority |
-|----------|---------|-----------|
-| **[Architecture](../ARCHITECTURE.md)** | System design, components, data flow | **Authoritative** |
-| **[Memory System](architecture/memory-system.md)** | Memory architecture details | Reference |
-| **[Universal Patterns](architecture/universal-patterns.md)** | Pattern documentation | Reference |
+| Document | Purpose |
+|----------|---------|
+| [Architecture Overview](architecture/overview.md) | High-level system design |
+| [Memory System](architecture/memory-system.md) | Memory layer architecture |
+| [Universal Patterns](architecture/universal-patterns.md) | 10 distributed patterns |
 
 ### API
 
-| Document | Purpose | Authority |
-|----------|---------|-----------|
-| **[API Reference Index](api/API_REFERENCE_INDEX.md)** | Complete API documentation | Reference |
-| **[API Documentation](API.md)** | API overview | Reference |
-| **[Authentication](api/AUTHENTICATION.md)** | Auth documentation | Reference |
+| Document | Purpose |
+|----------|---------|
+| [API Reference Index](api/API_REFERENCE_INDEX.md) | Complete API documentation |
+| [Authentication](api/AUTHENTICATION.md) | Auth documentation |
+| [OpenAPI Specs](api/openapi/) | OpenAPI definitions |
 
-### Guides
+### Specifications
 
-| Document | Purpose | Authority |
-|----------|---------|-----------|
-| **[Quick Start](guides/QUICK_START.md)** | Getting started | Reference |
-| **[Troubleshooting](guides/TROUBLESHOOTING.md)** | Problem resolution | Reference |
-| **[Configuration](CONFIGURATION.md)** | Environment setup | Reference |
+| Document | Purpose |
+|----------|---------|
+| [Unified Spec v3.1](current/UNIFIED_SPEC_V3.1.md) | Complete technical specification |
+| [Sanitization Policy](current/SANITIZATION_POLICY.md) | Input validation rules |
+| [MCP Setup](current/MCP_SETUP.md) | MCP configuration |
 
----
+### Research
 
-## Research Documentation
-
-The research directory contains foundational research that informs the architecture:
-
-| Area | Contents |
-|------|----------|
-| **[Universal Patterns](research/universal-patterns/)** | 10 distributed systems patterns (Hash, DAG, CRDT, etc.) |
-| **[Deep Research](research/deep-research/)** | Extended analysis and mathematical foundations |
-| **[Agent Specifications](research/agent-spec/)** | Agent format research |
+| Area | Purpose |
+|------|---------|
+| [Universal Patterns](research/universal-patterns/) | 10 distributed systems patterns |
+| [Research Index](research/INDEX.md) | Research documentation hub |
 
 ---
 
-## Specifications
+## By Audience
 
-Active specifications defining the system:
+### Developers
 
-| Specification | Purpose |
-|---------------|---------|
-| **[Unified Spec v3.1](current/UNIFIED_SPEC_V3.1.md)** | Complete technical specification |
-| **[Documentation Standards](current/DOCUMENTATION_STANDARDS.md)** | Documentation requirements |
-| **[Sanitization Policy](current/SANITIZATION_POLICY.md)** | Input validation rules |
-| **[Vector Index Setup](current/VECTOR_INDEX_SETUP.md)** | Vector database configuration |
+1. [STATUS.md](STATUS.md) - Current state and known issues
+2. [ARCHITECTURE.md](../ARCHITECTURE.md) - System design
+3. [Memory System](../memory_system/README.md) - Python package
+4. [API Reference](api/API_REFERENCE_INDEX.md) - API documentation
 
----
+### Architects
 
-## Archive
+1. [Architecture Specification](../ARCHITECTURE.md) - Full system design
+2. [Unified Spec v3.1](current/UNIFIED_SPEC_V3.1.md) - Technical specification
+3. [Universal Patterns](research/universal-patterns/) - Research foundation
 
-Historical documentation is preserved in the [archive](archive/) directory:
+### Operations
 
-- **Organized by date**: `2026-01-*` directories
-- **Clearly labeled**: All archived content marked as non-current
-- **Reference only**: Do not use for current development
-
-See [Archive README](archive/README.md) for the complete archive index.
+1. [Configuration](CONFIGURATION.md) - Environment variables
+2. [Deployment Guide](DEPLOYMENT_GUIDE.md) - Deployment options
 
 ---
 
-## Documentation Standards
+## Document Lifecycle
 
-All documentation follows these principles:
+### Active Documents
 
-1. **Code is Ground Truth**: Documentation reflects actual implementation
-2. **Single Source of Truth**: One authoritative document per topic
-3. **Mermaid Diagrams**: Visual representations where helpful
-4. **Citations**: External references for design decisions
-5. **Versioned**: Last-updated timestamps on all documents
+Documents in `docs/` root and subdirectories (except `archive/`) are **active** and reflect current implementation.
 
-See [Documentation Standards](current/DOCUMENTATION_STANDARDS.md) for full guidelines.
+### Archived Documents
+
+Historical documents are moved to `docs/archive/` with:
+- Clear "ARCHIVED" label
+- Date of archival
+- Reason for archival
+- Pointer to superseding document
+
+See [archive/README.md](archive/README.md) for archive contents.
 
 ---
 
 ## Maintenance
 
-### Document Ownership
-
-| Area | Owner |
-|------|-------|
-| Root docs (README, ARCHITECTURE) | Core Team |
-| Implementation Status | Core Team |
-| API Documentation | API Team |
-| Research | Research Team |
-
-### Review Cadence
-
-| Document Type | Review Frequency |
-|---------------|------------------|
-| Implementation Status | Weekly |
-| Architecture | Monthly |
-| API Reference | On API changes |
-| Guides | Quarterly |
+| Area | Owner | Review |
+|------|-------|--------|
+| STATUS.md | Core Team | Weekly |
+| ARCHITECTURE.md | Core Team | Monthly |
+| API docs | API Team | On change |
+| Guides | Documentation Team | Quarterly |
 
 ---
 
 ## External Resources
 
-### Standards
-
 - [JSON Schema](https://json-schema.org/) - Data validation
-- [Schema.org](https://schema.org/) - Structured data vocabulary
 - [Mermaid](https://mermaid.js.org/) - Diagram syntax
-- [Semantic Versioning](https://semver.org/) - Version numbering
-
-### Related Technologies
-
 - [MCP Protocol](https://modelcontextprotocol.io/) - Model Context Protocol
-- [LanceDB](https://lancedb.github.io/lancedb/) - Vector database
-- [Voyage AI](https://docs.voyageai.com/) - Embedding provider
 
 ---
 
-## Getting Help
-
-1. **Check Documentation**: Search this index first
-2. **Troubleshooting**: See [Troubleshooting Guide](guides/TROUBLESHOOTING.md)
-3. **GitHub Issues**: Report bugs or request features
-4. **Contributing**: See [Contributing Guide](../CONTRIBUTING.md)
-
----
-
-**Navigation**: [Home](../README.md) | [Architecture](../ARCHITECTURE.md) | [Status](IMPLEMENTATION_STATUS.md) | [Archive](archive/README.md)
+**Navigation**: [Home](../README.md) | [Architecture](../ARCHITECTURE.md) | [Status](STATUS.md)
