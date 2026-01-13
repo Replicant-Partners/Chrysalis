@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](package.json)
-[![Build](https://img.shields.io/badge/build-issues-orange.svg)](docs/IMPLEMENTATION_STATUS.md)
+[![Build](https://img.shields.io/badge/build-partial-yellow.svg)](docs/STATUS.md)
 
 ---
 
@@ -34,15 +34,15 @@ flowchart LR
 
 ## Current Status
 
-> ⚠️ **Active Development**: The system has known build issues. See [Implementation Status](docs/IMPLEMENTATION_STATUS.md) for details.
+> ⚠️ **Active Development**: TypeScript build has known issues. See [Project Status](docs/STATUS.md) for details.
 
 | Component | Status |
 |-----------|--------|
 | TypeScript Core | ⚠️ Build errors in voice module |
-| Python Memory System | ⚠️ Test collection issues |
-| Core Functionality | ✅ Implemented (pending build fix) |
+| Python Memory System | ✅ **28/28 tests passing** |
+| Core Functionality | ✅ Implemented (pending TS build fix) |
 
-**For authoritative status**: See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md)
+**For authoritative status**: See [docs/STATUS.md](docs/STATUS.md)
 
 ---
 
@@ -129,7 +129,7 @@ Chrysalis/
 │   └── analysis/             # Shannon entropy
 ├── ui/                       # React frontend
 ├── docs/                     # Documentation
-│   ├── IMPLEMENTATION_STATUS.md  # Current status
+│   ├── STATUS.md             # Current status (authoritative)
 │   ├── INDEX.md              # Documentation index
 │   └── ...
 ├── examples/                 # Usage examples
@@ -143,7 +143,7 @@ Chrysalis/
 | Document | Purpose |
 |----------|---------|
 | **[Documentation Index](docs/INDEX.md)** | Navigation hub for all docs |
-| **[Implementation Status](docs/IMPLEMENTATION_STATUS.md)** | Current build state and known issues |
+| **[Project Status](docs/STATUS.md)** | Current build state and known issues |
 | **[Architecture](ARCHITECTURE.md)** | System design, components, data flow |
 | **[Memory System](memory_system/README.md)** | Python package documentation |
 
@@ -264,5 +264,5 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-**Version**: 3.1.0  
-**Last Updated**: January 11, 2026
+**Version**: 3.1.0
+**Last Updated**: January 12, 2026
