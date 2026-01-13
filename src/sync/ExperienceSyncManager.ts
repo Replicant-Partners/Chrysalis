@@ -80,7 +80,10 @@ export class ExperienceSyncManager {
   private syncStatus: Map<string, SyncStatus> = new Map();
   private transports: Map<string, ExperienceTransport> = new Map();
   private sourceAgents: Map<string, UniformSemanticAgentV2> = new Map();
+  private syncConfigs: Map<string, ExperienceSyncConfig> = new Map();
   private voyeur?: VoyeurBus;
+  
+  private initialized = false;
   
   constructor(opts?: { voyeur?: VoyeurBus }) {
     this.streamingSync = new StreamingSync();
@@ -102,6 +105,18 @@ export class ExperienceSyncManager {
   }
   
   /**
+   * Initialize the sync manager and its dependencies.
+   * Must be called before processing any sync operations if using
+   * embedding-based similarity or vector indexing.
+   */
+  async initialize(): Promise<void> {
+    if (this.initialized) return;
+    
+    await this.memoryMerger.initialize();
+    this.initialized = true;
+  }
+  
+  /**
    * Initialize sync for instance
    */
   async initializeSync(
@@ -117,6 +132,9 @@ export class ExperienceSyncManager {
     if (sourceAgent) {
       this.sourceAgents.set(instanceId, sourceAgent);
     }
+    
+    // Store config for later use (e.g., calculating next sync)
+    this.syncConfigs.set(instanceId, config);
     
     const transportConfig = this.resolveTransportConfig(
       config,
@@ -230,7 +248,8 @@ export class ExperienceSyncManager {
     
     status.last_sync = new Date().toISOString();
     status.backlog_size = 0;
-    status.next_sync = this.calculateNextSync(status.protocol, {} as any);
+    const storedConfig = this.syncConfigs.get(instanceId);
+    status.next_sync = this.calculateNextSync(status.protocol, storedConfig ?? {} as ExperienceSyncConfig);
     
     await this.emitVoyeur({
       kind: 'sync.batch',
@@ -269,7 +288,8 @@ export class ExperienceSyncManager {
     
     status.last_sync = new Date().toISOString();
     status.backlog_size = 0;
-    status.next_sync = this.calculateNextSync(status.protocol, {} as any);
+    const checkInConfig = this.syncConfigs.get(instanceId);
+    status.next_sync = this.calculateNextSync(status.protocol, checkInConfig ?? {} as ExperienceSyncConfig);
     
     await this.emitVoyeur({
       kind: 'sync.check_in',

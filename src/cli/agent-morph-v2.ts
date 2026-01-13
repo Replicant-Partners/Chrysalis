@@ -1,13 +1,27 @@
 #!/usr/bin/env node
 /**
- * Agent Morph v2 CLI - Enhanced with Experience Sync
- * 
- * Usage:
- *   agent-morph-v2 morph --type mcp --to mcp --input agent.json --output agent_mcp.json
- *   agent-morph-v2 sync --instance-id <id> --agent-id <id>
- *   agent-morph-v2 merge --agent-id <id> --instances <id1,id2,id3>
- *   agent-morph-v2 instances --agent-id <id>
+ * @deprecated This CLI is deprecated. Use `chrysalis` instead.
+ *
+ * Agent Morph v2 CLI - DEPRECATED
+ *
+ * This CLI has been superseded by the unified `chrysalis` CLI.
+ * Please migrate to using `chrysalis` for all operations.
+ *
+ * Migration guide:
+ *   OLD: agent-morph-v2 morph --type mcp --to mcp --input agent.json --output out.json
+ *   NEW: chrysalis morph --type mcp --from elizaos --to mcp --input agent.json --output out.json
+ *
+ *   OLD: agent-morph-v2 sync --instance-id <id> --agent-file <file>
+ *   NEW: chrysalis sync --instance-id <id> --agent-file <file>
+ *
+ * @see src/cli/chrysalis-cli.ts - The unified CLI
+ * @see plans/CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md - Item H-2
  */
+
+// Deprecation warning
+console.warn('\n⚠️  DEPRECATION WARNING: "agent-morph-v2" is deprecated.');
+console.warn('   Please use "chrysalis" CLI instead.');
+console.warn('   Run "chrysalis --help" for usage information.\n');
 
 import { program } from 'commander';
 import * as fs from 'fs/promises';

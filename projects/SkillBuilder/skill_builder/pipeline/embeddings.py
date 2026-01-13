@@ -47,20 +47,20 @@ try:
 
         def __init__(
             self,
-            model: str = "voyage-3",
-            dimensions: int = 1024,
-            fallback_model: str = "text-embedding-3-large",
-            fallback_dimensions: int = 3072,
+            model: str = "text-embedding-3-large",
+            dimensions: int = 3072,
+            fallback_model: str = "nomic-embed-text-v1",
+            fallback_dimensions: int = 768,
             telemetry: Optional[EmbeddingTelemetry] = None,
         ):
             """
             Initialize embedding service (backward compatible wrapper).
 
             Args:
-                model: Voyage AI model name (default: voyage-3)
-                dimensions: Voyage embedding dimensions (default: 1024)
-                fallback_model: OpenAI fallback model name
-                fallback_dimensions: OpenAI fallback dimensions
+                model: Primary embedding model (default: OpenAI text-embedding-3-large)
+                dimensions: Primary embedding dimensions (default: 3072)
+                fallback_model: Secondary provider model name (default: Nomic embed text)
+                fallback_dimensions: Secondary provider dimensions
                 telemetry: Optional telemetry adapter
             """
             # Get forced provider from env if set
@@ -82,22 +82,18 @@ try:
             # Map new provider info to old _provider format
             provider_info = self.get_provider_info()
             provider_name = provider_info.get("provider", "unknown")
-            if provider_name == "voyage":
-                # Check if using HTTP fallback
-                if self._voyage_provider and hasattr(self._voyage_provider, '_use_http') and self._voyage_provider._use_http:
-                    self._provider = "voyage_http"
-                else:
-                    self._provider = "voyage"
-            elif provider_name == "openai":
+            if provider_name == "openai":
                 self._provider = "openai"
+            elif provider_name == "nomic":
+                self._provider = "nomic"
             elif provider_name == "deterministic":
                 self._provider = "deterministic"
             else:
                 self._provider = provider_name
 
             # Expose old-style client references for backward compatibility
-            self._voyage_client = getattr(self._voyage_provider, '_client', None) if self._voyage_provider else None
             self._openai_client = getattr(self._openai_provider, '_client', None) if self._openai_provider else None
+            self._nomic_client = getattr(self._nomic_provider, '_client', None) if hasattr(self, '_nomic_provider') and self._nomic_provider else None
 
     # Re-export exceptions for backward compatibility
     EmbeddingError = EmbeddingError

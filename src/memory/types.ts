@@ -1,328 +1,129 @@
 /**
- * Memory System Types
- * 
- * TypeScript interfaces for Chrysalis memory system.
- * Mirrors Python types from memory_system/chrysalis_types.py
- * with addition of procedural memory tier for skills/procedures.
+ * Memory System Type Definitions
  * 
  * @module memory/types
+ * @see plans/CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md - Item C-2
  */
-
-// Re-export MemoryItem from GossipTypes for convenience
-export { MemoryItem } from '../core/patterns/GossipTypes';
 
 /**
- * Memory type classification
+ * Memory entry representing a single piece of stored information
  */
-export type MemoryType = 
-  | 'observation'
-  | 'thought'
-  | 'action'
-  | 'result'
-  | 'conversation'
-  | 'knowledge'
-  | 'skill'
-  | 'procedure'
-  | 'response'
-  | 'event';
-
-/**
- * Source of memory
- */
-export type MemorySource = 
-  | 'user'
-  | 'agent'
-  | 'tool'
-  | 'unknown'
-  | 'system';
-
-/**
- * Memory tier in the hierarchy
- */
-export type MemoryTier = 
-  | 'working'    // Short-term, session context
-  | 'episodic'   // Past experiences
-  | 'semantic'   // Facts and knowledge
-  | 'procedural'; // Skills and procedures
-
-/**
- * Cryptographic fingerprint (Pattern #1)
- */
-export interface MemoryFingerprint {
-  fingerprint: string;     // SHA-384 hash (96 hex chars)
-  algorithm: 'sha384';
-  contentHash: string;     // Hash of content only
-  metadataHash: string;    // Hash of metadata
-}
-
-/**
- * Digital signature (Pattern #2)
- */
-export interface MemorySignature {
-  signature: string;       // Base64-encoded Ed25519 signature
-  publicKey: string;       // Base64-encoded Ed25519 public key
-  algorithm: 'ed25519';
-  signedBy: string;        // Instance ID
-  timestamp: number;       // When signed
-}
-
-/**
- * Logical time ordering (Pattern #9)
- */
-export interface LogicalTime {
-  lamportTime: number;     // Lamport timestamp
-  vectorTime: number[];    // Vector clock
-  wallTime: number;        // Wall clock timestamp (ms)
-  instanceId: string;      // Instance that created this time
-}
-
-/**
- * Gossip metadata (Pattern #4)
- */
-export interface GossipMetadata {
-  originInstance: string;
-  seenBy: string[];        // Set of instance IDs
-  fanout: number;
-  propagationRound: number;
-  lastGossip: number;
-}
-
-/**
- * Byzantine validation (Pattern #8)
- */
-export interface ByzantineValidation {
-  verifiedBy: string[];
-  confidenceScores: number[];
-  trimmedMean: number;
-  median: number;
-  threshold: boolean;
-  requiredVotes: number;
-}
-
-/**
- * CRDT metadata (Pattern #10)
- */
-export interface CRDTMetadata {
-  crdtType: 'g-set' | 'or-set' | 'lww-register';
-  addedBy: string[];
-  firstAdded: number;
-  lastModified: number;
-  version: number;
-}
-
-/**
- * Memory causality DAG (Pattern #5)
- */
-export interface MemoryCausality {
-  parentMemories: string[];
-  childMemories: string[];
-  relatedMemories: string[];
-}
-
-/**
- * Convergence metadata (Pattern #6)
- */
-export interface ConvergenceMetadata {
-  sources: string[];
-  iterations: number;
-  converged: boolean;
-  canonicalForm: string;
-  similarityThreshold: number;
-}
-
-/**
- * Base memory entry interface
- */
-export interface BaseMemory {
-  memoryId: string;
-  fingerprint: MemoryFingerprint;
+export interface MemoryEntry {
+  id: string;
   content: string;
   memoryType: MemoryType;
-  source: MemorySource;
-  tier: MemoryTier;
-  importance: number;       // 0-1
-  instanceId: string;
-  logicalTime: LogicalTime;
-  causality: MemoryCausality;
-  signature?: MemorySignature;
-  embedding?: number[];     // Vector embedding for similarity
-  /** Optional summary (required for episodic, optional for others) */
-  summary?: string;
+  timestamp: Date;
+  metadata: Record<string, unknown>;
+  embedding?: number[];
 }
 
 /**
- * Working memory - short-term session context
+ * Supported memory types following cognitive architecture
  */
-export interface WorkingMemory extends BaseMemory {
-  tier: 'working';
-  expiresAt?: number;       // When to auto-evict
-}
+export type MemoryType = 'working' | 'episodic' | 'semantic' | 'core';
 
 /**
- * Episodic memory - past experiences
- */
-export interface EpisodicMemory extends BaseMemory {
-  tier: 'episodic';
-  summary: string;
-  crdt: CRDTMetadata;
-  gossip: GossipMetadata;
-  validation: ByzantineValidation;
-}
-
-/**
- * Semantic memory - facts and knowledge
- */
-export interface SemanticMemory extends BaseMemory {
-  tier: 'semantic';
-  fact: string;
-  alternatePhrasings: string[];
-  evidence: string[];       // Memory IDs supporting this fact
-  convergence: ConvergenceMetadata;
-  validation: ByzantineValidation;
-  verificationCount: number;
-  confidence: number;
-}
-
-/**
- * Procedural memory - learned skills and procedures
- * Memory type definitions
- */
-export interface ProceduralMemory extends BaseMemory {
-  tier: 'procedural';
-  skillName: string;
-  description: string;
-  steps: string[];          // Ordered procedure steps
-  preconditions: string[];  // Required conditions
-  postconditions: string[]; // Expected outcomes
-  parameters: Record<string, {
-    type: string;
-    description: string;
-    required: boolean;
-    default?: unknown;
-  }>;
-  examples: Array<{
-    input: Record<string, unknown>;
-    output: string;
-    context?: string;
-  }>;
-  successRate: number;      // 0-1, based on execution history
-  executionCount: number;
-  lastExecuted?: number;
-  validation: ByzantineValidation;
-}
-
-/**
- * Union type for any memory
- */
-export type Memory = WorkingMemory | EpisodicMemory | SemanticMemory | ProceduralMemory;
-
-/**
- * Memory retrieval result
+ * Result from memory retrieval operations
  */
 export interface RetrievalResult {
-  memories: Memory[];
-  scores: number[];         // Similarity scores
-  metadata: {
-    query: string;
-    tier?: MemoryTier;
-    totalSearched: number;
-    searchTimeMs: number;
-  };
+  entries: MemoryEntry[];
+  scores: number[];
+  metadata: Record<string, unknown>;
 }
 
 /**
- * Memory state container
- */
-export interface MemoryState {
-  instanceId: string;
-  agentId: string;
-  workingMemories: WorkingMemory[];
-  episodicMemories: EpisodicMemory[];
-  semanticMemories: SemanticMemory[];
-  proceduralMemories: ProceduralMemory[];
-  lamportClock: number;
-  vectorClock: number[];
-  createdAt: number;
-  lastSync: number;
-  totalMemories: number;
-}
-
-/**
- * Memory configuration
+ * Configuration for memory subsystems
  */
 export interface MemoryConfig {
   // Embeddings
-  embeddingProvider: 'openai' | 'ollama' | 'local';
   embeddingModel: string;
   embeddingDimensions: number;
   
   // Storage
-  persistPath: string;
+  vectorStoreType: 'chroma' | 'lance' | 'faiss';
+  storagePath: string;
   
   // Working memory
   workingMemorySize: number;
-  workingMemoryTTL: number;   // Time to live in ms
   
   // Retrieval
   defaultRetrievalLimit: number;
   similarityThreshold: number;
   
-  // Tiers
-  enabledTiers: MemoryTier[];
-  
-  // Sync
-  gossipEnabled: boolean;
-  gossipFanout: number;
-  
-  // Byzantine
-  byzantineEnabled: boolean;
-  byzantineThreshold: number;
+  // API
+  apiKey?: string;
 }
 
 /**
  * Default memory configuration
  */
 export const DEFAULT_MEMORY_CONFIG: MemoryConfig = {
-  embeddingProvider: 'ollama',
-  embeddingModel: 'nomic-embed-text',
-  embeddingDimensions: 768,
-  persistPath: './data/memory',
-  workingMemorySize: 20,
-  workingMemoryTTL: 3600000, // 1 hour
-  defaultRetrievalLimit: 10,
+  embeddingModel: 'openai/text-embedding-3-small',
+  embeddingDimensions: 1536,
+  vectorStoreType: 'chroma',
+  storagePath: './memory_data',
+  workingMemorySize: 10,
+  defaultRetrievalLimit: 5,
   similarityThreshold: 0.7,
-  enabledTiers: ['working', 'episodic', 'semantic', 'procedural'],
-  gossipEnabled: false,
-  gossipFanout: 3,
-  byzantineEnabled: false,
-  byzantineThreshold: 0.67
 };
 
 /**
- * Memory event types for subscriptions
+ * Memory storage protocol/interface
  */
-export type MemoryEventType = 
-  | 'memory:added'
-  | 'memory:updated'
-  | 'memory:deleted'
-  | 'memory:promoted'  // Working -> Episodic
-  | 'memory:consolidated'  // Multiple -> Semantic
-  | 'memory:synced'
-  | 'skill:learned'
-  | 'skill:executed';
-
-/**
- * Memory event
- */
-export interface MemoryEvent {
-  type: MemoryEventType;
-  memory: Memory;
-  previousTier?: MemoryTier;
-  timestamp: number;
-  instanceId: string;
+export interface MemoryStore {
+  store(entry: MemoryEntry): Promise<void>;
+  retrieve(query: string, limit?: number): Promise<RetrievalResult>;
+  getById(entryId: string): Promise<MemoryEntry | null>;
+  listRecent(limit?: number): Promise<MemoryEntry[]>;
+  delete(entryId: string): Promise<boolean>;
+  count(): Promise<number>;
 }
 
 /**
- * Memory event handler
+ * Embedding provider interface
  */
-export type MemoryEventHandler = (event: MemoryEvent) => void | Promise<void>;
+export interface EmbeddingProvider {
+  embed(text: string): Promise<number[]>;
+  embedBatch(texts: string[]): Promise<number[][]>;
+  isReady(): boolean;
+  initialize(): Promise<void>;
+}
+
+/**
+ * Memory statistics
+ */
+export interface MemoryStats {
+  workingMemorySize: number;
+  coreMemoryBlocks: number;
+  episodicCount: number;
+  semanticCount: number;
+  totalEntries: number;
+  config: Partial<MemoryConfig>;
+}
+
+/**
+ * Core memory block for persistent agent context
+ */
+export interface CoreMemoryBlock {
+  key: string;
+  value: string;
+  updatedAt: Date;
+  createdAt: Date;
+}
+
+/**
+ * Create a new memory entry
+ */
+export function createMemoryEntry(
+  content: string,
+  memoryType: MemoryType,
+  metadata?: Record<string, unknown>
+): MemoryEntry {
+  return {
+    id: crypto.randomUUID(),
+    content,
+    memoryType,
+    timestamp: new Date(),
+    metadata: metadata ?? {},
+  };
+}

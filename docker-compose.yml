@@ -1,0 +1,222 @@
+# Chrysalis Docker Compose Configuration
+# Local development environment with all services
+#
+# Usage:
+#   docker-compose up -d              # Start all services
+#   docker-compose up gateway         # Start gateway only
+#   docker-compose logs -f gateway    # Follow gateway logs
+#   docker-compose down               # Stop all services
+#
+# @see plans/CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md - Item C-3
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # Core Services
+  # ==========================================================================
+  
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chrysalis-gateway
+    command: ["node", "dist/services/capability-gateway/run-gateway.js"]
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - CHRYSALIS_DEBUG=true
+      - CHRYSALIS_LOG_LEVEL=debug
+      - CHRYSALIS_OTEL_ENABLED=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - OTEL_SERVICE_NAME=chrysalis-gateway
+      - CHRYSALIS_METRICS_ENABLED=true
+      - CHRYSALIS_METRICS_PORT=9090
+    depends_on:
+      - jaeger
+      - prometheus
+    networks:
+      - chrysalis-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  ledger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chrysalis-ledger
+    command: ["node", "dist/services/ledger/run-ledger.js"]
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - CHRYSALIS_OTEL_ENABLED=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - OTEL_SERVICE_NAME=chrysalis-ledger
+    depends_on:
+      - jaeger
+    networks:
+      - chrysalis-net
+    restart: unless-stopped
+
+  projection:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chrysalis-projection
+    command: ["node", "dist/services/projection/run-projection.js"]
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - CHRYSALIS_OTEL_ENABLED=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - OTEL_SERVICE_NAME=chrysalis-projection
+    depends_on:
+      - jaeger
+    networks:
+      - chrysalis-net
+    restart: unless-stopped
+
+  grounding:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chrysalis-grounding
+    command: ["node", "dist/services/grounding/run-grounding.js"]
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - CHRYSALIS_OTEL_ENABLED=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - OTEL_SERVICE_NAME=chrysalis-grounding
+    depends_on:
+      - jaeger
+    networks:
+      - chrysalis-net
+    restart: unless-stopped
+
+  skillforge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chrysalis-skillforge
+    command: ["node", "dist/services/skillforge/run-skillforge.js"]
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - CHRYSALIS_OTEL_ENABLED=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+      - OTEL_SERVICE_NAME=chrysalis-skillforge
+    depends_on:
+      - jaeger
+    networks:
+      - chrysalis-net
+    restart: unless-stopped
+
+  # ==========================================================================
+  # Observability Stack
+  # ==========================================================================
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    container_name: chrysalis-jaeger
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+      - "14250:14250"   # Model used by Jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - chrysalis-net
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: chrysalis-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - chrysalis-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: chrysalis-grafana
+    ports:
+      - "3010:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=chrysalis
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - jaeger
+    networks:
+      - chrysalis-net
+    restart: unless-stopped
+
+  # ==========================================================================
+  # Data Stores (for development)
+  # ==========================================================================
+
+  redis:
+    image: redis:7-alpine
+    container_name: chrysalis-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - chrysalis-net
+    restart: unless-stopped
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chrysalis-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+    networks:
+      - chrysalis-net
+    restart: unless-stopped
+
+# ==========================================================================
+# Networks
+# ==========================================================================
+networks:
+  chrysalis-net:
+    driver: bridge
+
+# ==========================================================================
+# Volumes
+# ==========================================================================
+volumes:
+  prometheus-data:
+  grafana-data:
+  redis-data:
+  chroma-data:

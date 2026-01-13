@@ -173,7 +173,19 @@ interface CacheEntry<T> {
   timestamp: number;
 }
 
-const goClientShared = new GoCryptoClient();
+/**
+ * Lazy-initialized Go crypto client singleton.
+ * Avoids creating gRPC connection at module load time, which could fail
+ * if the Go server is not running or not needed.
+ */
+let _goClientShared: GoCryptoClient | null = null;
+
+function getGoClient(): GoCryptoClient {
+  if (!_goClientShared) {
+    _goClientShared = new GoCryptoClient({ insecure: process.env.GO_CRYPTO_INSECURE === 'true' });
+  }
+  return _goClientShared;
+}
 
 function encodeDataInput(data: string | Uint8Array): { data: string; encoding: 'utf8' | 'hex' } {
   if (typeof data === 'string') {
@@ -217,8 +229,8 @@ function algorithmForVerify(expectedHash: string): string {
 
 class GoHashImpl implements HashImplementation {
   private client: GoCryptoClient;
-  constructor(client: GoCryptoClient = goClientShared) {
-    this.client = client;
+  constructor(client?: GoCryptoClient) {
+    this.client = client ?? getGoClient();
   }
 
   public async hash(data: string | Uint8Array, algorithm: string = 'SHA-384'): Promise<string> {
@@ -258,8 +270,8 @@ class MCPSignatureImpl implements SignatureImplementation {
 
 class GoSignatureImpl implements SignatureImplementation {
   private client: GoCryptoClient;
-  constructor(client: GoCryptoClient = goClientShared) {
-    this.client = client;
+  constructor(client?: GoCryptoClient) {
+    this.client = client ?? getGoClient();
   }
 
   public async generateKeypair(): Promise<{ privateKey: Uint8Array; publicKey: Uint8Array }> {
@@ -699,8 +711,10 @@ export class AdaptivePatternResolver {
     }
 
     const startTime = Date.now();
+    let resolvedSource: ResolutionSource = 'embedded';
     try {
       const hashImpl = await this.resolveHash();
+      resolvedSource = hashImpl.source;
       const fingerprint = await hashImpl.implementation.generateFingerprint(identity);
       const latency = Date.now() - startTime;
 
@@ -711,7 +725,7 @@ export class AdaptivePatternResolver {
     } catch (error) {
       const latency = Date.now() - startTime;
       this.recordMetric('fingerprint', latency, false);
-      throw new PatternResolutionError('fingerprint', 'embedded', error);
+      throw new PatternResolutionError('fingerprint', resolvedSource, error);
     }
   }
 

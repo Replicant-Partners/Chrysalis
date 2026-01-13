@@ -2,33 +2,28 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "commonjs",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "outDir": "./dist",
-    "rootDir": ".",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "rootDir": ".",
+    "outDir": "dist",
+    "sourceMap": true,
     "jsx": "react-jsx",
-    "types": ["node", "jest"],
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["shared/*"]
-    }
+    "lib": ["ES2022", "DOM"],
+    "types": ["node", "jest"]
   },
   "include": [
     "src/**/*",
     "shared/**/*",
-    "__tests__/**/*"
+    "mcp-servers/**/*",
+    "tests/**/*",
+    "ui/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "**/*.test.ts"
+    "dist"
   ]
 }

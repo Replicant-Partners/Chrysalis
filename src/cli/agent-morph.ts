@@ -1,13 +1,24 @@
 #!/usr/bin/env node
 /**
- * Agent Morph CLI - Command-line interface for agent morphing
- * 
- * Usage:
- *   agent-morph convert --from elizaos --to crewai --input agent.json --output agent_crewai.json
- *   agent-morph restore --framework elizaos --input agent.json --restoration-key "key" --output restored.json
- *   agent-morph validate --framework elizaos --input agent.json
- *   agent-morph keygen --output-dir ./keys
+ * @deprecated This CLI is deprecated. Use `chrysalis` instead.
+ *
+ * Agent Morph CLI (v1) - DEPRECATED
+ *
+ * This CLI has been superseded by the unified `chrysalis` CLI.
+ * Please migrate to using `chrysalis morph` for all operations.
+ *
+ * Migration guide:
+ *   OLD: agent-morph convert --from elizaos --to crewai --input agent.json --output out.json
+ *   NEW: chrysalis morph --from elizaos --to crewai --input agent.json --output out.json
+ *
+ * @see src/cli/chrysalis-cli.ts - The unified CLI
+ * @see plans/CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md - Item H-2
  */
+
+// Deprecation warning
+console.warn('\n⚠️  DEPRECATION WARNING: "agent-morph" is deprecated.');
+console.warn('   Please use "chrysalis" CLI instead.');
+console.warn('   Run "chrysalis --help" for usage information.\n');
 
 import { program } from 'commander';
 import * as fs from 'fs/promises';

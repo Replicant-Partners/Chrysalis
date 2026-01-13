@@ -43,7 +43,7 @@ export interface Memory {
   content: string;
   embedding?: number[];
   confidence: number;
-  source_instance: string;
+  source_instances: string[];
   created: string;
   accessed_count: number;
   last_accessed: string;
@@ -91,7 +91,9 @@ export class MemoryMerger {
       voyeur: config?.voyeur,
       slow_mode_ms: config?.slow_mode_ms ?? 0,
       metrics: config?.metrics,
-      metrics_sink: config?.metrics_sink
+      metrics_sink: config?.metrics_sink,
+      sanitize: config?.sanitize,
+      rate_limit: config?.rate_limit
     };
     this.voyeur = this.config.voyeur;
     this.slowModeMs = this.config.slow_mode_ms ?? 0;
@@ -179,7 +181,7 @@ export class MemoryMerger {
       content: sanitized.content,
       embedding: memoryData.embedding,
       confidence: memoryData.confidence || 0.8,
-      source_instance: sourceInstance,
+      source_instances: [sourceInstance],
       created: new Date().toISOString(),
       accessed_count: 0,
       last_accessed: new Date().toISOString(),
@@ -246,9 +248,10 @@ export class MemoryMerger {
           threshold: this.config.similarity_threshold,
           decision: 'merge'
         });
-        // Merge with existing
+        // Merge with existing - this updates the memory
         await this.mergeWithExisting(duplicate.memory, memoryData, sourceInstance);
         result.deduplicated++;
+        result.updated++;  // Track that we updated an existing memory
         await this.emitVoyeur('merge.applied', {
           sourceInstance,
           memoryHash: this.hashContent(content),
@@ -333,9 +336,9 @@ export class MemoryMerger {
     existing.accessed_count++;
     existing.last_accessed = new Date().toISOString();
     
-    // Add source instance
-    if (!existing.source_instance.includes(sourceInstance)) {
-      existing.source_instance = `${existing.source_instance},${sourceInstance}`;
+    // Add source instance if not already present
+    if (!existing.source_instances.includes(sourceInstance)) {
+      existing.source_instances.push(sourceInstance);
     }
     
     console.log(`  → Memory merged: "${existing.content.substring(0, 50)}..."`);

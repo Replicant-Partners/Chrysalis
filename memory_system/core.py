@@ -191,8 +191,8 @@ class Memory:
 
         entry = MemoryEntry.create(sanitized_content, "episodic", sanitized_metadata)
         
-        # Generate embedding
-        entry.embedding = self._embedding_provider.embed(content)
+        # Generate embedding from sanitized content to prevent PII leakage
+        entry.embedding = self._embedding_provider.embed(sanitized_content)
         
         # Store in vector database
         if self._vector_store:
@@ -226,8 +226,8 @@ class Memory:
 
         entry = MemoryEntry.create(sanitized_content, "semantic", sanitized_metadata)
         
-        # Generate embedding
-        entry.embedding = self._embedding_provider.embed(content)
+        # Generate embedding from sanitized content to prevent PII leakage
+        entry.embedding = self._embedding_provider.embed(sanitized_content)
         
         # Store in vector database
         if self._vector_store:

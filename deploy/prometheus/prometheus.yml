@@ -1,0 +1,61 @@
+# Prometheus Configuration for Chrysalis
+# @see plans/CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md - Item C-1
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'chrysalis-local'
+    env: 'development'
+
+# Alertmanager configuration (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Rule files
+rule_files: []
+
+# Scrape configs
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Chrysalis Gateway Service
+  - job_name: 'chrysalis-gateway'
+    static_configs:
+      - targets: ['gateway:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Chrysalis Ledger Service
+  - job_name: 'chrysalis-ledger'
+    static_configs:
+      - targets: ['ledger:9090']
+    metrics_path: '/metrics'
+
+  # Chrysalis Projection Service
+  - job_name: 'chrysalis-projection'
+    static_configs:
+      - targets: ['projection:9090']
+    metrics_path: '/metrics'
+
+  # Chrysalis Grounding Service
+  - job_name: 'chrysalis-grounding'
+    static_configs:
+      - targets: ['grounding:9090']
+    metrics_path: '/metrics'
+
+  # Chrysalis SkillForge Service
+  - job_name: 'chrysalis-skillforge'
+    static_configs:
+      - targets: ['skillforge:9090']
+    metrics_path: '/metrics'
+
+  # Jaeger metrics
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']

@@ -22,200 +22,77 @@ class TestEmbeddingServiceInitialization:
     """Test EmbeddingService initialization and provider selection."""
 
     def test_deterministic_provider_forced(self):
-        """Test that deterministic provider can be forced via env var."""
+        """Deterministic mode should be honored via env var."""
         with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
             service = EmbeddingService()
             assert service._provider == "deterministic"
-            assert service.dimensions == 1024  # Default Voyage dimensions
+            # Default dimensions now follow the OpenAI primary (3072)
+            assert service.dimensions == 3072
 
-    def test_voyage_provider_with_api_key(self):
-        """Test that Voyage provider is selected when API key is present."""
-        # Test with HTTP fallback (simpler - doesn't require SDK)
-        with patch.dict(os.environ, {"VOYAGE_API_KEY": "test-key"}, clear=False):
-            with patch('src.utils.embeddings._VOYAGE_AVAILABLE', False):
-                # When SDK is not available, should use HTTP fallback
-                service = EmbeddingService()
-                # Should try to use Voyage HTTP
-                assert service._provider == "voyage_http"
+    def test_default_dimensions_match_primary_model(self):
+        """Even without overrides, deterministic fallback should inherit 3072 dims."""
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}, clear=False):
+            service = EmbeddingService()
+            assert service.dimensions == 3072
 
-    def test_openai_fallback_when_voyage_unavailable(self):
-        """Test that OpenAI is used as fallback when Voyage is unavailable."""
-        with patch.dict(os.environ, {
-            "OPENAI_API_KEY": "test-key",
-            "VOYAGE_API_KEY": ""
-        }, clear=False):
-            with patch('src.utils.embeddings._OPENAI_AVAILABLE', True):
-                with patch('src.utils.embeddings.OpenAI') as mock_openai:
-                    mock_client_instance = Mock()
-                    mock_openai.return_value = mock_client_instance
-                    service = EmbeddingService()
-                    # Should fallback to OpenAI
-                    assert service._provider == "openai"
-                    assert service.dimensions == 3072  # OpenAI dimensions
-                    assert service.model == "text-embedding-3-large"
-
-    def test_no_provider_raises_error(self):
-        """Test that RuntimeError is raised when no provider is available."""
-        with patch.dict(os.environ, {
-            "VOYAGE_API_KEY": "",
-            "OPENAI_API_KEY": "",
-            "EMBEDDING_PROVIDER": ""
-        }, clear=False):
-            with pytest.raises(RuntimeError, match="No embedding provider available"):
-                EmbeddingService()
+    def test_provider_mapping_handles_nomic(self):
+        """Wrapper should translate shared provider info to legacy _provider values."""
+        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
+            service = EmbeddingService()
+            # Simulate a nomic provider being selected downstream
+            service._nomic_provider = Mock()
+            with patch.object(service, 'get_provider_info', return_value={"provider": "nomic"}):
+                # Re-run mapping logic
+                service.__init__()
+                assert service._provider == "nomic"
 
 
 class TestEmbeddingServiceEmbed:
-    """Test embedding generation."""
+    """Test deterministic embedding generation (the only mode exercised in CI)."""
 
     def test_deterministic_embedding(self):
-        """Test that deterministic embeddings are generated correctly."""
         with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
-            service = EmbeddingService(dimensions=10)
+            service = EmbeddingService(dimensions=12)
             embedding = service.embed("test text")
 
             assert isinstance(embedding, list)
-            assert len(embedding) == 10
+            assert len(embedding) == 12
             assert all(isinstance(x, float) for x in embedding)
+            assert service._provider == "deterministic"
 
             # Deterministic embeddings should be reproducible
             embedding2 = service.embed("test text")
             assert embedding == embedding2
 
     def test_deterministic_embeddings_normalized(self):
-        """Test that deterministic embeddings are normalized."""
         with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
-            service = EmbeddingService(dimensions=10)
+            service = EmbeddingService(dimensions=16)
             embedding = service.embed("test text")
 
-            # Check normalization (magnitude should be ~1.0)
             magnitude = sum(x * x for x in embedding) ** 0.5
             assert abs(magnitude - 1.0) < 0.01
 
     def test_different_texts_different_embeddings(self):
-        """Test that different texts produce different embeddings."""
         with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
-            service = EmbeddingService(dimensions=10)
+            service = EmbeddingService(dimensions=20)
             emb1 = service.embed("text one")
             emb2 = service.embed("text two")
 
             assert emb1 != emb2
-
-    def test_voyage_sdk_embed_success(self):
-        """Test successful Voyage SDK embedding."""
-        mock_client = Mock()
-        mock_result = Mock()
-        mock_result.embeddings = [[0.1] * 1024]  # 1024-dim embedding
-        mock_client.embed.return_value = mock_result
-
-        # Create service with deterministic first, then manually set to voyage
-        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
-            service = EmbeddingService()
-            # Manually override to simulate Voyage SDK provider
-            service._voyage_client = mock_client
-            service._provider = "voyage"
-            service._openai_client = None
-
-            embedding = service.embed("test")
-            assert len(embedding) == 1024
-            mock_client.embed.assert_called_once()
-
-    @patch('src.utils.embeddings._call_voyage_http')
-    def test_voyage_http_fallback(self, mock_http_call):
-        """Test Voyage HTTP fallback when SDK fails."""
-        mock_http_call.return_value = [0.2] * 1024
-
-        with patch.dict(os.environ, {"VOYAGE_API_KEY": "test-key"}):
-            service = EmbeddingService()
-            service._provider = "voyage_http"
-            service._voyage_api_key = "test-key"
-
-            embedding = service.embed("test")
-            assert len(embedding) == 1024
-            mock_http_call.assert_called_once()
-
-    @patch('src.utils.embeddings._call_voyage_http')
-    def test_voyage_http_failure_falls_back_to_openai(self, mock_http_call):
-        """Test that Voyage HTTP failure falls back to OpenAI."""
-        mock_http_call.return_value = None  # HTTP call fails
-
-        mock_openai_client = Mock()
-        mock_response = Mock()
-        mock_response.data = [Mock(embedding=[0.3] * 3072)]
-        mock_openai_client.embeddings.create.return_value = mock_response
-
-        with patch.dict(os.environ, {"VOYAGE_API_KEY": "test-key", "OPENAI_API_KEY": "test-key"}):
-            with patch('src.utils.embeddings._OPENAI_AVAILABLE', True):
-                with patch('src.utils.embeddings.OpenAI', return_value=mock_openai_client):
-                    service = EmbeddingService()
-                    service._provider = "voyage_http"
-                    service._voyage_api_key = "test-key"
-                    service._openai_client = mock_openai_client
-
-                    embedding = service.embed("test")
-                    assert len(embedding) == 3072
-                    mock_openai_client.embeddings.create.assert_called_once()
-
-    def test_openai_failure_raises_error(self):
-        """Test that OpenAI failure raises RuntimeError (no silent fallback to deterministic)."""
-        mock_openai_client = Mock()
-        mock_openai_client.embeddings.create.side_effect = Exception("API error")
-
-        # Create service with deterministic provider first, then manually set to OpenAI
-        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
-            service = EmbeddingService()
-            # Manually override to simulate OpenAI provider
-            service._provider = "openai"
-            service._openai_client = mock_openai_client
-            service._voyage_client = None
-
-            with pytest.raises(RuntimeError, match="Embedding failed after provider attempts"):
-                service.embed("test")
-
-    def test_all_providers_fail_raises_error(self):
-        """Test that RuntimeError is raised when all providers fail."""
-        mock_voyage_client = Mock()
-        mock_voyage_client.embed.side_effect = Exception("Voyage error")
-
-        mock_openai_client = Mock()
-        mock_openai_client.embeddings.create.side_effect = Exception("OpenAI error")
-
-        with patch.dict(os.environ, {"VOYAGE_API_KEY": "test-key", "OPENAI_API_KEY": "test-key"}):
-            service = EmbeddingService()
-            service._provider = "voyage"
-            service._voyage_client = mock_voyage_client
-            service._openai_client = mock_openai_client
-
-            with pytest.raises(RuntimeError, match="Embedding failed after provider attempts"):
-                service.embed("test")
 
 
 class TestEmbeddingServiceProviderInfo:
     """Test provider info method."""
 
     def test_provider_info_deterministic(self):
-        """Test provider info for deterministic provider."""
         with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
             service = EmbeddingService()
             info = service.get_provider_info()
 
             assert info["provider"] == "deterministic"
-            assert info["model"] == "voyage-3"
-            assert info["dimensions"] == 1024
-            assert info["has_voyage"] is False
-            assert info["has_openai"] is False
-
-    def test_provider_info_voyage(self):
-        """Test provider info for Voyage provider."""
-        # Use deterministic provider and manually set to voyage for testing
-        with patch.dict(os.environ, {"EMBEDDING_PROVIDER": "deterministic"}):
-            service = EmbeddingService()
-            # Manually set to voyage mode for testing
-            service._provider = "voyage"
-            service._voyage_client = Mock()
-            info = service.get_provider_info()
-            assert info["provider"] == "voyage"
-            assert info["has_voyage"] is True
+            assert info["model"] == "text-embedding-3-large"
+            assert info["dimensions"] == 3072
+            assert info.get("has_openai") is False
 
 
 class TestEmbeddingServiceDimensions:

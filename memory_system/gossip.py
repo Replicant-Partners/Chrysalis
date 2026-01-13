@@ -5,7 +5,7 @@ Pattern #4: Epidemic Information Spread
 Provides O(log N) memory propagation across agent instances
 """
 
-import random
+import secrets
 import asyncio
 from typing import List, Set, Optional, Callable, Dict
 from datetime import datetime, timedelta
@@ -91,7 +91,8 @@ class MemoryGossipProtocol:
         """
         Pattern #4: Random peer selection for gossip
         
-        Uses cryptographic randomness (Pattern #3) to select peers
+        Uses cryptographic randomness (Pattern #3) via secrets module
+        for unpredictable peer selection.
         """
         if count is None:
             count = self.config.fanout
@@ -101,7 +102,9 @@ class MemoryGossipProtocol:
         if len(active_peers) <= count:
             return active_peers
         
-        return random.sample(active_peers, count)
+        # Use secrets.SystemRandom for cryptographically secure selection
+        secure_random = secrets.SystemRandom()
+        return secure_random.sample(active_peers, count)
     
     async def gossip_memory(
         self,
@@ -167,6 +170,14 @@ class MemoryGossipProtocol:
         for peer in targets:
             count = 0
             for memory in memories:
+                # Ensure gossip metadata exists
+                if not memory.gossip:
+                    memory.gossip = GossipMetadata(
+                        originInstance=self.instance_id,
+                        seenBy={self.instance_id},
+                        fanout=self.config.fanout,
+                        propagationRound=self.current_round
+                    )
                 # Only send if peer hasn't seen it
                 if peer.instance_id not in memory.gossip.seenBy:
                     success = await self._send_memory(peer, memory)

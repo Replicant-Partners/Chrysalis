@@ -1,14 +1,46 @@
 /**
  * Memory Module
- * 
+ *
  * Chrysalis memory system with tiered memory architecture:
- * - Working: Short-term session context
- * - Episodic: Past experiences and events
- * - Semantic: Facts and knowledge
- * - Procedural: Skills and learned procedures
- * 
+ * - Working: Short-term session context (bounded buffer)
+ * - Episodic: Past experiences and events (vector store)
+ * - Semantic: Facts and knowledge (vector store)
+ * - Core: Persistent agent context (structured blocks)
+ *
  * @module memory
+ * @see plans/CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md - Item C-2
  */
+
+// ===========================================================================
+// Decomposed Memory Classes (C-2 Implementation)
+// ===========================================================================
+
+// Unified Memory Facade
+export { Memory, UnifiedMemoryConfig } from './Memory';
+
+// Individual Memory Tiers
+export { WorkingMemory, WorkingMemoryConfig } from './WorkingMemory';
+export { CoreMemory, CoreMemoryConfig, CORE_MEMORY_BLOCKS } from './CoreMemory';
+export { EpisodicMemory, EpisodicMemoryConfig, ContentSanitizer } from './EpisodicMemory';
+export { SemanticMemory, SemanticMemoryConfig } from './SemanticMemory';
+
+// Types from new type module
+export {
+  MemoryEntry,
+  MemoryType as DecomposedMemoryType,
+  RetrievalResult as DecomposedRetrievalResult,
+  MemoryConfig as DecomposedMemoryConfig,
+  DEFAULT_MEMORY_CONFIG as DEFAULT_DECOMPOSED_CONFIG,
+  MemoryStore,
+  EmbeddingProvider as DecomposedEmbeddingProvider,
+  MemoryStats,
+  CoreMemoryBlock,
+  createMemoryEntry,
+} from './types';
+
+// ===========================================================================
+// Legacy Memory System (for backward compatibility)
+// ===========================================================================
 
 // Core adapter - import for local use, then re-export
 import { AgentMemoryAdapter } from './AgentMemoryAdapter';

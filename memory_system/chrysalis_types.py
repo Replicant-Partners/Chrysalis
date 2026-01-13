@@ -42,9 +42,9 @@ class MemoryFingerprint:
     - Deduplication
     """
     fingerprint: str  # SHA-384 hash (96 hex chars)
-    algorithm: Literal['sha384'] = 'sha384'
     contentHash: str  # Hash of content only
     metadataHash: str  # Hash of metadata
+    algorithm: Literal['sha384'] = 'sha384'
     
     def __post_init__(self):
         """Validate hash format"""
@@ -68,9 +68,9 @@ class MemorySignature:
     """
     signature: bytes  # Ed25519 signature (64 bytes)
     publicKey: bytes  # Ed25519 public key (32 bytes)
-    algorithm: Literal['ed25519'] = 'ed25519'
     signedBy: str  # Instance ID
     timestamp: float  # When signed
+    algorithm: Literal['ed25519'] = 'ed25519'
     
     def __post_init__(self):
         """Validate signature format"""
