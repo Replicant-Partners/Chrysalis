@@ -3,518 +3,917 @@
 ## Technical Research Report
 
 **Date**: January 12, 2026  
-**Classification**: Architecture Design Pattern  
-**Status**: Implementation Ready
+**Classification**: Architecture Design Pattern (Meta-Pattern)  
+**Status**: Implementation Ready  
+**Revision**: 2.0 - Expanded Scope
 
 ---
 
 ## Executive Summary
 
-This document formalizes the **System Agent LLM Complexity Adaptation Pattern** - an architectural approach where complex, brittle, or heuristic-heavy logic is abstracted out to LLM interfaces, enabling the core codebase to remain minimal, type-safe, and focused on I/O and state management.
+This document formalizes the **System Agent LLM Complexity Adaptation Pattern** - a **meta-pattern** that applies to EVERY design pattern in a system, not just adapters or translators. The pattern provides a universal formula for replacing hard-coded heuristic complexity with semantic LLM reasoning across ALL architectural concerns:
 
-The pattern implements **Cognitive Offloading** via the **Strategy Pattern**, where the "Strategy" is dynamically fulfilled by an LLM inference call - either locally (SLM via Ollama) or cloud (large foundation models).
+**Universal Formula:**
+```
+System Agent + System Data + Prompts + Context + LLM = Pattern Implementation
+```
+
+This meta-pattern is analogous to MCP (Model Context Protocol) but for **every loop of every design pattern**. Where MCP provides a standard interface for tools and resources, the Complexity Adaptation Pattern provides a standard interface for cognitive decision-making throughout the entire codebase.
 
 ---
 
-## 1. Pattern Definition
+## Self-Analysis: Why Initial Scope Was Too Narrow
 
-### 1.1 Formal Definition
+### What Was Missed
 
-```
-SYSTEM AGENT LLM COMPLEXITY ADAPTATION PATTERN
+The initial analysis (v1.0) focused exclusively on:
+- Protocol translation (Adapter pattern)
+- Semantic categorization (Classification)
+- Agent validation
 
-Purpose: Replace hard-coded heuristic complexity with semantic LLM reasoning
-         while maintaining deterministic system behavior at interfaces.
+This missed critical system concerns:
+- **Error Handling**: LLM for error classification, root cause analysis, remediation suggestions
+- **Performance Monitoring**: LLM for anomaly detection, trend analysis, optimization recommendations
+- **System Maintenance**: LLM for proactive diagnostics, self-healing, capacity planning
+- **ALL other design patterns**: Factory, Observer, State Machine, Chain of Responsibility, etc.
 
-Structure:
-  ┌─────────────────────────────────────────────────────────────────────┐
-  │                        CHRYSALIS TERMINAL                           │
-  │  ┌─────────────────────────────────────────────────────────────┐   │
-  │  │                    CORE SYSTEM (Clean)                      │   │
-  │  │  • Type-safe interfaces                                     │   │
-  │  │  • State management                                         │   │
-  │  │  • I/O operations                                           │   │
-  │  │  • Deterministic control flow                               │   │
-  │  └───────────────────────┬─────────────────────────────────────┘   │
-  │                          │ Strategy Pattern                        │
-  │  ┌───────────────────────▼─────────────────────────────────────┐   │
-  │  │              LLM COMPLEXITY ADAPTER (Strategy)              │   │
-  │  │  ┌─────────────────────────────────────────────────────┐   │   │
-  │  │  │              COMPLEXITY ROUTER                      │   │   │
-  │  │  │  • Detects task complexity                          │   │   │
-  │  │  │  • Routes to appropriate compute                    │   │   │
-  │  │  │  • Maintains metadata feedback loop                 │   │   │
-  │  │  └─────────────┬─────────────────┬─────────────────────┘   │   │
-  │  │                │                 │                         │   │
-  │  │   ┌────────────▼─────┐  ┌────────▼────────────┐           │   │
-  │  │   │   LOCAL SLM      │  │    CLOUD LLM        │           │   │
-  │  │   │  (Ollama)        │  │  (Claude/GPT-4o)    │           │   │
-  │  │   │  Gemma 1B/3B     │  │  High complexity    │           │   │
-  │  │   │  Llama 3.2 1B    │  │  Multi-step reason  │           │   │
-  │  │   │  Low latency     │  │  Higher accuracy    │           │   │
-  │  │   └──────────────────┘  └─────────────────────┘           │   │
-  │  └─────────────────────────────────────────────────────────────┘   │
-  └─────────────────────────────────────────────────────────────────────┘
+### Root Cause Analysis (Five Whys)
 
-Participants:
-  - Client: Core system making inference requests
-  - Strategy Interface: LLMComplexityAdapter with standard JSON contract
-  - Concrete Strategies: LocalSLM, CloudLLM implementations
-  - Complexity Router: Determines which strategy to invoke
+1. **Why was error handling missed?** → Focused on "transformation" use cases
+2. **Why the focus on transformation?** → Initial task framed as "Universal Adapter review"
+3. **Why didn't scope expand naturally?** → Anchoring bias on the word "adapter"
+4. **Why didn't broader analysis occur?** → Failed to ask: "Where else does complexity hide?"
+5. **Why?** → **Did not treat the pattern as a meta-pattern applicable everywhere**
 
-Consequences:
-  + Reduced codebase complexity
-  + Semantic understanding replaces brittle heuristics
-  + Self-improving through metadata capture
-  + Easy A/B testing of different models
-  - Latency overhead for inference
-  - Non-determinism in edge cases
-  - Token cost management required
-```
+### Key Insight
 
-### 1.2 Design Pattern Mapping
+> "The complex adaptability pattern is a tool, like an MCP for every loop of every design pattern."
 
-| GoF Pattern | Application in System |
-|-------------|----------------------|
-| **Strategy** | LLM as interchangeable inference strategy |
-| **Chain of Responsibility** | Complexity routing through model tiers |
-| **Adapter** | Protocol translation (existing Universal Adapter) |
-| **Observer** | Metadata capture and feedback loop |
-| **Facade** | Hiding LLM complexity behind simple interfaces |
+The pattern isn't just for one component—it's a **cognitive architecture layer** that can sit atop ANY design pattern where human judgment, heuristics, or complex decision logic currently exists.
 
 ---
 
-## 2. Candidate Components for LLM Offloading
+## 1. Pattern Definition (Expanded)
 
-Based on analysis of the Chrysalis codebase, the following components are candidates for LLM complexity adaptation:
+### 1.1 Meta-Pattern Formal Definition
 
-### 2.1 Priority 1: High-Value Targets
+```
+SYSTEM AGENT LLM COMPLEXITY ADAPTATION META-PATTERN
 
-| Component | Location | Current Complexity | LLM Suitability | Model Tier |
-|-----------|----------|-------------------|-----------------|------------|
-| **Protocol Translation** | `src/adapters/universal/` | ~300 lines mapping logic | ✅ Excellent | Local SLM |
-| **Semantic Categorization** | `memory_system/retrieval.py` | Hybrid search heuristics | ✅ Excellent | Local SLM |
-| **Agent Validation** | `src/core/UniformSemanticAgentV2.ts` | Field validation rules | ✅ Good | Local SLM |
-| **State Transition Logic** | `src/core/InstanceStateMachine.ts` | Decision tree | ⚠️ Partial | Cloud LLM |
+Core Principle: Any loop in any design pattern that contains complex 
+               decision logic can be enhanced with LLM semantic reasoning.
 
-### 2.2 Priority 2: Medium-Value Targets
+Universal Formula:
+  SYSTEM_AGENT + SYSTEM_DATA + PROMPTS + CONTEXT + LLM = PATTERN_IMPLEMENTATION
 
-| Component | Location | Current Complexity | LLM Suitability | Model Tier |
-|-----------|----------|-------------------|-----------------|------------|
-| **Content Classification** | `memory_system/fusion.py` | Score aggregation | ✅ Good | Local SLM |
-| **Gossip Peer Selection** | `memory_system/gossip.py` | Random + heuristic | ⚠️ Partial | Local SLM |
-| **Byzantine Validation** | `memory_system/byzantine.py` | Statistical methods | ❌ Keep code | N/A |
-| **CRDT Merge Logic** | `memory_system/crdt_merge.py` | Mathematical correctness | ❌ Keep code | N/A |
+Where:
+  - SYSTEM_AGENT: The component that orchestrates the pattern logic
+  - SYSTEM_DATA: Structured data the pattern operates on
+  - PROMPTS: Task-specific prompts that frame the decision
+  - CONTEXT: Runtime state, history, and relevant metadata
+  - LLM: The inference engine (local SLM or cloud LLM)
 
-### 2.3 Components to NOT Offload (Keep Deterministic)
+Application Scope:
+  ┌────────────────────────────────────────────────────────────────────┐
+  │                    DESIGN PATTERNS WITH LLM LOOPS                  │
+  ├────────────────────────────────────────────────────────────────────┤
+  │                                                                    │
+  │   CREATIONAL               STRUCTURAL            BEHAVIORAL        │
+  │   ─────────────────────────────────────────────────────────────── │
+  │   • Factory      ✅        • Adapter     ✅      • Observer    ✅  │
+  │   • Builder      ✅        • Facade      ✅      • Strategy    ✅  │
+  │   • Prototype    ⚠️        • Bridge      ✅      • State       ✅  │
+  │   • Singleton    ❌        • Composite   ⚠️      • Command     ✅  │
+  │                            • Decorator   ✅      • Chain       ✅  │
+  │                            • Proxy       ✅      • Mediator    ✅  │
+  │                                                  • Iterator    ❌  │
+  │   OPERATIONAL              RESILIENCE            MONITORING        │
+  │   ─────────────────────────────────────────────────────────────── │
+  │   • Error Handler   ✅     • Circuit Breaker ✅  • Health Check ✅ │
+  │   • Retry Logic     ✅     • Bulkhead       ⚠️   • Metrics     ✅  │
+  │   • Timeout Handler ✅     • Fallback       ✅   • Alerting    ✅  │
+  │   • Rate Limiter    ⚠️     • Self-Healing   ✅   • Profiler    ✅  │
+  │                                                                    │
+  │   ✅ = Excellent candidate for LLM loop                           │
+  │   ⚠️ = Partial candidate (some logic suitable)                     │
+  │   ❌ = Keep deterministic (math/crypto/iteration)                  │
+  │                                                                    │
+  └────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CHRYSALIS COGNITIVE LAYER                           │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                         PATTERN REGISTRY                              │ │
+│  │  Maps each design pattern to its LLM-enhanced implementation          │ │
+│  └──────────────────────────────┬────────────────────────────────────────┘ │
+│                                 │                                           │
+│  ┌──────────────────────────────▼────────────────────────────────────────┐ │
+│  │                    LLM COMPLEXITY ADAPTER (Universal)                 │ │
+│  │                                                                       │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │ │
+│  │  │   ERROR     │  │ PERFORMANCE │  │   STATE     │  │  ADAPTER    │  │ │
+│  │  │  HANDLER    │  │  MONITOR    │  │  MACHINE    │  │ TRANSLATOR  │  │ │
+│  │  │   AGENT     │  │   AGENT     │  │   AGENT     │  │   AGENT     │  │ │
+│  │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  │ │
+│  │         │                │                │                │         │ │
+│  │  ┌──────▼────────────────▼────────────────▼────────────────▼──────┐  │ │
+│  │  │                    COMPLEXITY ROUTER                          │  │ │
+│  │  │  • Detects task complexity                                    │  │ │
+│  │  │  • Routes to appropriate compute (Local SLM / Cloud LLM)      │  │ │
+│  │  │  • Maintains feedback loop for self-improvement               │  │ │
+│  │  └────────────────────────┬───────────────────────────────────────┘  │ │
+│  │                           │                                          │ │
+│  │         ┌─────────────────┼─────────────────┐                        │ │
+│  │         ▼                 ▼                 ▼                        │ │
+│  │   ┌───────────┐    ┌───────────┐    ┌───────────┐                   │ │
+│  │   │ LOCAL SLM │    │ CLOUD LLM │    │  CACHED   │                   │ │
+│  │   │ (Ollama)  │    │ (Claude)  │    │ RESPONSES │                   │ │
+│  │   └───────────┘    └───────────┘    └───────────┘                   │ │
+│  │                                                                      │ │
+│  └──────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │                      METADATA OBSERVER (Self-Improvement)             │ │
+│  │  • Captures inference telemetry across ALL pattern implementations    │ │
+│  │  • Feeds back into routing optimization and prompt refinement         │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2. Pattern-by-Pattern Application
+
+### 2.1 ERROR HANDLING PATTERN with LLM
+
+**Current State** (Typical heuristic approach):
+```python
+# Brittle: Hard-coded error classification
+def handle_error(error: Exception) -> ErrorResponse:
+    if isinstance(error, ConnectionError):
+        return retry_with_backoff()
+    elif isinstance(error, ValidationError):
+        return return_400()
+    elif isinstance(error, TimeoutError):
+        return circuit_break()
+    else:
+        return log_and_alert()  # Catch-all, loses nuance
+```
+
+**LLM-Enhanced Error Handler**:
+```python
+class LLMErrorHandler:
+    """
+    Applies the formula: System Agent + System Data + Prompts + Context + LLM
+    
+    - System Agent: ErrorHandlerAgent
+    - System Data: Exception details, stack trace, request context
+    - Prompts: Error classification and remediation prompts
+    - Context: Recent errors, system state, user journey
+    - LLM: Semantic understanding of error cause and optimal response
+    """
+    
+    async def handle(self, error: Exception, context: RequestContext) -> ErrorResponse:
+        # Gather System Data
+        system_data = {
+            "error_type": type(error).__name__,
+            "message": str(error),
+            "stack_trace": traceback.format_exc(),
+            "endpoint": context.endpoint,
+            "user_id": context.user_id,
+            "request_payload": context.sanitized_payload,
+        }
+        
+        # Build Context
+        error_context = {
+            "recent_errors": await self.get_recent_errors(context.user_id, limit=5),
+            "system_health": await self.get_system_health(),
+            "similar_errors_today": await self.count_similar_errors(error),
+        }
+        
+        # Apply LLM for semantic classification
+        classification = await self.llm_adapter.infer(
+            task_type="classify",
+            prompt=ERROR_CLASSIFICATION_PROMPT,
+            input={
+                "system_data": system_data,
+                "context": error_context,
+            },
+            output_schema={
+                "category": ["transient", "user_error", "system_bug", "external_dependency", "security"],
+                "severity": ["low", "medium", "high", "critical"],
+                "root_cause": "string",
+                "recommended_action": ["retry", "fail_fast", "alert", "self_heal", "escalate"],
+                "user_message": "string",
+                "internal_notes": "string",
+            }
+        )
+        
+        # Execute recommended action
+        return await self.execute_action(classification)
+    
+    async def execute_action(self, classification: dict) -> ErrorResponse:
+        action = classification["recommended_action"]
+        
+        if action == "retry":
+            return await self.retry_with_intelligent_backoff(classification)
+        elif action == "self_heal":
+            return await self.attempt_self_healing(classification)
+        elif action == "escalate":
+            await self.escalate_to_oncall(classification)
+            return ErrorResponse(status=503, message=classification["user_message"])
+        # ... etc
+```
+
+**Error Classification Prompt**:
+```
+You are an error classification system for a distributed application.
+
+SYSTEM DATA:
+{system_data}
+
+CONTEXT:
+- Recent errors from this user: {recent_errors}
+- Current system health: {system_health}
+- Similar errors today: {similar_errors_today}
+
+TASK: Classify this error and recommend the optimal handling strategy.
+
+Consider:
+1. Is this error transient (network blip) or persistent (bug)?
+2. Is it caused by user input, system bug, or external dependency?
+3. What's the blast radius (one user vs many)?
+4. What's the optimal user experience response?
+5. Should we attempt automatic remediation?
+
+Respond with JSON matching the output schema.
+```
+
+**Value**: Instead of brittle `isinstance()` chains, the system understands error SEMANTICS and can:
+- Detect novel error patterns
+- Provide context-aware user messages
+- Suggest self-healing actions
+- Learn from error patterns over time
+
+---
+
+### 2.2 PERFORMANCE MONITORING PATTERN with LLM
+
+**Current State** (Static thresholds):
+```python
+# Brittle: Fixed thresholds that don't adapt
+def check_performance(metrics: Metrics) -> Alert | None:
+    if metrics.latency_p95 > 500:  # Magic number
+        return Alert("High latency")
+    if metrics.error_rate > 0.01:  # Another magic number
+        return Alert("High error rate")
+    if metrics.cpu_usage > 0.8:
+        return Alert("High CPU")
+    return None  # "All good" - but is it?
+```
+
+**LLM-Enhanced Performance Monitor**:
+```python
+class LLMPerformanceMonitor:
+    """
+    Applies the formula: System Agent + System Data + Prompts + Context + LLM
+    
+    - System Agent: PerformanceMonitorAgent
+    - System Data: Current metrics, historical baselines
+    - Prompts: Anomaly detection and optimization prompts
+    - Context: Time of day, recent deployments, traffic patterns
+    - LLM: Semantic understanding of "normal" vs "anomalous"
+    """
+    
+    async def analyze(self, current_metrics: Metrics) -> PerformanceReport:
+        # Gather System Data
+        system_data = {
+            "current": current_metrics.to_dict(),
+            "baseline_1h": await self.get_baseline(hours=1),
+            "baseline_24h": await self.get_baseline(hours=24),
+            "baseline_7d": await self.get_baseline(days=7),
+        }
+        
+        # Build Context
+        context = {
+            "time_of_day": datetime.now().hour,
+            "day_of_week": datetime.now().weekday(),
+            "recent_deployments": await self.get_recent_deployments(hours=24),
+            "known_incidents": await self.get_active_incidents(),
+            "traffic_pattern": await self.get_traffic_pattern(),  # "peak", "normal", "low"
+        }
+        
+        # Apply LLM for semantic analysis
+        analysis = await self.llm_adapter.infer(
+            task_type="reason",
+            prompt=PERFORMANCE_ANALYSIS_PROMPT,
+            input={
+                "system_data": system_data,
+                "context": context,
+            },
+            output_schema={
+                "health_status": ["healthy", "degraded", "critical"],
+                "anomalies_detected": [{"metric": "string", "severity": "string", "explanation": "string"}],
+                "trend_analysis": "string",
+                "optimization_suggestions": [{"area": "string", "suggestion": "string", "impact": "string"}],
+                "predicted_issues": [{"issue": "string", "probability": "number", "timeframe": "string"}],
+                "recommended_actions": ["none", "investigate", "scale", "alert", "rollback"],
+            }
+        )
+        
+        return PerformanceReport(
+            status=analysis["health_status"],
+            anomalies=analysis["anomalies_detected"],
+            suggestions=analysis["optimization_suggestions"],
+            actions=analysis["recommended_actions"],
+        )
+```
+
+**Performance Analysis Prompt**:
+```
+You are a performance analysis system. Analyze the following metrics.
+
+CURRENT METRICS:
+{current}
+
+HISTORICAL BASELINES:
+- 1 hour ago: {baseline_1h}
+- 24 hours ago: {baseline_24h}
+- 7 days ago: {baseline_7d}
+
+CONTEXT:
+- Time: {time_of_day}:00, {day_of_week}
+- Recent deployments: {recent_deployments}
+- Active incidents: {known_incidents}
+- Traffic pattern: {traffic_pattern}
+
+TASK: Provide a comprehensive performance analysis.
+
+Consider:
+1. Are current metrics normal for this time/context?
+2. Are there emerging trends (gradual degradation)?
+3. Do metrics correlate with recent deployments?
+4. What optimizations would improve performance?
+5. What issues might occur in the next hour based on trends?
+
+Respond with JSON matching the output schema.
+```
+
+**Value**: Instead of static thresholds, the system understands:
+- Contextual normal (weekend vs Monday morning)
+- Gradual degradation trends
+- Deployment correlation
+- Proactive issue prediction
+
+---
+
+### 2.3 STATE MACHINE PATTERN with LLM
+
+**Current State** (Rigid transition table):
+```typescript
+// Brittle: Fixed transition rules
+const transitions: Record<State, Record<Event, State>> = {
+  'idle': { 'start': 'running', 'error': 'failed' },
+  'running': { 'complete': 'success', 'error': 'failed', 'pause': 'paused' },
+  'paused': { 'resume': 'running', 'cancel': 'cancelled' },
+  // What about edge cases? Ambiguous events?
+};
+```
+
+**LLM-Enhanced State Machine**:
+```typescript
+class LLMStateMachine {
+  /**
+   * Applies the formula: System Agent + System Data + Prompts + Context + LLM
+   * 
+   * - System Agent: StateMachineAgent
+   * - System Data: Current state, incoming event, entity data
+   * - Prompts: State transition reasoning prompts
+   * - Context: State history, business rules, edge case examples
+   * - LLM: Semantic understanding of appropriate transitions
+   */
+  
+  async transition(
+    currentState: State,
+    event: Event,
+    entityData: EntityData
+  ): Promise<TransitionResult> {
+    // Try deterministic transition first (fast path)
+    const deterministicResult = this.tryDeterministicTransition(currentState, event);
+    if (deterministicResult.confident) {
+      return deterministicResult;
+    }
+    
+    // For ambiguous cases, use LLM
+    const systemData = {
+      currentState,
+      event,
+      entityData,
+      availableTransitions: this.getAvailableTransitions(currentState),
+    };
+    
+    const context = {
+      stateHistory: await this.getStateHistory(entityData.id, limit: 10),
+      businessRules: this.getBusinessRules(entityData.type),
+      similarCases: await this.getSimilarCases(currentState, event, limit: 3),
+    };
+    
+    const decision = await this.llmAdapter.infer({
+      taskType: 'reason',
+      prompt: STATE_TRANSITION_PROMPT,
+      input: { systemData, context },
+      outputSchema: {
+        nextState: { type: 'string', enum: this.getAllStates() },
+        confidence: { type: 'number' },
+        reasoning: { type: 'string' },
+        sideEffects: { type: 'array', items: { type: 'string' } },
+        warnings: { type: 'array', items: { type: 'string' } },
+      },
+    });
+    
+    // Validate LLM decision against invariants
+    if (this.violatesInvariants(decision.nextState, entityData)) {
+      return this.safeDefault(currentState, event);
+    }
+    
+    return decision;
+  }
+}
+```
+
+**Value**: Handles ambiguous transitions, edge cases, and can reason about business context.
+
+---
+
+### 2.4 FACTORY PATTERN with LLM
+
+**Current State** (Static creation logic):
+```typescript
+// Brittle: Hard-coded factory logic
+function createAgent(config: AgentConfig): Agent {
+  switch (config.type) {
+    case 'assistant': return new AssistantAgent(config);
+    case 'researcher': return new ResearcherAgent(config);
+    case 'coder': return new CoderAgent(config);
+    default: throw new Error(`Unknown agent type: ${config.type}`);
+  }
+}
+```
+
+**LLM-Enhanced Factory**:
+```typescript
+class LLMAgentFactory {
+  /**
+   * Applies the formula: System Agent + System Data + Prompts + Context + LLM
+   * 
+   * - System Agent: AgentFactoryAgent
+   * - System Data: User request, available agent types, capabilities
+   * - Prompts: Agent selection and configuration prompts
+   * - Context: User history, task requirements, resource constraints
+   * - LLM: Semantic understanding of optimal agent configuration
+   */
+  
+  async createAgent(request: AgentRequest): Promise<Agent> {
+    const systemData = {
+      request: request.description,
+      availableTypes: this.getAvailableAgentTypes(),
+      capabilities: this.getCapabilitiesMatrix(),
+    };
+    
+    const context = {
+      userHistory: await this.getUserAgentHistory(request.userId),
+      taskAnalysis: await this.analyzeTask(request.description),
+      resourceBudget: request.resourceConstraints,
+    };
+    
+    const decision = await this.llmAdapter.infer({
+      taskType: 'generate',
+      prompt: AGENT_FACTORY_PROMPT,
+      input: { systemData, context },
+      outputSchema: {
+        agentType: { type: 'string', enum: systemData.availableTypes },
+        configuration: { type: 'object' },
+        capabilities: { type: 'array', items: { type: 'string' } },
+        reasoning: { type: 'string' },
+      },
+    });
+    
+    return this.instantiateAgent(decision);
+  }
+}
+```
+
+**Value**: Dynamically determines optimal agent configuration based on semantic task understanding.
+
+---
+
+### 2.5 OBSERVER PATTERN with LLM (Enhanced)
+
+**Current State** (Simple event dispatch):
+```typescript
+// Limited: Can only dispatch events, no semantic interpretation
+class EventEmitter {
+  private observers: Map<string, Observer[]> = new Map();
+  
+  emit(event: string, data: any): void {
+    this.observers.get(event)?.forEach(obs => obs.handle(data));
+  }
+}
+```
+
+**LLM-Enhanced Observer**:
+```typescript
+class LLMEventInterpreter {
+  /**
+   * Applies the formula: System Agent + System Data + Prompts + Context + LLM
+   * 
+   * - System Agent: EventInterpreterAgent
+   * - System Data: Raw event data, event type
+   * - Prompts: Event interpretation and routing prompts
+   * - Context: Event history, subscriber interests, system state
+   * - LLM: Semantic understanding of event meaning and relevance
+   */
+  
+  async interpretAndRoute(event: RawEvent): Promise<RoutedEvent[]> {
+    const systemData = {
+      eventType: event.type,
+      eventData: event.data,
+      timestamp: event.timestamp,
+      source: event.source,
+    };
+    
+    const context = {
+      recentEvents: await this.getRecentEvents(limit: 20),
+      subscriberInterests: this.getSubscriberInterests(),
+      correlatedEvents: await this.findCorrelatedEvents(event),
+    };
+    
+    const interpretation = await this.llmAdapter.infer({
+      taskType: 'reason',
+      prompt: EVENT_INTERPRETATION_PROMPT,
+      input: { systemData, context },
+      outputSchema: {
+        semanticMeaning: { type: 'string' },
+        relevantSubscribers: { type: 'array', items: { type: 'string' } },
+        priority: { type: 'string', enum: ['low', 'normal', 'high', 'critical'] },
+        correlations: { type: 'array' },
+        suggestedActions: { type: 'array' },
+      },
+    });
+    
+    return this.routeToSubscribers(event, interpretation);
+  }
+}
+```
+
+**Value**: Events are routed based on SEMANTIC relevance, not just string matching.
+
+---
+
+### 2.6 CHAIN OF RESPONSIBILITY PATTERN with LLM
+
+**Current State** (Fixed handler chain):
+```typescript
+// Brittle: Static ordering, no dynamic routing
+const chain = [
+  new AuthHandler(),
+  new ValidationHandler(),
+  new RateLimitHandler(),
+  new BusinessLogicHandler(),
+];
+```
+
+**LLM-Enhanced Chain**:
+```typescript
+class LLMChainOrchestrator {
+  /**
+   * The LLM can dynamically determine:
+   * 1. Which handlers are needed for this request
+   * 2. Optimal ordering based on context
+   * 3. Whether to skip handlers based on cached results
+   * 4. When to parallelize vs serialize
+   */
+  
+  async orchestrate(request: Request): Promise<Response> {
+    const decision = await this.llmAdapter.infer({
+      taskType: 'reason',
+      prompt: CHAIN_ORCHESTRATION_PROMPT,
+      input: {
+        request: request.summarize(),
+        availableHandlers: this.getHandlerDescriptions(),
+        context: await this.getRequestContext(request),
+      },
+      outputSchema: {
+        selectedHandlers: { type: 'array', items: { type: 'string' } },
+        ordering: { type: 'string', enum: ['sequential', 'parallel', 'mixed'] },
+        skipReason: { type: 'object' },
+        confidence: { type: 'number' },
+      },
+    });
+    
+    return this.executeChain(request, decision);
+  }
+}
+```
+
+---
+
+### 2.7 CIRCUIT BREAKER PATTERN with LLM
+
+**Current State** (Fixed thresholds):
+```typescript
+// Brittle: Same thresholds regardless of context
+const circuitBreaker = new CircuitBreaker({
+  failureThreshold: 5,
+  successThreshold: 2,
+  timeout: 30000,
+});
+```
+
+**LLM-Enhanced Circuit Breaker**:
+```typescript
+class LLMCircuitBreaker {
+  /**
+   * The LLM can dynamically determine:
+   * 1. Whether failures indicate a real outage or transient issues
+   * 2. Optimal timeout based on historical recovery patterns
+   * 3. Whether to attempt recovery based on system state
+   * 4. Which alternative services to route to
+   */
+  
+  async evaluateState(): Promise<CircuitState> {
+    const analysis = await this.llmAdapter.infer({
+      taskType: 'reason',
+      prompt: CIRCUIT_BREAKER_PROMPT,
+      input: {
+        recentFailures: this.getRecentFailures(),
+        dependencyHealth: await this.checkDependencyHealth(),
+        historicalPatterns: await this.getRecoveryPatterns(),
+        currentLoad: this.getCurrentLoad(),
+      },
+      outputSchema: {
+        recommendedState: { type: 'string', enum: ['closed', 'open', 'half-open'] },
+        reasoning: { type: 'string' },
+        suggestedTimeout: { type: 'number' },
+        alternativeRoutes: { type: 'array' },
+        recoveryProbability: { type: 'number' },
+      },
+    });
+    
+    return this.applyDecision(analysis);
+  }
+}
+```
+
+---
+
+### 2.8 SELF-HEALING PATTERN with LLM
+
+**New Pattern** (Not in original analysis):
+```typescript
+class LLMSelfHealer {
+  /**
+   * Applies the formula: System Agent + System Data + Prompts + Context + LLM
+   * 
+   * - System Agent: SelfHealingAgent
+   * - System Data: System diagnostics, error logs, resource metrics
+   * - Prompts: Diagnostic and remediation prompts
+   * - Context: Historical fixes, known issues, runbook knowledge
+   * - LLM: Semantic understanding of problems and solutions
+   */
+  
+  async diagnoseAndHeal(symptoms: Symptom[]): Promise<HealingResult> {
+    const systemData = {
+      symptoms: symptoms.map(s => s.describe()),
+      systemMetrics: await this.collectSystemMetrics(),
+      errorLogs: await this.getRecentErrors(minutes: 15),
+      resourceUsage: await this.getResourceUsage(),
+    };
+    
+    const context = {
+      knownIssues: this.getKnownIssuePatterns(),
+      runbookKnowledge: this.getRunbookKnowledge(),
+      previousFixes: await this.getPreviousFixes(symptoms),
+      systemArchitecture: this.getSystemArchitectureContext(),
+    };
+    
+    const diagnosis = await this.llmAdapter.infer({
+      taskType: 'reason',
+      prompt: SELF_HEALING_PROMPT,
+      input: { systemData, context },
+      outputSchema: {
+        rootCause: { type: 'string' },
+        confidence: { type: 'number' },
+        remediationSteps: { type: 'array', items: {
+          action: { type: 'string' },
+          target: { type: 'string' },
+          parameters: { type: 'object' },
+          risk: { type: 'string', enum: ['low', 'medium', 'high'] },
+        }},
+        requiresHumanApproval: { type: 'boolean' },
+        reasoning: { type: 'string' },
+      },
+    });
+    
+    if (diagnosis.requiresHumanApproval) {
+      return await this.requestHumanApproval(diagnosis);
+    }
+    
+    return await this.executeRemediation(diagnosis);
+  }
+}
+```
+
+**Self-Healing Prompt**:
+```
+You are a system self-healing agent. Diagnose the following symptoms and recommend remediation.
+
+SYMPTOMS:
+{symptoms}
+
+SYSTEM METRICS:
+{systemMetrics}
+
+RECENT ERRORS:
+{errorLogs}
+
+KNOWN ISSUE PATTERNS:
+{knownIssues}
+
+RUNBOOK KNOWLEDGE:
+{runbookKnowledge}
+
+PREVIOUS FIXES FOR SIMILAR ISSUES:
+{previousFixes}
+
+TASK: Diagnose the root cause and recommend safe remediation steps.
+
+Guidelines:
+1. Start with least-invasive actions (restart services before rebuilding)
+2. Consider cascading effects of each action
+3. Flag high-risk actions for human approval
+4. Provide rollback steps for each action
+5. Explain your reasoning clearly
+
+Respond with JSON matching the output schema.
+```
+
+---
+
+## 3. Candidate Components for LLM Enhancement (Expanded)
+
+### 3.1 Priority 1: High-Value Targets
+
+| Component | Location | Pattern | Current Complexity | LLM Suitability | Model Tier |
+|-----------|----------|---------|-------------------|-----------------|------------|
+| **Error Handler** | `src/core/` | Error Handling | Hard-coded classification | ✅ Excellent | Local SLM |
+| **Performance Monitor** | `src/monitoring/` | Observer | Static thresholds | ✅ Excellent | Local SLM |
+| **Protocol Translation** | `src/adapters/universal/` | Adapter | ~300 lines mapping | ✅ Excellent | Local SLM |
+| **State Transitions** | `src/core/InstanceStateMachine.ts` | State Machine | Decision tree | ✅ Good | Cloud LLM |
+| **Self-Healing** | NEW | Self-Healing | N/A (to be created) | ✅ Excellent | Local/Cloud |
+
+### 3.2 Priority 2: Medium-Value Targets
+
+| Component | Location | Pattern | Current Complexity | LLM Suitability | Model Tier |
+|-----------|----------|---------|-------------------|-----------------|------------|
+| **Agent Factory** | `src/agents/` | Factory | Switch statements | ✅ Good | Local SLM |
+| **Event Router** | `src/events/` | Observer | String matching | ✅ Good | Local SLM |
+| **Request Chain** | `src/middleware/` | Chain of Resp | Fixed ordering | ⚠️ Partial | Local SLM |
+| **Circuit Breaker** | `src/resilience/` | Circuit Breaker | Fixed thresholds | ✅ Good | Local SLM |
+| **Retry Logic** | `src/core/` | Retry | Exponential backoff | ⚠️ Partial | Local SLM |
+
+### 3.3 Components to NOT Offload (Keep Deterministic)
 
 | Component | Reason |
 |-----------|--------|
-| Cryptographic operations (`Encryption.ts`, `threshold.py`) | Security-critical, determinism required |
+| Cryptographic operations | Security-critical, determinism required |
 | CRDT merge operations | Mathematical correctness required |
 | Vector similarity calculations | Performance-critical, well-defined math |
-| State machine transitions | Need provable correctness |
+| Rate limiting counters | Precision required |
+| Transaction processing | ACID compliance required |
 
 ---
 
-## 3. Local Inference Feasibility Analysis
-
-### 3.1 Model Performance Envelope
-
-| Model | Parameters | Context | Tokens/sec (CPU) | Tokens/sec (GPU) | Optimal Use Case |
-|-------|------------|---------|------------------|------------------|------------------|
-| **Gemma 1B** | 1.1B | 8K | ~30-50 | ~100-200 | Classification, categorization |
-| **Llama 3.2 1B** | 1.2B | 128K | ~25-40 | ~80-150 | Extended context tasks |
-| **Gemma 3B** | 3.2B | 8K | ~15-25 | ~60-100 | Simple reasoning |
-| **Qwen 2.5 1.5B** | 1.5B | 32K | ~20-35 | ~70-120 | Multilingual, code |
-
-### 3.2 Task-to-Model Mapping
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                    LOCAL SLM SUITABILITY MATRIX                        │
-├────────────────────────────────────────────────────────────────────────┤
-│                                                                        │
-│  TASK                          LATENCY    ACCURACY   RECOMMENDED       │
-│  ─────────────────────────────────────────────────────────────────────│
-│  Semantic Categorization       <100ms     95%+       Gemma 1B          │
-│  Command Classification        <50ms      97%+       Gemma 1B          │
-│  NL → CLI Arg Mapping          <200ms     90%+       Llama 3.2 1B      │
-│  Protocol Field Mapping        <150ms     92%+       Gemma 1B          │
-│  Agent Config Validation       <100ms     95%+       Gemma 1B          │
-│  Simple Intent Detection       <80ms      94%+       Gemma 1B          │
-│  ─────────────────────────────────────────────────────────────────────│
-│  Multi-step Reasoning          N/A        <80%       → Cloud LLM       │
-│  Complex Code Generation       N/A        <75%       → Cloud LLM       │
-│  Nuanced Judgment              N/A        <70%       → Cloud LLM       │
-│                                                                        │
-└────────────────────────────────────────────────────────────────────────┘
-```
-
-### 3.3 Latency vs Accuracy Trade-off Zones
-
-```
-ACCURACY
-   ^
-100%│                                     ┌──────────────┐
-   │                                     │  CLOUD LLM   │
-   │                                     │  (Claude 4)  │
-95% │           ┌──────────────────────────┘              │
-   │           │    OPTIMAL ZONE                         │
-   │           │    Local SLM                            │
-90% │           │    (Gemma 1B/3B)                       │
-   │           │                                         │
-85% │  ┌────────┘                                        │
-   │  │                                                  │
-80% │  │  DEGRADED ZONE                                  │
-   │  │  (Complex tasks on SLM)                         │
-   └──┴──────────────────────────────────────────────────► LATENCY
-      0    50ms   100ms   200ms   500ms   1s    2s
-      
-   RULE: Stay in OPTIMAL ZONE for local tasks
-         Route to CLOUD for complex reasoning
-```
-
----
-
-## 4. Cross-Domain Expert Integration
-
-### 4.1 AI Engineering (from `ai-engineer.md`)
-
-**Inference Pipeline Optimization**:
-```python
-class ComplexityRouter:
-    """Routes tasks to optimal compute tier based on complexity signals."""
-    
-    COMPLEXITY_SIGNALS = {
-        'token_count': lambda x: len(x.split()) > 500,  # Long context
-        'reasoning_depth': lambda x: 'why' in x.lower() or 'explain' in x.lower(),
-        'code_generation': lambda x: 'generate' in x.lower() and 'code' in x.lower(),
-        'multi_step': lambda x: 'then' in x.lower() or 'after' in x.lower(),
-    }
-    
-    def route(self, task: str, context: dict) -> str:
-        """Determine optimal model tier."""
-        complexity_score = sum(
-            1 for signal, check in self.COMPLEXITY_SIGNALS.items()
-            if check(task)
-        )
-        
-        if complexity_score >= 2:
-            return 'cloud_llm'
-        elif context.get('requires_accuracy', False):
-            return 'cloud_llm'
-        else:
-            return 'local_slm'
-```
-
-### 4.2 Prompt Engineering (from `prompt-engineer.md`)
-
-**Resilient Meta-Prompts for Structured Output**:
-```typescript
-/**
- * Meta-prompt template for local SLM that ensures structured output
- * regardless of model size limitations.
- */
-const STRUCTURED_OUTPUT_PROMPT = `
-You are a classification system. Respond ONLY with valid JSON.
-
-INPUT: {input}
-
-SCHEMA:
-{
-  "category": "string (one of: {categories})",
-  "confidence": "number (0.0-1.0)",
-  "reasoning": "string (one sentence)"
-}
-
-OUTPUT:`;
-
-// For small models, use constrained generation
-const CONSTRAINED_PROMPT = `
-Classify: "{input}"
-Category (choose one): {categories}
-Answer:`;
-```
-
-### 4.3 Context Management (from `context-manager.md`)
-
-**Managing Limited Context Windows in 1B/3B Models**:
-```typescript
-interface SLMContextStrategy {
-  // Aggressive context compression for small models
-  maxContextTokens: 2000;  // Leave room for output
-  
-  // Sliding window with priority
-  contextWindow: {
-    systemPrompt: 200,      // Fixed
-    taskDescription: 300,   // Fixed
-    relevantContext: 1000,  // Dynamic - retrieved
-    examples: 400,          // Few-shot (2-3 examples)
-    buffer: 100             // Safety margin
-  };
-  
-  // Context selection strategy
-  retrievalStrategy: 'recency_weighted_semantic';
-}
-```
-
-### 4.4 Design Patterns (from `design-patterns.md`)
-
-**Adapter + Observer Pattern for Metadata Capture**:
-```typescript
-/**
- * LLM Complexity Adapter with Observer pattern for self-improvement
- */
-class LLMComplexityAdapter {
-  private observers: MetadataObserver[] = [];
-  
-  async infer(task: InferenceTask): Promise<InferenceResult> {
-    const startTime = Date.now();
-    const modelTier = this.router.route(task);
-    
-    const result = await this.executeInference(task, modelTier);
-    
-    // Observer pattern: capture metadata for learning
-    const metadata: InferenceMetadata = {
-      task: task.type,
-      modelUsed: modelTier,
-      latencyMs: Date.now() - startTime,
-      tokenCount: result.tokensUsed,
-      confidence: result.confidence,
-      success: result.valid
-    };
-    
-    this.notifyObservers(metadata);
-    return result;
-  }
-  
-  private notifyObservers(metadata: InferenceMetadata): void {
-    this.observers.forEach(obs => obs.onInference(metadata));
-  }
-}
-```
-
----
-
-## 5. Prompt Interface Specifications
-
-### 5.1 Standard JSON Contract
-
-```typescript
-/**
- * Universal LLM Interface Contract
- * All LLM interactions conform to this schema for consistency.
- */
-interface LLMRequest {
-  /** Task type for routing */
-  taskType: 'classify' | 'translate' | 'validate' | 'generate' | 'reason';
-  
-  /** Input data */
-  input: {
-    content: string;
-    context?: Record<string, unknown>;
-  };
-  
-  /** Output schema (JSON Schema subset) */
-  outputSchema: {
-    type: 'object';
-    properties: Record<string, { type: string; enum?: string[] }>;
-    required: string[];
-  };
-  
-  /** Constraints */
-  constraints: {
-    maxTokens: number;
-    temperature: number;
-    requireStructured: boolean;
-  };
-}
-
-interface LLMResponse {
-  /** Parsed result conforming to outputSchema */
-  result: Record<string, unknown>;
-  
-  /** Confidence metadata */
-  metadata: {
-    confidence: number;
-    modelUsed: string;
-    tokensUsed: number;
-    latencyMs: number;
-    reasoning?: string;
-  };
-  
-  /** Raw response for debugging */
-  raw?: string;
-}
-```
-
-### 5.2 Task-Specific Schemas
-
-**Semantic Categorization**:
-```json
-{
-  "taskType": "classify",
-  "input": { "content": "search for files modified today" },
-  "outputSchema": {
-    "type": "object",
-    "properties": {
-      "category": { "type": "string", "enum": ["file_search", "system_command", "agent_task", "unknown"] },
-      "confidence": { "type": "number" },
-      "subcategory": { "type": "string" }
-    },
-    "required": ["category", "confidence"]
-  },
-  "constraints": { "maxTokens": 100, "temperature": 0.1, "requireStructured": true }
-}
-```
-
-**Protocol Translation**:
-```json
-{
-  "taskType": "translate",
-  "input": {
-    "content": { "role": "assistant", "tools": [...] },
-    "context": { "sourceProtocol": "crewai", "targetProtocol": "mcp" }
-  },
-  "outputSchema": {
-    "type": "object",
-    "properties": {
-      "translated": { "type": "object" },
-      "fieldMappings": { "type": "array" },
-      "confidence": { "type": "number" }
-    },
-    "required": ["translated", "confidence"]
-  },
-  "constraints": { "maxTokens": 2000, "temperature": 0.2, "requireStructured": true }
-}
-```
-
----
-
-## 6. Implementation Roadmap
+## 4. Implementation Roadmap (Expanded)
 
 ### Phase 1: Foundation (Week 1-2)
-**Low-risk, high-confidence implementations**
+**Core infrastructure for meta-pattern**
 
-| Task | Priority | Model | Effort |
-|------|----------|-------|--------|
-| Implement `LLMComplexityAdapter` interface | P0 | N/A | 2d |
-| Set up Ollama with Gemma 1B | P0 | Gemma 1B | 1d |
-| Create `ComplexityRouter` | P0 | N/A | 1d |
-| Implement metadata capture (Observer) | P1 | N/A | 1d |
-| Unit tests for interface contract | P1 | N/A | 1d |
+| Task | Priority | Pattern | Effort |
+|------|----------|---------|--------|
+| Implement universal `LLMComplexityAdapter` | P0 | All | 3d |
+| Implement `ComplexityRouter` | P0 | All | 2d |
+| Set up Ollama with Gemma 1B | P0 | All | 1d |
+| Implement `MetadataObserver` | P1 | Observer | 1d |
+| Create prompt template registry | P1 | All | 2d |
 
 **Deliverables**:
 - `src/llm-adapter/LLMComplexityAdapter.ts`
 - `src/llm-adapter/ComplexityRouter.ts`
 - `src/llm-adapter/MetadataObserver.ts`
+- `src/llm-adapter/PromptRegistry.ts`
 
-### Phase 2: Semantic Classification (Week 3-4)
-**First LLM-offloaded functionality**
+### Phase 2: Error Handling & Monitoring (Week 3-4)
+**Critical system health patterns**
 
-| Task | Priority | Model | Effort |
-|------|----------|-------|--------|
-| Offload command classification | P0 | Gemma 1B | 2d |
-| Offload protocol field mapping | P0 | Gemma 1B | 2d |
-| Implement fallback to cloud | P1 | Claude | 1d |
-| A/B testing framework | P1 | N/A | 2d |
-| Latency monitoring | P1 | N/A | 1d |
+| Task | Priority | Pattern | Effort |
+|------|----------|---------|--------|
+| Implement `LLMErrorHandler` | P0 | Error Handling | 3d |
+| Implement `LLMPerformanceMonitor` | P0 | Observer | 3d |
+| Create error classification prompts | P0 | Error Handling | 1d |
+| Create performance analysis prompts | P0 | Observer | 1d |
+| Integration tests | P1 | Both | 2d |
 
 **Success Criteria**:
-- Classification accuracy ≥ 95%
-- P95 latency ≤ 100ms (local)
-- Zero regressions vs current code
+- Error classification accuracy ≥ 90%
+- Anomaly detection precision ≥ 85%
+- P95 latency ≤ 150ms (local)
 
-### Phase 3: Protocol Translation (Week 5-6)
-**Migrate Universal Adapter to use LLM**
+### Phase 3: Adapter & Translation (Week 5-6)
+**Protocol and data transformation**
 
-| Task | Priority | Model | Effort |
-|------|----------|-------|--------|
-| Integrate LLM into UniversalAdapter | P0 | Gemma 1B/Cloud | 3d |
-| Caching layer for translations | P1 | N/A | 2d |
-| Round-trip validation tests | P0 | N/A | 2d |
-| Performance benchmarks | P1 | N/A | 1d |
+| Task | Priority | Pattern | Effort |
+|------|----------|---------|--------|
+| Integrate LLM into `UniversalAdapter` | P0 | Adapter | 3d |
+| Implement semantic field mapping | P0 | Adapter | 2d |
+| Caching layer for translations | P1 | Adapter | 2d |
+| Round-trip validation tests | P0 | Adapter | 1d |
 
-### Phase 4: Memory System Enhancement (Week 7-8)
-**Semantic understanding in retrieval**
+### Phase 4: State & Flow Control (Week 7-8)
+**Behavioral pattern enhancement**
 
-| Task | Priority | Model | Effort |
-|------|----------|-------|--------|
-| LLM-enhanced semantic search | P0 | Gemma 1B | 2d |
-| Query expansion via LLM | P1 | Gemma 1B | 2d |
-| Relevance scoring | P1 | Gemma 1B | 2d |
-| Hybrid retrieval optimization | P2 | N/A | 2d |
+| Task | Priority | Pattern | Effort |
+|------|----------|---------|--------|
+| Implement `LLMStateMachine` | P0 | State Machine | 3d |
+| Implement `LLMChainOrchestrator` | P1 | Chain of Resp | 2d |
+| Implement `LLMCircuitBreaker` | P1 | Circuit Breaker | 2d |
+| Behavioral pattern tests | P0 | All | 2d |
 
-### Phase 5: Self-Improvement Loop (Week 9-10)
-**Enable evolutionary learning**
+### Phase 5: Self-Improvement & Self-Healing (Week 9-10)
+**Autonomous system optimization**
 
-| Task | Priority | Model | Effort |
-|------|----------|-------|--------|
-| Metadata aggregation pipeline | P0 | N/A | 2d |
-| Prompt refinement based on feedback | P1 | Cloud | 2d |
-| Model routing optimization | P1 | N/A | 2d |
-| Dashboard for metrics | P2 | N/A | 3d |
+| Task | Priority | Pattern | Effort |
+|------|----------|---------|--------|
+| Implement `LLMSelfHealer` | P0 | Self-Healing | 3d |
+| Metadata aggregation pipeline | P0 | Observer | 2d |
+| Prompt optimization system | P1 | All | 2d |
+| Performance dashboard | P2 | Monitoring | 2d |
 
 ---
 
-## 7. Metrics & Success Criteria
+## 5. Cross-Pattern Metrics
 
-### 7.1 Performance Metrics
+### 5.1 Pattern-Specific Success Criteria
 
-| Metric | Local SLM Target | Cloud Target |
-|--------|------------------|--------------|
-| P50 Latency | ≤ 50ms | ≤ 500ms |
-| P95 Latency | ≤ 100ms | ≤ 1000ms |
-| P99 Latency | ≤ 200ms | ≤ 2000ms |
-| Accuracy | ≥ 92% | ≥ 98% |
-| Availability | 99.9% | 99.5% |
+| Pattern | Primary Metric | Target | Secondary Metric | Target |
+|---------|---------------|--------|------------------|--------|
+| Error Handling | Classification accuracy | ≥ 90% | MTTR reduction | ≥ 30% |
+| Performance Monitoring | Anomaly precision | ≥ 85% | False positive rate | ≤ 5% |
+| Adapter | Translation accuracy | ≥ 95% | New protocol time | ≤ 1 hour |
+| State Machine | Transition accuracy | ≥ 98% | Edge case handling | ≥ 80% |
+| Circuit Breaker | Recovery prediction | ≥ 75% | Availability improvement | ≥ 5% |
+| Self-Healing | Fix success rate | ≥ 70% | Manual intervention reduction | ≥ 40% |
 
-### 7.2 Business Metrics
+### 5.2 System-Wide Metrics
 
 | Metric | Target |
 |--------|--------|
-| Lines of code reduced | ≥ 30% in adapter layer |
-| New protocol onboarding time | ≤ 1 hour (vs days) |
-| Maintenance incidents | ≤ 50% reduction |
-| Developer velocity | ≥ 20% improvement |
-
-### 7.3 Self-Improvement Metrics
-
-| Metric | Target |
-|--------|--------|
-| Routing accuracy improvement | ≥ 5% per month |
-| Prompt optimization cycles | Weekly |
-| Model upgrade cadence | Quarterly evaluation |
+| Total lines of heuristic code reduced | ≥ 40% |
+| System cognitive load reduction | ≥ 50% |
+| Developer velocity improvement | ≥ 25% |
+| Incident resolution time reduction | ≥ 35% |
+| Self-improvement cycle time | Weekly |
 
 ---
 
-## 8. Risk Mitigation
+## 6. Conclusion
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| SLM accuracy degradation | Medium | High | Fallback to cloud, monitoring |
-| Latency spikes | Medium | Medium | Caching, async processing |
-| Model hallucination | Low | High | Structured output validation |
-| Cost overrun (cloud) | Medium | Medium | Aggressive local routing |
-| Breaking API changes | Low | Medium | Version pinning, adapters |
+The **System Agent LLM Complexity Adaptation Pattern** is a **meta-pattern** that provides a universal formula for enhancing any design pattern with semantic LLM reasoning:
 
----
+```
+System Agent + System Data + Prompts + Context + LLM = Pattern Implementation
+```
 
-## 9. Conclusion
+This pattern is not limited to adapters or translators—it applies to:
+- **Error Handling**: Semantic error classification and intelligent remediation
+- **Performance Monitoring**: Context-aware anomaly detection and prediction
+- **State Machines**: Flexible state transition reasoning
+- **Factories**: Dynamic object creation based on semantic understanding
+- **Observers**: Intelligent event interpretation and routing
+- **Chain of Responsibility**: Dynamic handler orchestration
+- **Circuit Breakers**: Adaptive resilience based on system context
+- **Self-Healing**: Autonomous diagnosis and remediation
 
-The **System Agent LLM Complexity Adaptation Pattern** enables Chrysalis to:
-
-1. **Reduce codebase complexity** by offloading heuristic logic to LLM
-2. **Improve flexibility** through semantic understanding
-3. **Enable self-improvement** via metadata feedback loops
-4. **Maintain performance** through intelligent local/cloud routing
-5. **Future-proof** the architecture for emerging models and protocols
-
-The phased implementation approach prioritizes low-risk, high-value targets first, with continuous validation against accuracy and latency metrics.
+The meta-pattern transforms Chrysalis from a system with scattered heuristics into a **cognitively-enhanced architecture** where every design pattern can leverage semantic understanding.
 
 ---
 
 **Document Owner**: Chrysalis Architecture Team  
 **Governance Files**: ai-engineer.md, prompt-engineer.md, context-manager.md, design-patterns.md  
+**Revision**: 2.0 - Expanded from Adapter-only to Meta-Pattern scope  
 **Next Review**: After Phase 2 completion
