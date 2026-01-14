@@ -974,8 +974,14 @@ export interface DeploymentResult {
   deploymentId: string;
   /** Proposal deployed */
   proposalId: string;
-  /** Deployment status */
-  status: 'success' | 'partial' | 'failed' | 'rolled-back';
+  /** Deployment status
+   * - 'success': Deployment completed successfully
+   * - 'partial': Some stages succeeded, some failed
+   * - 'failed': Deployment failed
+   * - 'rolled-back': Deployment was rolled back
+   * - 'simulated': Deployment was simulated (dry-run or stub mode)
+   */
+  status: 'success' | 'partial' | 'failed' | 'rolled-back' | 'simulated';
   /** Deployment strategy */
   strategy: 'direct' | 'canary' | 'blue-green';
   /** Deployment stages */

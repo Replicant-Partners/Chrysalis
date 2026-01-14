@@ -1,0 +1,131 @@
+/**
+ * DocumentViewer Styles
+ */
+
+.viewer {
+  padding: var(--space-6);
+  overflow-y: auto;
+  background: var(--color-slate-900);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Typography */
+.viewer h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin: var(--space-8) 0 var(--space-4) 0;
+  color: var(--color-text-primary);
+}
+
+.viewer h2 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin: var(--space-6) 0 var(--space-3) 0;
+  color: var(--color-text-primary);
+}
+
+.viewer h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: var(--space-5) 0 var(--space-2) 0;
+  color: var(--color-text-primary);
+}
+
+.viewer p {
+  margin: var(--space-4) 0;
+}
+
+.viewer ul,
+.viewer ol {
+  margin: var(--space-4) 0;
+  padding-left: var(--space-6);
+}
+
+.viewer li {
+  margin: var(--space-2) 0;
+}
+
+.viewer code {
+  font-family: var(--font-family-mono);
+  font-size: 0.875em;
+  background: var(--color-slate-850);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-cyan-400);
+}
+
+.viewer pre {
+  background: var(--color-slate-950);
+  border: 1px solid var(--color-slate-800);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  overflow-x: auto;
+  margin: var(--space-4) 0;
+}
+
+.viewer pre code {
+  background: none;
+  padding: 0;
+  color: var(--color-text-primary);
+}
+
+.viewer blockquote {
+  border-left: 4px solid var(--color-cyan-500);
+  padding-left: var(--space-4);
+  margin: var(--space-4) 0;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.viewer table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-4) 0;
+}
+
+.viewer th,
+.viewer td {
+  border: 1px solid var(--color-slate-700);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+
+.viewer th {
+  background: var(--color-slate-850);
+  font-weight: var(--font-weight-semibold);
+}
+
+.viewer a {
+  color: var(--color-cyan-500);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.viewer a:hover {
+  color: var(--color-cyan-400);
+  text-decoration: underline;
+}
+
+/* Wiki Links */
+.wikiLink {
+  color: var(--color-purple-400);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.wikiLink:hover {
+  color: var(--color-purple-300);
+  text-decoration: underline;
+}
+
+.wikiLink::before {
+  content: '[[';
+  opacity: 0.5;
+}
+
+.wikiLink::after {
+  content: ']]';
+  opacity: 0.5;
+}

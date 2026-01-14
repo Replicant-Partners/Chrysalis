@@ -5,14 +5,14 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { Upload, Grid, List } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { Button } from '../design-system';
 import { FileUpload } from './FileUpload';
 import { ScrapbookGrid } from './ScrapbookGrid';
 import { TagFilter } from './TagFilter';
 import { Lightbox } from './Lightbox';
 import { useScrapbookStore } from './store';
-import type { ScrapbookItem, ScrapbookItemType } from './types';
+import type { ScrapbookItem } from './types';
 import styles from './ScrapbookCanvas.module.css';
 
 // Mock data for demonstration
@@ -67,7 +67,6 @@ export const ScrapbookCanvas: React.FC = () => {
   const [showUpload, setShowUpload] = useState(false);
   
   const {
-    selectedItemId,
     lightboxItemId,
     searchQuery,
     filterTags,

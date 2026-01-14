@@ -6,8 +6,8 @@
 
 import React from 'react';
 import { Image, Video, Music, Link as LinkIcon, FileText, X, Tag as TagIcon } from 'lucide-react';
-import { Badge, Button } from '../design-system';
-import type { ScrapbookItem as ScrapbookItemType } from './types';
+import { Badge } from '../design-system';
+import type { ScrapbookItem as ScrapbookItemType, ScrapbookItemType as ItemType } from './types';
 import styles from './ScrapbookItem.module.css';
 
 interface ScrapbookItemProps {
@@ -18,7 +18,7 @@ interface ScrapbookItemProps {
   onOpenLightbox: (id: string) => void;
 }
 
-const getItemIcon = (type: ScrapbookItemType) => {
+const getItemIcon = (type: ItemType) => {
   switch (type) {
     case 'image':
       return <Image size={16} />;

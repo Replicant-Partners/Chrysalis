@@ -54,6 +54,10 @@ export class ExperienceSyncAdapter {
 
     /**
      * Start collecting experiences from Experience Sync Manager
+     * 
+     * @stub Event subscription is not yet wired up. The ExperienceSyncManager
+     * needs to emit 'experience_synced' and 'merge_completed' events for this
+     * to work. Currently just sets a flag without actual subscription.
      */
     startCollecting(): void {
         if (this.isCollecting) {
@@ -62,17 +66,26 @@ export class ExperienceSyncAdapter {
 
         this.isCollecting = true;
 
-        // In production: Subscribe to Experience Sync Manager events
-        // For now: Poll-based collection (would be event-driven in production)
-
-        // Example event subscription:
+        // TODO: Wire up event subscriptions when ExperienceSyncManager emits events
+        // The handlers (handleExperienceEvent, handleMergeResult) are implemented
+        // but need the event source to be connected.
+        //
+        // Required changes to ExperienceSyncManager:
+        //   1. Extend EventEmitter or use a pub/sub system
+        //   2. Emit 'experience_synced' after successful sync
+        //   3. Emit 'merge_completed' after memory merge
+        //
+        // Then uncomment:
         // this.experienceSyncManager.on('experience_synced', (event) => {
         //     this.handleExperienceEvent(event);
         // });
-
         // this.experienceSyncManager.on('merge_completed', (result) => {
         //     this.handleMergeResult(result);
         // });
+        
+        console.warn('[ExperienceSyncAdapter] startCollecting is a stub - event subscriptions not wired', {
+            stub_reason: 'ExperienceSyncManager does not emit events yet'
+        });
     }
 
     /**
@@ -168,16 +181,19 @@ export class ExperienceSyncAdapter {
 
     /**
      * Manually collect experiences from sync status
+     * 
+     * @stub Requires ExperienceSyncManager.getSyncStatuses() to be accessible
+     * and return meaningful data. Currently a no-op.
      */
     async collectFromSyncStatus(): Promise<void> {
-        // In production: Get sync status from Experience Sync Manager
-        // For now: Placeholder implementation
-
-        // Example:
-        // const statuses = this.experienceSyncManager.getSyncStatuses();
+        console.warn('[ExperienceSyncAdapter] collectFromSyncStatus is a stub', {
+            stub_reason: 'ExperienceSyncManager sync status query not implemented'
+        });
+        
+        // TODO: Implement when ExperienceSyncManager exposes sync statuses
+        // const statuses = await this.experienceSyncManager.getSyncStatuses();
         // for (const status of statuses) {
         //     if (status.last_sync) {
-        //         // Collect experiences since last sync
         //         await this.collectExperiencesSince(status.instance_id, status.last_sync);
         //     }
         // }
@@ -185,18 +201,25 @@ export class ExperienceSyncAdapter {
 
     /**
      * Collect experiences since timestamp
+     * 
+     * @stub Internal method for incremental experience collection
      */
     private async collectExperiencesSince(instanceId: string, since: string): Promise<void> {
-        // In production: Query Experience Sync Manager for experiences since timestamp
-        // Placeholder implementation
+        console.warn('[ExperienceSyncAdapter] collectExperiencesSince is a stub', {
+            instanceId,
+            since,
+            stub_reason: 'Experience query by timestamp not implemented'
+        });
+        // TODO: Query ExperienceSyncManager for experiences after timestamp
     }
 
     /**
      * Get sync statuses
+     * 
+     * @stub Returns empty array - requires ExperienceSyncManager integration
      */
     async getSyncStatuses(): Promise<SyncStatus[]> {
-        // In production: Get from Experience Sync Manager
-        // Placeholder: return empty array
+        console.warn('[ExperienceSyncAdapter] getSyncStatuses returns empty - stub implementation');
         return [];
     }
 }

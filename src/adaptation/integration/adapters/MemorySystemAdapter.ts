@@ -10,6 +10,17 @@
  *
  * References:
  * - Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley. p. 139.
+ * 
+ * @stub ENTIRE CLASS IS A STUB
+ * This adapter requires integration with the Python Memory System (memory_system/).
+ * Implementation options:
+ *   1. Pyodide - Run Python in WebAssembly (browser/Node.js)
+ *   2. child_process - Spawn Python subprocess with JSON IPC
+ *   3. HTTP API - Memory System as standalone service
+ *   4. Native bindings - PyO3 or similar for direct Python calls
+ * 
+ * All methods currently return empty results or no-op.
+ * @see memory_system/fusion.py for the Python implementation to integrate with
  */
 
 import { ChangeProposal } from '../../AgentCoordinator';
@@ -79,117 +90,110 @@ export interface IMemorySystem {
  * Memory System Adapter
  *
  * Adapts Chrysalis Memory System to Adaptation System interface.
+ * 
+ * @stub All methods are stubs - see class JSDoc for integration requirements
  */
 export class MemorySystemAdapter implements IMemorySystem {
     private memorySystemUrl?: string;
-    private memorySystemInstance?: any; // In production: Python interop instance
+    private memorySystemInstance?: unknown; // In production: Python interop instance
+    private readonly STUB_WARNING = '[MemorySystemAdapter] Method is a stub - Python Memory System integration required';
 
-    constructor(config?: { memorySystemUrl?: string; memorySystemInstance?: any }) {
+    constructor(config?: { memorySystemUrl?: string; memorySystemInstance?: unknown }) {
         this.memorySystemUrl = config?.memorySystemUrl;
         this.memorySystemInstance = config?.memorySystemInstance;
+        
+        if (!this.memorySystemInstance && !this.memorySystemUrl) {
+            console.warn('[MemorySystemAdapter] No memory system configured - all operations will be no-ops');
+        }
     }
 
     /**
      * Store adaptation event in memory system
+     * @stub Requires Python Memory System integration
      */
     async storeAdaptationEvent(event: AdaptationEvent): Promise<void> {
-        // In production: Call Python Memory System via interop
-        // For now: Store in local structure (would be persisted via Memory System)
-
-        // Example structure for memory storage:
-        // {
-        //     type: 'episodic',
-        //     content: JSON.stringify(event),
-        //     metadata: {
-        //         event_type: event.event_type,
-        //         change_proposal_id: event.change_proposal_id,
-        //         timestamp: event.timestamp,
-        //     },
-        //     source: 'adaptation_system',
-        // }
-
-        // Placeholder: In production, this would call:
-        // await this.memorySystemInstance.create_memory({
-        //     memory_type: 'episodic',
-        //     content: JSON.stringify(event),
-        //     metadata: { ... }
-        // });
+        console.warn(this.STUB_WARNING, { method: 'storeAdaptationEvent', event_type: event.event_type });
+        // TODO: Implement Python interop call to memory_system/fusion.py
     }
 
     /**
      * Store adaptation outcome in memory system
+     * @stub Requires Python Memory System integration
      */
     async storeAdaptationOutcome(outcome: AdaptationOutcome): Promise<void> {
-        // In production: Store as semantic memory with outcome metrics
-        // Placeholder implementation
+        console.warn(this.STUB_WARNING, { method: 'storeAdaptationOutcome', proposal_id: outcome.change_proposal_id });
+        // TODO: Implement Python interop call
     }
 
     /**
      * Store change proposal in memory system
+     * @stub Requires Python Memory System integration
      */
     async storeChangeProposal(proposal: ChangeProposal): Promise<void> {
-        // In production: Store as episodic memory with proposal details
-        // Placeholder implementation
+        console.warn(this.STUB_WARNING, { method: 'storeChangeProposal', task_id: proposal.task_id });
+        // TODO: Implement Python interop call
     }
 
     /**
      * Store learning pattern in memory system
+     * @stub Requires Python Memory System integration
      */
     async storeLearningPattern(pattern: LearningPattern): Promise<void> {
-        // In production: Store as semantic memory (pattern knowledge)
-        // Placeholder implementation
+        console.warn(this.STUB_WARNING, { method: 'storeLearningPattern', pattern_id: pattern.pattern_id });
+        // TODO: Implement Python interop call
     }
 
     /**
      * Store Kata cycle in memory system
+     * @stub Requires Python Memory System integration
      */
     async storeKataCycle(cycle: KataCycle): Promise<void> {
-        // In production: Store as episodic memory with cycle state
-        // Placeholder implementation
+        console.warn(this.STUB_WARNING, { method: 'storeKataCycle', cycle_id: cycle.cycle_id });
+        // TODO: Implement Python interop call
     }
 
     /**
      * Retrieve adaptation events from memory system
+     * @stub Returns empty array - requires Python Memory System integration
      */
     async getAdaptationEvents(proposalId?: string, limit: number = 100): Promise<AdaptationEvent[]> {
-        // In production: Query Memory System for episodic memories with event_type metadata
-        // Placeholder: Return empty array
+        console.warn(this.STUB_WARNING, { method: 'getAdaptationEvents', proposalId, limit });
         return [];
     }
 
     /**
      * Retrieve adaptation outcomes from memory system
+     * @stub Returns empty array - requires Python Memory System integration
      */
     async getAdaptationOutcomes(proposalId?: string, limit: number = 100): Promise<AdaptationOutcome[]> {
-        // In production: Query Memory System for semantic memories with outcome metadata
-        // Placeholder: Return empty array
+        console.warn(this.STUB_WARNING, { method: 'getAdaptationOutcomes', proposalId, limit });
         return [];
     }
 
     /**
      * Retrieve change proposals from memory system
+     * @stub Returns empty array - requires Python Memory System integration
      */
     async getChangeProposals(taskId?: string, limit: number = 100): Promise<ChangeProposal[]> {
-        // In production: Query Memory System for episodic memories with proposal metadata
-        // Placeholder: Return empty array
+        console.warn(this.STUB_WARNING, { method: 'getChangeProposals', taskId, limit });
         return [];
     }
 
     /**
      * Retrieve learning patterns from memory system
+     * @stub Returns empty array - requires Python Memory System integration
      */
-    async getLearningPatterns(context?: Record<string, any>, limit: number = 100): Promise<LearningPattern[]> {
-        // In production: Query Memory System for semantic memories matching context
-        // Placeholder: Return empty array
+    async getLearningPatterns(context?: Record<string, unknown>, limit: number = 100): Promise<LearningPattern[]> {
+        console.warn(this.STUB_WARNING, { method: 'getLearningPatterns', hasContext: !!context, limit });
         return [];
     }
 
     /**
      * Retrieve Kata cycles from memory system
+     * @stub Returns empty array - requires Python Memory System integration
      */
     async getKataCycles(cycleId?: string, activeOnly: boolean = false): Promise<KataCycle[]> {
-        // In production: Query Memory System for episodic memories with cycle metadata
-        // Placeholder: Return empty array
+        console.warn(this.STUB_WARNING, { method: 'getKataCycles', cycleId, activeOnly });
         return [];
     }
 }

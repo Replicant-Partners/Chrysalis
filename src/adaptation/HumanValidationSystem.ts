@@ -205,7 +205,7 @@ export class HumanValidationSystem {
 
     /**
      * Notify validation channels
-     * 
+     *
      * Logs pending validation requests to configured channels.
      * Currently implements console logging; full integration with
      * Slack, email, and GitHub PRs is planned for future release.

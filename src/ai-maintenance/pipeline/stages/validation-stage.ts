@@ -1,9 +1,9 @@
 /**
  * Validation Stage Executor
- * 
+ *
  * Executes the validation phase of the adaptation pipeline:
  * type compliance, test execution, security scanning.
- * 
+ *
  * @module ai-maintenance/pipeline/stages/validation-stage
  */
 
@@ -157,7 +157,7 @@ export class ValidationStageExecutor {
     // 1. Apply the proposed changes to a temp branch
     // 2. Run the test suite (npm test, vitest, etc.)
     // 3. Parse and return the results
-    
+
     // For now, return a placeholder indicating no tests were actually run
     return [{
       suiteName: 'validation-pending',
@@ -183,7 +183,7 @@ export class ValidationStageExecutor {
     // Check each file change for security issues
     for (const fileChange of proposal.fileChanges) {
       const patch = fileChange.patch || '';
-      
+
       // Check for common security anti-patterns in added code
       const addedLines = patch
         .split('\n')

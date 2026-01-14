@@ -70,7 +70,15 @@ export class LumpedSync {
     
     // Decompress if needed
     if (config?.compression) {
-      // Would decompress batch here
+      // @stub Compression/decompression not yet implemented
+      // Would use zlib or similar for gzip/deflate
+      logger.warn('[LumpedSync] Compression enabled but decompression not implemented', {
+        instance_id: instanceId,
+        stub_reason: 'Requires zlib integration for batch decompression'
+      });
+      // TODO: Implement decompression
+      // const decompressed = zlib.gunzipSync(Buffer.from(batch.compressed, 'base64'));
+      // batch = JSON.parse(decompressed.toString());
     }
     
     // Batch processed successfully
@@ -82,12 +90,32 @@ export class LumpedSync {
   
   /**
    * Trigger sync request to instance
+   * 
+   * @stub Requires HTTP client integration to request batch from agent instances.
+   * Implementation needs:
+   *   - Instance registry to look up instance endpoints
+   *   - HTTP client (axios/fetch) to request batch
+   *   - Response handling to process received batch via processBatch()
+   * 
+   * @param instanceId - The ID of the instance to trigger
    */
   private async triggerSync(instanceId: string): Promise<void> {
-    logger.debug('Triggering lumped sync', { instance_id: instanceId });
+    logger.warn('[LumpedSync] triggerSync is a stub - no HTTP request sent', { 
+      instance_id: instanceId,
+      stub_reason: 'Requires instance registry and HTTP client integration'
+    });
     
-    // This would send a request to the instance to send its batch
-    // For now, just log
+    // TODO: Implement with instance registry lookup and HTTP client
+    // Example implementation:
+    // const instance = await this.instanceRegistry.get(instanceId);
+    // if (!instance) throw new Error(`Instance ${instanceId} not found`);
+    // const response = await this.httpClient.post(`${instance.endpoint}/sync/batch`, {
+    //   requestedBy: 'lumped-sync',
+    //   maxBatchSize: this.configs.get(instanceId)?.max_batch_size
+    // });
+    // if (response.batch) {
+    //   await this.processBatch(instanceId, response.batch);
+    // }
   }
   
   /**

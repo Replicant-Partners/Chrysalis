@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
  * Uniform Semantic Agent Converter - Main conversion logic
- * 
+ *
  * Handles bidirectional conversion between any two frameworks
  * using framework-specific adapters and encrypted shadow fields.
  */
@@ -9,14 +9,14 @@
 import * as crypto from 'crypto';
 import type { UniformSemanticAgent } from '../core/UniformSemanticAgent';
 import type { FrameworkAdapter, ShadowData, EncryptedShadow } from '../core/FrameworkAdapter';
-import { 
-  encryptShadow, 
-  decryptShadow, 
-  generateFingerprint, 
+import {
+  encryptShadow,
+  decryptShadow,
+  generateFingerprint,
   generateRestorationKey,
   encrypt,
   generateChecksum,
-  createSignature as createCryptoSignature 
+  createSignature as createCryptoSignature
 } from '../core/Encryption';
 
 /**
@@ -65,7 +65,7 @@ export class Converter {
     options: ConversionOptions = {}
   ): Promise<ConversionResult> {
     console.log(`Converting from ${fromAdapter.name} to ${toAdapter.name}...`);
-    
+
     // 1. Validate source agent
     const validation = await fromAdapter.validate(sourceAgent);
     if (!validation.valid) {
@@ -73,27 +73,27 @@ export class Converter {
         `Invalid source agent:\n${validation.errors.join('\n')}`
       );
     }
-    
+
     // 2. Convert to universal format
     console.log('  → Converting to universal format...');
     const universal = await fromAdapter.toUniversal(sourceAgent);
-    
+
     // 3. Ensure fingerprint exists
     if (!universal.identity.fingerprint) {
       universal.identity.fingerprint = generateFingerprint(universal.identity);
     }
-    
+
     // 4. Convert to target framework
     console.log('  → Converting to target framework...');
     let targetAgent = await toAdapter.fromUniversal(universal);
-    
+
     // 5. Create shadow data if target supports it
     if (toAdapter.supports_shadow) {
       console.log('  → Creating encrypted shadow...');
-      
+
       // Extract non-mappable fields
       const nonMappable = fromAdapter.getNonMappableFields(sourceAgent);
-      
+
       // Create shadow data
       const shadowData: ShadowData = {
         framework: fromAdapter.name,
@@ -106,20 +106,20 @@ export class Converter {
         },
         checksum: ''  // Will be set below
       };
-      
+
       // Add checksum to shadow data
       shadowData.checksum = generateChecksum(shadowData.data);
-      
+
       // Encrypt shadow and get restoration key components
       const encryptionResult = encrypt(shadowData, universal.identity.fingerprint);
-      
+
       // Create encrypted shadow with signature
       const encryptedShadow: EncryptedShadow = {
         encrypted: encryptionResult.encrypted,
         algorithm: 'aes-256-gcm',
         iv: encryptionResult.iv,
         authTag: encryptionResult.authTag,
-        signature: options.privateKey 
+        signature: options.privateKey
           ? this.createSignature(encryptionResult, universal.identity.fingerprint, options.privateKey)
           : this.createHashSignature(encryptionResult, universal.identity.fingerprint),
         metadata: {
@@ -129,18 +129,18 @@ export class Converter {
           checksum: shadowData.checksum
         }
       };
-      
+
       // Embed in target agent
       targetAgent = await toAdapter.embedShadow(targetAgent, encryptedShadow);
-      
+
       // Generate restoration key
       const restorationKey = generateRestorationKey(
         encryptionResult.salt,
         encryptionResult.authTag
       );
-      
+
       console.log('  ✓ Shadow embedded');
-      
+
       return {
         agent: targetAgent,
         universal,
@@ -155,7 +155,7 @@ export class Converter {
     } else {
       console.log('  ⚠ Target framework does not support shadow data');
       console.log('  ⚠ Non-mappable data will be lost');
-      
+
       return {
         agent: targetAgent,
         universal,
@@ -169,7 +169,7 @@ export class Converter {
       };
     }
   }
-  
+
   /**
    * Restore agent to original framework
    */
@@ -180,26 +180,26 @@ export class Converter {
     options: RestorationOptions = {}
   ): Promise<any> {
     console.log(`Restoring agent using ${toAdapter.name} adapter...`);
-    
+
     // 1. Extract shadow
     console.log('  → Extracting shadow...');
     const shadow = await toAdapter.extractShadow(morphedAgent);
-    
+
     if (!shadow) {
       throw new Error(
         'No shadow data found. This agent was not converted with morphing, ' +
         'or the target framework does not support shadow data.'
       );
     }
-    
+
     // 2. Get Uniform Semantic Agent from morphed agent to get fingerprint
     const universal = await toAdapter.toUniversal(morphedAgent);
     const fingerprint = universal.identity.fingerprint;
-    
+
     if (!fingerprint) {
       throw new Error('Cannot restore: agent has no fingerprint');
     }
-    
+
     // 3. Decrypt shadow
     console.log('  → Decrypting shadow...');
     const decrypted = decryptShadow(
@@ -208,7 +208,7 @@ export class Converter {
       fingerprint,
       options.publicKey
     );
-    
+
     // 4. Verify framework match
     const expectedFramework = toAdapter.name;
     if (decrypted.framework !== expectedFramework) {
@@ -217,26 +217,26 @@ export class Converter {
         `but trying to restore with '${expectedFramework}' adapter`
       );
     }
-    
+
     // 5. Get original agent
     console.log('  → Restoring original agent...');
     let restored = decrypted.data._original;
-    
+
     if (!restored) {
       throw new Error('Shadow does not contain original agent data');
     }
-    
+
     // 6. Optionally merge changes
     if (options.mergeChanges) {
       console.log('  → Merging changes from morphed agent...');
       restored = await this.mergeChanges(restored, morphedAgent, toAdapter);
     }
-    
+
     console.log('  ✓ Agent restored');
-    
+
     return restored;
   }
-  
+
   /**
    * Check if agent has shadow data
    */
@@ -246,12 +246,12 @@ export class Converter {
       return shadow !== null;
     } catch (error) {
       // Log extraction failure for debugging but return false since shadow is optional
-      console.debug('[Converter] Failed to extract shadow data:', 
+      console.debug('[Converter] Failed to extract shadow data:',
         error instanceof Error ? error.message : String(error));
       return false;
     }
   }
-  
+
   /**
    * Get shadow metadata without decrypting
    */
@@ -263,7 +263,7 @@ export class Converter {
     const shadow = await adapter.extractShadow(agent);
     return shadow?.metadata || null;
   }
-  
+
   /**
    * Extract restoration key components from encryption result
    * Note: This needs the encryptionResult which contains salt
@@ -273,7 +273,7 @@ export class Converter {
   ): string {
     return `${encryptionResult.salt}:${encryptionResult.authTag}`;
   }
-  
+
   /**
    * Merge changes from morphed agent back into original
    */
@@ -285,19 +285,19 @@ export class Converter {
     // Convert both to universal format to identify changes
     const originalUniversal = await adapter.toUniversal(original);
     const morphedUniversal = await adapter.toUniversal(morphed);
-    
+
     // Merge changes (simple approach - can be more sophisticated)
     const merged = { ...original };
-    
+
     // Example: if bio/backstory changed, update it
     if (originalUniversal.identity.bio !== morphedUniversal.identity.bio) {
       // Update the bio in the original format
       // This is framework-specific and would need adapter support
     }
-    
+
     return merged;
   }
-  
+
   /**
    * Create signature from encryption result
    */
@@ -309,7 +309,7 @@ export class Converter {
     const dataToSign = `${encryptionResult.encrypted}:${encryptionResult.iv}:${encryptionResult.authTag}:${fingerprint}`;
     return createCryptoSignature(dataToSign, privateKey);
   }
-  
+
   /**
    * Create hash-based signature (fallback when no private key)
    */

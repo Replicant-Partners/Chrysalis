@@ -170,11 +170,23 @@ export class VersionNegotiator extends EventEmitter {
 
   /**
    * Get available versions for a protocol.
+   * 
+   * @stub Returns hardcoded version lists. In production, should query:
+   *   - Protocol registry (src/adapters/universal/registry-v2.ts)
+   *   - Upstream protocol spec endpoints
+   *   - Local version cache with TTL
+   * 
+   * The hardcoded defaults are reasonable fallbacks but may become stale.
+   * Last verified: 2026-01-14
    */
   private async getAvailableVersions(protocol: AgentFramework): Promise<string[]> {
-    // In real implementation, would query registry or upstream
-    // For now, return reasonable defaults
-    const defaults: Record<AgentFramework, string[]> = {
+    // TODO: Query PROTOCOL_REGISTRY_V2 for version information
+    // TODO: Add upstream version discovery with caching
+    // TODO: Emit warning when using fallback defaults
+    
+    // Hardcoded defaults - VERIFY PERIODICALLY
+    // These are fallback values when dynamic version discovery is unavailable
+    const FALLBACK_VERSIONS: Record<AgentFramework, string[]> = {
       mcp: ['2024.11', '2024.12', '2025.01'],
       a2a: ['1.0.0', '1.1.0'],
       anp: ['0.1.0', '0.2.0'],
@@ -194,7 +206,13 @@ export class VersionNegotiator extends EventEmitter {
       lmos: ['1.0.0'],
     };
 
-    return defaults[protocol] || ['1.0.0'];
+    const versions = FALLBACK_VERSIONS[protocol];
+    if (!versions) {
+      console.warn(`[VersionNegotiator] No version info for protocol '${protocol}', using default '1.0.0'`);
+      return ['1.0.0'];
+    }
+    
+    return versions;
   }
 
   /**
@@ -280,14 +298,24 @@ export class VersionNegotiator extends EventEmitter {
 
   /**
    * Check feature support for a version.
+   * 
+   * @stub Returns empty array (assumes all features supported).
+   * In production, should check against a capability matrix that maps
+   * protocol versions to supported features.
+   * 
+   * @returns Array of UNSUPPORTED features (empty = all supported)
    */
   private async checkFeatureSupport(
     protocol: AgentFramework,
     version: string,
     features: ProtocolFeature[]
   ): Promise<ProtocolFeature[]> {
-    // In real implementation, would check capability matrix
-    // For now, return empty (all features supported)
+    // TODO: Build capability matrix from protocol specs
+    // TODO: Check each feature against version support
+    // For now, assume all features are supported (optimistic)
+    if (features.length > 0) {
+      console.warn(`[VersionNegotiator] Feature support check is a stub - assuming all ${features.length} features supported for ${protocol}@${version}`);
+    }
     return [];
   }
 

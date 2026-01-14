@@ -6,7 +6,6 @@
 
 import React, { useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '../design-system';
 import type { ScrapbookItem } from './types';
 import styles from './Lightbox.module.css';
 
