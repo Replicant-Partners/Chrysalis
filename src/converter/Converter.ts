@@ -244,7 +244,10 @@ export class Converter {
     try {
       const shadow = await adapter.extractShadow(agent);
       return shadow !== null;
-    } catch {
+    } catch (error) {
+      // Log extraction failure for debugging but return false since shadow is optional
+      console.debug('[Converter] Failed to extract shadow data:', 
+        error instanceof Error ? error.message : String(error));
       return false;
     }
   }

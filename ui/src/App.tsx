@@ -11,6 +11,7 @@ import { CanvasNavigator, type CanvasTab, type Agent, type CanvasType } from './
 import { ChatPane } from './components/ChatPane/ChatPane';
 import { ReactFlowCanvas } from './components/ReactFlowCanvas';
 import { SettingsCanvas } from './components/SettingsCanvas';
+import { ScrapbookCanvas } from './components/ScrapbookCanvas';
 import { WalletModal } from './components/Wallet';
 import { WalletProvider } from './contexts/WalletContext';
 import { VoyeurProvider } from './contexts/VoyeurContext';
@@ -254,6 +255,8 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
           <div style={{ flex: 1, overflow: 'hidden' }}>
             {activeCanvas?.type === 'settings' ? (
               <SettingsCanvas />
+            ) : activeCanvas?.type === 'scrapbook' ? (
+              <ScrapbookCanvas />
             ) : (
               <>
                 <div style={{ 

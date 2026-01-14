@@ -78,6 +78,7 @@ interface InternalPatternSensor {
 interface InternalSensorContext {
   point: InstrumentationPoint;
   timestamp: string;
+  protocol: AgentFramework;
   data: unknown;
   metadata: Record<string, unknown>;
 }
@@ -172,6 +173,7 @@ export class PatternDetectionInstrumentor {
         const internalCtx: InternalSensorContext = {
           point: 'health-check',
           timestamp: new Date().toISOString(),
+          protocol: sensor.protocol,
           data: ctx.data,
           metadata: { metrics: ctx.metrics }
         };
@@ -237,6 +239,7 @@ export class PatternDetectionInstrumentor {
     const sensorContext: InternalSensorContext = {
       point,
       timestamp: new Date().toISOString(),
+      protocol,
       data: context.inputMessage || context.outputMessage,
       metadata: context.additional || {}
     };
@@ -314,14 +317,118 @@ export class PatternDetectionInstrumentor {
   }
 
   /**
-   * Analyze version drift.
+   * Analyze version drift between local adapter and upstream protocol.
+   * Detects when local adapter version falls behind upstream, indicating
+   * potential compatibility issues or missing features.
    */
   private analyzeVersionDrift(
     versionInfo: unknown,
     context: InternalSensorContext
   ): PatternDetection | null {
-    // Implementation would compare versions with upstream
+    if (!versionInfo || typeof versionInfo !== 'object') {
+      return null;
+    }
+
+    const info = versionInfo as Record<string, unknown>;
+    const localVersion = info.localVersion as string | undefined;
+    const upstreamVersion = info.upstreamVersion as string | undefined;
+    const lastChecked = info.lastChecked as string | undefined;
+
+    // No version info available
+    if (!localVersion || !upstreamVersion) {
+      return null;
+    }
+
+    // Parse semantic versions
+    const localParts = this.parseSemver(localVersion);
+    const upstreamParts = this.parseSemver(upstreamVersion);
+
+    if (!localParts || !upstreamParts) {
+      return null;
+    }
+
+    // Calculate version drift
+    const majorDrift = upstreamParts.major - localParts.major;
+    const minorDrift = upstreamParts.minor - localParts.minor;
+    const patchDrift = upstreamParts.patch - localParts.patch;
+
+    // Major version drift is critical
+    if (majorDrift > 0) {
+      return {
+        id: `version-drift-major-${Date.now()}`,
+        timestamp: context.timestamp,
+        protocol: context.protocol,
+        patternType: 'breaking-change',
+        description: `Major version drift detected: local ${localVersion} vs upstream ${upstreamVersion}`,
+        confidence: 0.95,
+        evidence: {
+          localVersion,
+          upstreamVersion,
+          majorDrift,
+          minorDrift,
+          patchDrift,
+          lastChecked
+        },
+        suggestedAction: 'Update adapter to latest major version - breaking changes likely'
+      };
+    }
+
+    // Minor version drift may indicate missing features
+    if (minorDrift >= 2) {
+      return {
+        id: `version-drift-minor-${Date.now()}`,
+        timestamp: context.timestamp,
+        protocol: context.protocol,
+        patternType: 'enhancement',
+        description: `Minor version drift detected: local ${localVersion} vs upstream ${upstreamVersion}`,
+        confidence: 0.8,
+        evidence: {
+          localVersion,
+          upstreamVersion,
+          majorDrift,
+          minorDrift,
+          patchDrift,
+          lastChecked
+        },
+        suggestedAction: 'Consider updating adapter - new features may be available'
+      };
+    }
+
+    // Significant patch drift may indicate security fixes
+    if (patchDrift >= 5) {
+      return {
+        id: `version-drift-patch-${Date.now()}`,
+        timestamp: context.timestamp,
+        protocol: context.protocol,
+        patternType: 'security',
+        description: `Patch version drift detected: local ${localVersion} vs upstream ${upstreamVersion}`,
+        confidence: 0.7,
+        evidence: {
+          localVersion,
+          upstreamVersion,
+          majorDrift,
+          minorDrift,
+          patchDrift,
+          lastChecked
+        },
+        suggestedAction: 'Update adapter - security patches may be missing'
+      };
+    }
+
     return null;
+  }
+
+  /**
+   * Parse semantic version string into components.
+   */
+  private parseSemver(version: string): { major: number; minor: number; patch: number } | null {
+    const match = version.match(/^v?(\d+)\.(\d+)\.(\d+)/);
+    if (!match) return null;
+    return {
+      major: parseInt(match[1], 10),
+      minor: parseInt(match[2], 10),
+      patch: parseInt(match[3], 10)
+    };
   }
 
   /**

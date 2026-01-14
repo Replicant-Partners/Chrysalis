@@ -205,12 +205,32 @@ export class HumanValidationSystem {
 
     /**
      * Notify validation channels
+     * 
+     * Logs pending validation requests to configured channels.
+     * Currently implements console logging; full integration with
+     * Slack, email, and GitHub PRs is planned for future release.
      */
     private async notifyValidationRequest(request: ValidationRequest): Promise<void> {
-        // Implementation would integrate with notification systems
-        // (Slack, email, GitHub PRs, etc.)
+        if (this.config.notification_channels.length === 0) {
+            // No channels configured - log locally for visibility
+            console.info(`[HumanValidationSystem] Validation pending: ${request.request_id}`, {
+                change_type: request.change_type,
+                priority: request.priority,
+                file_path: request.file_path,
+                description: request.description.slice(0, 100)
+            });
+            return;
+        }
+
         for (const channel of this.config.notification_channels) {
-            // Send notification
+            // Log notification attempt for each channel
+            // TODO: Replace with actual channel integrations (Slack webhook, email, GitHub API)
+            console.info(`[HumanValidationSystem] Notifying channel "${channel}" of validation request:`, {
+                request_id: request.request_id,
+                change_type: request.change_type,
+                priority: request.priority,
+                requires_immediate_review: request.requires_immediate_review
+            });
         }
     }
 

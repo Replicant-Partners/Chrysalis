@@ -317,7 +317,17 @@ export class AgentMemoryAdapter {
   }
 
   recordSkillExecution(skillId: string): void {
-    // no-op stub
+    // Record skill execution for analytics and learning
+    const skill = this.getSkill(skillId);
+    if (skill) {
+      // Increment execution count (part of ProceduralMemory interface)
+      skill.executionCount = (skill.executionCount || 0) + 1;
+      // Track last access time in metadata
+      if (!skill.metadata) {
+        skill.metadata = {};
+      }
+      skill.metadata.lastExecutedAt = new Date().toISOString();
+    }
   }
 
   learnSkill(data: any): ProceduralMemory {

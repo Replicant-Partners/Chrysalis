@@ -27,7 +27,7 @@ describe('useTerminal', () => {
 
   describe('Connection', () => {
     it('should initialize with default values', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useTerminal({
           terminalId: 'test-terminal',
           serverUrl: 'ws://localhost:1234'
@@ -39,7 +39,7 @@ describe('useTerminal', () => {
     });
 
     it('should start disconnected when autoConnect is false', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useTerminal({
           terminalId: 'test-terminal',
           autoConnect: false
@@ -51,7 +51,7 @@ describe('useTerminal', () => {
     });
 
     it('should use custom server URL', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useTerminal({
           terminalId: 'test-terminal',
           serverUrl: 'ws://custom:5678'
@@ -64,7 +64,7 @@ describe('useTerminal', () => {
 
   describe('YJS Document', () => {
     it('should create YJS document', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useTerminal({ terminalId: 'test-terminal' })
       );
 
@@ -72,12 +72,12 @@ describe('useTerminal', () => {
     });
 
     it('should cleanup on unmount', () => {
-      const { unmount } = renderHook(() => 
+      const { unmount } = renderHook(() =>
         useTerminal({ terminalId: 'test-terminal' })
       );
 
       unmount();
-      
+
       // Should have called destroy (verified via mock)
       expect(true).toBe(true);
     });
@@ -85,7 +85,7 @@ describe('useTerminal', () => {
 
   describe('Connection State', () => {
     it('should track connection state', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useTerminal({ terminalId: 'test-terminal' })
       );
 
@@ -93,7 +93,7 @@ describe('useTerminal', () => {
     });
 
     it('should track sync state', () => {
-      const { result } = renderHook(() => 
+      const { result } = renderHook(() =>
         useTerminal({ terminalId: 'test-terminal' })
       );
 

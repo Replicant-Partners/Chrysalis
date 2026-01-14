@@ -1,0 +1,36 @@
+/**
+ * ScrapbookGrid Styles
+ */
+
+.grid {
+  column-count: 3;
+  column-gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+@media (max-width: 1200px) {
+  .grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    column-count: 1;
+  }
+}
+
+/* Empty State */
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: var(--space-8);
+}
+
+.emptyText {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}

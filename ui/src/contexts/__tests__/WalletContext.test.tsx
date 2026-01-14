@@ -1,6 +1,6 @@
 /**
  * WalletContext Tests
- * 
+ *
  * Tests for the wallet state management context
  */
 
@@ -54,7 +54,7 @@ describe('WalletContext', () => {
 
     it('should detect existing wallet in localStorage', () => {
       localStorage.setItem('chrysalis_wallet_initialized', 'true');
-      
+
       const { result } = renderHook(() => useWallet(), {
         wrapper: WalletProvider
       });

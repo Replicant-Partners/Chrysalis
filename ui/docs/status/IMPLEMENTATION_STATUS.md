@@ -1,8 +1,8 @@
 # Chrysalis Terminal UI - Implementation Status
 
-**Version:** 1.0.0  
-**Last Updated:** January 10, 2026  
-**Status:** Active Development
+**Version:** 1.1.0  
+**Last Updated:** January 14, 2026  
+**Status:** Active Development - Week 3 (Scrapbook Canvas)
 
 This document tracks the current implementation status of the Chrysalis Terminal UI. It is the **single source of truth** for what is completed, in progress, and planned.
 
@@ -15,8 +15,42 @@ This document tracks the current implementation status of the Chrysalis Terminal
 | Design System | 100% | 0% | 340+ tokens, 4 components |
 | Layout | 100% | 0% | 3-frame layout |
 | State Management | 90% | 10% | Zustand + YJS |
-| Components | 40% | 30% | 8 of 20 planned |
-| Features | 25% | 25% | Core features |
+| Canvas Types | 43% | 14% | 3 of 7 MVP canvases |
+| Components | 50% | 20% | 10 of 20 planned |
+| Features | 30% | 30% | Core features |
+
+---
+
+## MVP Canvas Implementation (7 Total)
+
+### Phase 1: Foundation ✅ COMPLETE
+1. **Settings Canvas** ✅ IMPLEMENTED (Week 1)
+   - API key management with encryption
+   - Provider configuration
+   - ~1,100 LOC
+   
+2. **Board Canvas** ✅ IMPLEMENTED (Week 2)
+   - React Flow integration
+   - Node-based workspace
+   - ~500 LOC
+
+### Phase 2: Content & Collection 🚧 IN PROGRESS
+3. **Scrapbook Canvas** ✅ IMPLEMENTED (Week 3 - Jan 14, 2026)
+   - Masonry grid layout
+   - File upload with drag-and-drop
+   - Tagging and search system
+   - Lightbox viewer
+   - Support for images, videos, audio, notes, links
+   - **Components:** ScrapbookCanvas, ScrapbookGrid, ScrapbookItem, FileUpload, TagFilter, Lightbox
+   - **Lines of Code:** ~1,200 LOC
+   - **Status:** ✅ Core implementation complete, ready for YJS integration
+   
+4. **Research Canvas** 📋 NEXT (Week 4)
+5. **Scenarios Canvas** 📋 PLANNED (Week 5)
+6. **Curation Canvas** 📋 PLANNED (Week 6)
+7. **Media Canvas** 📋 PLANNED (Week 7)
+
+### Phase 3: Widget System 📋 PLANNED (Weeks 8-11)
 
 ---
 

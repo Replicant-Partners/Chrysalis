@@ -1,17 +1,17 @@
 /**
  * HederaWalletContext
- * 
+ *
  * Provides Hedera wallet connection state and actions via Hashpack.
  * Used for authentication and sign-on to Chrysalis platform.
- * 
+ *
  * @module ui/contexts/HederaWalletContext
  */
 
-import { 
-  createContext, 
-  useContext, 
-  useState, 
-  useCallback, 
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
   useEffect,
   ReactNode
 } from 'react';
@@ -35,12 +35,12 @@ export interface HederaWalletContextValue {
   isConnected: boolean;
   account: HederaAccountInfo | null;
   error: string | null;
-  
+
   // Actions
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
   refreshBalance: () => Promise<void>;
-  
+
   // Hashpack provider availability
   isHashpackAvailable: boolean;
 }
@@ -86,9 +86,9 @@ const getHashpackProvider = (): any => {
 // Provider Component
 // ============================================================================
 
-export function HederaWalletProvider({ 
-  children, 
-  defaultNetwork: _defaultNetwork = 'testnet' 
+export function HederaWalletProvider({
+  children,
+  defaultNetwork: _defaultNetwork = 'testnet'
 }: HederaWalletProviderProps) {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [account, setAccount] = useState<HederaAccountInfo | null>(null);
@@ -99,7 +99,7 @@ export function HederaWalletProvider({
   useEffect(() => {
     const available = checkHashpackAvailability();
     setIsHashpackAvailable(available);
-    
+
     if (!available) {
       console.warn('Hashpack wallet extension not detected');
     }
@@ -118,7 +118,7 @@ export function HederaWalletProvider({
       setError(null);
 
       const hashpack = getHashpackProvider();
-      
+
       // Initialize Hashpack
       const appMetadata = {
         name: 'Chrysalis',
@@ -127,10 +127,10 @@ export function HederaWalletProvider({
       };
 
       await hashpack.init(appMetadata);
-      
+
       // Request connection
       const response: HashpackResponse = await hashpack.connect();
-      
+
       if (!response || !response.accountIds || response.accountIds.length === 0) {
         throw new Error('No accounts returned from Hashpack');
       }
@@ -144,13 +144,13 @@ export function HederaWalletProvider({
         balance: null, // Will be fetched separately
         network
       });
-      
+
       setStatus('connected');
-      
+
       // Fetch balance
       // Note: For production, you'd use Hedera mirror node API or SDK
       // For now, we'll leave balance as null until implemented
-      
+
     } catch (err: any) {
       console.error('Failed to connect to Hashpack:', err);
       setError(err.message || 'Failed to connect to wallet');
@@ -165,7 +165,7 @@ export function HederaWalletProvider({
     if (hashpack && hashpack.disconnect) {
       hashpack.disconnect();
     }
-    
+
     setStatus('disconnected');
     setAccount(null);
     setError(null);
@@ -179,13 +179,13 @@ export function HederaWalletProvider({
       // In production, fetch balance from Hedera mirror node
       // For now, this is a placeholder
       console.log('Refreshing balance for', account.accountId);
-      
+
       // Example: Use Hedera SDK to query balance
       // const client = Client.forTestnet(); // or forMainnet()
       // const balance = await new AccountBalanceQuery()
       //   .setAccountId(account.accountId)
       //   .execute(client);
-      
+
       // setAccount(prev => prev ? { ...prev, balance: balance.hbars.toTinybars().toNumber() / 1e8 } : null);
     } catch (err) {
       console.error('Failed to refresh balance:', err);
