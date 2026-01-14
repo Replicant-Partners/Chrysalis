@@ -4,8 +4,10 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -34,8 +36,18 @@ func main() {
 		provider = llm.MockProvider{DefaultModel: "gpt-4o-mini"}
 	}
 
+	// Parse CORS allowed origins from environment
+	var allowedOrigins []string
+	if corsEnv := os.Getenv("CORS_ALLOWED_ORIGINS"); corsEnv != "" {
+		for _, origin := range strings.Split(corsEnv, ",") {
+			if trimmed := strings.TrimSpace(origin); trimmed != "" {
+				allowedOrigins = append(allowedOrigins, trimmed)
+			}
+		}
+	}
+
 	mux := http.NewServeMux()
-	srv := httpserver.New(provider, cfg.AuthToken, cfg.RateLimitRPS, cfg.RateLimitBurst)
+	srv := httpserver.New(provider, cfg.AuthToken, cfg.RateLimitRPS, cfg.RateLimitBurst, allowedOrigins)
 	srv.RegisterRoutes(mux)
 
 	server := &http.Server{

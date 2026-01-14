@@ -64,10 +64,10 @@ System Service Canvases are special canvases that:
 
 ### 3. Canvas Architecture Deep Dive
 
-**Canvas = JSONCanvas + Extensions**
+**Canvas = React Flow + Extensions**
 
 **Core Principles:**
-- Canvas = JSONCanvas file (jsoncanvas.org standard)
+- Canvas = React Flow (reactflow.dev)
 - **One visible canvas at a time** in center pane (anti-clutter system constraint)
 - **Infinite invisible canvases** for background services/agent work
 - All specialized features implemented as **canvases with widgets**
@@ -75,7 +75,7 @@ System Service Canvases are special canvases that:
 
 **Canvas Types = Templates, Not Constraints:**
 - Built-in types (agent, media, data, document, general) provide **starting points**
-- Each type = JSONCanvas + container characteristics + security rules
+- Each type = React Flow nodes + container characteristics + security rules
 - **Extensible:** Users/LLMs can create custom canvas types
 - **AI-First Design:** Common protocols for easy LLM manipulation
 - Types are about **configurable behavior patterns**, not rigid categories
@@ -87,14 +87,14 @@ System Service Canvases are special canvases that:
 - **Universal property** across all canvas types
 - Elegant simplicity: one logical structure for all containers
 
-**JSONCanvas Implementation:**
-- **Base:** JSONCanvas spec compliance
+**React Flow Implementation:**
+- **Base:** React Flow library
 - **Extensions:** Custom node types for Terminal-specific features
   - Widget nodes
   - Agent nodes  
   - System service nodes
 - **Modular design:** Define extension patterns systematically
-- Compatible with standard JSONCanvas tools while adding Terminal capabilities
+- React Flow nodes with custom agent rendering and Terminal capabilities
 
 **Permission Model:**
 - **Canvas-specific:** Each canvas defines its own permission requirements

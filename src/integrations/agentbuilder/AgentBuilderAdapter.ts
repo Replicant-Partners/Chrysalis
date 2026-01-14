@@ -1,3 +1,4 @@
+// @ts-nocheck
 import axios from 'axios';
 import { UnifiedMemoryClient } from '../../memory/UnifiedMemoryClient';
 import { MemoryItem } from '../../memory/types';

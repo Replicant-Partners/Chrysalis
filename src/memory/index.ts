@@ -62,6 +62,7 @@ export type {
   MemoryType,
   MemorySource,
   MemoryTier,
+  MemoryItem,
   
   // Pattern types
   MemoryFingerprint,
@@ -73,13 +74,13 @@ export type {
   MemoryCausality,
   ConvergenceMetadata,
   
-  // Memory types
+  // Memory types (with aliases to avoid class/interface conflicts)
   BaseMemory,
-  WorkingMemory,
-  EpisodicMemory,
-  SemanticMemory,
+  WorkingMemory as WorkingMemoryData,
+  EpisodicMemory as EpisodicMemoryData,
+  SemanticMemory as SemanticMemoryData,
   ProceduralMemory,
-  Memory,
+  Memory as MemoryData,
   
   // Results and state
   RetrievalResult,

@@ -12,9 +12,9 @@ import type {
   ChatMessage, 
   CanvasNode, 
   CanvasEdge,
-  Participant,
+  ParticipantId,
   TerminalSession
-} from '@terminal/protocols/types';
+} from '@terminal/protocols/common-types';
 
 // ============================================================================
 // Types
@@ -329,9 +329,8 @@ export function useSession(doc: Y.Doc): TerminalSession | null {
       setSession({
         id,
         name: ySession.get('name') as string || 'Unnamed Session',
-        createdAt: ySession.get('createdAt') as number || Date.now(),
         lastActivity: Date.now(),
-        participants: (ySession.get('participants') as Participant[]) || [],
+        participants: (ySession.get('participants') as ParticipantId[]) || [],
         frames: {
           left: { id: 'left', position: 'left', title: 'Agent', messages: [], participants: [], isTyping: [], scrollPosition: 0, metadata: {} },
           center: { id: 'center', nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 }, selectedNodes: [], selectedEdges: [], metadata: {} },

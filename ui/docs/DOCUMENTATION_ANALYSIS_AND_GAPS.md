@@ -240,7 +240,7 @@ export class EmojiCommandMode {
 **Reality:**
 - WalletModal exists (partial settings)
 - Zero canvas implementations
-- No JSONCanvas-based system canvases
+- No React Flow-based system canvases
 
 ### Impact
 
@@ -254,7 +254,7 @@ export class EmojiCommandMode {
 
 ```
 Week 7: Settings Canvas
-- JSONCanvas with settings widgets
+- React Flow with settings widgets
 - Migrate wallet functionality
 - Bootstrap on first launch
 
@@ -361,7 +361,7 @@ voyeurBus.emit('agent.progress', {
 **Found in:** Various architecture docs
 
 Missing citations for:
-- JSONCanvas extensions (custom node types)
+- React Flow custom node types
 - Canvas type system (no external pattern reference)
 - CRDT conflict resolution strategy (should cite YJS docs)
 

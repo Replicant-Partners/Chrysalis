@@ -3,7 +3,7 @@
  * 
  * ChrysalisTerminal - Three-frame interface for human/agent collaboration:
  * - Left ChatPane: Agent conversation
- * - Center JSONCanvas: Interactive widget container
+ * - Center Canvas: Interactive agent visualization (React Flow)
  * - Right ChatPane: User/human conversation
  * 
  * Uses YJS CRDT for real-time synchronization.

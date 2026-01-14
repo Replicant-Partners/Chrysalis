@@ -1,18 +1,25 @@
 /**
  * Cryptographic utilities for secure canvas and key management
- * 
+ *
  * Uses Web Crypto API (Node.js crypto module) for:
  * - AES-256-GCM encryption for data at rest
  * - PBKDF2 for key derivation from passwords
  * - Secure random generation
- * 
+ *
  * @module security/crypto
  */
 
-import { createCipheriv, createDecipheriv, randomBytes, scrypt, createHash } from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes, scrypt, createHash, timingSafeEqual, ScryptOptions } from 'crypto';
 import { promisify } from 'util';
 
-const scryptAsync = promisify(scrypt);
+// Type-safe promisified scrypt function
+const scryptAsync = promisify<
+  string | Buffer,    // password
+  string | Buffer,    // salt
+  number,             // keylen
+  ScryptOptions,      // options
+  Buffer              // return type
+>(scrypt);
 
 /**
  * Encryption algorithm constants
@@ -67,16 +74,18 @@ export function generateIV(): Buffer {
 
 /**
  * Derive a key from a password using scrypt
+ * @param password - User password
+ * @param salt - Random salt (use generateSalt())
  */
 export async function deriveKeyFromPassword(
   password: string,
   salt: Buffer
 ): Promise<Buffer> {
-  return (scryptAsync as any)(password, salt, KEY_LENGTH, {
+  return scryptAsync(password, salt, KEY_LENGTH, {
     N: SCRYPT_N,
     r: SCRYPT_R,
     p: SCRYPT_P
-  }) as Promise<Buffer>;
+  });
 }
 
 /**
@@ -97,16 +106,16 @@ export function encrypt(
   const cipher = createCipheriv(ALGORITHM, key, iv, {
     authTagLength: AUTH_TAG_LENGTH
   });
-  
+
   const data = typeof plaintext === 'string' ? Buffer.from(plaintext, 'utf-8') : plaintext;
-  
+
   const encrypted = Buffer.concat([
     cipher.update(data),
     cipher.final()
   ]);
-  
+
   const authTag = cipher.getAuthTag();
-  
+
   return {
     ciphertext: encrypted.toString('base64'),
     iv: iv.toString('base64'),
@@ -126,21 +135,21 @@ export function decrypt(
   if (encryptedData.version !== 1) {
     throw new Error(`Unsupported encryption version: ${encryptedData.version}`);
   }
-  
+
   if (encryptedData.algorithm !== ALGORITHM) {
     throw new Error(`Unsupported algorithm: ${encryptedData.algorithm}`);
   }
-  
+
   const iv = Buffer.from(encryptedData.iv, 'base64');
   const ciphertext = Buffer.from(encryptedData.ciphertext, 'base64');
   const authTag = Buffer.from(encryptedData.authTag, 'base64');
-  
+
   const decipher = createDecipheriv(ALGORITHM, key, iv, {
     authTagLength: AUTH_TAG_LENGTH
   });
-  
+
   decipher.setAuthTag(authTag);
-  
+
   return Buffer.concat([
     decipher.update(ciphertext),
     decipher.final()
@@ -166,10 +175,10 @@ export async function encryptWithPassword(
 ): Promise<EncryptedData> {
   const salt = generateSalt();
   const key = await deriveKeyFromPassword(password, salt);
-  
+
   const encrypted = encrypt(plaintext, key);
   encrypted.salt = salt.toString('base64');
-  
+
   return encrypted;
 }
 
@@ -183,10 +192,10 @@ export async function decryptWithPassword(
   if (!encryptedData.salt) {
     throw new Error('Encrypted data missing salt for password decryption');
   }
-  
+
   const salt = Buffer.from(encryptedData.salt, 'base64');
   const key = await deriveKeyFromPassword(password, salt);
-  
+
   return decrypt(encryptedData, key);
 }
 
@@ -221,20 +230,27 @@ export function generateToken(length: number = 32): string {
 }
 
 /**
- * Constant-time comparison to prevent timing attacks
+ * Constant-time comparison to prevent timing attacks.
+ * Uses Node.js crypto.timingSafeEqual for cryptographically safe comparison.
+ *
+ * Note: The early return on length mismatch is intentional - in most security
+ * contexts (password/token comparison), different lengths already indicate
+ * failure, and the timing leak is minimal. For strict constant-time behavior
+ * regardless of length, pad both strings to the same length first.
  */
 export function secureCompare(a: string, b: string): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  
   const bufA = Buffer.from(a);
   const bufB = Buffer.from(b);
-  
-  let result = 0;
-  for (let i = 0; i < bufA.length; i++) {
-    result |= bufA[i] ^ bufB[i];
+
+  // If lengths differ, we still do a constant-time comparison
+  // but with a dummy buffer to avoid timing leaks
+  if (bufA.length !== bufB.length) {
+    // Compare bufA against itself to maintain constant timing
+    // then return false
+    timingSafeEqual(bufA, bufA);
+    return false;
   }
-  
-  return result === 0;
+
+  // Use Node.js built-in constant-time comparison
+  return timingSafeEqual(bufA, bufB);
 }

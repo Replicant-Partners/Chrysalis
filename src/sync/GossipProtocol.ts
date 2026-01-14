@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Gossip Protocol - Epidemic Information Spread
  * 

@@ -66,7 +66,7 @@ ui/src/components/
 ├── DualChatPane/             ⏳ NEXT
 ├── ThreeFrameLayout/         ✅ EXISTS
 ├── ChatPane/                 ✅ EXISTS
-├── JSONCanvas/               ✅ EXISTS (placeholder)
+├── ReactFlowCanvas/          ✅ COMPLETE (React Flow)
 └── VoyeurPane/               ✅ EXISTS
 ```
 
@@ -78,7 +78,7 @@ ui/src/components/
 2. **Agent roster is static data** - will connect to backend later
 3. **Type switcher is inline dropdown** - keeps UI compact
 4. **Settings canvas is tab 0** - fixed position, can't be changed
-5. **Placeholder JSONCanvas** - will replace with canvas-specific renderers
+5. **ReactFlowCanvas** - Production-ready React Flow canvas with YJS sync
 
 ---
 

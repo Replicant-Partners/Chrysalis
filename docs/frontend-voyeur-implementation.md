@@ -546,7 +546,7 @@ voyeur.setFilter({
 ```tsx
 <ThreeFrameLayout
   leftPane={<ChatPane side="left" />}
-  centerPane={<JSONCanvas />}
+  centerPane={<ReactFlowCanvas />}
   rightPane={<ChatPane side="right" />}
   bottomPane={<VoyeurPane />}  // Add as 4th pane
 />

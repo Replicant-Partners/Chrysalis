@@ -347,17 +347,8 @@ export function useVoyeurTerminal(
     return `${timestamp}${source}${kind}${data}`;
   }, [showTimestamps]);
 
-  // Write event to terminal
-  const writeEvent = useCallback((event: {
-    kind: string;
-    timestamp: string;
-    data?: unknown;
-    sourceInstance?: string;
-  }) => {
-    const formatted = formatEvent(event);
-    baseResult.actions.writeln(formatted);
-    
-    // Update buffer
+  // Update buffer when writing events
+  const updateBuffer = useCallback((formatted: string) => {
     setEventBuffer(prev => {
       const next = [...prev, formatted];
       if (next.length > maxBufferLines) {

@@ -1,7 +1,7 @@
 # Chrysalis Quick Start Guide
 
-**Version**: 1.0.0  
-**Last Updated**: January 9, 2026  
+**Version**: 1.1.0  
+**Last Updated**: January 13, 2026  
 **Estimated Time**: 15 minutes
 
 ## Overview
@@ -26,7 +26,7 @@ This guide will help you get Chrysalis up and running in 15 minutes. By the end,
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/Chrysalis.git
+git clone https://github.com/Replicant-Partners/Chrysalis.git
 cd Chrysalis
 ```
 
@@ -452,7 +452,7 @@ pip install -r projects/KnowledgeBuilder/requirements.txt
 
 ### Contribute
 
-1. **Report Issues**: [GitHub Issues](https://github.com/your-org/Chrysalis/issues)
+1. **Report Issues**: [GitHub Issues](https://github.com/Replicant-Partners/Chrysalis/issues)
 2. **Submit Pull Requests**: See [CONTRIBUTING.md](../../CONTRIBUTING.md)
 3. **Improve Documentation**: Help us improve these guides!
 
@@ -466,8 +466,8 @@ For more detailed troubleshooting, see:
 ## Getting Help
 
 - **Documentation**: [docs/README.md](../README.md)
-- **GitHub Issues**: [Report a bug](https://github.com/your-org/Chrysalis/issues)
-- **Community**: [Discussions](https://github.com/your-org/Chrysalis/discussions)
+- **GitHub Issues**: [Report a bug](https://github.com/Replicant-Partners/Chrysalis/issues)
+- **Community**: [Discussions](https://github.com/Replicant-Partners/Chrysalis/discussions)
 
 ## Summary
 
@@ -482,7 +482,7 @@ You're now ready to explore the full capabilities of Chrysalis!
 
 ---
 
-**Last Updated**: January 9, 2026  
-**Version**: 1.0.0  
+**Last Updated**: January 13, 2026  
+**Version**: 1.1.0  
 **Estimated Time**: 15 minutes  
 **Difficulty**: Beginner

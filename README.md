@@ -34,13 +34,13 @@ flowchart LR
 
 ## Current Status
 
-> ⚠️ **Active Development**: TypeScript build has known issues. See [Project Status](docs/STATUS.md) for details.
+> ✅ **Active Development**: Core TypeScript build passing. See [Project Status](docs/STATUS.md) for details.
 
 | Component | Status |
 |-----------|--------|
-| TypeScript Core | ⚠️ Build errors in voice module |
-| Python Memory System | ✅ **28/28 tests passing** |
-| Core Functionality | ✅ Implemented (pending TS build fix) |
+| TypeScript Core | ✅ **Build passing** |
+| Python Memory System | ✅ **30/30 tests passing** |
+| Core Functionality | ✅ Implemented |
 
 **For authoritative status**: See [docs/STATUS.md](docs/STATUS.md)
 
@@ -264,5 +264,5 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-**Version**: 3.1.0
-**Last Updated**: January 12, 2026
+**Version**: 3.1.1
+**Last Updated**: January 13, 2026

@@ -124,7 +124,7 @@ The Chrysalis UI uses a comprehensive design system built on design tokens:
   "framework": "Vite + React 18 + TypeScript",
   "state": "Zustand (user settings) + YJS (collaborative)",
   "sync": "y-websocket (one room per canvas)",
-  "canvas": "JSONCanvas + extensions",
+  "canvas": "React Flow + YJS sync",
   "styling": "Vanilla CSS + Design Tokens",
   "icons": "Font Awesome + User-selected emoji (Noto/Fluent/Open)",
   "backend": "Node.js 18+",

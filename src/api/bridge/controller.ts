@@ -1,9 +1,9 @@
 /**
  * Bridge REST API Controller
- * 
+ *
  * REST API endpoints for the Universal Agent Bridge service.
  * Follows Chrysalis API patterns from shared/api-core.
- * 
+ *
  * @module api/bridge/controller
  */
 
@@ -19,6 +19,7 @@ import {
   createPaginationMeta,
   parsePaginationParams,
 } from '../../../shared/api-core/src/models';
+import { HEALTH_CHECK_INTERVAL_MS, MAX_EVENT_HISTORY } from '../../shared/constants/timing';
 import {
   readJsonBody,
   sendJson,
@@ -136,20 +137,35 @@ export interface BatchTranslationResponseData {
 
 /**
  * Bridge API Controller
- * 
+ *
  * Handles REST API requests for the Universal Agent Bridge.
  */
 export class BridgeAPIController {
   private readonly service: IntegratedBridgeService;
   private readonly version: string = 'v1';
+  private readonly allowedOrigins: Set<string>;
 
-  constructor(service?: IntegratedBridgeService) {
+  /**
+   * Create a new BridgeAPIController.
+   *
+   * @param service - Optional IntegratedBridgeService instance
+   * @param allowedOrigins - CORS allowed origins (defaults to localhost for security)
+   */
+  constructor(service?: IntegratedBridgeService, allowedOrigins?: string[]) {
     this.service = service ?? createIntegratedBridgeService({
-      healthCheckInterval: 60000,
-      maxEventHistory: 1000,
+      healthCheckInterval: HEALTH_CHECK_INTERVAL_MS,
+      maxEventHistory: MAX_EVENT_HISTORY,
       enableEventLogging: true,
     });
     this.service.start();
+
+    // CORS: Default to localhost for development security
+    // Production deployments should explicitly configure allowed origins
+    this.allowedOrigins = new Set(allowedOrigins ?? [
+      'http://localhost:3000',
+      'http://localhost:8080',
+      'http://127.0.0.1:3000',
+    ]);
   }
 
   /**
@@ -160,8 +176,12 @@ export class BridgeAPIController {
     const path = url.pathname;
     const method = req.method?.toUpperCase() || 'GET';
 
-    // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // CORS headers - validate origin against allowlist
+    const origin = req.headers.origin || '';
+    if (origin && this.allowedOrigins.has(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-ID');
 
@@ -213,10 +233,10 @@ export class BridgeAPIController {
    */
   private async handleHealth(_req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     const health = this.service.healthCheck();
-    
-    const statusCode = health.status === 'healthy' ? 200 : 
+
+    const statusCode = health.status === 'healthy' ? 200 :
                        health.status === 'degraded' ? 207 : 503;
-    
+
     sendJson(res, statusCode, createSuccessResponse({
       status: health.status,
       components: health.details,
@@ -315,7 +335,7 @@ export class BridgeAPIController {
     }
 
     const request = body as BatchTranslateRequest;
-    
+
     if (!Array.isArray(request.agents) || request.agents.length === 0) {
       badRequest(res, 'agents array is required and must not be empty');
       return;
@@ -355,7 +375,7 @@ export class BridgeAPIController {
             success: false,
             error: result.errors?.join(', ') || 'Translation failed',
           });
-          
+
           if (request.options?.stopOnError) {
             break;
           }
@@ -367,7 +387,7 @@ export class BridgeAPIController {
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error',
         });
-        
+
         if (request.options?.stopOnError) {
           break;
         }
@@ -474,7 +494,7 @@ export class BridgeAPIController {
     }
 
     const adapter = this.service.discovery.getAdapter(framework);
-    
+
     if (!adapter) {
       const error: APIError = {
         code: ErrorCode.RESOURCE_NOT_FOUND,
@@ -506,8 +526,8 @@ export class BridgeAPIController {
     const pagination = parsePaginationParams(url);
     const framework = url.searchParams.get('framework') as AgentFramework | null;
     const name = url.searchParams.get('name') || undefined;
-    const minFidelity = url.searchParams.get('minFidelity') 
-      ? parseFloat(url.searchParams.get('minFidelity')!) 
+    const minFidelity = url.searchParams.get('minFidelity')
+      ? parseFloat(url.searchParams.get('minFidelity')!)
       : undefined;
 
     // Persistence is not yet implemented in IntegratedBridgeService
@@ -535,7 +555,7 @@ export class BridgeAPIController {
     if (method === 'GET') {
       // Persistence is not yet implemented - return not found
       const agent: StoredAgent | undefined = undefined;
-      
+
       if (!agent) {
         const error: APIError = {
           code: ErrorCode.RESOURCE_NOT_FOUND,
@@ -557,7 +577,7 @@ export class BridgeAPIController {
     } else if (method === 'DELETE') {
       // Persistence not implemented - always report not found
       const deleted = false;
-      
+
       if (!deleted) {
         const error: APIError = {
           code: ErrorCode.RESOURCE_NOT_FOUND,
@@ -591,11 +611,11 @@ export class BridgeAPIController {
 
     const sourceFramework = url.searchParams.get('sourceFramework') as AgentFramework | null;
     const targetFramework = url.searchParams.get('targetFramework') as AgentFramework | null;
-    const minFidelity = url.searchParams.get('minFidelity') 
-      ? parseFloat(url.searchParams.get('minFidelity')!) 
+    const minFidelity = url.searchParams.get('minFidelity')
+      ? parseFloat(url.searchParams.get('minFidelity')!)
       : undefined;
-    const limit = url.searchParams.get('limit') 
-      ? parseInt(url.searchParams.get('limit')!, 10) 
+    const limit = url.searchParams.get('limit')
+      ? parseInt(url.searchParams.get('limit')!, 10)
       : 50;
 
     // Persistence not yet implemented - return empty list
@@ -624,8 +644,8 @@ export class BridgeAPIController {
     const type = url.searchParams.get('type') as any;
     const primitive = url.searchParams.get('primitive') as any;
     const since = url.searchParams.get('since') || undefined;
-    const limit = url.searchParams.get('limit') 
-      ? parseInt(url.searchParams.get('limit')!, 10) 
+    const limit = url.searchParams.get('limit')
+      ? parseInt(url.searchParams.get('limit')!, 10)
       : 100;
 
     const events = this.service.events.getHistory({
@@ -705,7 +725,7 @@ export function createBridgeAPIServer(
   } = {}
 ): { server: http.Server; controller: BridgeAPIController } {
   const controller = new BridgeAPIController(options.service);
-  
+
   const server = http.createServer((req, res) => {
     controller.handleRequest(req, res);
   });

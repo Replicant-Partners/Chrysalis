@@ -315,9 +315,9 @@ Return the most relevant memories with confidence scores.`,
 File: {{filename}}
 Language: {{language}}
 
-```{{language}}
+\`\`\`{{language}}
 {{code}}
-```
+\`\`\`
 
 Review for:
 {{reviewCriteria}}
@@ -335,9 +335,9 @@ Provide specific, actionable feedback.`,
     this.register('code.explain', {
       template: `Explain the following code:
 
-```{{language}}
+\`\`\`{{language}}
 {{code}}
-```
+\`\`\`
 
 Provide:
 1. High-level purpose

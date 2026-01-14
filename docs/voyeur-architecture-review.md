@@ -926,7 +926,7 @@ App
     └── ThreeFrameLayout
         ├── Header
         ├── ChatPane (left)
-        ├── JSONCanvas (center)
+        ├── React Flow Canvas (center)
         ├── ChatPane (right)
         └── Footer
 ```
@@ -958,7 +958,7 @@ App
     └── FourFrameLayout     ← MODIFIED (was ThreeFrameLayout)
         ├── Header
         ├── ChatPane (left)
-        ├── JSONCanvas (center)
+        ├── React Flow Canvas (center)
         ├── ChatPane (right)
         ├── VoyeurPane (bottom)  ← NEW
         └── Footer
@@ -974,7 +974,7 @@ App
     └── ThreeFrameLayout
         ├── Header
         ├── ChatPane (left)
-        ├── JSONCanvas (center)
+        ├── React Flow Canvas (center)
         ├── VoyeurTerminalPane (right)  ← HYBRID (TerminalPane + VoyeurPane)
         └── Footer
 ```

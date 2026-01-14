@@ -11,7 +11,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
-import type { ChatMessage } from '@terminal/protocols/types';
+import type { ChatMessage } from '@terminal/protocols/common-types';
 import { useWallet } from '../../contexts/WalletContext';
 import styles from './ChatPane.module.css';
 
@@ -77,7 +77,7 @@ function MessageItem({ message, side }: MessageItemProps) {
       </div>
       {message.attachments && message.attachments.length > 0 && (
         <div className={styles.attachments}>
-          {message.attachments.map((att, idx) => (
+          {message.attachments.map((att: any, idx: number) => (
             <div key={idx} className={styles.attachment}>
               📎 {att.name}
             </div>
@@ -123,7 +123,7 @@ export function ChatPane({
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

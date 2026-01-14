@@ -150,7 +150,7 @@ ui/
 │   ├── components/          # React components
 │   │   ├── design-system/   # Reusable UI components
 │   │   ├── ChatPane/        # Feature: Chat
-│   │   ├── JSONCanvas/      # Feature: Canvas
+│   │   ├── ReactFlowCanvas/  # Feature: Canvas (React Flow)
 │   │   └── ...
 │   │
 │   ├── contexts/            # React contexts

@@ -10,6 +10,8 @@
  * - SystemAgentLoader: Loads persona configs and instantiates bindings
  * - MentionParser: Parses @-mentions in user messages for routing
  * - EvaluationCoordinator: Orchestrates multi-agent evaluation pipeline
+ * - ForecastTracker: Brier score calibration for Phil
+ * - ConflictResolver: Conflict detection and resolution
  *
  * Pipeline Flow (DAG):
  *   Ada (Pattern) ─┬─► Lea (Implementation) ─┬─► Phil (Forecast) ─┬─► David (Meta)
@@ -44,9 +46,25 @@ export {
   MockWebSocketServer,
   WS_DEFAULT_CONFIG,
 } from './WebSocketService';
+
+// Extracted modules (SRP refactoring)
+export {
+  ForecastTracker,
+  createForecastTracker,
+  DEFAULT_BRIER_SCORE,
+} from './ForecastTracker';
+export {
+  ConflictResolver,
+  createConflictResolver,
+} from './ConflictResolver';
+
+// Types from EvaluationCoordinator (backwards compatibility)
 export type {
   PersonaOutput,
   ForecastRecord,
   EvaluationContext,
   CalibrationStats,
 } from './EvaluationCoordinator';
+
+// Types from extracted modules
+export type { DetectedConflict, ConflictResolutionResult } from './ConflictResolver';

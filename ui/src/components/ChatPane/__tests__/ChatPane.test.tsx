@@ -7,7 +7,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithWallet } from '../../../test/test-utils';
 import { ChatPane } from '../ChatPane';
-import type { ChatMessage } from '@terminal/protocols/types';
+import type { ChatMessage } from '@terminal/protocols/common-types';
 
 describe('ChatPane', () => {
   const mockMessages: ChatMessage[] = [
@@ -16,6 +16,7 @@ describe('ChatPane', () => {
       content: 'Hello from agent',
       senderType: 'agent',
       senderId: 'agent-1',
+      senderName: 'Agent One',
       timestamp: Date.now() - 60000,
       attachments: []
     },
@@ -24,6 +25,7 @@ describe('ChatPane', () => {
       content: 'Hello from human',
       senderType: 'human',
       senderId: 'human-1',
+      senderName: 'Test User',
       timestamp: Date.now(),
       attachments: []
     }
@@ -76,6 +78,7 @@ describe('ChatPane', () => {
           content: 'Message with file',
           senderType: 'human',
           senderId: 'human-1',
+          senderName: 'Test User',
           timestamp: Date.now(),
           attachments: [
             { name: 'document.pdf', type: 'application/pdf', size: 1024 }

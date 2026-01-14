@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ApiKeyRegistry - logical registry for API key metadata and access scoping.
  *

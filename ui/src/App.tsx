@@ -9,7 +9,7 @@ import { useState, useCallback } from 'react';
 import { ThreeFrameLayout } from './components/ThreeFrameLayout/ThreeFrameLayout';
 import { CanvasNavigator, type CanvasTab, type Agent, type CanvasType } from './components/CanvasNavigator';
 import { ChatPane } from './components/ChatPane/ChatPane';
-import { JSONCanvas } from './components/JSONCanvas/JSONCanvas';
+import { ReactFlowCanvas } from './components/ReactFlowCanvas';
 import { WalletModal } from './components/Wallet';
 import { WalletProvider } from './contexts/WalletContext';
 import { VoyeurProvider } from './contexts/VoyeurContext';
@@ -192,16 +192,8 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
     terminal.actions.sendHumanMessage(content);
   }, [terminal.actions]);
 
-  const handleAgentSendMessage = useCallback((content: string) => {
-    terminal.actions.sendAgentMessage(content);
-  }, [terminal.actions]);
-
   const handleViewportChange = useCallback((viewport: { x: number; y: number; zoom: number }) => {
     terminal.actions.setViewport(viewport.x, viewport.y, viewport.zoom);
-  }, [terminal.actions]);
-
-  const handleNodeMove = useCallback((nodeId: string, x: number, y: number) => {
-    terminal.actions.updateNode(nodeId, { x, y });
   }, [terminal.actions]);
 
   // Computed values
@@ -268,13 +260,9 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
             </h2>
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <JSONCanvas
-              nodes={terminal.canvas.nodes}
-              edges={terminal.canvas.edges}
-              viewport={terminal.canvas.viewport}
+            <ReactFlowCanvas
               onViewportChange={handleViewportChange}
               onNodeSelect={setSelectedNodeId}
-              onNodeMove={handleNodeMove}
               selectedNodeId={selectedNodeId}
             />
           </div>

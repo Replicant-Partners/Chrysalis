@@ -1,7 +1,7 @@
 # Chrysalis Documentation Inventory
 
-**Version**: 3.0.0  
-**Last Updated**: January 12, 2026  
+**Version**: 3.1.0  
+**Last Updated**: January 13, 2026  
 **Status**: Post-Cleanup Inventory
 
 ---
@@ -14,10 +14,11 @@ This inventory catalogs all documentation artifacts in the Chrysalis repository 
 
 | Metric | Status |
 |--------|--------|
-| TypeScript Build | ⚠️ Requires tsconfig.json |
-| Python Tests | ✅ 28/28 passing |
-| Archive | Empty (recently cleaned) |
-| Core Documentation | ✅ Current |
+| TypeScript Build | ⚠️ `npm run build` failing (~134 TS/test errors; tsconfig.json present) |
+| Python Tests | ✅ 30/30 passing |
+| Archive | ✅ Populated (36 documents, see `docs/archive/README.md`) |
+| Core Documentation | ✅ Current (post-cleanup) |
+| Personas | ✅ Moved to `docs/personas/` (25 files) |
 
 ---
 

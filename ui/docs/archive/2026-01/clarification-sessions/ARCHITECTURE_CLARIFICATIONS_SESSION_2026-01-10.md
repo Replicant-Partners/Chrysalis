@@ -18,7 +18,7 @@
 - Pluggable architecture with LLM-managed connector
 
 ### 3. Canvas Architecture ✅
-- Canvas = JSONCanvas file (jsoncanvas.org)
+- Canvas = React Flow (replaced JSONCanvas)
 - One visible canvas at a time (center pane)
 - Infinite invisible canvases for background work
 - Types are templates, not constraints

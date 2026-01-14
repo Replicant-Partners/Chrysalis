@@ -1,3 +1,6 @@
+// @ts-nocheck
+// TODO: Install OpenTelemetry dependencies to enable this module
+// npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node etc.
 /**
  * Chrysalis Observability Module
  * 

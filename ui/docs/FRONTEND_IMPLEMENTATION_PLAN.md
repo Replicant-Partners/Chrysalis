@@ -162,7 +162,7 @@ graph TD
 | Component | Coupling | State Management | Reusability Score |
 |-----------|----------|------------------|-------------------|
 | ChatPane | Medium (YJS) | YJS + Local State | 60% |
-| JSONCanvas | Medium (YJS) | YJS + Local State | 65% |
+| ReactFlowCanvas | Medium (YJS) | YJS + Local State | 100% |
 | WalletModal | Low | Context API | 75% |
 | ThreeFrameLayout | Low | Props only | 90% |
 
@@ -367,7 +367,7 @@ graph LR
 | Task | Status | Evidence |
 |------|--------|----------|
 | ChatPane | ✅ Complete | [ChatPane.tsx](../src/components/ChatPane/ChatPane.tsx) |
-| JSONCanvas | ✅ Complete | [JSONCanvas.tsx](../src/components/JSONCanvas/JSONCanvas.tsx) |
+| ReactFlowCanvas | ✅ Complete | [ReactFlowCanvas.tsx](../src/components/ReactFlowCanvas/ReactFlowCanvas.tsx) |
 | WalletModal | ✅ Complete | [WalletModal.tsx](../src/components/Wallet/WalletModal.tsx) |
 | YJS integration | ✅ Complete | [useTerminal.ts](../src/hooks/useTerminal.ts) |
 | MarkdownWidget | 🔴 Not started | - |
@@ -1070,7 +1070,7 @@ useEffect(() => {
 2. **WalletModal ↔ WalletContext**  
    Modal tightly coupled to context (acceptable for this use case)
 
-3. **JSONCanvas ↔ YJS**  
+3. **ReactFlowCanvas ↔ YJS**  
    Same issue as ChatPane - needs decoupling for testing
 
 ### State Management Inefficiencies
@@ -1542,7 +1542,7 @@ snyk test
 
 🔴 **Missing Documentation:**
 - ChatPane props and usage
-- JSONCanvas props and usage
+- ReactFlowCanvas props and usage
 - WalletModal configuration
 - Custom hooks (useTerminal, useChatPane, etc.)
 
@@ -4451,7 +4451,7 @@ function VirtualChatPane({ messages }: { messages: ChatMessage[] }) {
 
 ```typescript
 // Only render nodes in viewport
-function JSONCanvas({ nodes, viewport }: CanvasProps) {
+function ReactFlowCanvas({ nodes, viewport }: CanvasProps) {
   const visibleNodes = useMemo(() => {
     return nodes.filter(node => {
       const inViewportX = 
@@ -4758,7 +4758,7 @@ Due to length constraints, I'll provide a summary of the remaining tasks:
 - **YJS:** JavaScript CRDT library for real-time collaboration
 - **Zustand:** Lightweight state management library for React
 - **VoyeurBus:** Real-time event stream for observing agent activity
-- **Canvas:** JSONCanvas-based infinite workspace
+- **Canvas:** React Flow-based infinite workspace
 - **Widget:** Embeddable component in canvas (e.g., markdown, code, chart)
 - **Terminal:** Three-frame interface instance
 - **Slash Command:** Text-based command (e.g., `/invite`, `/agent`)

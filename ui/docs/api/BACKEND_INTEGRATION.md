@@ -179,7 +179,7 @@ interface CanvasNode {
 }
 ```
 
-**Source:** [JSONCanvas Specification](https://jsoncanvas.org/)
+**Source:** React Flow (replaced JSONCanvas specification)
 
 ---
 
@@ -436,7 +436,7 @@ function useConnectionHealth(provider: WebsocketProvider) {
 
 - [YJS Documentation](https://docs.yjs.dev/)
 - [y-websocket](https://github.com/yjs/y-websocket)
-- [JSONCanvas Specification](https://jsoncanvas.org/)
+- [React Flow Documentation](https://reactflow.dev/)
 - [WebSocket Protocol](https://datatracker.ietf.org/doc/html/rfc6455)
 - [CRDT Overview](https://crdt.tech/)
 

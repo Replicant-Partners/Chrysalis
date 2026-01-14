@@ -18,16 +18,19 @@ import (
 
 // Server wraps the HTTP handlers for the gateway.
 type Server struct {
-	provider llm.Provider
-	auth     string
-	limiter  *rate.Limiter
-	requests *prometheus.CounterVec
-	latency  *prometheus.HistogramVec
-	registry *prometheus.Registry
+	provider       llm.Provider
+	auth           string
+	limiter        *rate.Limiter
+	requests       *prometheus.CounterVec
+	latency        *prometheus.HistogramVec
+	registry       *prometheus.Registry
+	allowedOrigins map[string]bool // CORS allowed origins
 }
 
 // New constructs a new Server.
-func New(provider llm.Provider, authToken string, rps float64, burst int) *Server {
+// allowedOrigins specifies CORS allowed origins. If empty, uses localhost defaults for development.
+// In production, always specify explicit origins.
+func New(provider llm.Provider, authToken string, rps float64, burst int, allowedOrigins []string) *Server {
 	var limiter *rate.Limiter
 	if rps > 0 && burst > 0 {
 		limiter = rate.NewLimiter(rate.Limit(rps), burst)
@@ -43,13 +46,28 @@ func New(provider llm.Provider, authToken string, rps float64, burst int) *Serve
 		Buckets: prometheus.DefBuckets,
 	}, []string{"path"})
 	registry.MustRegister(requests, latency)
+
+	// Build allowed origins map
+	origins := make(map[string]bool)
+	if len(allowedOrigins) == 0 {
+		// Default to localhost for development
+		origins["http://localhost:3000"] = true
+		origins["http://localhost:8080"] = true
+		origins["http://127.0.0.1:3000"] = true
+	} else {
+		for _, o := range allowedOrigins {
+			origins[o] = true
+		}
+	}
+
 	return &Server{
-		provider: provider,
-		auth:     authToken,
-		limiter:  limiter,
-		requests: requests,
-		latency:  latency,
-		registry: registry,
+		provider:       provider,
+		auth:           authToken,
+		limiter:        limiter,
+		requests:       requests,
+		latency:        latency,
+		registry:       registry,
+		allowedOrigins: origins,
 	}
 }
 
@@ -208,12 +226,17 @@ func (s *Server) wrapAuth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// wrapCORS adds permissive CORS for the lean UI (can be tightened later).
+// wrapCORS adds CORS headers with origin validation.
+// Only origins in the allowedOrigins map are permitted.
 func (s *Server) wrapCORS(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		origin := r.Header.Get("Origin")
+		if origin != "" && s.allowedOrigins[origin] {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return

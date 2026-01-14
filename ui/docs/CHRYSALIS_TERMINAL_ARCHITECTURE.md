@@ -230,8 +230,8 @@ Located in: **Settings → Commands → Emoji Scripts**
 
 ### Canvas Architecture
 
-**Canvas = JSONCanvas + Extensions**
-- Base: JSONCanvas file (jsoncanvas.org)
+**Canvas = React Flow + Extensions**
+- Base: React Flow (reactflow.dev)
 - **One visible canvas at a time** (anti-clutter)
 - **Infinite invisible canvases** for background work
 - **Visibility = boolean property** - any canvas can toggle
@@ -450,7 +450,7 @@ voyeurBus.emit('agent.progress', {
   "framework": "Vite + React 18 + TypeScript",
   "state": "Zustand (user settings) + YJS (collaborative)",
   "sync": "y-websocket (one room per canvas)",
-  "canvas": "JSONCanvas + extensions",
+  "canvas": "React Flow + YJS sync",
   "styling": "Vanilla CSS + Design Tokens",
   "icons": "Font Awesome + User-selected emoji (Noto/Fluent/Open)",
   "backend": "Node.js 18+ / Python 3.10+",

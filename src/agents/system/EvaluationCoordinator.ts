@@ -15,6 +15,10 @@
  * David receives ALL outputs for metacognitive oversight.
  * Phil tracks Brier scores across evaluations for calibration.
  *
+ * This class has been refactored to delegate specific responsibilities:
+ * - ForecastTracker: Brier score calibration (see ./ForecastTracker.ts)
+ * - ConflictResolver: Conflict detection & resolution (see ./ConflictResolver.ts)
+ *
  * @see Tetlock, P.E. & Gardner, D. (2015). Superforecasting: The Art and Science of Prediction
  * @see Mellers et al. (2015). Identifying and Cultivating Superforecasters
  */
@@ -30,6 +34,18 @@ import { AGGREGATION_WEIGHTS } from './types';
 
 import { PromptTemplateLoader, createPromptTemplateLoader } from './PromptTemplateLoader';
 
+// Extracted modules for Single Responsibility
+import { ForecastTracker, CalibrationStats, ForecastRecord } from './ForecastTracker';
+import {
+  ConflictResolver,
+  CONFLICT_THRESHOLDS,
+  DetectedConflict
+} from './ConflictResolver';
+
+// Re-export for backwards compatibility
+export { CONFLICT_THRESHOLDS };
+export type { ForecastRecord, CalibrationStats, DetectedConflict };
+
 /**
  * Represents a single persona's evaluation output
  */
@@ -43,54 +59,6 @@ export interface PersonaOutput {
   timestamp: Date;
   latencyMs: number;
 }
-
-/**
- * Represents Phil's forecast tracking for Brier score calibration
- * @see https://faculty.wharton.upenn.edu/wp-content/uploads/2015/07/2015---superforecasters.pdf
- */
-export interface ForecastRecord {
-  id: string;
-  prediction: number;  // Probability 0-1
-  outcome?: boolean;   // True if event occurred, null if unresolved
-  brierScore?: number; // (prediction - outcome)^2, lower is better
-  timestamp: Date;
-  context: string;
-}
-
-// =============================================================================
-// Conflict Detection Thresholds
-// =============================================================================
-
-/**
- * Thresholds for detecting conflicts between persona outputs.
- * Centralized for maintainability and easy tuning.
- */
-export const CONFLICT_THRESHOLDS = {
-  /** Risk score difference to trigger risk_disagreement conflict */
-  RISK_DISAGREEMENT: 0.3,
-  /** Overconfidence risk score (0-10) to trigger confidence_mismatch */
-  OVERCONFIDENCE_RISK: 7,
-  /** Phil confidence threshold for confidence_mismatch detection */
-  PHIL_CONFIDENCE: 0.7,
-  /** Lower bound for threshold_boundary detection */
-  THRESHOLD_BOUNDARY_LOW: 0.28,
-  /** Upper bound for threshold_boundary detection */
-  THRESHOLD_BOUNDARY_HIGH: 0.32,
-  /** Minimum blind spots to force human review */
-  BLIND_SPOTS_MINIMUM: 3,
-  /** Confidence reduction factor when overconfidence detected */
-  CONFIDENCE_REDUCTION_FACTOR: 0.8,
-  /** Confidence cap when conflicts detected */
-  CONFIDENCE_CAP_ON_CONFLICT: 0.6,
-  /** Default Brier score when no history (random guess baseline) */
-  DEFAULT_BRIER_SCORE: 0.25,
-  /** Brier score threshold for calibration drift warning */
-  BRIER_DRIFT_THRESHOLD: 0.25,
-  /** Average confidence threshold for unanimous warning */
-  UNANIMOUS_CONFIDENCE: 0.85,
-  /** High average confidence threshold for metacognitive alerts */
-  HIGH_AVG_CONFIDENCE: 0.8,
-} as const;
 
 /**
  * Escalation risk boundaries for determining approval level.
@@ -126,22 +94,27 @@ import type { ConflictType, ResolutionStrategy } from './types';
 
 /**
  * EvaluationCoordinator orchestrates the multi-agent evaluation pipeline.
- * 
- * Key responsibilities:
+ *
+ * Responsibilities (after refactoring):
  * 1. Execute evaluation DAG with proper dependency ordering
  * 2. Aggregate persona outputs using weighted combination
- * 3. Detect and resolve conflicts between personas
- * 4. Track Brier scores for Phil's calibration
- * 5. Apply David's metacognitive checks to the final output
+ * 3. Apply David's metacognitive checks to the final output
+ * 4. Coordinate with extracted modules for specialized tasks
+ *
+ * Delegated responsibilities:
+ * - ForecastTracker: Brier score calibration for Phil
+ * - ConflictResolver: Conflict detection & resolution
  */
 export class EvaluationCoordinator {
   private personas: Map<string, SystemAgentBinding>;
   private weights: Record<string, number>;
-  private forecastHistory: ForecastRecord[] = [];
-  private readonly brierScoreWindow = 100;  // Rolling window for calibration
   private promptLoader: PromptTemplateLoader;
   private escalationThresholds: Map<string, EscalationThresholds>;
-  
+
+  // Extracted modules (Single Responsibility Principle)
+  private readonly forecastTracker: ForecastTracker;
+  private readonly conflictResolver: ConflictResolver;
+
   constructor(
     personas: Map<string, SystemAgentBinding>,
     weights: Record<string, number> = AGGREGATION_WEIGHTS
@@ -150,19 +123,24 @@ export class EvaluationCoordinator {
     this.weights = weights;
     this.promptLoader = createPromptTemplateLoader();
     this.escalationThresholds = this.extractEscalationThresholds();
+
+    // Initialize extracted modules
+    this.forecastTracker = new ForecastTracker();
+    this.conflictResolver = new ConflictResolver();
+
     this.validateWeights();
   }
-  
+
   /**
    * Extract escalation thresholds from persona configs.
    * Falls back to defaults if config not available.
    */
   private extractEscalationThresholds(): Map<string, EscalationThresholds> {
     const thresholds = new Map<string, EscalationThresholds>();
-    
+
     for (const [personaId, persona] of this.personas) {
       const configThresholds = persona.config?.escalationRules?.riskThresholds;
-      
+
       if (configThresholds) {
         // Extract from persona config
         thresholds.set(personaId, {
@@ -182,10 +160,10 @@ export class EvaluationCoordinator {
         });
       }
     }
-    
+
     return thresholds;
   }
-  
+
   /**
    * Get escalation threshold for a specific persona.
    */
@@ -196,7 +174,7 @@ export class EvaluationCoordinator {
       humanApproval: { min: 0.7 }
     };
   }
-  
+
   /**
    * Compute aggregated escalation boundaries from all persona thresholds.
    * Uses the most conservative (lowest) autoApply and supervised max.
@@ -204,15 +182,15 @@ export class EvaluationCoordinator {
   private computeAggregatedEscalationBoundaries(): { autoApplyMax: number; supervisedMax: number } {
     let autoApplyMax: number = ESCALATION_RISK_BOUNDARIES.AUTO_APPLY_MAX;
     let supervisedMax: number = ESCALATION_RISK_BOUNDARIES.SUPERVISED_MAX;
-    
+
     for (const thresholds of this.escalationThresholds.values()) {
       autoApplyMax = Math.min(autoApplyMax, thresholds.autoApply.max);
       supervisedMax = Math.min(supervisedMax, thresholds.supervised.max);
     }
-    
+
     return { autoApplyMax, supervisedMax };
   }
-  
+
   /**
    * Validate that weights sum to 1.0 (allowing for floating point tolerance)
    */
@@ -222,16 +200,16 @@ export class EvaluationCoordinator {
       throw new Error(`Aggregation weights must sum to 1.0, got ${sum}`);
     }
   }
-  
+
   /**
    * Execute the full evaluation pipeline for an artifact.
-   * 
+   *
    * The pipeline follows dependency order:
    * 1. Ada evaluates pattern quality (no dependencies)
    * 2. Lea evaluates implementation feasibility (depends on Ada)
    * 3. Phil forecasts success probability (depends on Ada, Lea)
    * 4. David performs metacognitive checks (depends on all)
-   * 
+   *
    * @param artifact - The item being evaluated (prompt, code, design, etc.)
    * @param context - Additional context for evaluation
    * @returns Aggregated evaluation with conflict resolution
@@ -242,53 +220,54 @@ export class EvaluationCoordinator {
   ): Promise<AggregatedEvaluation> {
     const outputs: Map<string, PersonaOutput> = new Map();
     const startTime = Date.now();
-    
+
     // Stage 1: Ada (Pattern Analysis) - No dependencies
     const adaOutput = await this.executePersona('ada', artifact, context, {});
     outputs.set('ada', adaOutput);
-    
+
     // Stage 2: Lea (Implementation Analysis) - Depends on Ada
     const leaContext = this.buildDependencyContext(['ada'], outputs);
     const leaOutput = await this.executePersona('lea', artifact, context, leaContext);
     outputs.set('lea', leaOutput);
-    
+
     // Stage 3: Phil (Forecast Analysis) - Depends on Ada, Lea
     const philContext = this.buildDependencyContext(['ada', 'lea'], outputs);
     const philOutput = await this.executePersona('phil', artifact, context, philContext);
     outputs.set('phil', philOutput);
-    
-    // Record Phil's forecast for Brier tracking
+
+    // Record Phil's forecast for Brier tracking (delegated to ForecastTracker)
     if (philOutput.scorecard.successProbability !== undefined) {
-      this.recordForecast(
+      this.forecastTracker.recordForecast(
         context.evaluationId,
         philOutput.scorecard.successProbability as number,
         context.description
       );
     }
-    
+
     // Stage 4: David (Metacognitive Checks) - Depends on all
     const davidContext = this.buildDependencyContext(['ada', 'lea', 'phil'], outputs);
     const davidOutput = await this.executePersona('david', artifact, context, davidContext);
     outputs.set('david', davidOutput);
-    
-    // Detect conflicts between persona outputs
-    const conflicts = this.detectConflicts(outputs);
-    
+
+    // Detect conflicts between persona outputs (delegated to ConflictResolver)
+    const detectedConflicts = this.conflictResolver.detectConflicts(outputs);
+    const conflictTypes = detectedConflicts.map(c => c.type);
+
     // Aggregate outputs with weighted combination
-    const aggregated = this.aggregateOutputs(outputs, conflicts);
-    
+    const aggregated = this.aggregateOutputs(outputs, conflictTypes);
+
     // Apply David's final metacognitive checks
     const finalResult = this.applyMetacognitiveChecks(aggregated, davidOutput);
-    
+
     finalResult.totalLatencyMs = Date.now() - startTime;
     finalResult.evaluationId = context.evaluationId;
-    
+
     return finalResult;
   }
-  
+
   /**
    * Execute a single persona's evaluation.
-   * 
+   *
    * @param personaId - Which persona to invoke
    * @param artifact - Item being evaluated
    * @param context - Global evaluation context
@@ -304,21 +283,21 @@ export class EvaluationCoordinator {
     if (!persona) {
       throw new Error(`Persona ${personaId} not loaded`);
     }
-    
+
     const startTime = Date.now();
-    
+
     // Build prompt with persona-specific instructions and dependency context
     const prompt = this.buildEvaluationPrompt(personaId, artifact, context, dependencyOutputs);
-    
+
     // Execute via the SystemAgentBinding (which handles model routing)
     const result = await persona.evaluate(prompt, {
       temperature: persona.config.modelConfig.defaultTemperature,
       maxTokens: 2048,
       timeout: persona.config.modelConfig.latencyBudgetMs
     });
-    
+
     const latencyMs = Date.now() - startTime;
-    
+
     return {
       personaId: personaId as PersonaOutput['personaId'],
       scorecard: result.scorecard,
@@ -330,7 +309,7 @@ export class EvaluationCoordinator {
       latencyMs
     };
   }
-  
+
   /**
    * Build the evaluation prompt for a specific persona.
    * Each persona has different evaluation dimensions and receives
@@ -348,15 +327,15 @@ export class EvaluationCoordinator {
       phil: this.buildPhilPrompt.bind(this),
       david: this.buildDavidPrompt.bind(this)
     };
-    
+
     const builder = prompts[personaId];
     if (!builder) {
       throw new Error(`Unknown persona: ${personaId}`);
     }
-    
+
     return builder(artifact, context, dependencyOutputs);
   }
-  
+
   /**
    * Ada: Pattern Quality Analysis
    * Evaluates: structuralElegance, composability, reasoningChainEfficiency, patternNovelty, crossDomainPotential
@@ -411,7 +390,7 @@ ${context.description}
   "requiresHumanReview": <boolean>
 }`;
   }
-  
+
   /**
    * Lea: Implementation Quality Analysis
    * Evaluates: practicalApplicability, maintainability, scalabilityPotential, developerErgonomics, antiPatternRisk
@@ -423,7 +402,7 @@ ${context.description}
     deps: Record<string, Partial<PersonaOutput>>
   ): string {
     const adaScores = deps.ada?.scorecard || {};
-    
+
     return `You are Lea, an Implementation Analyst evaluating practical feasibility and code quality.
 
 ## Artifact to Evaluate
@@ -478,12 +457,12 @@ Low elegance + high practicality = technical debt risk.
   "requiresHumanReview": <boolean>
 }`;
   }
-  
+
   /**
    * Phil: Forecast & Probability Analysis
    * Evaluates: successProbability, confidenceCalibration, baseRateAlignment, falsifiability, updateMagnitude
    * Receives: Ada's and Lea's scores
-   * 
+   *
    * Key insight from Tetlock: Break problems into components, use base rates,
    * express uncertainty in precise probabilities.
    */
@@ -495,7 +474,7 @@ Low elegance + high practicality = technical debt risk.
     const adaScores = deps.ada?.scorecard || {};
     const leaScores = deps.lea?.scorecard || {};
     const currentBrierScore = this.calculateRollingBrierScore();
-    
+
     return `You are Phil (Philip Tetlock), a Forecast Analyst applying superforecasting principles.
 
 ## Artifact to Evaluate
@@ -564,12 +543,12 @@ ${currentBrierScore > CONFLICT_THRESHOLDS.BRIER_DRIFT_THRESHOLD ? '⚠️ Calibr
   "requiresHumanReview": <boolean>
 }`;
   }
-  
+
   /**
    * David: Metacognitive Guardian
    * Evaluates: overconfidenceRisk, blindSpotDetection, biasesIdentified, selfAssessmentAccuracy, humilityScore
    * Receives: ALL prior outputs
-   * 
+   *
    * Key insight from Dunning-Kruger: Those least competent are often most confident.
    * David's role is to detect when the evaluation pipeline itself may be biased.
    */
@@ -581,12 +560,12 @@ ${currentBrierScore > CONFLICT_THRESHOLDS.BRIER_DRIFT_THRESHOLD ? '⚠️ Calibr
     const adaOutput = deps.ada || {};
     const leaOutput = deps.lea || {};
     const philOutput = deps.phil || {};
-    
+
     // Check for unanimous agreement (suspicious per Delphi method)
     const confidences = [adaOutput.confidence, leaOutput.confidence, philOutput.confidence].filter(c => c !== undefined);
     const avgConfidence = confidences.length > 0 ? confidences.reduce((a, b) => a! + b!, 0)! / confidences.length : 0;
     const unanimousHighConfidence = avgConfidence > CONFLICT_THRESHOLDS.UNANIMOUS_CONFIDENCE;
-    
+
     return `You are David (David Dunning), a Metacognitive Guardian monitoring for cognitive biases.
 
 ## Artifact Being Evaluated
@@ -661,7 +640,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
   "requiresHumanReview": <boolean>
 }`;
   }
-  
+
   /**
    * Build context from dependency outputs for a persona
    */
@@ -683,10 +662,10 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
     }
     return context;
   }
-  
+
   /**
    * Detect conflicts between persona outputs.
-   * 
+   *
    * Conflict types:
    * - risk_disagreement: >0.3 difference in risk scores
    * - confidence_mismatch: Phil flags overconfidence, others don't
@@ -695,7 +674,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
    */
   private detectConflicts(outputs: Map<string, PersonaOutput>): ConflictType[] {
     const conflicts: ConflictType[] = [];
-    
+
     // Check risk disagreement
     const riskScores = Array.from(outputs.values()).map(o => o.riskScore);
     const maxRisk = Math.max(...riskScores);
@@ -703,7 +682,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
     if (maxRisk - minRisk > CONFLICT_THRESHOLDS.RISK_DISAGREEMENT) {
       conflicts.push('risk_disagreement');
     }
-    
+
     // Check confidence mismatch
     const philOutput = outputs.get('phil');
     const davidOutput = outputs.get('david');
@@ -714,7 +693,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
         conflicts.push('confidence_mismatch');
       }
     }
-    
+
     // Check unanimous warning
     if (davidOutput) {
       const biases = davidOutput.scorecard.biasesIdentified as string[] || [];
@@ -722,35 +701,35 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
         conflicts.push('unanimous_warning');
       }
     }
-    
+
     // Check threshold boundary
     const aggregatedRisk = this.calculateWeightedRisk(outputs);
     if (aggregatedRisk > CONFLICT_THRESHOLDS.THRESHOLD_BOUNDARY_LOW && aggregatedRisk < CONFLICT_THRESHOLDS.THRESHOLD_BOUNDARY_HIGH) {
       conflicts.push('threshold_boundary');
     }
-    
+
     return conflicts;
   }
-  
+
   /**
    * Calculate weighted risk score from all persona outputs
    */
   private calculateWeightedRisk(outputs: Map<string, PersonaOutput>): number {
     let totalWeight = 0;
     let weightedSum = 0;
-    
+
     for (const [personaId, output] of outputs) {
       const weight = this.weights[personaId] || 0;
       weightedSum += output.riskScore * weight;
       totalWeight += weight;
     }
-    
+
     return totalWeight > 0 ? weightedSum / totalWeight : 0;
   }
-  
+
   /**
    * Aggregate outputs using weighted combination with conflict resolution.
-   * 
+   *
    * Aggregation strategy (from routing_config.json):
    * - Use weighted averages per persona weight
    * - Conflicts resolved via "defer_to_coordinator" (this function)
@@ -761,22 +740,22 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
   ): AggregatedEvaluation {
     // Weighted risk score
     const aggregatedRisk = this.calculateWeightedRisk(outputs);
-    
+
     // Weighted confidence
     let weightedConfidence = 0;
     for (const [personaId, output] of outputs) {
       weightedConfidence += output.confidence * (this.weights[personaId] || 0);
     }
-    
+
     // Collect all recommendations (deduplicated)
     const allRecommendations = new Set<string>();
     for (const output of outputs.values()) {
       output.recommendations.forEach(r => allRecommendations.add(r));
     }
-    
+
     // Determine if human review required
     const anyRequiresHuman = Array.from(outputs.values()).some(o => o.requiresHumanReview);
-    
+
     // Apply conflict resolution
     let resolution: ResolutionStrategy = 'defer_to_coordinator';
     if (conflicts.includes('unanimous_warning') || conflicts.includes('confidence_mismatch')) {
@@ -795,7 +774,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
         totalLatencyMs: 0
       };
     }
-    
+
     // Determine escalation level using aggregated thresholds from persona configs
     const { autoApplyMax, supervisedMax } = this.computeAggregatedEscalationBoundaries();
     let escalationLevel: 'autoApply' | 'supervised' | 'humanApproval';
@@ -806,7 +785,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
     } else {
       escalationLevel = 'humanApproval';
     }
-    
+
     return {
       aggregatedRiskScore: aggregatedRisk,
       aggregatedConfidence: weightedConfidence,
@@ -820,7 +799,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
       totalLatencyMs: 0
     };
   }
-  
+
   /**
    * Apply David's metacognitive checks to the final aggregated output.
    * This is the "meta-evaluation" that checks if the entire pipeline may be biased.
@@ -830,7 +809,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
     davidOutput: PersonaOutput
   ): AggregatedEvaluation {
     const result = { ...aggregated };
-    
+
     // Add metacognitive metadata
     result.metacognitive = {
       overconfidenceRisk: davidOutput.scorecard.overconfidenceRisk as number,
@@ -838,7 +817,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
       biasesIdentified: davidOutput.scorecard.biasesIdentified as string[],
       humilityScore: davidOutput.scorecard.humilityScore as number
     };
-    
+
     // Force human review if David identifies significant blind spots
     const blindSpots = davidOutput.scorecard.blindSpotDetection as string[] || [];
     if (blindSpots.length >= CONFLICT_THRESHOLDS.BLIND_SPOTS_MINIMUM) {
@@ -848,7 +827,7 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
         ...result.recommendations
       ];
     }
-    
+
     // Adjust confidence based on overconfidence risk
     const overconfidenceRisk = davidOutput.scorecard.overconfidenceRisk as number;
     if (overconfidenceRisk > CONFLICT_THRESHOLDS.OVERCONFIDENCE_RISK) {
@@ -858,100 +837,55 @@ ${avgConfidence > CONFLICT_THRESHOLDS.HIGH_AVG_CONFIDENCE ? '⚠️ Average conf
         ...result.recommendations
       ];
     }
-    
+
     return result;
   }
-  
-  /**
-   * Record a forecast for Brier score tracking.
-   * The outcome will be recorded later when known.
-   */
-  private recordForecast(id: string, prediction: number, context: string): void {
-    this.forecastHistory.push({
-      id,
-      prediction,
-      outcome: undefined,  // Will be set when outcome is known
-      brierScore: undefined,
-      timestamp: new Date(),
-      context
-    });
-    
-    // Trim to window size
-    if (this.forecastHistory.length > this.brierScoreWindow * 2) {
-      this.forecastHistory = this.forecastHistory.slice(-this.brierScoreWindow);
-    }
-  }
-  
+
+  // ============================================================================
+  // Forecast Tracking (Delegated to ForecastTracker)
+  // ============================================================================
+
   /**
    * Record the outcome of a prior forecast and calculate its Brier score.
-   * 
-   * Brier Score = (prediction - outcome)²
-   * - 0.0 = perfect prediction
-   * - 0.25 = random guessing (50% predictions)
-   * - 2.0 = worst possible (100% confidence, wrong)
+   * Delegated to ForecastTracker.
    */
-  recordOutcome(forecastId: string, outcome: boolean): void {
-    const forecast = this.forecastHistory.find(f => f.id === forecastId);
-    if (forecast && forecast.outcome === undefined) {
-      forecast.outcome = outcome;
-      const outcomeValue = outcome ? 1 : 0;
-      forecast.brierScore = Math.pow(forecast.prediction - outcomeValue, 2);
-    }
+  recordOutcome(forecastId: string, outcome: boolean): number | null {
+    return this.forecastTracker.resolveOutcome(forecastId, outcome);
   }
-  
+
   /**
    * Calculate rolling Brier score for calibration monitoring.
-   * 
-   * Per Tetlock's research:
-   * - Score < 0.2: Excellent calibration (superforecaster level)
-   * - Score 0.2-0.25: Good calibration
-   * - Score > 0.25: Calibration drift, need adjustment
+   * Delegated to ForecastTracker.
    */
   calculateRollingBrierScore(): number {
-    const resolvedForecasts = this.forecastHistory.filter(f => f.brierScore !== undefined);
-    if (resolvedForecasts.length === 0) {
-      return CONFLICT_THRESHOLDS.DEFAULT_BRIER_SCORE;  // Default to random guess baseline
-    }
-    
-    const recentForecasts = resolvedForecasts.slice(-this.brierScoreWindow);
-    const totalScore = recentForecasts.reduce((sum, f) => sum + f.brierScore!, 0);
-    return totalScore / recentForecasts.length;
+    return this.forecastTracker.getRollingBrierScore();
   }
-  
+
   /**
    * Get calibration statistics for Phil's forecast tracking.
+   * Delegated to ForecastTracker.
    */
   getCalibrationStats(): CalibrationStats {
-    const resolved = this.forecastHistory.filter(f => f.outcome !== undefined);
-    
-    // Group by probability bucket (0-10%, 10-20%, etc.)
-    const buckets: Map<string, { predictions: number; hits: number }> = new Map();
-    for (const f of resolved) {
-      const bucket = Math.floor(f.prediction * 10) * 10;
-      const key = `${bucket}-${bucket + 10}%`;
-      const existing = buckets.get(key) || { predictions: 0, hits: 0 };
-      existing.predictions++;
-      if (f.outcome) existing.hits++;
-      buckets.set(key, existing);
-    }
-    
-    // Calculate calibration per bucket
-    const calibration: Record<string, { expected: number; actual: number; count: number }> = {};
-    for (const [key, data] of buckets) {
-      const bucketMid = parseInt(key) / 100 + 0.05;
-      calibration[key] = {
-        expected: bucketMid,
-        actual: data.predictions > 0 ? data.hits / data.predictions : 0,
-        count: data.predictions
-      };
-    }
-    
-    return {
-      rollingBrierScore: this.calculateRollingBrierScore(),
-      totalForecasts: this.forecastHistory.length,
-      resolvedForecasts: resolved.length,
-      calibrationByBucket: calibration
-    };
+    return this.forecastTracker.getCalibrationStats();
+  }
+
+  /**
+   * Get all pending forecasts that need outcomes.
+   */
+  getPendingForecasts(): ForecastRecord[] {
+    return this.forecastTracker.getPendingForecasts();
+  }
+
+  // ============================================================================
+  // Conflict Resolution (Delegated to ConflictResolver)
+  // ============================================================================
+
+  /**
+   * Get all detected conflicts from the last evaluation.
+   * Useful for debugging and analysis.
+   */
+  getConflictResolver(): ConflictResolver {
+    return this.conflictResolver;
   }
 }
 
@@ -967,12 +901,5 @@ export interface EvaluationContext {
   additionalContext?: Record<string, unknown>;
 }
 
-/**
- * Calibration statistics for forecast tracking
- */
-export interface CalibrationStats {
-  rollingBrierScore: number;
-  totalForecasts: number;
-  resolvedForecasts: number;
-  calibrationByBucket: Record<string, { expected: number; actual: number; count: number }>;
-}
+// Note: CalibrationStats is now imported from ForecastTracker.ts
+// The interface is re-exported for backwards compatibility

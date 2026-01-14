@@ -134,7 +134,7 @@ This document tracks the current implementation status of the Chrysalis Terminal
   - **Verified:** Messages display correctly
   - **Known Issue:** Voice indicator not yet styled
 
-- **[JSONCanvas](../../src/components/JSONCanvas/JSONCanvas.tsx)** ✅
+- **[ReactFlowCanvas](../../src/components/ReactFlowCanvas/ReactFlowCanvas.tsx)** ✅
   - Node rendering
   - Edge rendering
   - Viewport controls (pan, zoom)
@@ -472,7 +472,7 @@ These are confirmed missing features that require engineering work:
 - **Total Components:** 12
 - **Design System:** 4 (Button, Input, Card, Badge)
 - **Layout:** 1 (ThreeFrameLayout)
-- **Features:** 3 (ChatPane, JSONCanvas, Wallet)
+- **Features:** 3 (ChatPane, ReactFlowCanvas, Wallet)
 - **Widgets:** 2 (WidgetRenderer, incomplete widgets)
 - **Contexts:** 1 (WalletContext)
 - **Hooks:** 1 (useTerminal + sub-hooks)

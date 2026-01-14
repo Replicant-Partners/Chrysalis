@@ -1,6 +1,6 @@
 /**
  * Encryption Utilities - Cryptographic operations for shadow data
- * 
+ *
  * Provides AES-256-GCM encryption, PBKDF2 key derivation,
  * and RSA digital signatures.
  */
@@ -8,11 +8,36 @@
 import * as crypto from 'crypto';
 import type { EncryptedShadow, ShadowData } from './FrameworkAdapter';
 
+// ============================================================================
+// Constants - Named for clarity and maintainability
+// ============================================================================
+
+/** AES-256-GCM provides authenticated encryption */
 const ALGORITHM = 'aes-256-gcm';
-const KEY_LENGTH = 32;  // 256 bits
-const IV_LENGTH = 16;   // 128 bits
+/** 256-bit key for AES-256 */
+const KEY_LENGTH = 32;
+/** 128-bit IV is standard for GCM mode */
+const IV_LENGTH = 16;
+/** 128-bit authentication tag */
 const AUTH_TAG_LENGTH = 16;
+/** PBKDF2 iterations - OWASP recommends 100k+ for SHA-256 */
 const PBKDF2_ITERATIONS = 100000;
+
+// ============================================================================
+// Types - Replacing `any` with specific types
+// ============================================================================
+
+/**
+ * JSON-serializable data that can be encrypted.
+ * This type represents any value that JSON.stringify can handle.
+ */
+export type JsonSerializable =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonSerializable[]
+  | { [key: string]: JsonSerializable };
 
 /**
  * Encryption result
@@ -39,31 +64,33 @@ export function deriveKey(fingerprint: string, salt: string): Buffer {
 
 /**
  * Encrypt data with AES-256-GCM
+ * @param data - JSON-serializable data to encrypt
+ * @param fingerprint - Agent fingerprint used for key derivation
  */
 export function encrypt(
-  data: any,
+  data: JsonSerializable,
   fingerprint: string
 ): EncryptionResult {
   // Generate random salt and IV
   const salt = crypto.randomBytes(16).toString('base64');
   const iv = crypto.randomBytes(IV_LENGTH);
-  
+
   // Derive key from fingerprint
   const key = deriveKey(fingerprint, salt);
-  
+
   // Create cipher
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-  
+
   // Encrypt data
   const plaintext = JSON.stringify(data);
   const encrypted = Buffer.concat([
     cipher.update(plaintext, 'utf8'),
     cipher.final()
   ]);
-  
+
   // Get authentication tag
   const authTag = cipher.getAuthTag();
-  
+
   return {
     encrypted: encrypted.toString('base64'),
     iv: iv.toString('base64'),
@@ -74,6 +101,7 @@ export function encrypt(
 
 /**
  * Decrypt data with AES-256-GCM
+ * @returns The decrypted JSON data
  */
 export function decrypt(
   encryptedData: string,
@@ -81,44 +109,61 @@ export function decrypt(
   authTag: string,
   fingerprint: string,
   salt: string
-): any {
+): JsonSerializable {
   // Derive key from fingerprint
   const key = deriveKey(fingerprint, salt);
-  
+
   // Create decipher
   const decipher = crypto.createDecipheriv(
     ALGORITHM,
     key,
     Buffer.from(iv, 'base64')
   );
-  
+
   // Set auth tag
   decipher.setAuthTag(Buffer.from(authTag, 'base64'));
-  
+
   // Decrypt data
   const decrypted = Buffer.concat([
     decipher.update(Buffer.from(encryptedData, 'base64')),
     decipher.final()
   ]);
-  
+
   // Parse JSON
   return JSON.parse(decrypted.toString('utf8'));
 }
 
 /**
  * Generate SHA-256 checksum
+ * @param data - JSON-serializable data to hash
  */
-export function generateChecksum(data: any): string {
+export function generateChecksum(data: JsonSerializable): string {
   const json = JSON.stringify(data);
   return crypto.createHash('sha256').update(json).digest('hex');
 }
 
 /**
- * Verify checksum
+ * Verify checksum using constant-time comparison.
+ *
+ * SECURITY NOTE: We use crypto.timingSafeEqual to prevent timing attacks.
+ * An attacker observing response times could otherwise infer checksum
+ * characters one-by-one by measuring how long comparisons take.
  */
-export function verifyChecksum(data: any, expectedChecksum: string): boolean {
+export function verifyChecksum(data: JsonSerializable, expectedChecksum: string): boolean {
   const actualChecksum = generateChecksum(data);
-  return actualChecksum === expectedChecksum;
+
+  // Convert to buffers for timing-safe comparison
+  const actualBuf = Buffer.from(actualChecksum, 'utf8');
+  const expectedBuf = Buffer.from(expectedChecksum, 'utf8');
+
+  // Different lengths means different checksums, but we still do a
+  // constant-time operation to avoid leaking length information
+  if (actualBuf.length !== expectedBuf.length) {
+    crypto.timingSafeEqual(actualBuf, actualBuf); // Maintain constant timing
+    return false;
+  }
+
+  return crypto.timingSafeEqual(actualBuf, expectedBuf);
 }
 
 /**
@@ -167,7 +212,7 @@ export function generateFingerprint(identity: {
     created: identity.created || Date.now(),
     id: identity.id || crypto.randomUUID()
   });
-  
+
   return crypto.createHash('sha256').update(data).digest('hex');
 }
 
@@ -181,18 +226,18 @@ export function encryptShadow(
 ): EncryptedShadow {
   // Add checksum
   shadow.checksum = generateChecksum(shadow.data);
-  
+
   // Encrypt
   const encrypted = encrypt(shadow, fingerprint);
-  
+
   // Create data to sign
   const dataToSign = `${encrypted.encrypted}:${encrypted.iv}:${encrypted.authTag}:${fingerprint}`;
-  
+
   // Sign (use hash if no private key)
   const signature = privateKey
     ? createSignature(dataToSign, privateKey)
     : crypto.createHash('sha256').update(dataToSign).digest('base64');
-  
+
   return {
     encrypted: encrypted.encrypted,
     algorithm: ALGORITHM,
@@ -219,21 +264,21 @@ export function decryptShadow(
 ): ShadowData {
   // Parse restoration key
   const [salt, authTag] = restorationKey.split(':');
-  
+
   if (!salt || !authTag) {
     throw new Error('Invalid restoration key format. Expected "salt:authTag"');
   }
-  
+
   // Verify signature if public key provided
   if (publicKey) {
     const dataToSign = `${encrypted.encrypted}:${encrypted.iv}:${authTag}:${fingerprint}`;
     const valid = verifySignature(dataToSign, encrypted.signature, publicKey);
-    
+
     if (!valid) {
       throw new Error('Signature verification failed - agent identity cannot be confirmed');
     }
   }
-  
+
   // Decrypt
   const decrypted = decrypt(
     encrypted.encrypted,
@@ -242,7 +287,7 @@ export function decryptShadow(
     fingerprint,
     salt
   );
-  
+
   // Verify checksum
   if (decrypted.checksum) {
     const valid = verifyChecksum(decrypted.data, decrypted.checksum);
@@ -250,7 +295,7 @@ export function decryptShadow(
       throw new Error('Checksum verification failed - data may be corrupted');
     }
   }
-  
+
   return decrypted;
 }
 
@@ -279,6 +324,6 @@ export function generateKeyPair(): {
       format: 'pem'
     }
   });
-  
+
   return { publicKey, privateKey };
 }

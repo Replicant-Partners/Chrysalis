@@ -1,6 +1,6 @@
 # Chrysalis Documentation Index
 
-**Last Updated**: January 12, 2026  
+**Last Updated**: January 13, 2026  
 **Status**: Active
 
 ---
@@ -42,11 +42,14 @@ docs/
 │   └── openapi/
 │
 ├── guides/                  # How-to guides
-│   ├── QUICK_START.md
+│   ├── QUICK_START.md       # Canonical quickstart (Python + TS)
 │   └── TROUBLESHOOTING.md
 │
 ├── current/                 # Active specifications
 │   └── UNIFIED_SPEC_V3.1.md
+│
+├── personas/                # AI persona prompt templates
+│   └── *.md
 │
 ├── research/                # Research foundation
 │   └── universal-patterns/
@@ -54,8 +57,12 @@ docs/
 ├── adr/                     # Architecture Decision Records
 │   └── ADR-*.md
 │
-└── archive/                 # Historical documentation
-    └── README.md
+└── archive/                 # Historical documentation (36 docs)
+    ├── phases/              # Phase completion reports
+    ├── quickstarts/         # Legacy quickstart guides
+    ├── remediation/         # Code review remediation docs
+    ├── reports/             # Dated audit and analysis reports
+    └── sessions/            # Session handoff documents
 ```
 
 ---
@@ -92,6 +99,13 @@ docs/
 | [API Reference Index](api/API_REFERENCE_INDEX.md) | Complete API documentation |
 | [Authentication](api/AUTHENTICATION.md) | Auth documentation |
 | [OpenAPI Specs](api/openapi/) | OpenAPI definitions |
+
+### Technology Assessments
+
+| Document | Purpose | Date |
+|----------|---------|------|
+| [Canvas & Visual Programming](technology-assessments/canvas-visual-programming-assessment.md) | Comprehensive evaluation of 8 canvas libraries (React Flow recommended) | 2026-01-14 |
+| [React Flow Integration Guide](technology-assessments/react-flow-integration-guide.md) | Practical implementation guide for React Flow canvas | 2026-01-14 |
 
 ### Specifications
 

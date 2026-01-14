@@ -3,7 +3,7 @@
  * 
  * The main layout component for ChrysalisTerminal:
  * - Left: Agent ChatPane
- * - Center: JSON Canvas
+ * - Center: React Flow Canvas
  * - Right: Human ChatPane
  */
 

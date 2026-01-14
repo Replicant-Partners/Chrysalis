@@ -4,10 +4,29 @@ import { VoyeurBus, VoyeurEvent, VoyeurSink } from './VoyeurEvents';
 /**
  * Lightweight SSE dashboard server (no extra deps).
  * Serves an HTML viewer at "/" and an SSE stream at "/voyeur-stream".
+ *
+ * @param bus - VoyeurBus to subscribe to events
+ * @param opts.port - Port to listen on (default: 8787)
+ * @param opts.path - SSE stream path (default: /voyeur-stream)
+ * @param opts.redact - Whether to redact event details
+ * @param opts.allowedOrigins - CORS allowed origins (default: localhost only)
  */
-export function startVoyeurWebServer(bus: VoyeurBus, opts?: { port?: number; path?: string; redact?: boolean }): void {
+export function startVoyeurWebServer(bus: VoyeurBus, opts?: {
+  port?: number;
+  path?: string;
+  redact?: boolean;
+  allowedOrigins?: string[];
+}): void {
   const port = opts?.port ?? 8787;
   const streamPath = opts?.path ?? '/voyeur-stream';
+
+  // CORS: Default to localhost for development security
+  // In production, explicitly pass allowed origins
+  const allowedOrigins = new Set(opts?.allowedOrigins ?? [
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'http://127.0.0.1:3000',
+  ]);
 
   const clients: Set<ServerResponse> = new Set();
 
@@ -24,12 +43,20 @@ export function startVoyeurWebServer(bus: VoyeurBus, opts?: { port?: number; pat
   bus.addSink(sink);
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+    // Validate and set CORS headers
+    const origin = req.headers.origin || '';
+    const corsHeaders: Record<string, string> = {};
+    if (origin && allowedOrigins.has(origin)) {
+      corsHeaders['Access-Control-Allow-Origin'] = origin;
+      corsHeaders['Access-Control-Allow-Credentials'] = 'true';
+    }
+
     if (req.url === streamPath) {
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
-        'Access-Control-Allow-Origin': '*'
+        ...corsHeaders
       });
       res.write('\n');
       clients.add(res);
@@ -71,13 +98,32 @@ function renderHtml(streamPath: string): string {
   <script>
     const log = document.getElementById('log');
     const evt = new EventSource('${streamPath}');
+
+    // Note: We use DOM APIs (createElement + textContent) which automatically
+    // escape HTML, making manual escaping unnecessary. This is the preferred
+    // approach as it's impossible to accidentally bypass.
+
     evt.onmessage = (e) => {
       const data = JSON.parse(e.data);
       const div = document.createElement('div');
       div.className = 'event';
-      div.innerHTML = '<span class="kind">' + data.kind + '</span>' +
-        '<span class="meta">' + (data.timestamp || '') + ' ' + (data.sourceInstance || '') + '</span>' +
-        '<pre style="margin:4px 0 0 0; white-space: pre-wrap;">' + JSON.stringify(data, null, 2) + '</pre>';
+
+      // Use DOM APIs instead of innerHTML to prevent XSS
+      const kindSpan = document.createElement('span');
+      kindSpan.className = 'kind';
+      kindSpan.textContent = data.kind || '';
+
+      const metaSpan = document.createElement('span');
+      metaSpan.className = 'meta';
+      metaSpan.textContent = (data.timestamp || '') + ' ' + (data.sourceInstance || '');
+
+      const pre = document.createElement('pre');
+      pre.style.cssText = 'margin:4px 0 0 0; white-space: pre-wrap;';
+      pre.textContent = JSON.stringify(data, null, 2);
+
+      div.appendChild(kindSpan);
+      div.appendChild(metaSpan);
+      div.appendChild(pre);
       log.prepend(div);
     };
   </script>

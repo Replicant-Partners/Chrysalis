@@ -508,7 +508,7 @@ function ChrysalisWorkspace() {
             autoConnect={true}
           />
         ) : (
-          <JSONCanvas />
+          <ReactFlowCanvas />
         )
       }
       right={<ChatPane pane="right" />}

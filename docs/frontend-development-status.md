@@ -113,7 +113,7 @@ Available types for flexible canvases:
 | Agent roster | ✅ | Navigation section |
 | Planning chat | ❌ | Next: Right pane split |
 | Action chat | ❌ | Next: Right pane split |
-| Canvas renderers | ❌ | Using JSONCanvas placeholder |
+| Canvas renderers | ✅ | Using React Flow (production-ready) |
 
 ### Current UI Structure
 
@@ -127,7 +127,7 @@ App
 │   │   └─ Agent Roster
 │   ├─ Canvas Workspace (CENTER)
 │   │   ├─ Canvas Title Header ✅ NEW
-│   │   └─ JSONCanvas (placeholder)
+│   │   └─ React Flow Canvas
 │   └─ ChatPane (RIGHT)
 │       └─ Single chat (needs split) ❌
 └─ VoyeurPane Modal

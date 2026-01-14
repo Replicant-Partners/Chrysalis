@@ -18,7 +18,7 @@ graph TD
     
     D --> E[Header]
     D --> F[ChatPane Left]
-    D --> G[JSONCanvas]
+    D --> G[ReactFlowCanvas]
     D --> H[ChatPane Right]
     D --> I[Footer]
     
@@ -59,9 +59,11 @@ src/components/
 │   ├── ChatMessage.tsx
 │   └── ChatInput.tsx
 │
-├── JSONCanvas/            # Canvas rendering
-│   ├── JSONCanvas.tsx
-│   ├── JSONCanvas.module.css
+├── ReactFlowCanvas/       # Canvas rendering
+│   ├── ReactFlowCanvas.tsx
+│   ├── ReactFlowCanvas.module.css
+│   ├── nodes/
+│   │   └── AgentNode.tsx
 │   ├── WidgetRenderer.tsx
 │   └── widgets/
 │       ├── MarkdownWidget.tsx
@@ -125,7 +127,7 @@ interface ThreeFrameLayoutProps {
 
 **Examples:**
 - `ChatPane` - Chat functionality
-- `JSONCanvas` - Canvas rendering
+- `ReactFlowCanvas` - Canvas rendering
 - `WalletModal` - API key management
 
 **Characteristics:**
@@ -196,13 +198,13 @@ interface ButtonProps {
 - Receive data via props
 - Render specific content types
 - Support canvas interactions
-- Follow JSONCanvas protocol
+- Follow React Flow patterns
 
 **Example:**
 ```tsx
 interface WidgetProps {
   nodeId: string;
-  data: JSONCanvasNodeData;
+  data: ReactFlowNodeData;
   width: number;
   height: number;
   onResize?: (width: number, height: number) => void;

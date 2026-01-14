@@ -12,11 +12,14 @@ import (
 type mockProvider struct{ llm.MockProvider }
 
 func TestCORS(t *testing.T) {
-	s := New(mockProvider{}, "", 0, 0)
+	// Test with explicitly allowed origin
+	allowedOrigins := []string{"http://localhost:3000"}
+	s := New(mockProvider{}, "", 0, 0, allowedOrigins)
 	mux := http.NewServeMux()
 	s.RegisterRoutes(mux)
 
 	req := httptest.NewRequest(http.MethodOptions, "/v1/chat", nil)
+	req.Header.Set("Origin", "http://localhost:3000")
 	w := httptest.NewRecorder()
 
 	mux.ServeHTTP(w, req)
@@ -24,13 +27,30 @@ func TestCORS(t *testing.T) {
 	if status := w.Result().StatusCode; status != http.StatusNoContent {
 		t.Fatalf("expected 204 for OPTIONS, got %d", status)
 	}
-	if allow := w.Header().Get("Access-Control-Allow-Origin"); allow != "*" {
-		t.Fatalf("expected wildcard CORS, got %s", allow)
+	if allow := w.Header().Get("Access-Control-Allow-Origin"); allow != "http://localhost:3000" {
+		t.Fatalf("expected 'http://localhost:3000' CORS, got %s", allow)
+	}
+}
+
+func TestCORSBlocksUnknownOrigin(t *testing.T) {
+	allowedOrigins := []string{"http://localhost:3000"}
+	s := New(mockProvider{}, "", 0, 0, allowedOrigins)
+	mux := http.NewServeMux()
+	s.RegisterRoutes(mux)
+
+	req := httptest.NewRequest(http.MethodOptions, "/v1/chat", nil)
+	req.Header.Set("Origin", "http://evil.com")
+	w := httptest.NewRecorder()
+
+	mux.ServeHTTP(w, req)
+
+	if allow := w.Header().Get("Access-Control-Allow-Origin"); allow != "" {
+		t.Fatalf("expected no CORS header for unknown origin, got %s", allow)
 	}
 }
 
 func TestChatBadRequest(t *testing.T) {
-	s := New(mockProvider{}, "", 0, 0)
+	s := New(mockProvider{}, "", 0, 0, nil)
 	mux := http.NewServeMux()
 	s.RegisterRoutes(mux)
 
@@ -44,7 +64,7 @@ func TestChatBadRequest(t *testing.T) {
 }
 
 func TestRateLimit(t *testing.T) {
-	s := New(mockProvider{}, "", 1, 1)
+	s := New(mockProvider{}, "", 1, 1, nil)
 	mux := http.NewServeMux()
 	s.RegisterRoutes(mux)
 

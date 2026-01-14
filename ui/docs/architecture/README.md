@@ -35,7 +35,7 @@ State management architecture using Zustand and YJS.
 ---
 
 ### [CANVAS_SYSTEM.md](./CANVAS_SYSTEM.md)  
-Canvas architecture and JSONCanvas implementation.
+Canvas architecture and React Flow implementation.
 
 **Topics:**
 - Canvas types and templates
@@ -73,7 +73,7 @@ Canvas architecture and JSONCanvas implementation.
 - [y-websocket](https://github.com/yjs/y-websocket) - WebSocket provider
 
 ### Canvas Protocol
-- [JSONCanvas Specification](https://jsoncanvas.org/) - Official spec
+- [React Flow Documentation](https://reactflow.dev/) - Official docs
 - [Infinite Canvas](https://infinitecanvas.tools/) - Infinite canvas patterns
 
 ---

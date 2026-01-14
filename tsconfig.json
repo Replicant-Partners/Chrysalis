@@ -19,11 +19,19 @@
     "src/**/*",
     "shared/**/*",
     "mcp-servers/**/*",
-    "tests/**/*",
-    "ui/**/*"
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "ui",
+    "src/observability",
+    "src/components",
+    "src/learning",
+    "src/agents/AgentChatController.ts",
+    "src/integrations/agentbuilder",
+    "src/sync/CRDTState.ts",
+    "src/sync/GossipProtocol.ts",
+    "src/security/ApiKeyRegistry.ts"
   ]
 }

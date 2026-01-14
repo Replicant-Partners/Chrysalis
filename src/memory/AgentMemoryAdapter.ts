@@ -98,12 +98,13 @@ export class AgentMemoryAdapter {
 
   private incrementClock(): LogicalTime {
     this.state.lamportClock += 1;
-    return this.state.lamportClock;
+    return { lamport: this.state.lamportClock };
   }
 
   private fingerprint(content: string): MemoryFingerprint {
     const hash = createHash('sha384').update(content).digest('hex');
     return {
+      hash: hash,
       fingerprint: hash,
       algorithm: 'sha384',
       contentHash: hash,
@@ -140,7 +141,7 @@ export class AgentMemoryAdapter {
     const memory: WorkingMemory = {
       ...base,
       tier: 'working',
-      expiresAt: Date.now() + this.config.workingMemoryTTL
+      expiresAt: Date.now() + (this.config.workingMemoryTTL ?? 3600000)
     };
     this.state.workingMemories.push(memory);
     this.state.totalMemories += 1;
@@ -354,6 +355,8 @@ export class AgentMemoryAdapter {
   private memoryEvent(memory: Memory): MemoryEvent {
     return {
       type: 'memory:added',
+      memoryId: memory.id,
+      tier: memory.tier || 'working',
       memory,
       timestamp: Date.now(),
       instanceId: this.state.instanceId

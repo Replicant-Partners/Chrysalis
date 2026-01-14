@@ -52,7 +52,7 @@ ui/
 │   ├── components/       # React components
 │   │   ├── design-system/  # Reusable UI components
 │   │   ├── ChatPane/       # Agent/Human chat interface
-│   │   ├── JSONCanvas/     # Center canvas for visualization
+│   │   ├── ReactFlowCanvas/  # Center canvas for visualization (React Flow)
 │   │   ├── VoyeurPane/     # Observability event viewer
 │   │   └── Wallet/         # Encrypted wallet UI
 │   ├── contexts/         # React contexts
@@ -79,7 +79,7 @@ App (WalletProvider + VoyeurProvider)
   ├─ Header (status, Voyeur toggle)
   ├─ ThreeFrameLayout
   │   ├─ ChatPane (Agent) - Left
-  │   ├─ JSONCanvas (Center)
+  │   ├─ ReactFlowCanvas (Center)
   │   ├─ ChatPane (Human) - Right
   │   └─ Footer
   └─ VoyeurPane Modal (conditional)

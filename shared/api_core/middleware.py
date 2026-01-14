@@ -163,16 +163,50 @@ def create_response_headers_middleware(app, api_version: str = "v1"):
         return response
 
 
-def create_cors_middleware(app):
-    """Create CORS middleware."""
+def create_cors_middleware(app, allowed_origins: Optional[list] = None):
+    """
+    Create CORS middleware with configurable origins.
+
+    Args:
+        app: Flask application
+        allowed_origins: List of allowed origins. If None or empty, reads from
+                        CORS_ALLOWED_ORIGINS environment variable. If that's also
+                        not set, defaults to localhost only in development.
+
+    Security Note:
+        NEVER use "*" (wildcard) in production. Always specify explicit origins.
+        The wildcard origin is only acceptable for local development.
+    """
+    import os
+
     if not FLASK_AVAILABLE:
         raise RuntimeError("Flask required for CORS middleware. Install Flask.")
+
+    # Determine allowed origins from config or environment
+    if not allowed_origins:
+        env_origins = os.environ.get("CORS_ALLOWED_ORIGINS", "")
+        if env_origins:
+            allowed_origins = [o.strip() for o in env_origins.split(",") if o.strip()]
+        else:
+            # Default to localhost for development safety
+            # Production deployments MUST set CORS_ALLOWED_ORIGINS
+            is_production = os.environ.get("FLASK_ENV") == "production" or \
+                           os.environ.get("NODE_ENV") == "production"
+            if is_production:
+                logger.warning(
+                    "CORS_ALLOWED_ORIGINS not set in production. "
+                    "Defaulting to empty (blocking all cross-origin requests). "
+                    "Set CORS_ALLOWED_ORIGINS environment variable."
+                )
+                allowed_origins = []
+            else:
+                allowed_origins = ["http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000"]
 
     try:
         from flask_cors import CORS
         CORS(app, resources={
             r"/api/*": {
-                "origins": "*",  # Configure appropriately for production
+                "origins": allowed_origins if allowed_origins else [],
                 "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
                 "allow_headers": ["Content-Type", "Authorization", "X-Request-ID", "X-Client-Version"],
             }
@@ -182,9 +216,12 @@ def create_cors_middleware(app):
         @app.after_request
         def add_cors_headers(response):
             """Add CORS headers to response."""
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Request-ID, X-Client-Version"
+            from flask import request
+            origin = request.headers.get("Origin", "")
+            if origin in allowed_origins:
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+                response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Request-ID, X-Client-Version"
             return response
 
 
@@ -236,7 +273,7 @@ def create_all_middleware(
 
     create_cors_middleware(app)
     create_response_headers_middleware(app, api_version=api_version)
-    
+
     # Health checks and metrics (optional, at end)
     try:
         from .monitoring import create_health_check_middleware, create_metrics_middleware
@@ -245,7 +282,7 @@ def create_all_middleware(
     except (ImportError, RuntimeError):
         # Monitoring not available or Flask not installed
         pass
-    
+
     # Security headers (should be after all other middleware)
     try:
         from .security_headers import create_security_headers_middleware, SecurityHeadersConfig
