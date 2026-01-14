@@ -1,6 +1,3 @@
-// @ts-nocheck
-// TODO: Install OpenTelemetry dependencies to enable this module
-// npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node etc.
 /**
  * Chrysalis Observability Module
  * 
@@ -29,9 +26,9 @@ import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { Resource } from '@opentelemetry/resources';
 import { 
-  ATTR_SERVICE_NAME,
-  ATTR_SERVICE_VERSION,
-  ATTR_DEPLOYMENT_ENVIRONMENT 
+  SEMRESATTRS_SERVICE_NAME,
+  SEMRESATTRS_SERVICE_VERSION,
+  SEMRESATTRS_DEPLOYMENT_ENVIRONMENT 
 } from '@opentelemetry/semantic-conventions';
 import {
   trace as otelTrace,
@@ -117,15 +114,15 @@ export async function initTelemetry(config?: Partial<TelemetryConfig>): Promise<
   
   const telemetryConfig: TelemetryConfig = {
     serviceName: config?.serviceName ?? process.env.OTEL_SERVICE_NAME ?? 'chrysalis-unknown',
-    serviceVersion: config?.serviceVersion ?? appConfig.app.version ?? '0.0.0',
-    environment: config?.environment ?? appConfig.env,
+    serviceVersion: config?.serviceVersion ?? '0.0.0',
+    environment: config?.environment ?? appConfig.environment.nodeEnv,
     otlpEndpoint: config?.otlpEndpoint ?? 
       process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 
       appConfig.observability.otlpEndpoint,
     metricsPort: config?.metricsPort ?? 
       parseInt(process.env.CHRYSALIS_METRICS_PORT ?? '9090', 10),
     enableAutoInstrumentation: config?.enableAutoInstrumentation ?? true,
-    enableConsoleExporter: config?.enableConsoleExporter ?? appConfig.debug,
+    enableConsoleExporter: config?.enableConsoleExporter ?? appConfig.environment.debug,
   };
 
   // Skip if observability is disabled
@@ -136,9 +133,9 @@ export async function initTelemetry(config?: Partial<TelemetryConfig>): Promise<
   }
 
   const resource = new Resource({
-    [ATTR_SERVICE_NAME]: telemetryConfig.serviceName,
-    [ATTR_SERVICE_VERSION]: telemetryConfig.serviceVersion,
-    [ATTR_DEPLOYMENT_ENVIRONMENT]: telemetryConfig.environment,
+    [SEMRESATTRS_SERVICE_NAME]: telemetryConfig.serviceName,
+    [SEMRESATTRS_SERVICE_VERSION]: telemetryConfig.serviceVersion,
+    [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: telemetryConfig.environment,
     'chrysalis.component': telemetryConfig.serviceName.replace('chrysalis-', ''),
   });
 
@@ -432,31 +429,74 @@ export interface LogContext {
 }
 
 /**
- * Structured logger with OpenTelemetry context propagation.
+ * Logger interface for typed usage
  */
-export const logger = {
-  debug(message: string, context?: LogContext): void {
-    logMessage('debug', message, context);
-  },
-  
-  info(message: string, context?: LogContext): void {
-    logMessage('info', message, context);
-  },
-  
-  warn(message: string, context?: LogContext): void {
-    logMessage('warn', message, context);
-  },
-  
-  error(message: string, error?: Error, context?: LogContext): void {
-    const errorContext = error ? {
-      ...context,
-      error_message: error.message,
-      error_name: error.name,
-      error_stack: error.stack?.split('\n')[0],
-    } : context;
-    logMessage('error', message, errorContext);
-  },
-};
+export interface Logger {
+  debug(message: string, context?: LogContext): void;
+  info(message: string, context?: LogContext): void;
+  warn(message: string, context?: LogContext): void;
+  error(message: string, error?: Error, context?: LogContext): void;
+}
+
+/**
+ * Create a scoped logger with component context
+ */
+function createScopedLogger(component: string): Logger {
+  return {
+    debug(message: string, context?: LogContext): void {
+      logMessage('debug', message, { ...context, component });
+    },
+    info(message: string, context?: LogContext): void {
+      logMessage('info', message, { ...context, component });
+    },
+    warn(message: string, context?: LogContext): void {
+      logMessage('warn', message, { ...context, component });
+    },
+    error(message: string, error?: Error, context?: LogContext): void {
+      const errorContext = error ? {
+        ...context,
+        component,
+        error_message: error.message,
+        error_name: error.name,
+        error_stack: error.stack?.split('\n')[0],
+      } : { ...context, component };
+      logMessage('error', message, errorContext);
+    },
+  };
+}
+
+/**
+ * Structured logger with OpenTelemetry context propagation.
+ * Can be used directly or called as a factory to create scoped loggers.
+ */
+export const logger = Object.assign(
+  // Factory function: logger('component-name') returns a scoped logger
+  (component: string): Logger => createScopedLogger(component),
+  // Direct methods for global logging
+  {
+    debug(message: string, context?: LogContext): void {
+      logMessage('debug', message, context);
+    },
+    
+    info(message: string, context?: LogContext): void {
+      logMessage('info', message, context);
+    },
+    
+    warn(message: string, context?: LogContext): void {
+      logMessage('warn', message, context);
+    },
+    
+    error(message: string, error?: Error, context?: LogContext): void {
+      const errorContext = error ? {
+        ...context,
+        error_message: error.message,
+        error_name: error.name,
+        error_stack: error.stack?.split('\n')[0],
+      } : context;
+      logMessage('error', message, errorContext);
+    },
+  }
+);
 
 function logMessage(level: LogLevel, message: string, context?: LogContext): void {
   const activeSpan = otelTrace.getActiveSpan();

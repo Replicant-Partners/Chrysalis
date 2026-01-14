@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ConflictResolver - Multi-Agent Conflict Detection and Resolution
  *

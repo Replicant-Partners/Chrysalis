@@ -216,3 +216,135 @@ export function isSkillMastered(
 ): boolean {
   return proficiency >= masterThreshold;
 }
+
+/**
+ * Validation vote structure (aligned with Python)
+ */
+export interface ValidationVote {
+  instance_id: string;
+  confidence: number;
+  timestamp: number;
+  signature?: Uint8Array;
+}
+
+/**
+ * Byzantine validation result
+ */
+export interface ByzantineValidation {
+  verified_by: string[];
+  confidence_scores: number[];
+  trimmed_mean: number;
+  median: number;
+  threshold_met: boolean;
+  required_votes: number;
+}
+
+/**
+ * Calculate >2/3 threshold for Byzantine tolerance
+ * 
+ * Byzantine agreement theory proves:
+ * - Need >2/3 honest to reach consensus
+ * - Can tolerate up to 1/3 Byzantine (malicious) nodes
+ */
+export function calculateThreshold(totalInstances: number): number {
+  return Math.floor((2 * totalInstances) / 3) + 1;
+}
+
+/**
+ * Validate memory/knowledge with Byzantine resistance
+ * 
+ * Process:
+ * 1. Check >2/3 threshold
+ * 2. Calculate trimmed mean (removes Byzantine outliers)
+ * 3. Calculate median (robust measure)
+ * 4. Determine if meets validation criteria
+ */
+export function validateWithByzantineResistance(
+  votes: ValidationVote[],
+  totalInstances: number
+): ByzantineValidation {
+  const threshold = calculateThreshold(totalInstances);
+  const confidenceScores = votes.map(v => v.confidence);
+  const verifiedBy = votes.map(v => v.instance_id);
+  
+  const trimmedMeanValue = trimmedMean(confidenceScores);
+  const medianValue = median(confidenceScores);
+  const meetsThreshold = votes.length >= threshold;
+  
+  return {
+    verified_by: verifiedBy,
+    confidence_scores: confidenceScores,
+    trimmed_mean: trimmedMeanValue,
+    median: medianValue,
+    threshold_met: meetsThreshold,
+    required_votes: threshold
+  };
+}
+
+/**
+ * Detect potential Byzantine nodes based on voting patterns
+ * 
+ * Byzantine nodes may:
+ * - Always vote 0.0 or 1.0 (extremes)
+ * - Vote outside expected range
+ */
+export function detectByzantineNodes(
+  votes: ValidationVote[],
+  expectedRange: { min: number; max: number } = { min: 0.3, max: 1.0 }
+): Set<string> {
+  const suspicious = new Set<string>();
+  
+  for (const vote of votes) {
+    if (vote.confidence < expectedRange.min || vote.confidence > expectedRange.max) {
+      suspicious.add(vote.instance_id);
+    }
+  }
+  
+  return suspicious;
+}
+
+/**
+ * Calculate weighted confidence (for trusted instances)
+ * 
+ * Some instances may be more trustworthy than others.
+ * Use with caution: can centralize if weights are unfair.
+ */
+export function weightedConfidence(
+  votes: ValidationVote[],
+  instanceWeights: Map<string, number>
+): number {
+  if (votes.length === 0) return 0;
+  
+  let weightedSum = 0;
+  let weightTotal = 0;
+  
+  for (const vote of votes) {
+    const weight = instanceWeights.get(vote.instance_id) ?? 1.0;
+    weightedSum += vote.confidence * weight;
+    weightTotal += weight;
+  }
+  
+  return weightTotal > 0 ? weightedSum / weightTotal : 0;
+}
+
+/**
+ * Aggregate knowledge confidence using Byzantine-resistant methods
+ */
+export function aggregateKnowledgeConfidence(
+  sourceConfidences: Map<string, number>,
+  totalInstances: number
+): { trimmedMean: number; median: number; meetsThreshold: boolean } {
+  if (sourceConfidences.size === 0) {
+    return { trimmedMean: 0, median: 0, meetsThreshold: false };
+  }
+  
+  const threshold = calculateThreshold(totalInstances);
+  const meetsThreshold = sourceConfidences.size >= threshold;
+  const scores = Array.from(sourceConfidences.values());
+  
+  return {
+    trimmedMean: trimmedMean(scores),
+    median: median(scores),
+    meetsThreshold
+  };
+}

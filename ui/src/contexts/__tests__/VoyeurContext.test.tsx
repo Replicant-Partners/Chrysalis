@@ -8,7 +8,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { VoyeurProvider, useVoyeurEvents } from '../VoyeurContext';
 import { MockEventSource } from '../../test/test-utils';
-import type { VoyeurEvent } from '../../utils/VoyeurBusClient';
 
 // Mock VoyeurBusClient
 vi.mock('../../utils/VoyeurBusClient', () => {

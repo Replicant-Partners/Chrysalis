@@ -1,6 +1,6 @@
 /**
  * WalletCrypto Tests
- * 
+ *
  * Unit tests for production-grade encryption utilities
  */
 
@@ -15,21 +15,21 @@ describe('WalletCrypto', () => {
     vi.stubGlobal('crypto', mockCrypto);
   });
 
-  describe('isAvailable', () => {
+  describe('isSupported', () => {
     it('should return true when Web Crypto API is available', () => {
-      expect(WalletCrypto.isAvailable()).toBe(true);
+      expect(WalletCrypto.isSupported()).toBe(true);
     });
 
     it('should return false when Web Crypto API is missing', () => {
       vi.stubGlobal('crypto', undefined);
-      expect(WalletCrypto.isAvailable()).toBe(false);
+      expect(WalletCrypto.isSupported()).toBe(false);
     });
   });
 
   describe('Password Validation', () => {
     it('should reject passwords shorter than minimum length', () => {
-      const result = WalletCrypto.validatePassword('short');
-      
+      const result = WalletCrypto.validatePasswordStrength('short');
+
       expect(result.isValid).toBe(false);
       expect(result.score).toBeLessThan(50);
       expect(result.feedback).toContain('Password must be at least 12 characters');
@@ -37,33 +37,33 @@ describe('WalletCrypto', () => {
 
     it('should reject passwords longer than maximum length', () => {
       const longPassword = 'a'.repeat(200);
-      const result = WalletCrypto.validatePassword(longPassword);
-      
+      const result = WalletCrypto.validatePasswordStrength(longPassword);
+
       expect(result.isValid).toBe(false);
       expect(result.feedback).toContain('Password must not exceed 128 characters');
     });
 
     it('should accept strong passwords', () => {
-      const result = WalletCrypto.validatePassword('MyStr0ng!P@ssw0rd123');
-      
+      const result = WalletCrypto.validatePasswordStrength('MyStr0ng!P@ssw0rd123');
+
       expect(result.isValid).toBe(true);
       expect(result.score).toBeGreaterThanOrEqual(75);
     });
 
     it('should score passwords based on complexity', () => {
-      const weak = WalletCrypto.validatePassword('aaaaaaaaaaaaaa');
-      const medium = WalletCrypto.validatePassword('Password12345');
-      const strong = WalletCrypto.validatePassword('P@ssw0rd!2024#Str0ng');
+      const weak = WalletCrypto.validatePasswordStrength('aaaaaaaaaaaaaa');
+      const medium = WalletCrypto.validatePasswordStrength('Password12345');
+      const strong = WalletCrypto.validatePasswordStrength('P@ssw0rd!2024#Str0ng');
 
       expect(weak.score).toBeLessThan(medium.score);
       expect(medium.score).toBeLessThan(strong.score);
     });
 
     it('should provide feedback for password improvements', () => {
-      const result = WalletCrypto.validatePassword('passwordpassword');
-      
+      const result = WalletCrypto.validatePasswordStrength('passwordpassword');
+
       expect(result.feedback.length).toBeGreaterThan(0);
-      expect(result.feedback.some(f => f.includes('uppercase') || f.includes('number') || f.includes('special'))).toBe(true);
+      expect(result.feedback.some((f: string) => f.includes('uppercase') || f.includes('number') || f.includes('special'))).toBe(true);
     });
   });
 
@@ -74,7 +74,7 @@ describe('WalletCrypto', () => {
 
       const mockEncrypted = new Uint8Array([1, 2, 3, 4]);
       const mockKey = {} as CryptoKey;
-      
+
       vi.mocked(crypto.subtle.deriveKey).mockResolvedValue(mockKey);
       vi.mocked(crypto.subtle.encrypt).mockResolvedValue(mockEncrypted.buffer);
 
@@ -95,7 +95,7 @@ describe('WalletCrypto', () => {
 
       const mockDecrypted = new TextEncoder().encode(plaintext);
       const mockKey = {} as CryptoKey;
-      
+
       vi.mocked(crypto.subtle.deriveKey).mockResolvedValue(mockKey);
       vi.mocked(crypto.subtle.decrypt).mockResolvedValue(mockDecrypted.buffer);
 
@@ -115,7 +115,6 @@ describe('WalletCrypto', () => {
     });
 
     it('should throw error on decryption with wrong password', async () => {
-      const password = 'CorrectPassword123!';
       const wrongPassword = 'WrongPassword123!';
 
       vi.mocked(crypto.subtle.decrypt).mockRejectedValue(new Error('Decryption failed'));
@@ -180,7 +179,7 @@ describe('WalletCrypto', () => {
       vi.mocked(crypto.subtle.encrypt).mockResolvedValue(new Uint8Array([]).buffer);
 
       const encrypted = await WalletCrypto.encrypt('', 'Password123!');
-      
+
       expect(encrypted).toBeDefined();
       expect(encrypted.ciphertext).toBeDefined();
     });
@@ -191,12 +190,12 @@ describe('WalletCrypto', () => {
 
       const mockKey = {} as CryptoKey;
       const mockEncrypted = new TextEncoder().encode(plaintext);
-      
+
       vi.mocked(crypto.subtle.deriveKey).mockResolvedValue(mockKey);
       vi.mocked(crypto.subtle.encrypt).mockResolvedValue(mockEncrypted.buffer);
 
       const encrypted = await WalletCrypto.encrypt(plaintext, password);
-      
+
       expect(encrypted).toBeDefined();
     });
 

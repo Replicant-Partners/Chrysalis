@@ -10,6 +10,7 @@ import { ThreeFrameLayout } from './components/ThreeFrameLayout/ThreeFrameLayout
 import { CanvasNavigator, type CanvasTab, type Agent, type CanvasType } from './components/CanvasNavigator';
 import { ChatPane } from './components/ChatPane/ChatPane';
 import { ReactFlowCanvas } from './components/ReactFlowCanvas';
+import { SettingsCanvas } from './components/SettingsCanvas';
 import { WalletModal } from './components/Wallet';
 import { WalletProvider } from './contexts/WalletContext';
 import { VoyeurProvider } from './contexts/VoyeurContext';
@@ -250,34 +251,42 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
           flexDirection: 'column',
           background: 'var(--color-slate-900)'
         }}>
-          <div style={{ 
-            padding: 'var(--space-4)', 
-            borderBottom: '1px solid var(--color-slate-800)',
-            background: 'var(--color-slate-850)'
-          }}>
-            <h2 style={{ 
-              margin: 0, 
-              fontSize: 'var(--font-size-lg)',
-              fontWeight: 'var(--font-weight-semibold)',
-              color: 'var(--color-text-primary)'
-            }}>
-              {activeCanvas?.type === 'settings' ? '⚙️ ' : ''}{activeCanvas?.title}
-              <span style={{ 
-                marginLeft: 'var(--space-3)',
-                fontSize: 'var(--font-size-sm)',
-                color: 'var(--color-text-tertiary)',
-                fontWeight: 'var(--font-weight-normal)'
-              }}>
-                {activeCanvas?.type}
-              </span>
-            </h2>
-          </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <ReactFlowCanvas
-              onViewportChange={handleViewportChange}
-              onNodeSelect={setSelectedNodeId}
-              selectedNodeId={selectedNodeId}
-            />
+            {activeCanvas?.type === 'settings' ? (
+              <SettingsCanvas />
+            ) : (
+              <>
+                <div style={{ 
+                  padding: 'var(--space-4)', 
+                  borderBottom: '1px solid var(--color-slate-800)',
+                  background: 'var(--color-slate-850)'
+                }}>
+                  <h2 style={{ 
+                    margin: 0, 
+                    fontSize: 'var(--font-size-lg)',
+                    fontWeight: 'var(--font-weight-semibold)',
+                    color: 'var(--color-text-primary)'
+                  }}>
+                    {activeCanvas?.title}
+                    <span style={{ 
+                      marginLeft: 'var(--space-3)',
+                      fontSize: 'var(--font-size-sm)',
+                      color: 'var(--color-text-tertiary)',
+                      fontWeight: 'var(--font-weight-normal)'
+                    }}>
+                      {activeCanvas?.type}
+                    </span>
+                  </h2>
+                </div>
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <ReactFlowCanvas
+                    onViewportChange={handleViewportChange}
+                    onNodeSelect={setSelectedNodeId}
+                    selectedNodeId={selectedNodeId}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       }

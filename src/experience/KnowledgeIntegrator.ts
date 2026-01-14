@@ -6,6 +6,7 @@
  */
 
 import type { UniformSemanticAgentV2 } from '../core/UniformSemanticAgentV2';
+import { logger } from '../observability';
 import * as crypto from 'crypto';
 
 /**
@@ -31,6 +32,16 @@ export interface KnowledgeEntry {
 }
 
 /**
+ * Input data for knowledge integration (relaxed typing for external data)
+ */
+export interface KnowledgeInput {
+  content: string;
+  confidence: number;
+  source?: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
  * Knowledge Integrator
  */
 export class KnowledgeIntegrator {
@@ -41,7 +52,7 @@ export class KnowledgeIntegrator {
    */
   async addKnowledge(
     agent: UniformSemanticAgentV2,
-    knowledgeData: any,
+    knowledgeData: KnowledgeInput,
     sourceInstance: string
   ): Promise<void> {
     // Initialize accumulated_knowledge if not exists
@@ -51,7 +62,11 @@ export class KnowledgeIntegrator {
     
     // Check confidence threshold
     if (knowledgeData.confidence < this.verificationThreshold) {
-      console.log(`  ⚠ Knowledge confidence too low: ${knowledgeData.confidence}`);
+      logger.debug('Knowledge rejected: confidence too low', { 
+        confidence: knowledgeData.confidence, 
+        threshold: this.verificationThreshold,
+        source: sourceInstance
+      });
       return;
     }
     
@@ -67,7 +82,12 @@ export class KnowledgeIntegrator {
         1.0,
         duplicate.confidence + 0.1
       );
-      console.log(`  → Knowledge verified: "${duplicate.content.substring(0, 50)}..." (count: ${duplicate.verification_count})`);
+      logger.debug('Knowledge verified', { 
+        knowledge_id: duplicate.knowledge_id,
+        content_preview: duplicate.content.substring(0, 50),
+        verification_count: duplicate.verification_count,
+        confidence: duplicate.confidence
+      });
     } else {
       // Add new knowledge
       const knowledge: KnowledgeEntry = {
@@ -82,7 +102,12 @@ export class KnowledgeIntegrator {
       
       agent.knowledge.accumulated_knowledge.push(knowledge);
       
-      console.log(`  → Knowledge added: "${knowledge.content.substring(0, 50)}..."`);
+      logger.debug('Knowledge added', { 
+        knowledge_id: knowledge.knowledge_id,
+        content_preview: knowledge.content.substring(0, 50),
+        confidence: knowledge.confidence,
+        source: sourceInstance
+      });
     }
   }
   
@@ -91,7 +116,7 @@ export class KnowledgeIntegrator {
    */
   async integrate(
     agent: UniformSemanticAgentV2,
-    knowledgeItems: any[],
+    knowledgeItems: KnowledgeInput[],
     sourceInstance: string
   ): Promise<KnowledgeIntegrationResult> {
     const result: KnowledgeIntegrationResult = {
@@ -158,7 +183,12 @@ export class KnowledgeIntegrator {
       knowledge.verification_count++;
       knowledge.confidence = Math.min(1.0, knowledge.confidence + 0.1);
       
-      console.log(`  → Knowledge verification increased: ${knowledge.verification_count}x`);
+      logger.debug('Knowledge verification increased', { 
+        knowledge_id: knowledgeId,
+        verification_count: knowledge.verification_count,
+        confidence: knowledge.confidence,
+        source: additionalSource
+      });
     }
   }
 }

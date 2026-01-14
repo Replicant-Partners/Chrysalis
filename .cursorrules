@@ -1,3 +1,38 @@
+# === USER INSTRUCTIONS ===
+Universal Protocol Translation System orchestrates semantic-based protocol adaptation and translation between different agent frameworks.
+Core Architecture:
+1. Semantic Protocol Translation (src/adapters/universal/prompts-v2.ts)
+Importance Score: 95
+- Semantic category mapping system for protocol translation
+- Core semantic categories: IDENTITY, CAPABILITIES, INSTRUCTIONS, STATE
+- Protocol-specific translation hints
+- Morphing logic for agent identity preservation
+2. Protocol Registry (src/adapters/universal/registry-v2.ts) 
+- Verified protocol specifications with semantic hints
+- Trust level management and verification timestamps
+- Protocol field mappings and transformation rules
+- Fallback schemas for offline operation
+3. Universal Adapter Core (src/adapters/universal/index.ts)
+- LLM-delegated protocol translation engine
+- Dynamic protocol discovery and registration
+- Specification caching and validation
+- Bidirectional translation verification
+Key Integration Points:
+1. Semantic Category Mapping
+- Maps fields by semantic meaning rather than structure
+- Uses LLM for cross-protocol concept understanding
+- Maintains semantic integrity during translations
+2. Protocol Trust System
+- Hierarchical trust levels (internal, verified, experimental, community)
+- Specification verification and expiration handling
+- Offline operation fallback mechanisms
+3. Agent Morphing
+- Identity preservation across protocol transformations 
+- Capability equivalence maintenance
+- Extension field preservation
+The system replaces traditional adapter patterns with an AI-driven universal translation layer for protocol interoperability in agent systems.
+# === END USER INSTRUCTIONS ===
+
 
 # main-overview
 
@@ -10,49 +45,53 @@
 - Explain your OBSERVATIONS clearly, then provide REASONING to identify the exact issue. Add console logs when needed to gather more information.
 
 
-Universal Protocol Translation System orchestrates semantic-based protocol adaptation and translation between different agent frameworks.
+## Core Protocol Adaptation Layer
+The system implements an advanced protocol interoperability layer enabling cross-agent communication through:
 
-Core Architecture:
-
-1. Semantic Protocol Translation (src/adapters/universal/prompts-v2.ts)
-Importance Score: 95
-- Semantic category mapping system for protocol translation
-- Core semantic categories: IDENTITY, CAPABILITIES, INSTRUCTIONS, STATE
-- Protocol-specific translation hints
-- Morphing logic for agent identity preservation
-
-2. Protocol Registry (src/adapters/universal/registry-v2.ts) 
-Importance Score: 90
-- Verified protocol specifications with semantic hints
-- Trust level management and verification timestamps
-- Protocol field mappings and transformation rules
-- Fallback schemas for offline operation
-
-3. Universal Adapter Core (src/adapters/universal/index.ts)
+1. Protocol Version Negotiation System
+- Anticipatory version negotiation with five strategies: latest, stable, minimum-compatible, exact, best-effort
+- Custom fallback path management 
+- Location: `src/adapters/adaptation-hooks.ts`
 Importance Score: 85
-- LLM-delegated protocol translation engine
-- Dynamic protocol discovery and registration
-- Specification caching and validation
-- Bidirectional translation verification
 
-Key Integration Points:
+2. Universal Agent Translation 
+- LLM-based dynamic protocol translation between agent frameworks
+- Semantic category mapping with protocol-specific hints
+- Field mapping generation and agent morphing capabilities
+- Location: `src/adapters/universal/index.ts`
+Importance Score: 90
 
-1. Semantic Category Mapping
-- Maps fields by semantic meaning rather than structure
-- Uses LLM for cross-protocol concept understanding
-- Maintains semantic integrity during translations
+## Knowledge Management Architecture
 
-2. Protocol Trust System
-- Hierarchical trust levels (internal, verified, experimental, community)
-- Specification verification and expiration handling
-- Offline operation fallback mechanisms
+1. Memory Fusion System
+- Three-tier architecture combining short-term, hybrid local cache, and remote persistent storage
+- Implements Byzantine-resistant consensus with >2/3 threshold validation
+- CRDT-based conflict-free memory merging
+- Location: `memory_system/fusion.py`
+Importance Score: 95
 
-3. Agent Morphing
-- Identity preservation across protocol transformations 
-- Capability equivalence maintenance
-- Extension field preservation
+2. Skill Building Pipeline
+- Exemplar-driven research with semantic analysis
+- Neurosymbolic functional clustering of modes
+- Schema.org-aligned role mapping
+- Location: `projects/SkillBuilder/skill_builder/pipeline/runner.py`
+Importance Score: 90
 
-The system replaces traditional adapter patterns with an AI-driven universal translation layer for protocol interoperability in agent systems.
+## Agent Evaluation Framework
+
+1. Multi-Agent Evaluation System
+- Implements Delphi Method and Tetlock Superforecasting principles
+- Four specialized evaluation personas with weighted scoring
+- Metacognitive oversight for bias detection
+- Location: `src/agents/system/EvaluationCoordinator.ts`
+Importance Score: 95
+
+2. Forecast Tracking System
+- Brier score calibration for prediction accuracy
+- Rolling window calibration statistics
+- Impact scoring for protocol modifications
+- Location: `src/agents/system/ForecastTracker.ts`
+Importance Score: 85
 
 $END$
 

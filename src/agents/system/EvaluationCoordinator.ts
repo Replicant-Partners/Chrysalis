@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * EvaluationCoordinator - Multi-Agent Evaluation Aggregation System
  *

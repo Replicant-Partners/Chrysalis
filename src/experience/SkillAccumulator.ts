@@ -6,6 +6,7 @@
  */
 
 import type { UniformSemanticAgentV2, Skill } from '../core/UniformSemanticAgentV2';
+import { logger } from '../observability';
 import * as crypto from 'crypto';
 
 /**
@@ -122,7 +123,12 @@ export class SkillAccumulator {
     
     agent.capabilities.learned_skills!.push(skill);
     
-    console.log(`  → Skill added: ${skill.name} (proficiency: ${skill.proficiency.toFixed(2)})`);
+    logger.debug('Skill added', { 
+      skill_id: skill.skill_id,
+      name: skill.name, 
+      proficiency: skill.proficiency,
+      source: sourceInstance
+    });
   }
   
   /**
@@ -164,7 +170,13 @@ export class SkillAccumulator {
       existing.source_instances.push(sourceInstance);
     }
     
-    console.log(`  → Skill updated: ${existing.name} (proficiency: ${existing.proficiency.toFixed(2)})`);
+    logger.debug('Skill updated', { 
+      skill_id: existing.skill_id,
+      name: existing.name, 
+      proficiency: existing.proficiency,
+      source: sourceInstance,
+      source_count: existing.source_instances.length
+    });
   }
   
   /**

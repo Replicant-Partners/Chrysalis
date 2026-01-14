@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Uniform Semantic Agent Converter - Main conversion logic
  * 

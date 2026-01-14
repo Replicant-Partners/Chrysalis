@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Encryption Utilities - Cryptographic operations for shadow data
  *

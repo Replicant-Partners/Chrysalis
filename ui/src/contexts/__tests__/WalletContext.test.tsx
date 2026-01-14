@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { WalletProvider, useWallet } from '../WalletContext';
 import { WalletCrypto } from '../../utils/WalletCrypto';
 
@@ -22,7 +22,7 @@ vi.mock('../../utils/WalletCrypto', () => ({
       iterations: 600000,
       version: 1 as const
     })),
-    decrypt: vi.fn(async (encrypted, password) => {
+    decrypt: vi.fn(async (encrypted, _password) => {
       // Simulate successful decryption
       return atob(encrypted.ciphertext);
     }),

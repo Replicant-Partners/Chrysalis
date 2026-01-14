@@ -11,6 +11,8 @@
 
 import type { UniformSemanticAgentV2 } from '../core/UniformSemanticAgentV2';
 import { VoyeurEventKind, VoyeurSink } from '../observability/VoyeurEvents';
+import { logger } from '../observability';
+import type { SanitizeResult } from './MemorySanitizer';
 import * as crypto from 'crypto';
 import { BruteForceVectorIndex, type VectorIndex } from '../memory/VectorIndex';
 import { createVectorIndex } from '../memory/VectorIndexFactory';
@@ -50,6 +52,20 @@ export interface Memory {
   tags: string[];
   related_memories: string[];
   importance: number;
+}
+
+/**
+ * Input data for memory creation (relaxed typing for external data).
+ * Either `content` or `text` should be provided.
+ */
+export interface MemoryInput {
+  content?: string;
+  text?: string;
+  embedding?: number[];
+  confidence?: number;
+  tags?: string[];
+  importance?: number;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -132,7 +148,7 @@ export class MemoryMerger {
    */
   async addMemory(
     agent: UniformSemanticAgentV2,
-    memoryData: any,
+    memoryData: MemoryInput,
     sourceInstance: string
   ): Promise<void> {
     if (this.config.rate_limit) {
@@ -154,7 +170,7 @@ export class MemoryMerger {
     }
 
     const rawContent = memoryData.content || memoryData.text || '';
-    const sanitized = this.config.sanitize
+    const sanitized: SanitizeResult = this.config.sanitize
       ? this.config.sanitize(rawContent, sourceInstance)
       : { ok: true, content: rawContent };
     if (!sanitized.ok) {
@@ -162,17 +178,17 @@ export class MemoryMerger {
         sourceInstance,
         memoryHash: this.hashContent(rawContent),
         decision: 'blocked',
-        reason: (sanitized as any).reason
+        reason: sanitized.reason
       });
       return;
     }
 
     // Check for PII in content if sanitizer didn't block it but flagged it
-    if ((sanitized as any).piiDetected && (sanitized as any).piiDetected.length > 0) {
+    if (sanitized.piiDetected && sanitized.piiDetected.length > 0) {
         await this.emitVoyeur('ingest.pii_detected', {
             sourceInstance,
             memoryHash: this.hashContent(rawContent),
-            piiTypes: (sanitized as any).piiDetected
+            piiTypes: sanitized.piiDetected
         });
     }
 
@@ -211,7 +227,11 @@ export class MemoryMerger {
       this.recordMetric('vector.upsert', Date.now() - start);
     }
     
-    console.log(`  → Memory added: "${memory.content.substring(0, 50)}..."`);
+    logger.debug('Memory added', { 
+      memory_id: memory.memory_id, 
+      content_preview: memory.content.substring(0, 50),
+      source: sourceInstance 
+    });
   }
   
   /**
@@ -219,7 +239,7 @@ export class MemoryMerger {
    */
   async mergeBatch(
     agent: UniformSemanticAgentV2,
-    memories: any[],
+    memories: MemoryInput[],
     sourceInstance: string
   ): Promise<MemoryMergeResult> {
     const result: MemoryMergeResult = {
@@ -281,7 +301,7 @@ export class MemoryMerger {
    * v3.1: Linear scan with embeddings (O(N))
    * v3.2: Vector index search (O(log N))
    */
-  private async findDuplicate(memoryData: any): Promise<DuplicateMatch | null> {
+  private async findDuplicate(memoryData: MemoryInput): Promise<DuplicateMatch | null> {
     // Future v3.2: Vector index path
     if (this.config.use_vector_index && this.vectorIndex) {
       // Fast ANN search O(log N)
@@ -310,8 +330,9 @@ export class MemoryMerger {
     }
     
     // Current: Linear scan O(N)
+    const searchContent = memoryData.content || memoryData.text || '';
     for (const [, memory] of this.memoryIndex) {
-      const similarity = await this.calculateSimilarity(memory.content, memoryData.content);
+      const similarity = await this.calculateSimilarity(memory.content, searchContent);
       if (similarity > this.config.similarity_threshold) {
         return { memory, similarity };
       }
@@ -325,7 +346,7 @@ export class MemoryMerger {
    */
   private async mergeWithExisting(
     existing: Memory,
-    newData: any,
+    newData: MemoryInput,
     sourceInstance: string
   ): Promise<void> {
     // Update confidence (weighted average)
@@ -341,7 +362,12 @@ export class MemoryMerger {
       existing.source_instances.push(sourceInstance);
     }
     
-    console.log(`  → Memory merged: "${existing.content.substring(0, 50)}..."`);
+    logger.debug('Memory merged with existing', { 
+      memory_id: existing.memory_id, 
+      content_preview: existing.content.substring(0, 50),
+      source: sourceInstance,
+      source_count: existing.source_instances.length
+    });
   }
   
   /**

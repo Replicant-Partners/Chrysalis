@@ -5,11 +5,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { VoyeurPane } from '../VoyeurPane';
 import { renderWithVoyeur } from '../../../test/test-utils';
-import { VoyeurEvent } from '../../../utils/VoyeurBusClient';
 
 describe('VoyeurPane', () => {
   const mockOnClose = vi.fn();
@@ -126,8 +125,6 @@ describe('VoyeurPane', () => {
 
   describe('Event Display', () => {
     it('should expand event details when clicked', async () => {
-      const user = userEvent.setup();
-      
       // This test would need actual events in the context
       // For now, just verify the UI structure exists
       renderWithVoyeur(<VoyeurPane onClose={mockOnClose} />);

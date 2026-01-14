@@ -6,6 +6,7 @@
  */
 
 import type { ExperienceBatch } from '../core/UniformSemanticAgentV2';
+import { logger } from '../observability';
 
 /**
  * Lumped sync configuration
@@ -31,7 +32,11 @@ export class LumpedSync {
     instanceId: string,
     config: LumpedSyncConfig
   ): Promise<void> {
-    console.log(`  → Initializing lumped sync (${config.batch_interval} interval)`);
+    logger.debug('Initializing lumped sync', { 
+      instance_id: instanceId, 
+      batch_interval: config.batch_interval,
+      max_batch_size: config.max_batch_size
+    });
     
     this.configs.set(instanceId, config);
     
@@ -52,11 +57,14 @@ export class LumpedSync {
     instanceId: string,
     batch: ExperienceBatch
   ): Promise<{ processed: boolean; event_count: number }> {
-    console.log(`Processing lumped batch from ${instanceId}...`);
-    console.log(`  Memories: ${batch.events.memories.length}`);
-    console.log(`  Skills: ${batch.events.skills.length}`);
-    console.log(`  Knowledge: ${batch.events.knowledge.length}`);
-    console.log(`  Interactions: ${batch.events.interactions.length}`);
+    logger.debug('Processing lumped batch', { 
+      instance_id: instanceId,
+      memories: batch.events.memories.length,
+      skills: batch.events.skills.length,
+      knowledge: batch.events.knowledge.length,
+      interactions: batch.events.interactions.length,
+      event_count: batch.event_count
+    });
     
     const config = this.configs.get(instanceId);
     
@@ -76,7 +84,7 @@ export class LumpedSync {
    * Trigger sync request to instance
    */
   private async triggerSync(instanceId: string): Promise<void> {
-    console.log(`Triggering lumped sync for instance ${instanceId}...`);
+    logger.debug('Triggering lumped sync', { instance_id: instanceId });
     
     // This would send a request to the instance to send its batch
     // For now, just log

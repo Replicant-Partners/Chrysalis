@@ -6,6 +6,7 @@
  */
 
 import type { ExperienceEvent } from '../core/UniformSemanticAgentV2';
+import { logger } from '../observability';
 import * as crypto from 'crypto';
 
 /**
@@ -43,7 +44,11 @@ export class StreamingSync {
     config: StreamingSyncConfig,
     onFlush?: (events: ExperienceEvent[]) => Promise<void>
   ): Promise<void> {
-    console.log(`  → Initializing streaming sync (${config.interval_ms}ms interval)`);
+    logger.debug('Initializing streaming sync', { 
+      instance_id: instanceId, 
+      interval_ms: config.interval_ms,
+      batch_size: config.batch_size
+    });
     
     this.configs.set(instanceId, config);
     if (onFlush) {
@@ -106,10 +111,11 @@ export class StreamingSync {
     if (handler) {
       await handler(events);
     } else {
-      console.log(`Streaming ${events.length} events from ${instanceId}...`);
-      for (const event of events) {
-        console.log(`  → Event ${event.event_type} (priority: ${event.priority})`);
-      }
+      logger.debug('Streaming events (no handler)', { 
+        instance_id: instanceId, 
+        event_count: events.length,
+        event_types: events.map(e => e.event_type).join(',')
+      });
     }
     
     queue.lastFlush = Date.now();

@@ -100,14 +100,37 @@ class CoreMemory:
 
 
 class VectorStore:
-    """Base class for vector stores"""
+    """
+    Base class for vector stores.
+    
+    Implements the MemoryStore protocol for vector-based memory retrieval.
+    """
     
     def store(self, entry: MemoryEntry):
         """Store a memory entry with its embedding"""
         raise NotImplementedError
     
-    def retrieve(self, query: str, limit: int = 5, **kwargs) -> RetrievalResult:
-        """Retrieve relevant memories"""
+    def retrieve(
+        self, 
+        query: str, 
+        limit: int = 5,
+        memory_type: Optional[str] = None,
+        memory_types: Optional[List[str]] = None,
+        **kwargs
+    ) -> RetrievalResult:
+        """Retrieve relevant memories by similarity search"""
+        raise NotImplementedError
+    
+    def get_by_id(self, entry_id: str) -> Optional[MemoryEntry]:
+        """Get specific memory by ID"""
+        raise NotImplementedError
+    
+    def list_recent(self, limit: int = 10) -> List[MemoryEntry]:
+        """List recent memories (default: returns empty, override in subclass)"""
+        return []
+    
+    def delete(self, entry_id: str) -> bool:
+        """Delete a memory entry"""
         raise NotImplementedError
     
     def count(self) -> int:

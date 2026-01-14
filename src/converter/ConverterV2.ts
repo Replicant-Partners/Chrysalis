@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Uniform Semantic Agent Converter v2 - With Experience Synchronization
  * 

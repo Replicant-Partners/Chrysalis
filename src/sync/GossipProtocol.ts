@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /**
  * Gossip Protocol - Epidemic Information Spread
  * 
@@ -231,7 +231,7 @@ export class GossipProtocol extends EventEmitter {
     this.instanceId = instanceId;
     this.config = { ...DEFAULT_GOSSIP_CONFIG, ...config };
     this.stats = this.initStats();
-    this.log.info('GossipProtocol initialized', { instanceId, config: this.config });
+    this.log.info('GossipProtocol initialized', { instanceId, fanout: this.config.fanout });
   }
 
   private initStats(): GossipStats {

@@ -23,7 +23,7 @@ describe('ThreeFrameLayout', () => {
     });
 
     it('should render all three panes', () => {
-      const { container } = render(<ThreeFrameLayout {...defaultProps} />);
+      render(<ThreeFrameLayout {...defaultProps} />);
       
       // Should have three main content areas
       expect(screen.getByText('Left Pane Content')).toBeInTheDocument();

@@ -41,14 +41,33 @@ class RetrievalResult:
 
 
 class MemoryStore(Protocol):
-    """Protocol for memory storage backends"""
+    """
+    Protocol for memory storage backends.
+    
+    Implementations must support filtering by memory type to enable
+    separate episodic (experiences) and semantic (facts) memory retrieval.
+    """
     
     def store(self, entry: MemoryEntry) -> None:
         """Store a memory entry"""
         ...
     
-    def retrieve(self, query: str, limit: int = 5) -> RetrievalResult:
-        """Retrieve relevant memories"""
+    def retrieve(
+        self, 
+        query: str, 
+        limit: int = 5,
+        memory_type: Optional[str] = None,
+        memory_types: Optional[List[str]] = None
+    ) -> RetrievalResult:
+        """
+        Retrieve relevant memories by similarity search.
+        
+        Args:
+            query: Search query text
+            limit: Maximum number of results
+            memory_type: Filter to single type (e.g., "episodic", "semantic")
+            memory_types: Filter to multiple types (e.g., ["episodic", "semantic"])
+        """
         ...
     
     def get_by_id(self, entry_id: str) -> Optional[MemoryEntry]:
@@ -61,6 +80,10 @@ class MemoryStore(Protocol):
     
     def delete(self, entry_id: str) -> bool:
         """Delete a memory entry"""
+        ...
+    
+    def count(self) -> int:
+        """Return total number of stored memories"""
         ...
 
 

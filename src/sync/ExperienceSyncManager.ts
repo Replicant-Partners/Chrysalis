@@ -333,7 +333,11 @@ export class ExperienceSyncManager {
         break;
 
       case 'knowledge':
-        await this.knowledgeIntegrator.addKnowledge(sourceAgent, event.data, instanceId);
+        await this.knowledgeIntegrator.addKnowledge(
+          sourceAgent,
+          event.data as import('../experience/KnowledgeIntegrator').KnowledgeInput,
+          instanceId
+        );
         break;
 
       case 'characteristic':

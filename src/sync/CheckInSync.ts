@@ -6,6 +6,7 @@
  */
 
 import type { MergeResult } from './ExperienceSyncManager';
+import { logger } from '../observability';
 
 /**
  * Check-in sync configuration
@@ -49,7 +50,11 @@ export class CheckInSync {
     instanceId: string,
     config: CheckInSyncConfig
   ): Promise<void> {
-    console.log(`  → Initializing check-in sync (${config.schedule})`);
+    logger.debug('Initializing check-in sync', { 
+      instance_id: instanceId, 
+      schedule: config.schedule,
+      include_full_state: config.include_full_state
+    });
     
     this.configs.set(instanceId, config);
     
@@ -72,12 +77,14 @@ export class CheckInSync {
     instanceId: string,
     state: InstanceState
   ): Promise<MergeResult> {
-    console.log(`Processing check-in from ${instanceId}...`);
-    console.log(`  Uptime: ${(state.uptime / 1000 / 60).toFixed(2)} minutes`);
-    console.log(`  Memories: ${state.full_state.accumulated_memories.length}`);
-    console.log(`  Skills: ${state.full_state.learned_skills.length}`);
-    console.log(`  Knowledge: ${state.full_state.acquired_knowledge.length}`);
-    console.log(`  Tasks: ${state.full_state.completed_tasks.length}`);
+    logger.debug('Processing check-in', { 
+      instance_id: instanceId,
+      uptime_minutes: (state.uptime / 1000 / 60).toFixed(2),
+      memories: state.full_state.accumulated_memories.length,
+      skills: state.full_state.learned_skills.length,
+      knowledge: state.full_state.acquired_knowledge.length,
+      tasks: state.full_state.completed_tasks.length
+    });
     
     const result: MergeResult = {
       merged_at: new Date().toISOString(),
@@ -96,7 +103,7 @@ export class CheckInSync {
       }
     };
     
-    console.log(`✓ Check-in processed`);
+    logger.debug('Check-in processed', { instance_id: instanceId });
     
     return result;
   }
@@ -105,7 +112,7 @@ export class CheckInSync {
    * Trigger check-in request to instance
    */
   private async triggerCheckIn(instanceId: string): Promise<void> {
-    console.log(`Triggering check-in for instance ${instanceId}...`);
+    logger.debug('Triggering check-in', { instance_id: instanceId });
     
     // This would send a request to the instance
     // For now, just log
