@@ -1,6 +1,6 @@
 /**
  * Check-In Sync - Periodic scheduled synchronization
- * 
+ *
  * Agents check in on schedule with complete state snapshots
  * for comprehensive experience integration.
  */
@@ -24,7 +24,7 @@ export interface InstanceState {
   instance_id: string;
   check_in_time: string;
   uptime: number;            // milliseconds
-  
+
   full_state: {
     current_status: string;
     accumulated_memories: any[];
@@ -42,7 +42,7 @@ export interface InstanceState {
 export class CheckInSync {
   private configs: Map<string, CheckInSyncConfig> = new Map();
   private scheduledChecks: Map<string, NodeJS.Timeout> = new Map();
-  
+
   /**
    * Initialize check-in sync for instance
    */
@@ -50,26 +50,26 @@ export class CheckInSync {
     instanceId: string,
     config: CheckInSyncConfig
   ): Promise<void> {
-    logger.debug('Initializing check-in sync', { 
-      instance_id: instanceId, 
+    logger.debug('Initializing check-in sync', {
+      instance_id: instanceId,
       schedule: config.schedule,
       include_full_state: config.include_full_state
     });
-    
+
     this.configs.set(instanceId, config);
-    
+
     // Schedule periodic check-ins
     // For simplicity, parse as interval (real implementation would use cron parser)
     const interval = this.parseCronToInterval(config.schedule);
-    
+
     const timer = setInterval(
       () => this.triggerCheckIn(instanceId),
       interval
     );
-    
+
     this.scheduledChecks.set(instanceId, timer);
   }
-  
+
   /**
    * Process check-in from instance
    */
@@ -77,7 +77,7 @@ export class CheckInSync {
     instanceId: string,
     state: InstanceState
   ): Promise<MergeResult> {
-    logger.debug('Processing check-in', { 
+    logger.debug('Processing check-in', {
       instance_id: instanceId,
       uptime_minutes: (state.uptime / 1000 / 60).toFixed(2),
       memories: state.full_state.accumulated_memories.length,
@@ -85,7 +85,7 @@ export class CheckInSync {
       knowledge: state.full_state.acquired_knowledge.length,
       tasks: state.full_state.completed_tasks.length
     });
-    
+
     const result: MergeResult = {
       merged_at: new Date().toISOString(),
       memories_added: state.full_state.accumulated_memories.length,
@@ -102,29 +102,29 @@ export class CheckInSync {
         queued: 0
       }
     };
-    
+
     logger.debug('Check-in processed', { instance_id: instanceId });
-    
+
     return result;
   }
-  
+
   /**
    * Trigger check-in request to instance
-   * 
+   *
    * @stub Requires HTTP client integration to send requests to agent instances.
    * Implementation needs:
    *   - Instance registry to look up instance endpoints
    *   - HTTP client (axios/fetch) to send check-in request
    *   - Authentication/signing for inter-service communication
-   * 
+   *
    * @param instanceId - The ID of the instance to trigger
    */
   private async triggerCheckIn(instanceId: string): Promise<void> {
-    logger.warn('[CheckInSync] triggerCheckIn is a stub - no HTTP request sent', { 
+    logger.warn('[CheckInSync] triggerCheckIn is a stub - no HTTP request sent', {
       instance_id: instanceId,
       stub_reason: 'Requires instance registry and HTTP client integration'
     });
-    
+
     // TODO: Implement with instance registry lookup and HTTP client
     // Example implementation:
     // const instance = await this.instanceRegistry.get(instanceId);
@@ -134,7 +134,7 @@ export class CheckInSync {
     //   timestamp: new Date().toISOString()
     // });
   }
-  
+
   /**
    * Stop check-in sync
    */
@@ -144,22 +144,22 @@ export class CheckInSync {
       clearInterval(timer);
       this.scheduledChecks.delete(instanceId);
     }
-    
+
     this.configs.delete(instanceId);
   }
-  
+
   // Helper methods
-  
+
   private parseCronToInterval(cron: string): number {
     // Simplified cron parser
     // "0 * * * *" = every hour → 3600000ms
     // "*/30 * * * *" = every 30 minutes → 1800000ms
     // "0 */6 * * *" = every 6 hours → 21600000ms
-    
+
     if (cron.includes('*/30')) return 30 * 60 * 1000;  // 30 min
     if (cron.includes('*/6')) return 6 * 60 * 60 * 1000;  // 6 hours
     if (cron.startsWith('0 *')) return 60 * 60 * 1000;  // 1 hour
-    
+
     // Default: 1 hour
     return 60 * 60 * 1000;
   }

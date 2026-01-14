@@ -1,6 +1,6 @@
 /**
  * Lumped Sync - Batched experience synchronization
- * 
+ *
  * Periodically syncs accumulated experiences in batches
  * for cost-effective learning aggregation.
  */
@@ -24,7 +24,7 @@ export interface LumpedSyncConfig {
 export class LumpedSync {
   private configs: Map<string, LumpedSyncConfig> = new Map();
   private scheduledTimers: Map<string, NodeJS.Timeout> = new Map();
-  
+
   /**
    * Initialize lumped sync for instance
    */
@@ -32,24 +32,24 @@ export class LumpedSync {
     instanceId: string,
     config: LumpedSyncConfig
   ): Promise<void> {
-    logger.debug('Initializing lumped sync', { 
-      instance_id: instanceId, 
+    logger.debug('Initializing lumped sync', {
+      instance_id: instanceId,
       batch_interval: config.batch_interval,
       max_batch_size: config.max_batch_size
     });
-    
+
     this.configs.set(instanceId, config);
-    
+
     // Schedule periodic sync
     const interval = this.parseDuration(config.batch_interval);
     const timer = setInterval(
       () => this.triggerSync(instanceId),
       interval
     );
-    
+
     this.scheduledTimers.set(instanceId, timer);
   }
-  
+
   /**
    * Process experience batch
    */
@@ -57,7 +57,7 @@ export class LumpedSync {
     instanceId: string,
     batch: ExperienceBatch
   ): Promise<{ processed: boolean; event_count: number }> {
-    logger.debug('Processing lumped batch', { 
+    logger.debug('Processing lumped batch', {
       instance_id: instanceId,
       memories: batch.events.memories.length,
       skills: batch.events.skills.length,
@@ -65,9 +65,9 @@ export class LumpedSync {
       interactions: batch.events.interactions.length,
       event_count: batch.event_count
     });
-    
+
     const config = this.configs.get(instanceId);
-    
+
     // Decompress if needed
     if (config?.compression) {
       // @stub Compression/decompression not yet implemented
@@ -80,31 +80,31 @@ export class LumpedSync {
       // const decompressed = zlib.gunzipSync(Buffer.from(batch.compressed, 'base64'));
       // batch = JSON.parse(decompressed.toString());
     }
-    
+
     // Batch processed successfully
     return {
       processed: true,
       event_count: batch.event_count
     };
   }
-  
+
   /**
    * Trigger sync request to instance
-   * 
+   *
    * @stub Requires HTTP client integration to request batch from agent instances.
    * Implementation needs:
    *   - Instance registry to look up instance endpoints
    *   - HTTP client (axios/fetch) to request batch
    *   - Response handling to process received batch via processBatch()
-   * 
+   *
    * @param instanceId - The ID of the instance to trigger
    */
   private async triggerSync(instanceId: string): Promise<void> {
-    logger.warn('[LumpedSync] triggerSync is a stub - no HTTP request sent', { 
+    logger.warn('[LumpedSync] triggerSync is a stub - no HTTP request sent', {
       instance_id: instanceId,
       stub_reason: 'Requires instance registry and HTTP client integration'
     });
-    
+
     // TODO: Implement with instance registry lookup and HTTP client
     // Example implementation:
     // const instance = await this.instanceRegistry.get(instanceId);
@@ -117,7 +117,7 @@ export class LumpedSync {
     //   await this.processBatch(instanceId, response.batch);
     // }
   }
-  
+
   /**
    * Stop lumped sync
    */
@@ -127,19 +127,19 @@ export class LumpedSync {
       clearInterval(timer);
       this.scheduledTimers.delete(instanceId);
     }
-    
+
     this.configs.delete(instanceId);
   }
-  
+
   // Helper methods
-  
+
   private parseDuration(duration: string): number {
     const match = duration.match(/^(\d+)(ms|s|m|h|d)$/);
     if (!match) return 3600000; // Default 1 hour
-    
+
     const [, value, unit] = match;
     const num = parseInt(value, 10);
-    
+
     switch (unit) {
       case 'ms': return num;
       case 's': return num * 1000;

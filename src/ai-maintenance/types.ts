@@ -1,9 +1,9 @@
 /**
  * AI-Led Adaptive Maintenance System - Core Types
- * 
+ *
  * Type definitions for the autonomous monitoring, analysis, and adaptation
  * system that maintains protocol adapters and codebase health.
- * 
+ *
  * @module ai-maintenance/types
  * @version 1.0.0
  */
@@ -17,7 +17,7 @@ import { AgentFramework } from '../adapters/protocol-types';
 /**
  * Categories of evolutionary patterns.
  */
-export type PatternCategory = 
+export type PatternCategory =
   | 'dependency-management'  // External dependency updates
   | 'interface-evolution'    // API changes and deprecations
   | 'data-evolution'         // Schema and format changes
@@ -29,7 +29,7 @@ export type PatternCategory =
 /**
  * Severity levels for patterns.
  */
-export type PatternSeverity = 
+export type PatternSeverity =
   | 'critical'   // Requires immediate attention
   | 'high'       // Should be addressed soon
   | 'medium'     // Can be scheduled
@@ -39,7 +39,7 @@ export type PatternSeverity =
 /**
  * Expected frequency of pattern occurrence.
  */
-export type PatternFrequency = 
+export type PatternFrequency =
   | 'daily'      // Expected daily
   | 'weekly'     // Expected weekly
   | 'monthly'    // Expected monthly
@@ -49,7 +49,7 @@ export type PatternFrequency =
 /**
  * Automation level for remediation.
  */
-export type AutomationLevel = 
+export type AutomationLevel =
   | 'fully-automatic'       // No human intervention needed
   | 'semi-automatic'        // Human review required
   | 'assisted'              // AI suggests, human implements
@@ -80,7 +80,7 @@ export interface DetectionHeuristic {
 /**
  * Types of detection heuristics.
  */
-export type HeuristicType = 
+export type HeuristicType =
   | 'semver-comparison'      // Semantic version comparison
   | 'changelog-analysis'     // Parse changelog/release notes
   | 'api-surface-diff'       // Compare API signatures
@@ -114,7 +114,7 @@ export interface TriggerCondition {
 /**
  * Types of trigger conditions.
  */
-export type TriggerType = 
+export type TriggerType =
   | 'version-change'         // New version released
   | 'deprecation-notice'     // Deprecation detected
   | 'breaking-change'        // Breaking change detected
@@ -127,8 +127,8 @@ export type TriggerType =
 /**
  * Comparison operators for triggers.
  */
-export type ComparisonOperator = 
-  | 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' 
+export type ComparisonOperator =
+  | 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte'
   | 'contains' | 'matches' | 'in' | 'not-in';
 
 // ============================================================================
@@ -158,7 +158,7 @@ export interface AnticipatoryStructure {
 /**
  * Types of anticipatory structures.
  */
-export type StructureType = 
+export type StructureType =
   | 'version-negotiation'    // Handle multiple versions
   | 'compatibility-layer'    // Bridge between versions
   | 'feature-flag'           // Toggle functionality
@@ -193,7 +193,7 @@ export interface RemediationStrategy {
 /**
  * Types of remediation strategies.
  */
-export type RemediationType = 
+export type RemediationType =
   | 'update-dependency'      // Update to new version
   | 'apply-patch'            // Apply security patch
   | 'generate-adapter'       // Generate adapter code
@@ -224,7 +224,7 @@ export interface RemediationStep {
 /**
  * Step action types.
  */
-export type StepAction = 
+export type StepAction =
   | 'execute-command'        // Run CLI command
   | 'modify-file'            // Modify source file
   | 'create-file'            // Create new file
@@ -253,19 +253,19 @@ export interface EvolutionaryPattern {
   description: string;
   /** Pattern version */
   version: string;
-  
+
   // Detection
   /** Heuristics for detecting this pattern */
   detectionHeuristics: DetectionHeuristic[];
   /** Conditions that trigger this pattern */
   triggerConditions: TriggerCondition[];
-  
+
   // Response
   /** Anticipatory code structures */
   anticipatoryStructures: AnticipatoryStructure[];
   /** Remediation strategies */
   remediationStrategies: RemediationStrategy[];
-  
+
   // Metadata
   /** Pattern severity */
   severity: PatternSeverity;
@@ -279,11 +279,11 @@ export interface EvolutionaryPattern {
   applicableTo?: AgentFramework[];
   /** Related patterns */
   relatedPatterns?: string[];
-  
+
   // Examples
   /** Real-world examples */
   examples: PatternExample[];
-  
+
   // Status
   /** Is pattern active? */
   active: boolean;
@@ -348,7 +348,7 @@ export interface WatchedRepository {
 /**
  * Repository types.
  */
-export type RepositoryType = 
+export type RepositoryType =
   | 'git'           // Git repository
   | 'npm'           // NPM package
   | 'pypi'          // Python package
@@ -389,7 +389,7 @@ export interface RepositoryChange {
 /**
  * Types of repository changes.
  */
-export type ChangeType = 
+export type ChangeType =
   | 'version-release'       // New version released
   | 'commit'                // New commit(s)
   | 'tag'                   // New tag
@@ -400,7 +400,7 @@ export type ChangeType =
 /**
  * Change processing status.
  */
-export type ChangeStatus = 
+export type ChangeStatus =
   | 'detected'     // Change detected
   | 'analyzing'    // Being analyzed
   | 'analyzed'     // Analysis complete
@@ -449,7 +449,7 @@ export interface SemanticDiff {
 /**
  * Impact level assessment.
  */
-export type ImpactLevel = 
+export type ImpactLevel =
   | 'none'         // No impact
   | 'minimal'      // Minimal changes needed
   | 'moderate'     // Moderate updates required
@@ -603,7 +603,7 @@ export interface AdaptationPipeline {
 /**
  * Pipeline stages.
  */
-export type PipelineStage = 
+export type PipelineStage =
   | 'monitoring'     // Watching for changes
   | 'analyzing'      // Analyzing changes
   | 'generating'     // Generating proposals
@@ -616,7 +616,7 @@ export type PipelineStage =
 /**
  * Pipeline status.
  */
-export type PipelineStatus = 
+export type PipelineStatus =
   | 'active'         // Pipeline is running
   | 'paused'         // Paused by operator
   | 'completed'      // Successfully completed
@@ -758,7 +758,7 @@ export interface ChangeProposal {
 /**
  * Proposal status.
  */
-export type ProposalStatus = 
+export type ProposalStatus =
   | 'draft'         // Being generated
   | 'pending-review'// Awaiting review
   | 'approved'      // Approved for deployment
@@ -1059,7 +1059,7 @@ export interface AdaptationHook {
 /**
  * Hook types.
  */
-export type HookType = 
+export type HookType =
   | 'pre-change'      // Before applying changes
   | 'post-change'     // After applying changes
   | 'on-error'        // On change failure

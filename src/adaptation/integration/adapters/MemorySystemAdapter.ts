@@ -10,7 +10,7 @@
  *
  * References:
  * - Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley. p. 139.
- * 
+ *
  * @stub ENTIRE CLASS IS A STUB
  * This adapter requires integration with the Python Memory System (memory_system/).
  * Implementation options:
@@ -18,7 +18,7 @@
  *   2. child_process - Spawn Python subprocess with JSON IPC
  *   3. HTTP API - Memory System as standalone service
  *   4. Native bindings - PyO3 or similar for direct Python calls
- * 
+ *
  * All methods currently return empty results or no-op.
  * @see memory_system/fusion.py for the Python implementation to integrate with
  */
@@ -90,7 +90,7 @@ export interface IMemorySystem {
  * Memory System Adapter
  *
  * Adapts Chrysalis Memory System to Adaptation System interface.
- * 
+ *
  * @stub All methods are stubs - see class JSDoc for integration requirements
  */
 export class MemorySystemAdapter implements IMemorySystem {
@@ -101,7 +101,7 @@ export class MemorySystemAdapter implements IMemorySystem {
     constructor(config?: { memorySystemUrl?: string; memorySystemInstance?: unknown }) {
         this.memorySystemUrl = config?.memorySystemUrl;
         this.memorySystemInstance = config?.memorySystemInstance;
-        
+
         if (!this.memorySystemInstance && !this.memorySystemUrl) {
             console.warn('[MemorySystemAdapter] No memory system configured - all operations will be no-ops');
         }

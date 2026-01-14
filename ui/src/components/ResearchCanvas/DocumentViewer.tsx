@@ -7,7 +7,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'prism-react-renderer';
 import styles from './DocumentViewer.module.css';
 
 interface DocumentViewerProps {
@@ -22,7 +21,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   // Process wiki-links [[Page Name]]
   const processedContent = content.replace(
     /\[\[([^\]]+)\]\]/g,
-    (match, linkText) => `[${linkText}](#wiki:${linkText})`
+    (_match, linkText) => `[${linkText}](#wiki:${linkText})`
   );
   
   return (
@@ -30,17 +29,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ node, inline, className, children, ...props }: any) {
-            const match = /language-(\w+)/.exec(className || '');
-            return !inline && match ? (
-              <SyntaxHighlighter
-                language={match[1]}
-                PreTag="div"
-                {...props}
-              >
-                {String(children).replace(/\n$/, '')}
-              </SyntaxHighlighter>
-            ) : (
+          code({ className, children, ...props }: any) {
+            return (
               <code className={className} {...props}>
                 {children}
               </code>

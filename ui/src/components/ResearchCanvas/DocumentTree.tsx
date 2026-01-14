@@ -20,6 +20,7 @@ interface DocumentTreeProps {
 interface TreeNodeProps {
   document: ResearchDocument;
   children: ResearchDocument[];
+  allDocuments: ResearchDocument[];
   level: number;
   selectedId: string | null;
   expandedIds: string[];
@@ -30,6 +31,7 @@ interface TreeNodeProps {
 const TreeNode: React.FC<TreeNodeProps> = ({
   document,
   children,
+  allDocuments,
   level,
   selectedId,
   expandedIds,
@@ -80,12 +82,13 @@ const TreeNode: React.FC<TreeNodeProps> = ({
       {isFolder && isExpanded && hasChildren && (
         <div className={styles.children}>
           {children.map((child) => {
-            const childChildren = documents.filter(d => d.parentId === child.id);
+            const childChildren = allDocuments.filter(d => d.parentId === child.id);
             return (
               <TreeNode
                 key={child.id}
                 document={child}
                 children={childChildren}
+                allDocuments={allDocuments}
                 level={level + 1}
                 selectedId={selectedId}
                 expandedIds={expandedIds}
@@ -128,6 +131,7 @@ export const DocumentTree: React.FC<DocumentTreeProps> = ({
             key={doc.id}
             document={doc}
             children={children}
+            allDocuments={documents}
             level={0}
             selectedId={selectedId}
             expandedIds={expandedIds}

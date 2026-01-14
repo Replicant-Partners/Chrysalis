@@ -8,19 +8,20 @@
 
 ## Executive Summary
 
-This document defines the **7 primary canvas types** for the Chrysalis Terminal MVP, their implementation sequence, and technical specifications.
+This document defines the **8 primary canvas types** for the Chrysalis Terminal MVP, their implementation sequence, and technical specifications.
 
-### MVP Canvas Types (7 Total)
+### MVP Canvas Types (8 Total)
 
 | # | Canvas Type | Category | Status | Priority |
 |---|-------------|----------|--------|----------|
 | 1 | **Settings** | System | ✅ Implemented | Critical |
 | 2 | **Board** | Work | ✅ Implemented | Critical |
-| 3 | **Scrapbook** | Content & Collection | Planned | High |
-| 4 | **Research** | Content & Collection | Planned | High |
-| 5 | **Scenarios** | Content & Collection | Planned | High |
-| 6 | **Curation** | Content & Collection | Planned | High |
-| 7 | **Media** | Content & Collection | Planned | High |
+| 3 | **Scrapbook** | Content & Collection | ✅ Implemented | High |
+| 4 | **Research** | Content & Collection | ✅ Implemented | High |
+| 5 | **Wiki** | Knowledge & Collaboration | 🚧 In Progress | High |
+| 6 | **Scenarios** | Content & Collection | Planned | High |
+| 7 | **Curation** | Content & Collection | Planned | High |
+| 8 | **Media** | Content & Collection | Planned | High |
 
 **Deferred to Post-MVP**:
 - Agent Registry (system canvas)
@@ -75,7 +76,25 @@ This document defines the **7 primary canvas types** for the Chrysalis Terminal 
 - **Key Features**: Hierarchical structure, [[wiki-links]], full-text search, agent summaries
 - **Timeline**: Week 4 (5 days)
 
-#### **Scenarios Canvas** 🆕
+#### **Wiki Canvas** 🆕
+- **Purpose**: Collaborative knowledge base for agents and humans
+- **Type**: MediaWiki-based collaborative wiki embedded in canvas
+- **Accepts**: Wiki pages, categories, templates, media files
+- **Key Features**:
+  - MediaWiki integration via iframe/API
+  - Agent collaborative editing
+  - Background knowledge loading
+  - Zep knowledge graph integration (optional)
+  - Full wiki syntax support
+  - Version history and page diffs
+  - Inter-page linking and categories
+  - Can run invisibly as project knowledge base
+  - Agent-accessible via API
+- **Timeline**: Week 5 (5 days)
+- **Special Properties**: Can run in background, supports invisible mode
+- **Integration**: Optional Zep knowledge graph sync for semantic search
+
+#### **Scenarios Canvas**
 - **Purpose**: Future planning through scenario analysis
 - **Type**: Flexible planning workspace
 - **Accepts**: Scenarios, indicators, assumptions, outcomes
@@ -552,22 +571,28 @@ See `CANVAS_MODE_ANALYSIS_AND_PROPOSALS.md` for full specification (search/repla
 - Wiki-links, search
 - Agent summaries
 
-**Week 5**: Scenarios Canvas (4 days) 🆕
+**Week 5**: Wiki Canvas (5 days) 🆕
+- MediaWiki integration
+- Agent collaboration API
+- Zep knowledge graph linking
+- Background operation mode
+
+**Week 6**: Scenarios Canvas (4 days)
 - Scenario management
 - Indicator tracking
 - Probability updates
 
-**Week 6**: Curation Canvas (5 days)
+**Week 7**: Curation Canvas (5 days)
 - Multi-type artifact collection
 - Relationships, collections
 - Agent synthesis
 
-**Week 7**: Media Canvas (5 days)
+**Week 8**: Media Canvas (5 days)
 - Image editing (crop, filters)
 - Audio editing (trim, effects)
 - Video preview/trim
 
-**Total Timeline**: 7 weeks to MVP completion
+**Total Timeline**: 8 weeks to MVP completion
 
 ### 4.2 Post-MVP (Deferred)
 
@@ -829,8 +854,8 @@ ui/src/components/Canvas/
 
 **End of Document**
 
-**Version**: 2.0  
-**Canvas Count**: **7 MVP Canvases** (Settings, Board, Scrapbook, Research, Scenarios, Curation, Media)  
-**Timeline**: 7 weeks to MVP  
-**Status**: APPROVED - Week 3 implementation started (Scrapbook Canvas)  
-**Approval Date**: January 14, 2026
+**Version**: 2.1  
+**Canvas Count**: **8 MVP Canvases** (Settings, Board, Scrapbook, Research, Wiki, Scenarios, Curation, Media)  
+**Timeline**: 8 weeks to MVP  
+**Status**: IN IMPLEMENTATION - Week 5 (Wiki Canvas)  
+**Last Updated**: January 14, 2026

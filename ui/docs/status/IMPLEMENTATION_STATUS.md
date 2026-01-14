@@ -1,8 +1,8 @@
 # Chrysalis Terminal UI - Implementation Status
 
-**Version:** 1.1.0  
+**Version:** 1.2.0  
 **Last Updated:** January 14, 2026  
-**Status:** Active Development - Week 3 (Scrapbook Canvas)
+**Status:** Active Development - Week 4 (Research Canvas COMPLETE)
 
 This document tracks the current implementation status of the Chrysalis Terminal UI. It is the **single source of truth** for what is completed, in progress, and planned.
 
@@ -15,9 +15,9 @@ This document tracks the current implementation status of the Chrysalis Terminal
 | Design System | 100% | 0% | 340+ tokens, 4 components |
 | Layout | 100% | 0% | 3-frame layout |
 | State Management | 90% | 10% | Zustand + YJS |
-| Canvas Types | 43% | 14% | 3 of 7 MVP canvases |
-| Components | 50% | 20% | 10 of 20 planned |
-| Features | 30% | 30% | Core features |
+| Canvas Types | 57% | 14% | 4 of 7 MVP canvases |
+| Components | 60% | 15% | 12 of 20 planned |
+| Features | 40% | 30% | Core features |
 
 ---
 
@@ -43,10 +43,19 @@ This document tracks the current implementation status of the Chrysalis Terminal
    - Support for images, videos, audio, notes, links
    - **Components:** ScrapbookCanvas, ScrapbookGrid, ScrapbookItem, FileUpload, TagFilter, Lightbox
    - **Lines of Code:** ~1,200 LOC
-   - **Status:** ✅ Core implementation complete, ready for YJS integration
+   - **Status:** ✅ Complete
    
-4. **Research Canvas** 📋 NEXT (Week 4)
-5. **Scenarios Canvas** 📋 PLANNED (Week 5)
+4. **Research Canvas** ✅ IMPLEMENTED (Week 4 - Jan 14, 2026)
+   - Hierarchical document tree
+   - Markdown editor with toolbar
+   - Live preview with wiki-link support
+   - Full-text search across documents
+   - Three view modes (edit/preview/split)
+   - **Components:** ResearchCanvas, DocumentTree, DocumentEditor, DocumentViewer, SearchPanel
+   - **Lines of Code:** ~1,100 LOC
+   - **Status:** ✅ Complete
+   
+5. **Scenarios Canvas** 📋 NEXT (Week 5)
 6. **Curation Canvas** 📋 PLANNED (Week 6)
 7. **Media Canvas** 📋 PLANNED (Week 7)
 

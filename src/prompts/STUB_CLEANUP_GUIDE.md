@@ -75,7 +75,7 @@ grep -rn "github.com/org/repo\|example.com\|localhost:.*hardcode" src/
 **Example:**
 ```typescript
 // BAD: Hardcoded fake PR URL
-pullRequestUrl: this.config.git.createPullRequest 
+pullRequestUrl: this.config.git.createPullRequest
   ? `https://github.com/org/repo/pull/123`  // FAKE!
   : undefined,
 ```
@@ -104,7 +104,7 @@ async getAdaptationEvents(): Promise<AdaptationEvent[]> {
 }
 ```
 
-**Fix:** 
+**Fix:**
 - If blocking: Implement or connect to real data source
 - If deferred: Add `@stub` JSDoc tag and TODO comment with issue link
 
@@ -185,7 +185,7 @@ async memoryQuery(): Promise<CallToolResult> {
 }
 ```
 
-**When Acceptable:** 
+**When Acceptable:**
 - Feature is planned but not yet needed
 - External dependency not available
 - Requires significant integration work

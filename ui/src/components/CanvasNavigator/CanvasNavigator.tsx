@@ -18,6 +18,8 @@ export type CanvasType =
   | 'settings'
   | 'board'
   | 'scrapbook'
+  | 'research'
+  | 'wiki'
   | 'storyboard'
   | 'remixer'
   | 'video'

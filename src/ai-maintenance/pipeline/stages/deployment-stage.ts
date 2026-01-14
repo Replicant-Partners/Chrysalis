@@ -1,11 +1,11 @@
 /**
  * Deployment Stage Executor
- * 
+ *
  * Executes the deployment phase of the adaptation pipeline:
  * branch creation, file changes, commits, and PR creation.
- * 
+ *
  * @module ai-maintenance/pipeline/stages/deployment-stage
- * 
+ *
  * @stub Git operations are simulated. Real implementation requires:
  *   - simple-git or child_process integration for git commands
  *   - GitHub/GitLab API integration for PR creation
@@ -26,7 +26,7 @@ import { PipelineConfig } from '../types';
 
 /**
  * Deployment stage executor
- * 
+ *
  * NOTE: This executor operates in SIMULATION MODE by default.
  * Git operations are logged but not executed unless a git integration
  * is configured. This is intentional to prevent accidental repository
@@ -37,7 +37,7 @@ export class DeploymentStageExecutor {
 
   /**
    * Execute the deployment stage
-   * 
+   *
    * @warning Currently operates in simulation mode - git operations are logged
    * but not executed. Set config.dryRun = true to acknowledge simulation.
    */
@@ -132,7 +132,7 @@ export class DeploymentStageExecutor {
     action: () => Promise<string>
   ): Promise<DeploymentStage> {
     const startedAt = new Date().toISOString();
-    
+
     try {
       const output = await action();
       return {

@@ -12,6 +12,8 @@ import { ChatPane } from './components/ChatPane/ChatPane';
 import { ReactFlowCanvas } from './components/ReactFlowCanvas';
 import { SettingsCanvas } from './components/SettingsCanvas';
 import { ScrapbookCanvas } from './components/ScrapbookCanvas';
+import { ResearchCanvas } from './components/ResearchCanvas';
+import { WikiCanvas } from './components/WikiCanvas';
 import { WalletModal } from './components/Wallet';
 import { WalletProvider } from './contexts/WalletContext';
 import { VoyeurProvider } from './contexts/VoyeurContext';
@@ -161,10 +163,10 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
   // Local UI state - Canvas navigation
   const [canvases, setCanvases] = useState<CanvasTab[]>([
     { id: 'canvas-0', index: 0, type: 'settings', title: 'Settings', isFixed: true },
-    { id: 'canvas-1', index: 1, type: 'scrapbook', title: 'Canvas 1', isFixed: false },
-    { id: 'canvas-2', index: 2, type: 'storyboard', title: 'Canvas 2', isFixed: false },
-    { id: 'canvas-3', index: 3, type: 'remixer', title: 'Canvas 3', isFixed: false },
-    { id: 'canvas-4', index: 4, type: 'video', title: 'Canvas 4', isFixed: false },
+    { id: 'canvas-1', index: 1, type: 'scrapbook', title: 'Scrapbook', isFixed: false },
+    { id: 'canvas-2', index: 2, type: 'research', title: 'Research', isFixed: false },
+    { id: 'canvas-3', index: 3, type: 'wiki', title: 'Wiki', isFixed: false },
+    { id: 'canvas-4', index: 4, type: 'storyboard', title: 'Canvas 4', isFixed: false },
   ]);
   const [activeCanvasId, setActiveCanvasId] = useState('canvas-0');
   
@@ -257,6 +259,10 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
               <SettingsCanvas />
             ) : activeCanvas?.type === 'scrapbook' ? (
               <ScrapbookCanvas />
+            ) : activeCanvas?.type === 'research' ? (
+              <ResearchCanvas />
+            ) : activeCanvas?.type === 'wiki' ? (
+              <WikiCanvas />
             ) : (
               <>
                 <div style={{ 

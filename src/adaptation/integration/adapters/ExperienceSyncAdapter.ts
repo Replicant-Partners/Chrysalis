@@ -54,7 +54,7 @@ export class ExperienceSyncAdapter {
 
     /**
      * Start collecting experiences from Experience Sync Manager
-     * 
+     *
      * @stub Event subscription is not yet wired up. The ExperienceSyncManager
      * needs to emit 'experience_synced' and 'merge_completed' events for this
      * to work. Currently just sets a flag without actual subscription.
@@ -82,7 +82,7 @@ export class ExperienceSyncAdapter {
         // this.experienceSyncManager.on('merge_completed', (result) => {
         //     this.handleMergeResult(result);
         // });
-        
+
         console.warn('[ExperienceSyncAdapter] startCollecting is a stub - event subscriptions not wired', {
             stub_reason: 'ExperienceSyncManager does not emit events yet'
         });
@@ -181,7 +181,7 @@ export class ExperienceSyncAdapter {
 
     /**
      * Manually collect experiences from sync status
-     * 
+     *
      * @stub Requires ExperienceSyncManager.getSyncStatuses() to be accessible
      * and return meaningful data. Currently a no-op.
      */
@@ -189,7 +189,7 @@ export class ExperienceSyncAdapter {
         console.warn('[ExperienceSyncAdapter] collectFromSyncStatus is a stub', {
             stub_reason: 'ExperienceSyncManager sync status query not implemented'
         });
-        
+
         // TODO: Implement when ExperienceSyncManager exposes sync statuses
         // const statuses = await this.experienceSyncManager.getSyncStatuses();
         // for (const status of statuses) {
@@ -201,7 +201,7 @@ export class ExperienceSyncAdapter {
 
     /**
      * Collect experiences since timestamp
-     * 
+     *
      * @stub Internal method for incremental experience collection
      */
     private async collectExperiencesSince(instanceId: string, since: string): Promise<void> {
@@ -215,7 +215,7 @@ export class ExperienceSyncAdapter {
 
     /**
      * Get sync statuses
-     * 
+     *
      * @stub Returns empty array - requires ExperienceSyncManager integration
      */
     async getSyncStatuses(): Promise<SyncStatus[]> {

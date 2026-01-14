@@ -170,12 +170,12 @@ export class VersionNegotiator extends EventEmitter {
 
   /**
    * Get available versions for a protocol.
-   * 
+   *
    * @stub Returns hardcoded version lists. In production, should query:
    *   - Protocol registry (src/adapters/universal/registry-v2.ts)
    *   - Upstream protocol spec endpoints
    *   - Local version cache with TTL
-   * 
+   *
    * The hardcoded defaults are reasonable fallbacks but may become stale.
    * Last verified: 2026-01-14
    */
@@ -183,7 +183,7 @@ export class VersionNegotiator extends EventEmitter {
     // TODO: Query PROTOCOL_REGISTRY_V2 for version information
     // TODO: Add upstream version discovery with caching
     // TODO: Emit warning when using fallback defaults
-    
+
     // Hardcoded defaults - VERIFY PERIODICALLY
     // These are fallback values when dynamic version discovery is unavailable
     const FALLBACK_VERSIONS: Record<AgentFramework, string[]> = {
@@ -211,7 +211,7 @@ export class VersionNegotiator extends EventEmitter {
       console.warn(`[VersionNegotiator] No version info for protocol '${protocol}', using default '1.0.0'`);
       return ['1.0.0'];
     }
-    
+
     return versions;
   }
 
@@ -298,11 +298,11 @@ export class VersionNegotiator extends EventEmitter {
 
   /**
    * Check feature support for a version.
-   * 
+   *
    * @stub Returns empty array (assumes all features supported).
    * In production, should check against a capability matrix that maps
    * protocol versions to supported features.
-   * 
+   *
    * @returns Array of UNSUPPORTED features (empty = all supported)
    */
   private async checkFeatureSupport(
