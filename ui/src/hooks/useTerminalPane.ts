@@ -299,6 +299,9 @@ export interface UseVoyeurTerminalOptions extends UseTerminalPaneOptions {
  * 
  * Subscribes to VoyeurBus events for a specific session
  * and renders them in the terminal pane.
+ * 
+ * Note: Event buffer functionality removed - was dead code serving no purpose.
+ * If event replay is needed in future, implement it with actual event storage.
  */
 export function useVoyeurTerminal(
   options: UseVoyeurTerminalOptions
@@ -307,62 +310,17 @@ export function useVoyeurTerminal(
   sessionId: string | undefined;
   /** Set the session to observe */
   setSessionId: (sessionId: string) => void;
-  /** Buffer of raw event data */
-  eventBuffer: string[];
 } {
-  const { sessionId: initialSessionId, showTimestamps = true, maxBufferLines = 10000, ...baseOptions } = options;
+  // Destructure only what we use to avoid unused variable warnings
+  const { sessionId: initialSessionId, ...baseOptions } = options;
   
   const baseResult = useTerminalPane(baseOptions);
   const [sessionId, setSessionId] = useState(initialSessionId);
-  const [eventBuffer, setEventBuffer] = useState<string[]>([]);
-
-  // Format event for terminal display
-  const formatEvent = useCallback((event: {
-    kind: string;
-    timestamp: string;
-    data?: unknown;
-    sourceInstance?: string;
-  }): string => {
-    const timestamp = showTimestamps 
-      ? `\x1b[90m[${new Date(event.timestamp).toLocaleTimeString()}]\x1b[0m ` 
-      : '';
-    
-    const source = event.sourceInstance 
-      ? `\x1b[36m@${event.sourceInstance}\x1b[0m ` 
-      : '';
-    
-    // Color code by event kind
-    let kindColor = '37'; // white
-    if (event.kind.includes('error')) kindColor = '31'; // red
-    else if (event.kind.includes('complete') || event.kind.includes('success')) kindColor = '32'; // green
-    else if (event.kind.includes('start') || event.kind.includes('request')) kindColor = '33'; // yellow
-    else if (event.kind.includes('match') || event.kind.includes('found')) kindColor = '34'; // blue
-    
-    const kind = `\x1b[${kindColor}m[${event.kind}]\x1b[0m`;
-    
-    const data = event.data 
-      ? ` ${typeof event.data === 'string' ? event.data : JSON.stringify(event.data)}`
-      : '';
-    
-    return `${timestamp}${source}${kind}${data}`;
-  }, [showTimestamps]);
-
-  // Update buffer when writing events
-  const updateBuffer = useCallback((formatted: string) => {
-    setEventBuffer(prev => {
-      const next = [...prev, formatted];
-      if (next.length > maxBufferLines) {
-        return next.slice(-maxBufferLines);
-      }
-      return next;
-    });
-  }, [formatEvent, baseResult.actions, maxBufferLines]);
 
   return {
     ...baseResult,
     sessionId,
     setSessionId,
-    eventBuffer,
   };
 }
 

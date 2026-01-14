@@ -313,6 +313,7 @@ export function useCanvasActions(doc: Y.Doc) {
 
 /**
  * Hook to subscribe to session state (participants, etc.)
+ * Reads actual session data from YJS document
  */
 export function useSession(doc: Y.Doc): TerminalSession | null {
   const [session, setSession] = useState<TerminalSession | null>(null);
@@ -326,17 +327,42 @@ export function useSession(doc: Y.Doc): TerminalSession | null {
       const id = ySession.get('id') as string;
       if (!id) return;
 
+      // Read actual data from YJS or provide sensible defaults
+      const leftData = ySession.get('left') as any;
+      const rightData = ySession.get('right') as any;
+      const canvasData = ySession.get('canvas') as any;
+
       setSession({
         id,
         name: ySession.get('name') as string || 'Unnamed Session',
-        lastActivity: Date.now(),
-        participants: (ySession.get('participants') as ParticipantId[]) || [],
-        frames: {
-          left: { id: 'left', position: 'left', title: 'Agent', messages: [], participants: [], isTyping: [], scrollPosition: 0, metadata: {} },
-          center: { id: 'center', nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 }, selectedNodes: [], selectedEdges: [], metadata: {} },
-          right: { id: 'right', position: 'right', title: 'Human', messages: [], participants: [], isTyping: [], scrollPosition: 0, metadata: {} }
+        left: leftData || { 
+          id: 'left', 
+          position: 'left' as const, 
+          title: 'Agent', 
+          messages: [], 
+          participants: [], 
+          isTyping: [] 
         },
-        metadata: {}
+        right: rightData || { 
+          id: 'right', 
+          position: 'right' as const, 
+          title: 'Human', 
+          messages: [], 
+          participants: [], 
+          isTyping: [] 
+        },
+        canvas: canvasData || { 
+          id: 'canvas', 
+          metadata: { 
+            id: 'canvas', 
+            name: 'Canvas', 
+            createdAt: Date.now(), 
+            updatedAt: Date.now(), 
+            createdBy: 'system' 
+          },
+          agents: [], 
+          layouts: {} 
+        }
       });
     };
 
@@ -355,23 +381,23 @@ export function useSession(doc: Y.Doc): TerminalSession | null {
  * Hook to manage participants
  */
 export function useParticipants(doc: Y.Doc) {
-  const addParticipant = useCallback((participant: Participant) => {
+  const addParticipant = useCallback((participantId: ParticipantId) => {
     if (!doc) return;
 
     const ySession = doc.getMap('session');
-    const participants = (ySession.get('participants') as Participant[]) || [];
+    const participants = (ySession.get('participants') as ParticipantId[]) || [];
     
-    if (!participants.find(p => p.id === participant.id)) {
-      ySession.set('participants', [...participants, participant]);
+    if (!participants.includes(participantId)) {
+      ySession.set('participants', [...participants, participantId]);
     }
   }, [doc]);
 
-  const removeParticipant = useCallback((participantId: string) => {
+  const removeParticipant = useCallback((participantId: ParticipantId) => {
     if (!doc) return;
 
     const ySession = doc.getMap('session');
-    const participants = (ySession.get('participants') as Participant[]) || [];
-    ySession.set('participants', participants.filter(p => p.id !== participantId));
+    const participants = (ySession.get('participants') as ParticipantId[]) || [];
+    ySession.set('participants', participants.filter(p => p !== participantId));
   }, [doc]);
 
   return { addParticipant, removeParticipant };

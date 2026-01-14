@@ -4,17 +4,18 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { renderWithWallet } from '../../../test/test-utils';
 import { ChatPane } from '../ChatPane';
-import type { ChatMessage } from '@terminal/protocols/common-types';
+import type { ChatMessage, ParticipantType } from '@terminal/protocols/common-types';
 
 describe('ChatPane', () => {
   const mockMessages: ChatMessage[] = [
     {
       id: '1',
       content: 'Hello from agent',
-      senderType: 'agent',
+      senderType: 'agent' as ParticipantType,
       senderId: 'agent-1',
       senderName: 'Agent One',
       timestamp: Date.now() - 60000,
@@ -23,7 +24,7 @@ describe('ChatPane', () => {
     {
       id: '2',
       content: 'Hello from human',
-      senderType: 'human',
+      senderType: 'human' as ParticipantType,
       senderId: 'human-1',
       senderName: 'Test User',
       timestamp: Date.now(),
@@ -76,7 +77,7 @@ describe('ChatPane', () => {
         {
           id: '3',
           content: 'Message with file',
-          senderType: 'human',
+          senderType: 'human' as ParticipantType,
           senderId: 'human-1',
           senderName: 'Test User',
           timestamp: Date.now(),
@@ -241,8 +242,9 @@ describe('ChatPane', () => {
         {
           id: '3',
           content: 'New message',
-          senderType: 'agent',
+          senderType: 'agent' as ParticipantType,
           senderId: 'agent-1',
+          senderName: 'Agent One',
           timestamp: Date.now(),
           attachments: []
         }

@@ -218,7 +218,7 @@ const DEFAULT_CONFIG: Required<TerminalServiceConfig> = {
   scrollback: 10000,
   enableWebGL: true,
   enableLinks: true,
-  linkHandler: (event, uri) => {
+  linkHandler: (_event, uri) => {
     window.open(uri, '_blank', 'noopener,noreferrer');
   },
   websocketUrl: '',

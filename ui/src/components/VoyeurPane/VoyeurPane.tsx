@@ -11,6 +11,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useVoyeurEvents } from '../../contexts/VoyeurContext';
 import { VoyeurEvent, VoyeurEventKind } from '../../utils/VoyeurBusClient';
 import { Badge, Button, Input } from '../design-system';
+import type { BadgeVariant } from '../design-system/Badge/Badge';
 import styles from './VoyeurPane.module.css';
 
 // ============================================================================
@@ -124,13 +125,14 @@ function ConnectionStatus({
   onDisconnect, 
   onReconnect 
 }: ConnectionStatusProps) {
-  const statusColor = {
+  // Map connection states to valid Badge variants with proper typing
+  const statusColor: BadgeVariant = {
     disconnected: 'secondary',
     connecting: 'warning',
     connected: 'success',
     reconnecting: 'warning',
     error: 'error'
-  }[state] || 'secondary';
+  }[state] as BadgeVariant || 'secondary';
 
   const statusLabel = {
     disconnected: 'Disconnected',
@@ -171,6 +173,9 @@ export interface VoyeurPaneProps {
 }
 
 export function VoyeurPane({ onClose }: VoyeurPaneProps = {}) {
+  // Note: onClose is currently unused but reserved for future close functionality
+  void onClose;
+  
   const voyeur = useVoyeurEvents();
   const [expandedEventIds, setExpandedEventIds] = useState<Set<string>>(new Set());
   const [searchText, setSearchText] = useState('');

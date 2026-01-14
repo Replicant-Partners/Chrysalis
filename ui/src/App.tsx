@@ -5,7 +5,7 @@
  * and renders the three-frame UI with live YJS synchronization.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ThreeFrameLayout } from './components/ThreeFrameLayout/ThreeFrameLayout';
 import { CanvasNavigator, type CanvasTab, type Agent, type CanvasType } from './components/CanvasNavigator';
 import { ChatPane } from './components/ChatPane/ChatPane';
@@ -196,10 +196,23 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
     terminal.actions.setViewport(viewport.x, viewport.y, viewport.zoom);
   }, [terminal.actions]);
 
-  // Computed values
-  const participantCount = terminal.session?.participants.length || 0;
-  const widgetCount = terminal.canvas.nodes.filter(n => n.type === 'widget').length;
-  const activeCanvas = canvases.find(c => c.id === activeCanvasId);
+  // Computed values - useMemo to avoid recalculating on every render
+  const participantCount = useMemo(() => {
+    if (!terminal.session) return 0;
+    const left = terminal.session.left.participants.length;
+    const right = terminal.session.right.participants.length;
+    return left + right;
+  }, [terminal.session]);
+
+  const widgetCount = useMemo(() => 
+    terminal.canvas.nodes.filter(n => n.type === 'widget').length,
+    [terminal.canvas.nodes]
+  );
+
+  const activeCanvas = useMemo(() => 
+    canvases.find(c => c.id === activeCanvasId),
+    [canvases, activeCanvasId]
+  );
 
   return (
     <div style={{ 
