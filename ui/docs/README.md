@@ -1,226 +1,224 @@
-# Chrysalis Terminal UI - Documentation Hub
+# Chrysalis Terminal UI - Documentation
 
-**Version:** 1.0.0  
-**Last Updated:** January 10, 2026  
-**Framework:** React 18 + TypeScript + Vite
-
-Welcome to the Chrysalis Terminal UI documentation. This is the central navigation hub for all frontend-related documentation.
+**Last Updated:** January 15, 2026  
+**Status:** ✅ MVP Complete - Phase B Ready
 
 ---
 
-## 🎯 Quick Navigation
+## Quick Links
 
-### For New Developers
-1. **[Getting Started](../README.md)** - Setup and run the UI
-2. **[Component Architecture](./architecture/COMPONENT_ARCHITECTURE.md)** - Understanding the component structure
-3. **[Design System](../src/styles/README.md)** - Tokens, components, styling
+### Current Status
+- 📊 **[CURRENT_STATUS.md](./CURRENT_STATUS.md)** - Authoritative project status ⭐
+- 📈 **[DEVELOPMENT_PROGRESS_REPORT.md](./DEVELOPMENT_PROGRESS_REPORT.md)** - Comprehensive progress report
+- 🔧 **[status/IMPLEMENTATION_STATUS.md](./status/IMPLEMENTATION_STATUS.md)** - Technical implementation details
 
-### For Contributors
-1. **[Development Guide](./guides/DEVELOPMENT.md)** - Development workflow
-2. **[Component Guide](./guides/COMPONENT_GUIDE.md)** - Creating new components
-3. **[Implementation Status](./status/IMPLEMENTATION_STATUS.md)** - Current progress
+### Architecture & Planning
+- 🏗️ **[CHRYSALIS_TERMINAL_ARCHITECTURE.md](./CHRYSALIS_TERMINAL_ARCHITECTURE.md)** - System architecture
+- 📋 **[MVP_CANVAS_PLAN.md](./MVP_CANVAS_PLAN.md)** - Canvas specifications
+- 🎨 **[WIDGET_SYSTEM_PLAN.md](./WIDGET_SYSTEM_PLAN.md)** - Widget system design
 
-### For Architects
-1. **[Terminal Architecture](./CHRYSALIS_TERMINAL_ARCHITECTURE.md)** - System design specification
-2. **[State Management](./architecture/STATE_MANAGEMENT.md)** - Zustand + YJS patterns
-3. **[Backend Integration](./api/BACKEND_INTEGRATION.md)** - API contracts
-
----
-
-## 📚 Documentation Structure
-
-```
-ui/docs/
-├── README.md (this file)                 # Navigation hub
-│
-├── architecture/                         # Architecture documentation
-│   ├── README.md                         # Architecture overview
-│   ├── COMPONENT_ARCHITECTURE.md         # Component design patterns
-│   ├── STATE_MANAGEMENT.md               # State & data flow
-│   └── CANVAS_SYSTEM.md                  # Canvas architecture
-│
-├── guides/                               # Developer guides
-│   ├── GETTING_STARTED.md                # Quick start guide
-│   ├── DEVELOPMENT.md                    # Development workflow
-│   └── COMPONENT_GUIDE.md                # Component development
-│
-├── api/                                  # API & integration
-│   ├── BACKEND_INTEGRATION.md            # Backend API contracts
-│   └── DATA_MODELS.md                    # TypeScript interfaces
-│
-├── status/                               # Implementation tracking
-│   └── IMPLEMENTATION_STATUS.md          # Current status (not history)
-│
-└── archive/                              # Historical materials
-    ├── README.md                         # Archive index
-    └── 2026-01/                          # Dated archives
-        └── clarification-sessions/       # Q&A sessions
-```
+### User Guides
+- 📖 **[CANVAS_SYSTEM_USAGE_GUIDE.md](./CANVAS_SYSTEM_USAGE_GUIDE.md)** - Canvas usage guide
+- 📦 **[CURATION_CANVAS_GUIDE.md](./CURATION_CANVAS_GUIDE.md)** - Curation canvas guide
+- 🖥️ **[TERMINAL_PANE_ARCHITECTURE.md](./TERMINAL_PANE_ARCHITECTURE.md)** - Terminal architecture
 
 ---
 
-## 🔍 Active Documentation
+## Project Status
 
-### Core Specifications
+### ✅ MVP Complete (100%)
 
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| [Terminal Architecture](./CHRYSALIS_TERMINAL_ARCHITECTURE.md) | System design, canvas types, access control | Architects, Senior Devs |
-| [Component Architecture](./architecture/COMPONENT_ARCHITECTURE.md) | Component patterns, organization | All Developers |
-| [State Management](./architecture/STATE_MANAGEMENT.md) | Zustand stores, YJS integration | All Developers |
-| [Design System](../src/styles/README.md) | Tokens, animations, utilities | UI Developers |
+All 10 planned canvas types are fully implemented and functional:
 
-### Developer Guides
+| Canvas | Status | Description |
+|--------|--------|-------------|
+| Settings | ✅ | API key management, encryption |
+| Board | ✅ | ReactFlow workspace, YJS sync |
+| Scrapbook | ✅ | Media collection, tagging |
+| Research | ✅ | Hierarchical documents, wiki-links |
+| Wiki | ✅ | MediaWiki integration |
+| Terminal | ✅ | xterm.js terminal emulation |
+| Browser | ✅ | Web browsing in iframe |
+| Scenarios | ✅ | Future planning, 3 views |
+| Curation | ✅ | Research library, graph viz |
+| Media | ✅ | Image/audio/video editing |
 
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| [Getting Started](../README.md) | Setup, install, run | New Developers |
-| [Development Guide](./guides/DEVELOPMENT.md) | Workflow, testing, linting | All Developers |
-| [Component Guide](./guides/COMPONENT_GUIDE.md) | Create new components | UI Developers |
+**Total:** ~15,000 LOC, 60+ components, 0 TypeScript errors
 
-### API & Data
+### Next Phase: Integration & Polish
 
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| [Backend Integration](./api/BACKEND_INTEGRATION.md) | API contracts, WebSocket | Backend Integration |
-| [Data Models](./api/DATA_MODELS.md) | TypeScript interfaces | All Developers |
-
-### Status & Progress
-
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| [Implementation Status](./status/IMPLEMENTATION_STATUS.md) | Current feature status | All Developers, PMs |
+Phase B (2-3 weeks):
+- Backend integration (Terminal WebSocket, Wiki auth)
+- YJS real-time sync for new canvases
+- Component integration (Grid, Infinite Scroll)
+- Testing infrastructure (40% coverage target)
 
 ---
 
-## 📦 Archive
+## Documentation Structure
 
-Historical documentation is preserved in `archive/` but is **not current guidance**:
+### Primary Documents
 
-- [Archive Index](./archive/README.md)
-- [Clarification Sessions (Jan 2026)](./archive/2026-01/clarification-sessions/)
-- Historical progress logs (moved from root ui/)
+📊 **Status & Progress**
+- `CURRENT_STATUS.md` - Single source of truth for project status
+- `DEVELOPMENT_PROGRESS_REPORT.md` - Detailed progress report
+- `status/IMPLEMENTATION_STATUS.md` - Technical implementation tracking
 
-**Note:** Git history preserves the evolution of the codebase. Active docs focus on present state and future direction.
+🏗️ **Architecture & Design**
+- `CHRYSALIS_TERMINAL_ARCHITECTURE.md` - Overall system architecture
+- `MVP_CANVAS_PLAN.md` - Canvas type specifications
+- `WIDGET_SYSTEM_PLAN.md` - Widget system design
+- `TERMINAL_PANE_ARCHITECTURE.md` - Terminal architecture
 
----
+📖 **User Documentation**
+- `CANVAS_SYSTEM_USAGE_GUIDE.md` - How to use canvas system
+- `CURATION_CANVAS_GUIDE.md` - Curation canvas user guide
+- `README.md` - This file (documentation index)
 
-## 🎨 Design System
+### Archived Documents
 
-The Chrysalis UI uses a comprehensive design system built on design tokens:
+📦 **Archive (2026-01)**
+- `archive/2026-01/sessions/` - Development session summaries
+- `archive/2026-01/verification/` - Code verification reports
+- `archive/2026-01/interim/` - Interim planning documents
+- `archive/2026-01/progress/` - Component migration tracking
+- `archive/2026-01/clarification-sessions/` - Architecture clarifications
 
-- **[Design System README](../src/styles/README.md)** - Complete guide
-- **Foundation:** 340+ design tokens (colors, typography, spacing, shadows)
-- **Components:** Button, Input, Card, Badge + custom components
-- **Animations:** Mercury shimmer, fades, slides, reduced-motion support
-- **Utilities:** Layout helpers, accessibility classes, glass morphism
+See [archive/2026-01/README.md](./archive/2026-01/README.md) for details.
 
----
+### Specialized Documentation
 
-## 🔧 Tech Stack
-
-```json
-{
-  "framework": "Vite + React 18 + TypeScript",
-  "state": "Zustand (user settings) + YJS (collaborative)",
-  "sync": "y-websocket (one room per canvas)",
-  "canvas": "React Flow + YJS sync",
-  "styling": "Vanilla CSS + Design Tokens",
-  "icons": "Font Awesome + User-selected emoji (Noto/Fluent/Open)",
-  "backend": "Node.js 18+",
-  "versioning": "Checkpoint system for rollback"
-}
-```
-
-**Key Dependencies:**
-- React 18.2.0
-- YJS 13.6.29 + y-websocket
-- Zustand 4.5.0
-- TypeScript 5.3.3
-- Vite 5.0.12
-
-See [package.json](../package.json) for complete list.
+📁 **Subdirectories**
+- `api/` - API specifications
+- `architecture/` - Architecture deep-dives
+- `guides/` - Implementation guides
 
 ---
 
-## 📖 Documentation Principles
+## For Developers
 
-All Chrysalis UI documentation follows three non-negotiable biases:
+### Getting Started
 
-### 1. Diagram Everything Structural
+1. **Read First:**
+   - [CURRENT_STATUS.md](./CURRENT_STATUS.md) - Understand current state
+   - [CHRYSALIS_TERMINAL_ARCHITECTURE.md](./CHRYSALIS_TERMINAL_ARCHITECTURE.md) - System architecture
 
-Flows, relationships, lifecycles, state machines, object models → **Mermaid diagrams**
+2. **Implementation Reference:**
+   - [MVP_CANVAS_PLAN.md](./MVP_CANVAS_PLAN.md) - Canvas specifications
+   - [CANVAS_SYSTEM_USAGE_GUIDE.md](./CANVAS_SYSTEM_USAGE_GUIDE.md) - Usage patterns
 
-### 2. Cite Design Choices
+3. **Build & Run:**
+   ```bash
+   cd ui
+   npm install
+   npm run dev       # Development server
+   npm run build     # Production build
+   npm run typecheck # Type checking
+   ```
 
-Architectural patterns, protocols, data modeling → **Source notes with external links**
+### Contributing
 
-### 3. Forward-Looking Only
-
-Consolidate lessons into present-tense guidance. Remove history, status diaries, old logs from active docs.
-
----
-
-## 🚀 Quick Start
-
-```bash
-# Clone repository
-git clone https://github.com/Replicant-Partners/Chrysalis.git
-cd Chrysalis/ui
-
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-Visit **http://localhost:3000** to see the UI.
+1. Follow existing patterns (see implemented canvases)
+2. Use design tokens (no hardcoded values)
+3. Maintain strict TypeScript compliance
+4. Add tests for new features (Phase B onwards)
 
 ---
 
-## 🔗 Related Documentation
+## Document Versioning
 
-### Chrysalis Core
-- [Main README](../../README.md) - Project overview
-- [Architecture](../../ARCHITECTURE.md) - System architecture
-- [Main Docs Hub](../../docs/README.md) - Backend documentation
+### Current (v2.0.0)
+- **CURRENT_STATUS.md** - Authoritative status
+- **DEVELOPMENT_PROGRESS_REPORT.md** - Progress report
+- **MVP_CANVAS_PLAN.md** - Final specifications
 
-### Projects
-- [Memory System](../../memory_system/README.md)
-- [KnowledgeBuilder](../../projects/KnowledgeBuilder/README.md)
-- [SkillBuilder](../../projects/SkillBuilder/README.md)
+### Superseded (Archived)
+- All interim session summaries → archive/2026-01/sessions/
+- All verification reports → archive/2026-01/verification/
+- All thread continuations → archive/2026-01/interim/
 
----
-
-## 📝 Maintenance
-
-**Update Cadence:**
-- Architecture docs: Updated with major design changes
-- Component docs: Updated when components change
-- Status doc: Updated with each development session
-- Archive: Updated when materials become historical
-
-**Last Review:** January 10, 2026  
-**Maintainer:** Chrysalis UI Team
+See [Archived Documents](#archived-documents) section for details.
 
 ---
 
-## 🤝 Contributing
+## FAQ
 
-See [Component Guide](./guides/COMPONENT_GUIDE.md) for how to:
-- Create new components
-- Follow design system patterns
-- Write TypeScript interfaces
-- Add Mermaid diagrams
-- Document with source citations
+### Where is the current project status?
+**[CURRENT_STATUS.md](./CURRENT_STATUS.md)** is the single source of truth.
+
+### Where are the session summaries?
+Archived in `archive/2026-01/sessions/`. Current status in CURRENT_STATUS.md.
+
+### Where is the implementation status?
+**[status/IMPLEMENTATION_STATUS.md](./status/IMPLEMENTATION_STATUS.md)** for technical details.  
+**[CURRENT_STATUS.md](./CURRENT_STATUS.md)** for overview.
+
+### How do I add a new canvas?
+See **[MVP_CANVAS_PLAN.md](./MVP_CANVAS_PLAN.md)** for patterns and specifications.
+
+### Where are the user guides?
+- **[CANVAS_SYSTEM_USAGE_GUIDE.md](./CANVAS_SYSTEM_USAGE_GUIDE.md)** - General usage
+- **[CURATION_CANVAS_GUIDE.md](./CURATION_CANVAS_GUIDE.md)** - Curation-specific
 
 ---
 
-**Navigation:** [Project Root](../../) | [UI README](../README.md) | [Design System](../src/styles/README.md) | [Architecture](./CHRYSALIS_TERMINAL_ARCHITECTURE.md)
+## Maintenance
+
+### Documentation Updates
+
+**When to Update:**
+- After completing a development phase
+- When architecture changes
+- When adding/removing features
+- Monthly review (minimum)
+
+**What to Update:**
+1. **CURRENT_STATUS.md** - Always reflect current state
+2. **DEVELOPMENT_PROGRESS_REPORT.md** - After major milestones
+3. **status/IMPLEMENTATION_STATUS.md** - After implementation changes
+
+### Archive Policy
+
+**When to Archive:**
+- Session-specific documents after session complete
+- Interim planning after plans finalized
+- Verification reports after continuous verification established
+
+**Where to Archive:**
+- `archive/YYYY-MM/` - Monthly archives
+- Include README.md explaining what's archived
+
+---
+
+## Support
+
+### Internal Team
+- Review current status documents
+- Check architecture guides
+- Refer to implementation patterns
+
+### External Contributors
+- Start with README.md (this file)
+- Review CURRENT_STATUS.md
+- Follow CONTRIBUTING.md (when available)
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 2.0.0 | Jan 15, 2026 | MVP complete, documentation consolidation |
+| 1.2.0 | Jan 14, 2026 | Week 4-5 canvases complete |
+| 1.1.0 | Jan 13, 2026 | Week 2-3 canvases complete |
+| 1.0.0 | Jan 11, 2026 | Initial structure, Week 1 complete |
+
+---
+
+**Maintained By:** Development Team  
+**Last Review:** January 15, 2026  
+**Next Review:** After Phase B completion
+
+---
+
+*This README serves as the index to all Chrysalis Terminal UI documentation. For current project status, see [CURRENT_STATUS.md](./CURRENT_STATUS.md).*

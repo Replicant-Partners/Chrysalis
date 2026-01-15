@@ -1,0 +1,224 @@
+/**
+ * Collection Panel Styles
+ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-slate-800);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* All Items */
+.allItems {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-2) var(--space-2) 0;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.allItems:hover {
+  background: var(--color-slate-800);
+}
+
+.allItems.selected {
+  background: var(--color-cyan-500);
+  color: var(--color-white);
+}
+
+.allItemsIcon {
+  color: var(--color-text-secondary);
+}
+
+.allItems.selected .allItemsIcon {
+  color: var(--color-white);
+}
+
+.allItemsLabel {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.allItems.selected .allItemsLabel {
+  color: var(--color-white);
+}
+
+/* Sections */
+.section {
+  margin-top: var(--space-4);
+  padding: 0 var(--space-2);
+}
+
+.sectionTitle {
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-tertiary);
+}
+
+/* Folders */
+.folderList {
+  display: flex;
+  flex-direction: column;
+}
+
+.folderItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.folderHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  position: relative;
+}
+
+.folderHeader:hover {
+  background: var(--color-slate-800);
+}
+
+.folderHeader.selected {
+  background: var(--color-cyan-500);
+  color: var(--color-white);
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.expandButton:hover {
+  background: var(--color-slate-700);
+  color: var(--color-text-primary);
+}
+
+.folderHeader.selected .expandButton {
+  color: var(--color-white);
+}
+
+.folderIcon {
+  font-size: var(--font-size-base);
+  line-height: 1;
+}
+
+.folderName {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folderHeader.selected .folderName {
+  color: var(--color-white);
+}
+
+.count {
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  background: var(--color-slate-800);
+  border-radius: var(--radius-full);
+  line-height: 20px;
+}
+
+.folderHeader.selected .count,
+.allItems.selected .count {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--color-white);
+}
+
+.folderChildren {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tags */
+.tagList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.tagItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.tagItem:hover {
+  background: var(--color-slate-800);
+}
+
+.tagItem.selected {
+  background: var(--color-cyan-500);
+  color: var(--color-white);
+}
+
+.tagIcon {
+  color: var(--color-text-secondary);
+}
+
+.tagItem.selected .tagIcon {
+  color: var(--color-white);
+}
+
+.tagName {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tagItem.selected .tagName {
+  color: var(--color-white);
+}

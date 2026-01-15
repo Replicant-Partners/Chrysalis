@@ -14,40 +14,9 @@ import styles from './CanvasNavigator.module.css';
 // Types
 // ============================================================================
 
-export type CanvasType =
-  | 'settings'
-  | 'board'
-  | 'scrapbook'
-  | 'research'
-  | 'wiki'
-  | 'storyboard'
-  | 'remixer'
-  | 'video'
-  | 'meme'
-  | 'custom_template';
+import type { CanvasTab, Agent, CanvasNavigatorProps, CanvasType } from './types';
 
-export interface CanvasTab {
-  id: string;
-  index: number;
-  type: CanvasType;
-  title: string;
-  isFixed: boolean;
-}
-
-export interface Agent {
-  id: string;
-  name: string;
-  role: string;
-  status: 'active' | 'idle' | 'offline';
-}
-
-export interface CanvasNavigatorProps {
-  canvases: CanvasTab[];
-  activeCanvasId: string;
-  agents: Agent[];
-  onCanvasSelect: (canvasId: string) => void;
-  onCanvasTypeChange: (canvasId: string, newType: CanvasType) => void;
-}
+export type { CanvasTab, Agent, CanvasType };
 
 // ============================================================================
 // Constants
@@ -56,11 +25,15 @@ export interface CanvasNavigatorProps {
 const CANVAS_TYPE_OPTIONS: { value: CanvasType; label: string; icon: string }[] = [
   { value: 'board', label: 'Board', icon: '📋' },
   { value: 'scrapbook', label: 'Scrapbook', icon: '📔' },
+  { value: 'research', label: 'Research', icon: '📚' },
+  { value: 'wiki', label: 'Wiki', icon: '📖' },
+  { value: 'terminal', label: 'Terminal', icon: '🖥️' },
+  { value: 'browser', label: 'Browser', icon: '🌐' },
+  { value: 'scenarios', label: 'Scenarios', icon: '🎯' },
+  { value: 'curation', label: 'Curation', icon: '📦' },
+  { value: 'media', label: 'Media', icon: '🎬' },
   { value: 'storyboard', label: 'Storyboard', icon: '🎬' },
   { value: 'remixer', label: 'Remixer', icon: '🎨' },
-  { value: 'video', label: 'Video', icon: '🎥' },
-  { value: 'meme', label: 'Meme', icon: '😄' },
-  { value: 'custom_template', label: 'Custom', icon: '⚡' },
 ];
 
 // ============================================================================
@@ -88,6 +61,9 @@ export function CanvasNavigator({
 
   const getCanvasIcon = (type: CanvasType): string => {
     if (type === 'settings') return '⚙️';
+    if (type === 'wiki') return '📖';
+    if (type === 'terminal') return '🖥️';
+    if (type === 'browser') return '🌐';
     return CANVAS_TYPE_OPTIONS.find(opt => opt.value === type)?.icon || '📄';
   };
 

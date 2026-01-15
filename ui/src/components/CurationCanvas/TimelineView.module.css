@@ -1,0 +1,155 @@
+/**
+ * Timeline View Styles
+ */
+
+.timeline {
+  padding: var(--space-6);
+  overflow-y: auto;
+  height: 100%;
+}
+
+.timelineGroup {
+  position: relative;
+  margin-bottom: var(--space-8);
+}
+
+.timelineGroup:last-child {
+  margin-bottom: 0;
+}
+
+/* Date Header */
+.dateHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.dateLine {
+  flex: 1;
+  height: 1px;
+  background: var(--color-slate-700);
+}
+
+.dateMarker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--color-slate-800);
+  border: 2px solid var(--color-cyan-500);
+  border-radius: var(--radius-full);
+  color: var(--color-cyan-400);
+}
+
+.dateTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.dateCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+/* Artifact List */
+.artifactList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-left: var(--space-8);
+}
+
+.artifactItem {
+  position: relative;
+  display: flex;
+  gap: var(--space-4);
+}
+
+.artifactConnector {
+  position: absolute;
+  left: calc(-1 * var(--space-8));
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, 
+    var(--color-cyan-500) 0%, 
+    var(--color-cyan-500) 20px, 
+    var(--color-slate-700) 20px,
+    var(--color-slate-700) 100%
+  );
+}
+
+.artifactConnector::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background: var(--color-cyan-500);
+  border: 2px solid var(--color-slate-900);
+  border-radius: var(--radius-full);
+}
+
+.artifactCard {
+  flex: 1;
+  max-width: 600px;
+}
+
+/* Empty State */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--space-4);
+}
+
+.emptyTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.emptyText {
+  margin: 0;
+  max-width: 400px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .timeline {
+    padding: var(--space-4);
+  }
+  
+  .artifactList {
+    padding-left: var(--space-6);
+  }
+  
+  .artifactConnector {
+    left: calc(-1 * var(--space-6));
+  }
+  
+  .artifactCard {
+    max-width: 100%;
+  }
+}

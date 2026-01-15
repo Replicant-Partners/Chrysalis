@@ -1,0 +1,129 @@
+/**
+ * Canvas Tab Bar Styles
+ */
+
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-slate-850);
+  border-bottom: 1px solid var(--color-slate-800);
+  padding: 0 var(--space-3);
+  height: 48px;
+  position: relative;
+}
+
+.scrollButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-slate-800);
+  border: 1px solid var(--color-slate-700);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.scrollButton:hover {
+  background: var(--color-slate-700);
+  color: var(--color-cyan-400);
+  border-color: var(--color-slate-600);
+}
+
+.tabContainer {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  min-width: min-content;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  white-space: nowrap;
+  user-select: none;
+  position: relative;
+}
+
+.tab:hover {
+  background: var(--color-slate-800);
+  color: var(--color-text-primary);
+}
+
+.tab.active {
+  background: var(--color-slate-900);
+  border-color: var(--color-slate-700);
+  border-bottom-color: var(--color-slate-900);
+  color: var(--color-cyan-400);
+  z-index: 1;
+}
+
+.tabIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.tabTitle {
+  font-weight: var(--font-weight-medium);
+}
+
+.pinnedIndicator {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.renameInput {
+  background: var(--color-slate-800);
+  border: 1px solid var(--color-cyan-500);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  outline: none;
+  min-width: 100px;
+}
+
+.addButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-cyan-700);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-white);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.addButton:hover {
+  background: var(--color-cyan-600);
+  transform: scale(1.05);
+}

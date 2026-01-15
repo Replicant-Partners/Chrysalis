@@ -7,13 +7,21 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { ThreeFrameLayout } from './components/ThreeFrameLayout/ThreeFrameLayout';
-import { CanvasNavigator, type CanvasTab, type Agent, type CanvasType } from './components/CanvasNavigator';
+import { CanvasNavigator, type Agent } from './components/CanvasNavigator';
+import { type CanvasTab, type CanvasType, type CanvasConfig } from './components/CanvasNavigator/types';
+import { CanvasTabBar } from './components/CanvasTabBar';
+import { HiddenCanvasDrawer } from './components/CanvasNavigator/HiddenCanvasDrawer';
 import { ChatPane } from './components/ChatPane/ChatPane';
 import { ReactFlowCanvas } from './components/ReactFlowCanvas';
 import { SettingsCanvas } from './components/SettingsCanvas';
 import { ScrapbookCanvas } from './components/ScrapbookCanvas';
 import { ResearchCanvas } from './components/ResearchCanvas';
 import { WikiCanvas } from './components/WikiCanvas';
+import { TerminalCanvas } from './components/TerminalCanvas';
+import { BrowserCanvas } from './components/BrowserCanvas';
+import { ScenariosCanvas } from './components/ScenariosCanvas';
+import { CurationCanvas } from './components/CurationCanvas';
+import { MediaCanvas } from './components/MediaCanvas';
 import { WalletModal } from './components/Wallet';
 import { WalletProvider } from './contexts/WalletContext';
 import { VoyeurProvider } from './contexts/VoyeurContext';
@@ -161,12 +169,20 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
   });
 
   // Local UI state - Canvas navigation
+  const defaultConfig: CanvasConfig = {
+    scrollMode: 'both',
+    gridSize: 24,
+    autoExpand: true,
+    snapToGrid: true,
+    allowOverlap: false,
+  };
+
   const [canvases, setCanvases] = useState<CanvasTab[]>([
-    { id: 'canvas-0', index: 0, type: 'settings', title: 'Settings', isFixed: true },
-    { id: 'canvas-1', index: 1, type: 'scrapbook', title: 'Scrapbook', isFixed: false },
-    { id: 'canvas-2', index: 2, type: 'research', title: 'Research', isFixed: false },
-    { id: 'canvas-3', index: 3, type: 'wiki', title: 'Wiki', isFixed: false },
-    { id: 'canvas-4', index: 4, type: 'storyboard', title: 'Canvas 4', isFixed: false },
+    { id: 'canvas-0', index: 0, type: 'settings', title: 'Settings', isFixed: true, isVisible: true, isPinned: true, config: defaultConfig },
+    { id: 'canvas-1', index: 1, type: 'scrapbook', title: 'Scrapbook', isFixed: false, isVisible: true, isPinned: false, config: defaultConfig },
+    { id: 'canvas-2', index: 2, type: 'research', title: 'Research', isFixed: false, isVisible: true, isPinned: false, config: defaultConfig },
+    { id: 'canvas-3', index: 3, type: 'wiki', title: 'Wiki', isFixed: false, isVisible: true, isPinned: false, config: defaultConfig },
+    { id: 'canvas-4', index: 4, type: 'terminal', title: 'Terminal', isFixed: false, isVisible: true, isPinned: false, config: defaultConfig },
   ]);
   const [activeCanvasId, setActiveCanvasId] = useState('canvas-0');
   
@@ -190,6 +206,74 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
       canvas.id === canvasId ? { ...canvas, type: newType } : canvas
     ));
   }, []);
+
+  const handleCanvasRename = useCallback((canvasId: string, newTitle: string) => {
+    setCanvases(prev => prev.map(canvas =>
+      canvas.id === canvasId ? { ...canvas, title: newTitle } : canvas
+    ));
+  }, []);
+
+  const handleCanvasHide = useCallback((canvasId: string) => {
+    setCanvases(prev => prev.map(canvas =>
+      canvas.id === canvasId ? { ...canvas, isVisible: false } : canvas
+    ));
+  }, []);
+
+  const handleCanvasShow = useCallback((canvasId: string) => {
+    setCanvases(prev => prev.map(canvas =>
+      canvas.id === canvasId ? { ...canvas, isVisible: true } : canvas
+    ));
+  }, []);
+
+  const handleCanvasClose = useCallback((canvasId: string) => {
+    setCanvases(prev => {
+      const canvas = prev.find(c => c.id === canvasId);
+      if (canvas?.isFixed) return prev; // Cannot close fixed canvases
+      
+      const updated = prev.filter(c => c.id !== canvasId);
+      if (activeCanvasId === canvasId && updated.length > 0) {
+        setActiveCanvasId(updated[0].id);
+      }
+      return updated;
+    });
+  }, [activeCanvasId]);
+
+  const handleCanvasAdd = useCallback(() => {
+    const newId = `canvas-${Date.now()}`;
+    const newCanvas: CanvasTab = {
+      id: newId,
+      index: canvases.length,
+      type: 'board',
+      title: `Canvas ${canvases.length + 1}`,
+      isFixed: false,
+      isVisible: true,
+      isPinned: false,
+      config: defaultConfig,
+    };
+    setCanvases(prev => [...prev, newCanvas]);
+    setActiveCanvasId(newId);
+  }, [canvases.length, defaultConfig]);
+
+  const handleCanvasDuplicate = useCallback((canvasId: string) => {
+    const canvas = canvases.find(c => c.id === canvasId);
+    if (!canvas) return;
+
+    const newId = `canvas-${Date.now()}`;
+    const newCanvas: CanvasTab = {
+      ...canvas,
+      id: newId,
+      title: `${canvas.title} (Copy)`,
+      index: canvases.length,
+      isFixed: false,
+    };
+    setCanvases(prev => [...prev, newCanvas]);
+    setActiveCanvasId(newId);
+  }, [canvases]);
+
+  const hiddenCanvases = useMemo(() => 
+    canvases.filter(c => !c.isVisible),
+    [canvases]
+  );
 
   // Chat handlers
   const handleHumanSendMessage = useCallback((content: string) => {
@@ -229,23 +313,56 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
         <div className="mercury-frame-inner">
           <ThreeFrameLayout
             header={
-              <Header
-                connected={terminal.connected}
-                synced={terminal.synced}
-                sessionName={terminal.session?.name || 'New Session'}
-                participantCount={participantCount}
-                onToggleVoyeur={() => setVoyeurOpen(!voyeurOpen)}
-                voyeurOpen={voyeurOpen}
-              />
+              <>
+                <Header
+                  connected={terminal.connected}
+                  synced={terminal.synced}
+                  sessionName={terminal.session?.name || 'New Session'}
+                  participantCount={participantCount}
+                  onToggleVoyeur={() => setVoyeurOpen(!voyeurOpen)}
+                  voyeurOpen={voyeurOpen}
+                />
+                <CanvasTabBar
+                  canvases={canvases}
+                  activeCanvasId={activeCanvasId}
+                  onCanvasSelect={handleCanvasSelect}
+                  onCanvasRename={handleCanvasRename}
+                  onCanvasHide={handleCanvasHide}
+                  onCanvasClose={handleCanvasClose}
+                  onCanvasAdd={handleCanvasAdd}
+                  onCanvasDuplicate={handleCanvasDuplicate}
+                  onCanvasTypeChange={(id) => {
+                    // Open type selector modal - for now just cycle through types
+                    const canvas = canvases.find(c => c.id === id);
+                    if (canvas) {
+                      const types: CanvasType[] = ['board', 'scrapbook', 'research', 'wiki', 'terminal', 'browser', 'scenarios', 'curation', 'media'];
+                      const currentIndex = types.indexOf(canvas.type);
+                      const nextType = types[(currentIndex + 1) % types.length];
+                      handleCanvasTypeChange(id, nextType);
+                    }
+                  }}
+                />
+              </>
             }
       leftPane={
-        <CanvasNavigator
-          canvases={canvases}
-          activeCanvasId={activeCanvasId}
-          agents={agents}
-          onCanvasSelect={handleCanvasSelect}
-          onCanvasTypeChange={handleCanvasTypeChange}
-        />
+        <>
+          <CanvasNavigator
+            canvases={canvases.filter(c => c.isVisible)}
+            activeCanvasId={activeCanvasId}
+            agents={agents}
+            onCanvasSelect={handleCanvasSelect}
+            onCanvasTypeChange={handleCanvasTypeChange}
+          />
+          {hiddenCanvases.length > 0 && (
+            <div style={{ padding: 'var(--space-4)', borderTop: '1px solid var(--color-slate-800)' }}>
+              <HiddenCanvasDrawer
+                hiddenCanvases={hiddenCanvases}
+                onCanvasShow={handleCanvasShow}
+                onCanvasClose={handleCanvasClose}
+              />
+            </div>
+          )}
+        </>
       }
       centerPane={
         <div style={{ 
@@ -263,6 +380,16 @@ function AppContent({ terminalId, serverUrl }: AppProps) {
               <ResearchCanvas />
             ) : activeCanvas?.type === 'wiki' ? (
               <WikiCanvas />
+            ) : activeCanvas?.type === 'terminal' ? (
+              <TerminalCanvas />
+            ) : activeCanvas?.type === 'browser' ? (
+              <BrowserCanvas />
+            ) : activeCanvas?.type === 'scenarios' ? (
+              <ScenariosCanvas />
+            ) : activeCanvas?.type === 'curation' ? (
+              <CurationCanvas />
+            ) : activeCanvas?.type === 'media' ? (
+              <MediaCanvas canvasId={activeCanvas.id} />
             ) : (
               <>
                 <div style={{ 

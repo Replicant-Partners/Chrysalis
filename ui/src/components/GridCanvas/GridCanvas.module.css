@@ -1,0 +1,79 @@
+/**
+ * Grid Canvas Styles
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-slate-900);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-slate-850);
+  border-bottom: 1px solid var(--color-slate-800);
+  gap: var(--space-4);
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--color-slate-700);
+  margin: 0 var(--space-2);
+}
+
+.gridContainer {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+.gridContainer.showGrid {
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 29px,
+      var(--color-slate-800) 29px,
+      var(--color-slate-800) 30px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 29px,
+      var(--color-slate-800) 29px,
+      var(--color-slate-800) 30px
+    );
+  background-size: 30px 30px;
+}
+
+.layout {
+  min-height: 100%;
+  padding: var(--space-4);
+}
+
+.notice {
+  padding: var(--space-4);
+  background: var(--color-slate-800);
+  border: 1px solid var(--color-slate-700);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}

@@ -82,11 +82,36 @@ export const ScrapbookCanvas: React.FC = () => {
   
   // Handle file uploads
   const handleFilesSelected = useCallback((files: File[]) => {
-    console.log('Files selected:', files);
-    // TODO: Implement file upload logic
-    // For now, just close the upload dialog
+    for (const file of files) {
+      // Create a local URL for the file
+      const url = URL.createObjectURL(file);
+      
+      // Determine type
+      let type: 'image' | 'video' | 'audio' | 'link' | 'note' = 'image';
+      if (file.type.startsWith('video/')) type = 'video';
+      else if (file.type.startsWith('audio/')) type = 'audio';
+      
+      // Add to scrapbook with all required fields
+      const newItem: ScrapbookItem = {
+        id: `item-${Date.now()}-${Math.random()}`,
+        type,
+        url,
+        title: file.name,
+        tags: [],
+        createdAt: Date.now(),
+        createdBy: 'user',
+        status: 'ready',
+        metadata: {
+          size: file.size,
+          mimeType: file.type,
+        },
+      };
+      
+      setItems(prev => [newItem, ...prev]);
+    }
+    
     setShowUpload(false);
-  }, []);
+  }, [setItems]);
   
   // Handle item deletion
   const handleItemDelete = useCallback((id: string) => {
