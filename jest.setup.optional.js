@@ -1,3 +1,6 @@
+// Import jest-dom for DOM matcher support
+require('@testing-library/jest-dom');
+
 // Skip optional backend tests when deps are missing
 // Note: Qdrant removed - using LanceDB/ArangoDB instead
 const optionalDeps = [
