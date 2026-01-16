@@ -14,7 +14,7 @@ export { BaseBridge } from './BaseBridge';
 
 // Implementations
 export { SerenaBridge, SerenaConfig, createSerenaBridge } from './SerenaBridge';
-export { DirectLLMBridge, DirectLLMConfig, createDirectLLMBridge, LLMBridgeFactory } from './DirectLLMBridge';
+export { DirectLLMBridge, DirectLLMConfig, createDirectLLMBridge } from './DirectLLMBridge';
 export {
   ElizaOSBridge,
   ElizaOSConfig,
@@ -24,6 +24,13 @@ export {
   ElizaOSFactory,
   EVALUATOR_MODES
 } from './ElizaOSBridge';
+export {
+  ACPBridge,
+  ACPBridgeConfig,
+  ACPAgentType,
+  createACPBridge,
+  ACPBridgeFactory
+} from './ACPBridge';
 
 // Registry
 export {

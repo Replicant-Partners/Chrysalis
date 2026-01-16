@@ -1,8 +1,8 @@
 # Chrysalis Next Steps Plan
 
-**Date**: January 16, 2026  
-**Status**: Active  
-**Owner**: Engineering Team  
+**Date**: January 16, 2026
+**Status**: Active
+**Owner**: Engineering Team
 **Version**: 3.2.0
 
 ---
@@ -162,7 +162,7 @@ src/agents/system/critic/
 export class UniversalLLMAdapter {
   async chat(model: string, messages: Message[]): Promise<string>;
   async *stream(model: string, messages: Message[]): AsyncGenerator<string>;
-  
+
   // Model routing:
   // - "gpt-4" → OpenAI
   // - "claude-3" → Anthropic
@@ -175,28 +175,33 @@ export class UniversalLLMAdapter {
 
 ---
 
-## Priority 2: Protocol Integration (Backlog)
+## Priority 2: Protocol Integration (✅ COMPLETE)
 
-### 2.1 ACP Protocol Adapter
+### 2.1 ACP Protocol Adapter ✅
 
 **Source**: Agent Client Protocol (https://agentclientprotocol.com)
 
 **Why**: ACP is THE standard for editor ↔ agent communication
 
-**Implementation**:
+**IMPLEMENTATION COMPLETE**:
 
 ```
 src/adapters/acp/
-├── types.ts                   # ACP types
-├── client.ts                  # Connect TO ACP agents
-├── server.ts                  # Expose AS ACP agent
-└── registry.ts                # Agent registry integration
+├── types.ts                   # ✅ ACP types (ndjson, capabilities, requests/responses)
+├── client.ts                  # ✅ Connect TO ACP agents (OpenCode, Codex, Gemini, etc.)
+├── server.ts                  # ✅ Expose AS ACP agent (for VS Code, Zed, Emacs)
+└── index.ts                   # ✅ Module exports
+
+src/agents/bridges/
+├── ACPBridge.ts               # ✅ Bridge implementation following ElizaOS pattern
 ```
 
-**Capabilities to implement**:
-- `WriteTextFileRequest` / `ReadTextFileRequest`
-- `CreateTerminalRequest` / `TerminalOutputRequest`
-- `SessionNotification` (streaming updates)
+**Capabilities implemented**:
+- ✅ `WriteTextFileRequest` / `ReadTextFileRequest`
+- ✅ `CreateTerminalRequest` / `TerminalOutputRequest`
+- ✅ `SessionNotification` (streaming updates)
+- ✅ `ACPBridgeFactory` for known agents (OpenCode, Codex, Gemini, Claude Code)
+- ✅ Hybrid mode (ACP + LLM fallback)
 - MCP integration (`mcpCapabilities`)
 
 **Effort**: 5 days
@@ -258,21 +263,21 @@ Main Agent → spawn sub-agents with shared memory
 gantt
     title Chrysalis Development Roadmap
     dateFormat  YYYY-MM-DD
-    
+
     section P0 Meta-Cognitive
     Context Condenser       :p0a, 2026-01-17, 2d
     Stuck Detector          :p0b, 2026-01-17, 2d
     Code Executor Tool      :p0c, 2026-01-19, 3d
-    
+
     section P1 System Agent
     SCM Commands            :p1a, 2026-01-22, 2d
     Critic System           :p1b, 2026-01-24, 3d
     LLM Adapter Enhancement :p1c, 2026-01-27, 3d
-    
+
     section P2 Protocol
     ACP Adapter             :p2a, 2026-01-30, 5d
     Multi-Agent Delegation  :p2b, 2026-02-04, 5d
-    
+
     section Maintenance
     Canvas Build            :m1, 2026-01-20, 2d
     Terminal Integration    :m2, 2026-01-22, 2d
@@ -305,7 +310,7 @@ gantt
 
 ## Conclusion
 
-The research synthesis reveals Chrysalis is **architecturally superior** in distributed memory, Byzantine resilience, and agent evolution - capabilities neither Open Interpreter, OpenHands, nor ACP directly address. 
+The research synthesis reveals Chrysalis is **architecturally superior** in distributed memory, Byzantine resilience, and agent evolution - capabilities neither Open Interpreter, OpenHands, nor ACP directly address.
 
 The strategic opportunity is to:
 1. **Add meta-cognitive capabilities** (condenser, stuck detection, critics) from OpenHands
@@ -319,5 +324,5 @@ The strategic opportunity is to:
 
 ---
 
-**Document Owner**: Engineering Team  
+**Document Owner**: Engineering Team
 **Last Updated**: January 16, 2026

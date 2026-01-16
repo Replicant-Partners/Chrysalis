@@ -45,6 +45,7 @@ export type AgentCapability =
 export type AgentType =
   | 'serena'
   | 'eliza'
+  | 'acp'
   | 'direct_llm'
   | 'crew_ai'
   | 'custom';

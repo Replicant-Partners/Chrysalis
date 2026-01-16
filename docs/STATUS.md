@@ -22,7 +22,7 @@ Chrysalis is a **Uniform Semantic Agent transformation system** enabling AI agen
 | TypeScript Core | ✅ Passing | ⚠️ Partial coverage |
 | Python memory_system | ✅ Passing | ✅ 9+ tests passing |
 | Canvas Architecture | ✅ Complete | 🔄 Prototype |
-| Go LLM Gateway | ⚠️ Not verified | ⚠️ Not verified |
+| Go LLM Gateway | ✅ Complete | ✅ Compiles (4 providers, circuit breaker, cost tracking) |
 
 ---
 
@@ -230,6 +230,8 @@ flowchart TB
 | Observability | Voyeur bus + SSE + metrics | `src/observability/` |
 | Fireproof Layer | Local-first CRDT document store | `memory_system/fireproof/` |
 | Canvas Architecture | 5 canvas types with widget system | `src/canvas/` |
+| **ACP Adapter** | Client + Server + Bridge for ACP ecosystem | `src/adapters/acp/` |
+| **Go LLM Gateway** | Multi-provider with circuit breaker | `go-services/` |
 
 ### In Progress 🔄
 
@@ -244,6 +246,9 @@ flowchart TB
 
 | Feature | Status | Notes |
 |---------|--------|-------|
+| **ACP Adapter** | ✅ Complete | Client, Server, and Bridge for Agent Client Protocol ecosystem |
+| **Go LLM Gateway** | ✅ Complete | 4 providers (OpenAI, Anthropic, Ollama, OpenRouter), circuit breaker |
+| **P0 Meta-Cognitive** | ✅ Complete | Context Condenser, Stuck Detector, Code Executor |
 | OpenTelemetry Integration | ✅ Complete | Dependencies installed, no @ts-nocheck |
 | Sync Module Types | ✅ Complete | Logger signatures fixed, TypeScript clean |
 | Terminal WebSocket Backend | ✅ Complete | Server implemented, ready for deployment |

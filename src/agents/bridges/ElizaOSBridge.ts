@@ -19,7 +19,7 @@ import {
   AgentCapability,
   AgentType
 } from './types';
-import { LLMHydrationService } from '../../services/llm/LLMHydrationService';
+import { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
 import { AgentLLMClient } from '../../services/llm/AgentLLMClient';
 
 /**
@@ -148,8 +148,8 @@ export interface ElizaOSConfig extends BridgeConfig {
   // Evaluator mode
   evaluatorMode?: EvaluatorMode;
   
-  // LLM settings
-  llmService?: LLMHydrationService;
+  // LLM settings (Go Gateway is the single source of truth)
+  gatewayClient?: GatewayLLMClient;
   model?: string;
   temperature?: number;
 }
@@ -168,7 +168,7 @@ const DEFAULT_ELIZA_CONFIG: Partial<ElizaOSConfig> = {
 export class ElizaOSBridge extends BaseBridge {
   private character: ElizaCharacter;
   private elizaConfig: ElizaOSConfig;
-  private llmService?: LLMHydrationService;
+  private gateway?: GatewayLLMClient;
   private llmClient?: AgentLLMClient;
   private evaluatorMode?: EvaluatorModeConfig;
   private conversationHistory: AgentMessage[] = [];
@@ -199,7 +199,7 @@ export class ElizaOSBridge extends BaseBridge {
       this.evaluatorMode = EVALUATOR_MODES[config.evaluatorMode];
     }
     
-    this.llmService = config.llmService;
+    this.gateway = config.gatewayClient;
   }
   
   // ============================================================================
@@ -271,15 +271,13 @@ export class ElizaOSBridge extends BaseBridge {
         await this.loadCharacterFromFile(this.elizaConfig.characterFile);
       }
       
-      // Create or use provided LLM service
-      if (!this.llmService) {
-        this.llmService = new LLMHydrationService({
-          defaultProvider: 'anthropic'
-        });
+      // Create or use provided gateway client
+      if (!this.gateway) {
+        this.gateway = new GatewayLLMClient();
       }
       
       // Create agent client with character system prompt
-      this.llmClient = new AgentLLMClient(this.llmService, {
+      this.llmClient = new AgentLLMClient(this.gateway, {
         agentId: this.id,
         agentName: this.character.name,
         systemPrompt: this.buildSystemPrompt(),

@@ -1,6 +1,6 @@
 # Open Interpreter + Chrysalis Synthesis
 
-**Date:** January 16, 2026  
+**Date:** January 16, 2026
 **Purpose:** Strategic integration of Open Interpreter patterns into Chrysalis middleware
 
 ---
@@ -89,11 +89,11 @@ export interface LLMConfig {
 
 export class UniversalLLMAdapter {
   private config: LLMConfig;
-  
+
   constructor(config: LLMConfig) {
     this.config = config;
   }
-  
+
   // Pattern from Open Interpreter
   async chat(messages: Message[]): Promise<string> {
     // Route to appropriate provider based on model prefix
@@ -107,7 +107,7 @@ export class UniversalLLMAdapter {
     // Default to OpenAI format for local servers
     return this.openaiCompatibleChat(messages);
   }
-  
+
   // Local model support (LM Studio, Ollama)
   async *stream(messages: Message[]): AsyncGenerator<string> {
     // Stream responses for real-time output
@@ -154,13 +154,13 @@ export interface ExecutionResult {
 
 export class SystemAgentCodeExecutor {
   private terminalManager: TerminalManager;
-  
+
   async execute(request: ExecutionRequest): Promise<ExecutionResult> {
     // Safety: require user confirmation unless auto_run
     if (!this.autoRun && !await this.requestPermission(request)) {
       throw new Error('User denied execution');
     }
-    
+
     switch (request.language) {
       case 'shell':
         return this.executeShell(request.code);
@@ -171,7 +171,7 @@ export class SystemAgentCodeExecutor {
         return this.executeNode(request.code);
     }
   }
-  
+
   // Integration with existing TerminalManager
   private async executeShell(code: string): Promise<ExecutionResult> {
     const session = await this.terminalManager.createSession(
@@ -191,19 +191,19 @@ export class SystemAgentCodeExecutor {
 export const SYSTEM_AGENT_TOOLS = {
   // Code execution (Open Interpreter pattern)
   'execute_code': CodeExecutor,
-  
+
   // File operations (ACP pattern)
   'read_file': FileReader,
   'write_file': FileWriter,
-  
+
   // Terminal operations (ACP + Open Interpreter)
   'create_terminal': TerminalCreator,
   'terminal_command': TerminalCommander,
-  
+
   // MCP tools (OpenHands pattern)
   'mcp_search': MCPSearchTool,
   'mcp_git': MCPGitTool,
-  
+
   // Meta-cognitive tools (OpenHands)
   'condense_context': ContextCondenser,
   'detect_stuck': StuckDetector,
@@ -223,7 +223,7 @@ User Message → Gate → Plan → Realize → Response
 ### Enhanced with OpenHands + Open Interpreter Patterns
 
 ```
-User Message 
+User Message
     │
     ▼
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -343,22 +343,22 @@ export async function registerStreamingEndpoints(
     handler: async (request, reply) => {
       const { agentId } = request.params;
       const { message } = request.query;
-      
+
       reply.raw.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
       });
-      
+
       const stream = chatService.streamChat(agentId, message);
       for await (const chunk of stream) {
         reply.raw.write(`data: ${JSON.stringify(chunk)}\n\n`);
       }
-      
+
       reply.raw.end();
     }
   });
-  
+
   // Conversation history
   fastify.get('/api/agents/:agentId/history', {
     handler: async (request, reply) => {
@@ -459,7 +459,7 @@ export interface Condenser {
 
 export class WindowCondenser implements Condenser {
   constructor(private windowSize: number = 50) {}
-  
+
   condense(messages: Message[], maxTokens: number): Message[] {
     const system = messages.filter(m => m.role === 'system');
     const recent = messages.filter(m => m.role !== 'system').slice(-this.windowSize);
@@ -469,7 +469,7 @@ export class WindowCondenser implements Condenser {
 
 export class PipelineCondenser implements Condenser {
   constructor(private condensers: Condenser[]) {}
-  
+
   condense(messages: Message[], maxTokens: number): Message[] {
     return this.condensers.reduce(
       (msgs, c) => c.condense(msgs, maxTokens),
@@ -494,14 +494,14 @@ export interface StuckAnalysis {
 export class StuckDetector {
   private recentActions: string[] = [];
   private repeatThreshold = 3;
-  
+
   record(action: string): void {
     this.recentActions.push(action);
     if (this.recentActions.length > 10) {
       this.recentActions.shift();
     }
   }
-  
+
   analyze(): StuckAnalysis {
     const last3 = this.recentActions.slice(-3);
     if (last3.length === 3 && last3.every(a => a === last3[0])) {
@@ -529,21 +529,21 @@ export class CodeExecutor {
     options: { timeout?: number; autoRun?: boolean } = {}
   ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
     const { timeout = 30000, autoRun = false } = options;
-    
+
     if (!autoRun) {
       // Would integrate with UI for permission request
       console.log(`[Permission Required] Execute ${language}:\n${code}`);
     }
-    
+
     const { spawn } = require('child_process');
-    const cmd = language === 'python' ? 'python3' : 
+    const cmd = language === 'python' ? 'python3' :
                 language === 'javascript' ? 'node' : 'bash';
     const args = language === 'shell' ? ['-c', code] : ['-e', code];
-    
+
     return new Promise((resolve, reject) => {
       const proc = spawn(cmd, args, { timeout });
       let stdout = '', stderr = '';
-      
+
       proc.stdout.on('data', (d: Buffer) => stdout += d);
       proc.stderr.on('data', (d: Buffer) => stderr += d);
       proc.on('close', (exitCode: number) => resolve({ stdout, stderr, exitCode }));

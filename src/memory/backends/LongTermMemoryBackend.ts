@@ -2,7 +2,7 @@
  * Long-Term Memory Backend - Pluggable Interface
  *
  * Chrysalis Memory Architecture:
- * 
+ *
  *   ┌─── FIXED CHRYSALIS LAYERS (per agent) ─────────────────────┐
  *   │  Beads → Fireproof (Local CRDT) → Byzantine → Nomic       │
  *   └─────────────────────────────────────────────────────────────┘

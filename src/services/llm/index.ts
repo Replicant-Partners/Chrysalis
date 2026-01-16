@@ -2,34 +2,28 @@
  * LLM Service Module
  * 
  * Central module for LLM access in Chrysalis.
- * Provides multi-provider support, cost control, rate limiting,
- * and agent-facing clients with conversation management.
+ * 
+ * ARCHITECTURE NOTE: 
+ * The Go LLM Gateway (go-services/cmd/gateway) is the single source of truth
+ * for LLM provider management, rate limiting, circuit breaking, and cost tracking.
+ * 
+ * This TypeScript module provides:
+ * - GatewayLLMClient: Thin HTTP client to the Go gateway
+ * - AgentLLMClient: Agent-facing client with conversation context
+ * - Types: Message types, request/response types
  * 
  * @module llm
  */
 
-// Core service
-export {
-  LLMHydrationService,
-  getDefaultService,
-  resetDefaultService,
-  type ServiceStats
-} from './LLMHydrationService';
+// Gateway client (thin HTTP client to Go service)
+export { GatewayLLMClient, type GatewayLLMClientConfig, type GatewayLLMMessage, type GatewayLLMResponse } from '../gateway/GatewayLLMClient';
 
-// Agent client
+// Agent client (conversation context management)
 export {
   AgentLLMClient,
   AgentClientFactory,
   type AgentClientConfig
 } from './AgentLLMClient';
-
-// Providers
-export {
-  BaseProvider,
-  OpenAIProvider,
-  AnthropicProvider,
-  OllamaProvider
-} from './providers';
 
 // Types
 export type {
@@ -44,21 +38,10 @@ export type {
   CompletionResponse,
   CompletionChunk,
 
-  // Provider types
+  // Provider types (for reference, providers live in Go)
   ProviderId,
-  ProviderConfig,
-  ProviderStatus,
-  LLMProvider,
-
-  // Service configuration
-  LLMServiceConfig,
-  CostTrackingConfig,
-  RateLimitConfig,
 
   // Agent types
   ConversationContext,
   AgentLLMClient as IAgentLLMClient
 } from './types';
-
-// Constants
-export { DEFAULT_LLM_CONFIG } from './types';

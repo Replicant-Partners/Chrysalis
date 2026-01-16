@@ -2,7 +2,7 @@ import { ChrysalisTerminal } from './ChrysalisTerminal';
 import { ChatMessage, ChatPaneState } from './protocols';
 import { AgentMemoryAdapter } from '../memory/AgentMemoryAdapter';
 import { AgentLLMClient, AgentClientConfig } from '../services/llm/AgentLLMClient';
-import { LLMHydrationService } from '../services/llm/LLMHydrationService';
+import { GatewayLLMClient } from '../services/gateway/GatewayLLMClient';
 
 export interface AgentTerminalConfig {
   agentId: string;
@@ -10,7 +10,7 @@ export interface AgentTerminalConfig {
   systemPrompt?: string;
   terminal?: ChrysalisTerminal;
   sessionId?: string;
-  llmService?: LLMHydrationService;
+  gatewayClient?: GatewayLLMClient;
   memory?: AgentMemoryAdapter;
   autoRespond?: boolean;
   respondToFrame?: 'left' | 'right' | 'both';
@@ -46,8 +46,8 @@ export class AgentTerminalClient {
     });
 
     this.memory = config.memory;
-    if (config.llmService) {
-      this.llmClient = new AgentLLMClient(config.llmService, {
+    if (config.gatewayClient) {
+      this.llmClient = new AgentLLMClient(config.gatewayClient, {
         agentId: config.agentId,
         agentName: config.agentName,
         systemPrompt: config.systemPrompt,

@@ -43,7 +43,6 @@ import {
 import { createSystemContext, type SystemContext } from './TriggerEvaluator';
 import type { SCMContext, SCMGateResult, SCMIntentType } from './SharedConversationMiddleware';
 
-import type { LLMHydrationService } from '../../services/llm/LLMHydrationService';
 import type { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
 import type { VoyeurBus, VoyeurEvent } from '../../observability/VoyeurEvents';
 
@@ -55,9 +54,7 @@ import type { VoyeurBus, VoyeurEvent } from '../../observability/VoyeurEvents';
  * Configuration for SystemAgentChatService
  */
 export interface SystemAgentChatServiceConfig {
-  /** LLM service for completions */
-  llmService?: LLMHydrationService;
-  /** Gateway client for Go LLM service */
+  /** Gateway client for Go LLM service (required - single source of truth) */
   gatewayClient?: GatewayLLMClient;
   /** VoyeurBus for observability events */
   voyeur?: VoyeurBus;
@@ -119,7 +116,7 @@ export interface ChatRoutingResult {
  * Usage:
  * ```typescript
  * const service = new SystemAgentChatService({
- *   llmService: myLLMService,
+ *   gatewayClient: new GatewayLLMClient(),
  *   voyeur: voyeurBus,
  * });
  *
@@ -231,31 +228,12 @@ export class SystemAgentChatService {
 
           return this.parseEvaluationResponse(response.content, Date.now() - startTime);
         } catch (error) {
-          console.warn(`Gateway failed for ${binding.personaId}, trying LLM service:`, error);
-        }
-      }
-
-      // Try LLM service
-      if (this.config.llmService) {
-        try {
-          const response = await this.config.llmService.complete({
-            agentId: `system-agent-${binding.personaId}`,
-            messages: [
-              { role: 'system', content: this.buildSystemPrompt(binding) },
-              { role: 'user', content: prompt },
-            ],
-            temperature: options.temperature,
-            maxTokens: options.maxTokens,
-          });
-
-          return this.parseEvaluationResponse(response.content, Date.now() - startTime);
-        } catch (error) {
-          console.error(`LLM service failed for ${binding.personaId}:`, error);
+          console.error(`Gateway failed for ${binding.personaId}:`, error);
           throw error;
         }
       }
 
-      throw new Error(`No LLM provider configured for agent ${binding.personaId}`);
+      throw new Error(`No gateway client configured for agent ${binding.personaId}`);
     };
 
     return enhanced;

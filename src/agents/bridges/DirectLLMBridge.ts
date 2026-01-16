@@ -1,9 +1,10 @@
 /**
  * DirectLLMBridge - Agent bridge for direct LLM API access
  * 
- * Connects to LLMs directly via the LLM Hydration Service:
- * - OpenAI (GPT-4, GPT-3.5)
- * - Anthropic (Claude 3, Claude 2)
+ * Connects to LLMs via the Go LLM Gateway (single source of truth):
+ * - OpenAI (GPT-4, GPT-4o)
+ * - Anthropic (Claude 3, Claude Sonnet 4)
+ * - OpenRouter (100+ models)
  * - Ollama (local models)
  * 
  * @module agents/bridges/DirectLLMBridge
@@ -20,9 +21,13 @@ import {
   AgentType,
   AgentTool
 } from './types';
-import { LLMHydrationService } from '../../services/llm/LLMHydrationService';
+import { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
 import { AgentLLMClient } from '../../services/llm/AgentLLMClient';
-import { ProviderId } from '../../services/llm/types';
+
+/**
+ * Provider IDs supported by the Go gateway
+ */
+type GatewayProviderId = 'openai' | 'anthropic' | 'openrouter' | 'ollama';
 
 /**
  * DirectLLM-specific configuration
@@ -30,24 +35,21 @@ import { ProviderId } from '../../services/llm/types';
 export interface DirectLLMConfig extends BridgeConfig {
   type: 'direct_llm';
 
-  // Provider settings
-  provider: ProviderId;
+  // Provider settings (handled by Go gateway)
+  provider?: GatewayProviderId;
   model?: string;
 
   // LLM parameters
   temperature?: number;
   maxTokens?: number;
-  topP?: number;
 
   // System prompt
   systemPrompt?: string;
 
-  // Optional external LLM service
-  llmService?: LLMHydrationService;
-
-  // API configuration (if not using external service)
-  apiKey?: string;
-  baseUrl?: string;
+  // Gateway configuration
+  gatewayClient?: GatewayLLMClient;
+  gatewayUrl?: string;
+  gatewayAuthToken?: string;
 }
 
 /**
@@ -60,42 +62,24 @@ const DEFAULT_DIRECT_LLM_CONFIG: Partial<DirectLLMConfig> = {
 };
 
 /**
- * Provider-specific defaults
- */
-const PROVIDER_DEFAULTS: Record<ProviderId, { model: string; maxTokens: number }> = {
-  openai: { model: 'gpt-4-turbo-preview', maxTokens: 4096 },
-  anthropic: { model: 'claude-3-sonnet-20240229', maxTokens: 4096 },
-  ollama: { model: 'llama2', maxTokens: 2048 }
-};
-
-/**
- * DirectLLMBridge - Connects to LLMs directly
+ * DirectLLMBridge - Connects to LLMs via Go Gateway
  */
 export class DirectLLMBridge extends BaseBridge {
-  private llmService?: LLMHydrationService;
+  private gateway!: GatewayLLMClient;
   private llmClient?: AgentLLMClient;
   private directLLMConfig: DirectLLMConfig;
   private conversationHistory: AgentMessage[] = [];
 
   constructor(config: DirectLLMConfig) {
-    const providerDefaults = PROVIDER_DEFAULTS[config.provider] ?? PROVIDER_DEFAULTS.openai;
-
     super({
       ...DEFAULT_DIRECT_LLM_CONFIG,
-      model: providerDefaults.model,
-      maxTokens: providerDefaults.maxTokens,
       ...config
     });
 
     this.directLLMConfig = {
       ...DEFAULT_DIRECT_LLM_CONFIG,
-      model: providerDefaults.model,
-      maxTokens: providerDefaults.maxTokens,
       ...config
     } as DirectLLMConfig;
-
-    // Use provided LLM service or we'll create one on connect
-    this.llmService = config.llmService;
   }
 
   // ============================================================================
@@ -115,12 +99,12 @@ export class DirectLLMBridge extends BaseBridge {
       id: this.id,
       name: this.config.name,
       type: 'direct_llm',
-      description: `Direct LLM agent via ${this.directLLMConfig.provider} (${this.directLLMConfig.model})`,
+      description: `Direct LLM agent via Go Gateway (${this.directLLMConfig.model ?? 'default'})`,
       capabilities: this.capabilities,
       status: this.status,
       version: '1.0.0',
       metadata: {
-        provider: this.directLLMConfig.provider,
+        provider: this.directLLMConfig.provider ?? 'gateway',
         model: this.directLLMConfig.model,
         temperature: this.directLLMConfig.temperature
       }
@@ -132,7 +116,7 @@ export class DirectLLMBridge extends BaseBridge {
   // ============================================================================
 
   /**
-   * Connect to the LLM service
+   * Connect to the Go LLM Gateway
    */
   async connect(): Promise<void> {
     if (this.status === 'connected') {
@@ -142,25 +126,15 @@ export class DirectLLMBridge extends BaseBridge {
     this.setStatus('connecting');
 
     try {
-      // Create LLM service if not provided
-      if (!this.llmService) {
-        const model = this.directLLMConfig.model ?? 'claude-3-5-sonnet-20241022';
-        this.llmService = new LLMHydrationService({
-          defaultProvider: this.directLLMConfig.provider,
-          providers: [{
-            id: this.directLLMConfig.provider,
-            apiKey: this.directLLMConfig.apiKey,
-            baseUrl: this.directLLMConfig.baseUrl,
-            defaultModel: model,
-            models: [model],
-            enabled: true,
-            priority: 1
-          }]
-        });
-      }
+      // Use provided gateway client or create one
+      this.gateway = this.directLLMConfig.gatewayClient ?? new GatewayLLMClient({
+        baseUrl: this.directLLMConfig.gatewayUrl,
+        authToken: this.directLLMConfig.gatewayAuthToken,
+        model: this.directLLMConfig.model,
+      });
 
-      // Create agent client
-      this.llmClient = new AgentLLMClient(this.llmService, {
+      // Create agent client wrapping the gateway
+      this.llmClient = new AgentLLMClient(this.gateway, {
         agentId: this.id,
         agentName: this.config.name,
         systemPrompt: this.directLLMConfig.systemPrompt,
@@ -168,21 +142,27 @@ export class DirectLLMBridge extends BaseBridge {
         temperature: this.directLLMConfig.temperature,
       });
 
-      // Verify connection by testing with empty message
-      // (The service handles connection internally)
-
       this.setStatus('connected');
       this.emit({
         type: 'connected',
         bridgeId: this.id,
         timestamp: Date.now(),
         payload: {
-          provider: this.directLLMConfig.provider,
+          provider: this.directLLMConfig.provider ?? 'gateway',
           model: this.directLLMConfig.model
         }
       });
     } catch (error) {
       this.setStatus('error');
+      this.emit({
+        type: 'error',
+        bridgeId: this.id,
+        timestamp: Date.now(),
+        payload: {
+          error: error instanceof Error ? error.message : String(error),
+          stage: 'connection'
+        }
+      });
       throw error;
     }
   }
@@ -196,334 +176,184 @@ export class DirectLLMBridge extends BaseBridge {
     }
 
     this.llmClient = undefined;
-    // Don't destroy the llmService as it might be shared
-
+    this.conversationHistory = [];
     this.setStatus('disconnected');
+
     this.emit({
       type: 'disconnected',
       bridgeId: this.id,
       timestamp: Date.now(),
-      payload: {}
+      payload: { reason: 'user_requested' }
     });
   }
 
   // ============================================================================
-  // Messaging
+  // Message Handling
   // ============================================================================
 
   /**
    * Send a message to the LLM
    */
-  async send(message: AgentMessage, context?: AgentContext): Promise<AgentResponse> {
-    if (!this.llmClient || this.status !== 'connected') {
-      return this.createErrorResponse('Not connected to LLM service');
+  async send(message: AgentMessage): Promise<AgentResponse> {
+    if (!this.llmClient) {
+      throw new Error('DirectLLMBridge not connected');
     }
 
-    this.emit({
-      type: 'message',
-      bridgeId: this.id,
-      timestamp: Date.now(),
-      payload: { message }
-    });
+    // Store in history
+    this.conversationHistory.push(message);
 
     try {
-      // Format the message with context
-      let fullMessage = message.content;
+      // Get completion via the agent client (which uses the gateway)
+      const response = await this.llmClient.chat(message.content);
 
-      // Add memory context if available
-      if (context?.memoryContext) {
-        fullMessage = `[Memory Context]\n${context.memoryContext}\n\n[User Message]\n${fullMessage}`;
-      }
-
-      // Call the LLM
-      const completion = await this.withTimeout(
-        this.llmClient.chat(fullMessage),
-        this.config.timeout
-      );
-      const responseText = completion.content;
-
-      // Store in conversation history
-      this.conversationHistory.push(message);
-      const responseMessage: AgentMessage = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        content: responseText,
-        role: 'assistant',
-        timestamp: Date.now()
+      const agentResponse: AgentResponse = {
+        id: `resp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        content: response.content,
+        timestamp: Date.now(),
+        status: 'success',
+        metadata: {
+          bridgeId: this.id,
+          requestId: message.id,
+          model: response.model,
+          provider: response.provider,
+          finishReason: response.finishReason
+        },
+        usage: response.usage
       };
-      this.conversationHistory.push(responseMessage);
 
-      // Create response
-      const response = this.createResponse(responseText, 'success', {
-        provider: this.directLLMConfig.provider,
-        model: this.directLLMConfig.model
+      // Store assistant response in history
+      this.conversationHistory.push({
+        id: agentResponse.id,
+        content: agentResponse.content,
+        role: 'assistant',
+        timestamp: agentResponse.timestamp
       });
 
       this.emit({
         type: 'response',
         bridgeId: this.id,
         timestamp: Date.now(),
-        payload: { response }
+        payload: agentResponse
       });
 
-      return response;
+      return agentResponse;
     } catch (error) {
-      const errorResponse = this.createErrorResponse(
-        error instanceof Error ? error : new Error(String(error))
-      );
-
       this.emit({
         type: 'error',
         bridgeId: this.id,
         timestamp: Date.now(),
-        payload: { error }
+        payload: {
+          error: error instanceof Error ? error.message : String(error),
+          stage: 'send'
+        }
       });
-
-      return errorResponse;
+      throw error;
     }
   }
 
   /**
-   * Stream responses from the LLM
+   * Stream a response from the LLM
    */
-  async *stream(
-    message: AgentMessage,
-    context?: AgentContext
-  ): AsyncIterable<AgentResponse> {
-    if (!this.llmClient || !this.llmService || this.status !== 'connected') {
-      yield this.createErrorResponse('Not connected to LLM service');
-      return;
+  async *stream(message: AgentMessage, _context?: AgentContext): AsyncIterable<AgentResponse> {
+    if (!this.llmClient) {
+      throw new Error('DirectLLMBridge not connected');
     }
 
-    this.emit({
-      type: 'message',
-      bridgeId: this.id,
-      timestamp: Date.now(),
-      payload: { message }
-    });
+    this.conversationHistory.push(message);
+
+    let fullContent = '';
 
     try {
-      // Format the message with context
-      let fullMessage = message.content;
-      if (context?.memoryContext) {
-        fullMessage = `[Memory Context]\n${context.memoryContext}\n\n[User Message]\n${fullMessage}`;
-      }
-
-      // Build messages array for streaming
-      const messages: Array<{ role: string; content: string }> = [];
-
-      if (this.directLLMConfig.systemPrompt) {
-        messages.push({ role: 'system', content: this.directLLMConfig.systemPrompt });
-      }
-
-      // Add conversation history
-      for (const msg of this.conversationHistory.slice(-20)) {
-        messages.push({ role: msg.role, content: msg.content });
-      }
-
-      messages.push({ role: 'user', content: fullMessage });
-
-      // Stream from the LLM service
-      let fullContent = '';
-      let chunkIndex = 0;
-
-      for await (const chunk of this.llmService.stream({
-        messages: messages as any,
-        model: this.directLLMConfig.model,
-        temperature: this.directLLMConfig.temperature,
-        maxTokens: this.directLLMConfig.maxTokens,
-        agentId: this.id
-      })) {
+      for await (const chunk of this.llmClient.stream(message.content)) {
         fullContent += chunk.content;
-
-        this.emit({
-          type: 'stream_chunk',
-          bridgeId: this.id,
-          timestamp: Date.now(),
-          payload: { content: chunk.content }
-        });
-
         yield {
-          id: `${this.id}-chunk-${chunkIndex++}`,
+          id: `chunk-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           content: chunk.content,
           timestamp: Date.now(),
           status: 'partial',
-          isComplete: false,
-          metadata: {
-            provider: this.directLLMConfig.provider,
-            model: this.directLLMConfig.model
-          }
+          isComplete: false
         };
       }
 
-      // Store in conversation history
-      this.conversationHistory.push(message);
+      // Final complete response
+      const finalId = `resp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      yield {
+        id: finalId,
+        content: fullContent,
+        timestamp: Date.now(),
+        status: 'success',
+        isComplete: true
+      };
+
+      // Store complete response in history
       this.conversationHistory.push({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        id: finalId,
         content: fullContent,
         role: 'assistant',
         timestamp: Date.now()
       });
-
-      // Final response
-      const finalResponse = this.createResponse(fullContent, 'success', {
-        provider: this.directLLMConfig.provider,
-        model: this.directLLMConfig.model
-      });
-
-      this.emit({
-        type: 'stream_end',
-        bridgeId: this.id,
-        timestamp: Date.now(),
-        payload: { response: finalResponse }
-      });
-
-      yield finalResponse;
     } catch (error) {
-      const errorResponse = this.createErrorResponse(
-        error instanceof Error ? error : new Error(String(error))
-      );
-
       this.emit({
         type: 'error',
         bridgeId: this.id,
         timestamp: Date.now(),
-        payload: { error }
+        payload: {
+          error: error instanceof Error ? error.message : String(error),
+          stage: 'stream'
+        }
       });
-
-      yield errorResponse;
+      throw error;
     }
   }
 
   // ============================================================================
-  // Conversation Management
+  // Context and History
   // ============================================================================
+
+  /**
+   * Get the current conversation context
+   */
+  getContext(): AgentContext {
+    return {
+      messages: this.conversationHistory
+    };
+  }
+
+  /**
+   * Update the conversation context
+   */
+  updateContext(context: Partial<AgentContext>): void {
+    if (context.messages) {
+      this.conversationHistory = [...context.messages];
+    }
+  }
 
   /**
    * Clear conversation history
    */
-  clearHistory(): void {
+  async clearHistory(): Promise<void> {
     this.conversationHistory = [];
     if (this.llmClient) {
       this.llmClient.clearHistory();
     }
   }
 
-  /**
-   * Get conversation history
-   */
-  getHistory(): AgentMessage[] {
-    return [...this.conversationHistory];
-  }
-
-  /**
-   * Set system prompt
-   */
-  setSystemPrompt(prompt: string): void {
-    this.directLLMConfig.systemPrompt = prompt;
-    if (this.llmClient) {
-      this.llmClient.setSystemPrompt(prompt);
-    }
-  }
-
-  /**
-   * Update model parameters
-   */
-  setParameters(params: {
-    temperature?: number;
-    maxTokens?: number;
-    topP?: number;
-  }): void {
-    if (params.temperature !== undefined) {
-      this.directLLMConfig.temperature = params.temperature;
-    }
-    if (params.maxTokens !== undefined) {
-      this.directLLMConfig.maxTokens = params.maxTokens;
-    }
-    if (params.topP !== undefined) {
-      this.directLLMConfig.topP = params.topP;
-    }
-  }
-
   // ============================================================================
-  // Lifecycle
+  // Tools (not supported for basic DirectLLM)
   // ============================================================================
 
-  async destroy(): Promise<void> {
-    await super.destroy();
-    this.conversationHistory = [];
-    this.llmClient = undefined;
+  getTools(): AgentTool[] {
+    return [];
+  }
+
+  invokeTool(_toolName: string, _args: Record<string, unknown>): unknown {
+    throw new Error('Tools not supported by DirectLLMBridge');
   }
 }
 
 /**
- * Create a DirectLLM bridge instance
+ * Create a DirectLLM bridge
  */
-export function createDirectLLMBridge(config: DirectLLMConfig): DirectLLMBridge {
-  return new DirectLLMBridge(config);
+export function createDirectLLMBridge(config: Omit<DirectLLMConfig, 'type'>): DirectLLMBridge {
+  return new DirectLLMBridge({ ...config, type: 'direct_llm' });
 }
-
-/**
- * Convenience factory for common LLM providers
- */
-export const LLMBridgeFactory = {
-  /**
-   * Create a Claude bridge
-   */
-  claude(options: {
-    id: string;
-    name: string;
-    apiKey?: string;
-    model?: string;
-    systemPrompt?: string;
-    llmService?: LLMHydrationService;
-  }): DirectLLMBridge {
-    return createDirectLLMBridge({
-      ...options,
-      type: 'direct_llm',
-      provider: 'anthropic',
-      model: options.model ?? 'claude-3-sonnet-20240229',
-      enabled: true
-    });
-  },
-
-  /**
-   * Create a GPT bridge
-   */
-  gpt(options: {
-    id: string;
-    name: string;
-    apiKey?: string;
-    model?: string;
-    systemPrompt?: string;
-    llmService?: LLMHydrationService;
-  }): DirectLLMBridge {
-    return createDirectLLMBridge({
-      ...options,
-      type: 'direct_llm',
-      provider: 'openai',
-      model: options.model ?? 'gpt-4-turbo-preview',
-      enabled: true
-    });
-  },
-
-  /**
-   * Create an Ollama bridge (local models)
-   */
-  ollama(options: {
-    id: string;
-    name: string;
-    model?: string;
-    baseUrl?: string;
-    systemPrompt?: string;
-    llmService?: LLMHydrationService;
-  }): DirectLLMBridge {
-    return createDirectLLMBridge({
-      ...options,
-      type: 'direct_llm',
-      provider: 'ollama',
-      model: options.model ?? 'llama2',
-      baseUrl: options.baseUrl ?? 'http://localhost:11434',
-      enabled: true
-    });
-  }
-};

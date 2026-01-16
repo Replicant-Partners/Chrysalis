@@ -10,7 +10,6 @@ export {
   CodeExecutor,
   getCodeExecutor,
   resetCodeExecutor,
-  assessRisk,
   type ExecutionLanguage,
   type ExecutionRequest,
   type ExecutionResult,

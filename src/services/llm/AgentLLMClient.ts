@@ -5,6 +5,8 @@
  * Each agent gets its own client instance with isolated conversation history
  * and system prompts.
  * 
+ * This client uses the Go LLM Gateway as the backend.
+ * 
  * @module AgentLLMClient
  */
 
@@ -18,9 +20,8 @@ import {
   ToolCall,
   ConversationContext,
   AgentLLMClient as IAgentLLMClient,
-  ProviderId
 } from './types';
-import { LLMHydrationService } from './LLMHydrationService';
+import { GatewayLLMClient, GatewayLLMMessage } from '../gateway/GatewayLLMClient';
 
 /**
  * Configuration for an agent client
@@ -30,7 +31,6 @@ export interface AgentClientConfig {
   agentName?: string;
   systemPrompt?: string;
   model?: string;
-  preferredProvider?: ProviderId;
   maxContextTokens?: number;
   temperature?: number;
   tools?: ToolDefinition[];
@@ -44,16 +44,18 @@ export interface AgentClientConfig {
  * - Maintain conversation history
  * - Use tools/functions
  * - Stream responses
+ * 
+ * Uses the Go LLM Gateway as the backend service.
  */
 export class AgentLLMClient implements IAgentLLMClient {
   readonly agentId: string;
-  private service: LLMHydrationService;
+  private gateway: GatewayLLMClient;
   private config: AgentClientConfig;
   private context: ConversationContext;
   private conversationHistory: Message[] = [];
   
-  constructor(service: LLMHydrationService, config: AgentClientConfig) {
-    this.service = service;
+  constructor(gateway: GatewayLLMClient, config: AgentClientConfig) {
+    this.gateway = gateway;
     this.config = {
       maxContextTokens: 8000,
       temperature: 0.7,
@@ -169,6 +171,18 @@ export class AgentLLMClient implements IAgentLLMClient {
     // Rough estimate: ~4 characters per token
     return Math.ceil(chars / 4);
   }
+
+  /**
+   * Convert internal messages to gateway format
+   */
+  private toGatewayMessages(): GatewayLLMMessage[] {
+    return this.conversationHistory
+      .filter(m => m.role === 'system' || m.role === 'user' || m.role === 'assistant')
+      .map(m => ({
+        role: m.role as 'system' | 'user' | 'assistant',
+        content: m.content
+      }));
+  }
   
   /**
    * Send a message and get a response
@@ -180,18 +194,28 @@ export class AgentLLMClient implements IAgentLLMClient {
       content: userMessage
     });
     
-    // Build request with optional overrides
-    const request = {
-      ...this.buildRequest(),
-      ...options,
-    };
-    
     try {
-      // Get completion
-      const response = await this.service.complete(
-        request,
-        this.config.preferredProvider
+      // Call gateway
+      const gatewayResponse = await this.gateway.chat(
+        this.agentId,
+        this.toGatewayMessages(),
+        options?.temperature ?? this.config.temperature
       );
+      
+      // Build response
+      const response: CompletionResponse = {
+        id: gatewayResponse.requestId || `resp-${Date.now()}`,
+        content: gatewayResponse.content,
+        model: gatewayResponse.model,
+        provider: gatewayResponse.provider,
+        finishReason: 'stop',
+        usage: {
+          promptTokens: 0, // Gateway doesn't return detailed usage yet
+          completionTokens: 0,
+          totalTokens: 0
+        },
+        estimatedCost: 0 // Cost tracking is handled by Go gateway
+      };
       
       // Add assistant response to history
       this.conversationHistory.push({
@@ -214,34 +238,7 @@ export class AgentLLMClient implements IAgentLLMClient {
    * Send a message with full response details
    */
   async complete(userMessage: string, options?: Partial<CompletionRequest>): Promise<CompletionResponse> {
-    // Add user message
-    this.conversationHistory.push({
-      role: 'user',
-      content: userMessage
-    });
-    
-    const request = this.buildRequest(options);
-    
-    try {
-      const response = await this.service.complete(
-        request,
-        this.config.preferredProvider
-      );
-      
-      // Add assistant response to history
-      this.conversationHistory.push({
-        role: 'assistant',
-        content: response.content,
-        toolCalls: response.toolCalls
-      });
-      
-      this.trimContextIfNeeded();
-      
-      return response;
-    } catch (error) {
-      this.conversationHistory.pop();
-      throw error;
-    }
+    return this.chat(userMessage, options);
   }
   
   /**
@@ -254,19 +251,23 @@ export class AgentLLMClient implements IAgentLLMClient {
       content: userMessage
     });
     
-    const request = this.buildRequest(options);
     let fullContent = '';
     let toolCalls: ToolCall[] | undefined;
     
     try {
-      for await (const chunk of this.service.stream(request, this.config.preferredProvider)) {
+      for await (const chunk of this.gateway.stream(
+        this.agentId,
+        this.toGatewayMessages(),
+        options?.temperature ?? this.config.temperature
+      )) {
         fullContent += chunk.content;
         
-        if (chunk.toolCallsDelta) {
-          toolCalls = chunk.toolCallsDelta as ToolCall[];
-        }
+        const responseChunk: CompletionChunk = {
+          content: chunk.content,
+          done: false
+        };
         
-        yield chunk;
+        yield responseChunk;
       }
       
       // Add assistant response after streaming completes
@@ -290,23 +291,6 @@ export class AgentLLMClient implements IAgentLLMClient {
     for await (const chunk of this.stream(userMessage, options)) {
       yield chunk;
     }
-  }
-  
-  /**
-   * Build a completion request from current context
-   */
-  private buildRequest(overrides?: Partial<CompletionRequest>): CompletionRequest {
-    return {
-      messages: [...this.conversationHistory],
-      model: overrides?.model ?? this.config.model,
-      temperature: overrides?.temperature ?? this.config.temperature,
-      maxTokens: overrides?.maxTokens,
-      stop: overrides?.stop,
-      tools: overrides?.tools ?? this.context.tools,
-      toolChoice: overrides?.toolChoice,
-      agentId: this.config.agentId,
-      metadata: overrides?.metadata
-    };
   }
   
   /**
@@ -342,19 +326,8 @@ export class AgentLLMClient implements IAgentLLMClient {
       await this.executeToolCall(toolCall, executor);
     }
     
-    // Continue the conversation
-    const request = this.buildRequest();
-    const nextResponse = await this.service.complete(
-      request,
-      this.config.preferredProvider
-    );
-    
-    // Add response to history
-    this.conversationHistory.push({
-      role: 'assistant',
-      content: nextResponse.content,
-      toolCalls: nextResponse.toolCalls
-    });
+    // Continue the conversation with an empty message to trigger continuation
+    const nextResponse = await this.chat('');
     
     // Recursively process if there are more tool calls
     if (nextResponse.toolCalls && nextResponse.toolCalls.length > 0) {
@@ -392,7 +365,7 @@ export class AgentLLMClient implements IAgentLLMClient {
    * Fork the conversation (create a new client with the same history)
    */
   fork(): AgentLLMClient {
-    const forked = new AgentLLMClient(this.service, {
+    const forked = new AgentLLMClient(this.gateway, {
       ...this.config,
       agentId: `${this.config.agentId}-fork-${Date.now()}`
     });
@@ -424,11 +397,11 @@ export class AgentLLMClient implements IAgentLLMClient {
  * Factory for creating agent clients
  */
 export class AgentClientFactory {
-  private service: LLMHydrationService;
+  private gateway: GatewayLLMClient;
   private clients: Map<string, AgentLLMClient> = new Map();
   
-  constructor(service: LLMHydrationService) {
-    this.service = service;
+  constructor(gateway: GatewayLLMClient) {
+    this.gateway = gateway;
   }
   
   /**
@@ -440,7 +413,7 @@ export class AgentClientFactory {
       return existing;
     }
     
-    const client = new AgentLLMClient(this.service, config);
+    const client = new AgentLLMClient(this.gateway, config);
     this.clients.set(config.agentId, client);
     return client;
   }
@@ -449,7 +422,7 @@ export class AgentClientFactory {
    * Create a new client (always creates a fresh instance)
    */
   createClient(config: AgentClientConfig): AgentLLMClient {
-    const client = new AgentLLMClient(this.service, config);
+    const client = new AgentLLMClient(this.gateway, config);
     this.clients.set(config.agentId, client);
     return client;
   }

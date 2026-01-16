@@ -220,7 +220,6 @@ export {
   CodeExecutor,
   getCodeExecutor,
   resetCodeExecutor,
-  assessRisk,
 } from './tools';
 export type {
   ExecutionLanguage,

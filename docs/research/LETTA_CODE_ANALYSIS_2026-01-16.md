@@ -325,7 +325,7 @@ import { UniversalMemoryClient, memoryProviderRegistry } from './memory';
 memoryProviderRegistry.register('letta', () => new LettaMemoryAdapter());
 
 // Use Letta as primary memory
-const client = new UniversalMemoryClient({ 
+const client = new UniversalMemoryClient({
   primaryProvider: 'letta',
   fallbackProviders: ['chrysalis']  // Byzantine-validated local fallback
 });

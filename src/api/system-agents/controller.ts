@@ -32,7 +32,6 @@ import {
   ChatRoutingResult,
   AgentResponse,
 } from '../../agents/system/SystemAgentChatService';
-import { LLMHydrationService, getDefaultService as createLLMHydrationService } from '../../services/llm/LLMHydrationService';
 import { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
 import type { SystemAgentPersonaId } from '../../agents/system/types';
 
@@ -93,9 +92,7 @@ export interface SystemAgentAPIConfig {
   port?: number;
   /** Host to bind to */
   host?: string;
-  /** LLM service for completions */
-  llmService?: LLMHydrationService;
-  /** Gateway client for Go LLM service */
+  /** Gateway client for Go LLM service (required) */
   gatewayClient?: GatewayLLMClient;
   /** CORS allowed origins */
   allowedOrigins?: string[];
@@ -117,12 +114,10 @@ export class SystemAgentAPIController {
   private initialized: boolean = false;
 
   constructor(config: SystemAgentAPIConfig = {}) {
-    // Initialize LLM service if not provided
-    const llmService = config.llmService ?? this.createDefaultLLMService();
+    // Gateway client is required - Go LLM Gateway is the single source of truth
     const gatewayClient = config.gatewayClient ?? new GatewayLLMClient();
 
     this.service = new SystemAgentChatService({
-      llmService,
       gatewayClient,
       mockMode: false,
     });
@@ -134,13 +129,6 @@ export class SystemAgentAPIController {
       'http://localhost:8080',
       'http://127.0.0.1:3000',
     ]);
-  }
-
-  /**
-   * Create default LLM service with available providers
-   */
-  private createDefaultLLMService(): LLMHydrationService {
-    return createLLMHydrationService();
   }
 
   /**

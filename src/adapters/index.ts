@@ -387,6 +387,49 @@ export type {
 } from './universal';
 
 // ============================================================================
+// ACP (Agent Client Protocol) Adapter
+// ============================================================================
+//
+// ACP is the open standard for code editor ↔ AI agent communication.
+// Supports connecting to: Claude Code, OpenCode, Gemini, Codex, etc.
+// Also allows exposing Chrysalis as an ACP agent for VS Code, Zed, Emacs.
+//
+// See: https://agentclientprotocol.com
+// See: docs/research/ACP_PROTOCOL_MULTI_AGENT_SYNTHESIS.md
+// ============================================================================
+
+export {
+  // Client (connect to ACP agents)
+  ACPClient,
+  ACPMultiClient,
+  ACPAgentFactory,
+  createACPClient,
+  
+  // Server (expose as ACP agent)
+  ACPServer,
+  createACPServer,
+  
+  // Types
+  type ACPMessage,
+  type ACPRequest,
+  type ACPResponse,
+  type ACPNotification,
+  type ACPCapabilities,
+  type ACPAgentInfo,
+  type ACPConnectionConfig,
+  type ACPConnectionState,
+  type ACPServerConfig,
+  type SessionNotification,
+  type ACPToolCall,
+  type ACPToolDefinition,
+  type ACPContext,
+  type ACPAttachment,
+  type PromptRequest,
+  type PromptResponse,
+  ACPErrorCodes,
+} from './acp';
+
+// ============================================================================
 // LEGACY ADAPTERS REMOVED
 // ============================================================================
 //
