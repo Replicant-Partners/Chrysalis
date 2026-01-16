@@ -1,0 +1,102 @@
+// ============================================================================
+// Test Facts for Chrysalis Access Control
+// ============================================================================
+
+// Define agents
+agent("ada").
+agent("lea").
+agent("phil").
+agent("david").
+agent("serena").
+agent("system_orchestrator").
+agent("guest_user").
+
+// Assign roles to agents
+agent_role("system_orchestrator", "orchestrator").
+agent_role("ada", "agent").
+agent_role("lea", "agent").
+agent_role("phil", "agent").
+agent_role("david", "moderator").
+agent_role("serena", "admin").
+agent_role("guest_user", "guest").
+
+// Assign capabilities
+agent_capability("ada", "memory_read").
+agent_capability("ada", "memory_write").
+agent_capability("ada", "tool_execute").
+agent_capability("ada", "llm_basic").
+
+agent_capability("lea", "memory_read").
+agent_capability("lea", "tool_execute").
+agent_capability("lea", "external_api").
+
+agent_capability("phil", "memory_read").
+agent_capability("phil", "memory_write").
+agent_capability("phil", "llm_advanced").
+
+agent_capability("david", "memory_read").
+agent_capability("david", "memory_write").
+agent_capability("david", "memory_admin").
+
+agent_capability("serena", "memory_read").
+agent_capability("serena", "memory_write").
+agent_capability("serena", "memory_admin").
+agent_capability("serena", "llm_admin").
+agent_capability("serena", "tool_admin").
+
+// Trust levels (0-10)
+agent_trust_level("system_orchestrator", 10).
+agent_trust_level("serena", 9).
+agent_trust_level("david", 8).
+agent_trust_level("ada", 7).
+agent_trust_level("phil", 7).
+agent_trust_level("lea", 6).
+agent_trust_level("guest_user", 2).
+
+// Define resources
+resource("conversation_001").
+resource("memory_ada").
+resource("memory_lea").
+resource("memory_phil").
+resource("config_system").
+resource("tool_web_search").
+resource("secret_document").
+
+// Resource types
+resource_type("conversation_001", "conversation").
+resource_type("memory_ada", "memory").
+resource_type("memory_lea", "memory").
+resource_type("memory_phil", "memory").
+resource_type("config_system", "agent_config").
+resource_type("tool_web_search", "tool").
+resource_type("secret_document", "confidential").
+
+// Resource ownership
+resource_owner("memory_ada", "ada").
+resource_owner("memory_lea", "lea").
+resource_owner("memory_phil", "phil").
+
+// Resource sensitivity levels
+resource_sensitivity("conversation_001", 3).
+resource_sensitivity("memory_ada", 5).
+resource_sensitivity("memory_lea", 5).
+resource_sensitivity("memory_phil", 5).
+resource_sensitivity("config_system", 8).
+resource_sensitivity("tool_web_search", 4).
+resource_sensitivity("secret_document", 9).
+
+// Define actions
+action("read").
+action("write").
+action("delete").
+action("execute").
+action("admin").
+action("purge").
+action("moderate").
+
+// Active contexts
+active_context("production_approved").
+
+// Delegation examples
+delegation("serena", "ada", "config_system", "read").
+delegation("ada", "lea", "memory_ada", "read").

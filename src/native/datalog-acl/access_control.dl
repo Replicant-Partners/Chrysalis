@@ -1,0 +1,322 @@
+// ============================================================================
+// Chrysalis Access Control Rules
+// Declarative access control using Datalog for agent operations
+//
+// This file defines RBAC and ABAC policies for the Chrysalis multi-agent system.
+// Compatible with Soufflé, Flix, or other Datalog engines.
+// ============================================================================
+
+// ============================================================================
+// Type Declarations
+// ============================================================================
+
+.type AgentId <: symbol
+.type ResourceId <: symbol
+.type Action <: symbol
+.type Role <: symbol
+.type Capability <: symbol
+.type Context <: symbol
+.type Level <: number
+
+// ============================================================================
+// Base Relations (Facts - populated at runtime)
+// ============================================================================
+
+// Agent assignments
+.decl agent(id: AgentId)
+.decl agent_role(agent: AgentId, role: Role)
+.decl agent_capability(agent: AgentId, cap: Capability)
+.decl agent_trust_level(agent: AgentId, level: Level)
+
+// Resource definitions
+.decl resource(id: ResourceId)
+.decl resource_owner(resource: ResourceId, agent: AgentId)
+.decl resource_sensitivity(resource: ResourceId, level: Level)
+.decl resource_type(resource: ResourceId, type: symbol)
+
+// Context conditions
+.decl context(name: Context)
+.decl active_context(ctx: Context)
+.decl time_of_day(hour: number)
+.decl request_origin(origin: symbol)
+
+// Action definitions
+.decl action(name: Action)
+
+// ============================================================================
+// Role Hierarchy
+// ============================================================================
+
+.decl role_hierarchy(parent: Role, child: Role)
+
+// Define role hierarchy (inherits permissions from parent)
+role_hierarchy("admin", "moderator").
+role_hierarchy("moderator", "agent").
+role_hierarchy("agent", "guest").
+
+// Special roles
+role_hierarchy("system", "admin").
+role_hierarchy("orchestrator", "moderator").
+
+// ============================================================================
+// Role Permissions
+// ============================================================================
+
+.decl role_permission(role: Role, resource_type: symbol, action: Action)
+
+// System role - full access
+role_permission("system", "any", "read").
+role_permission("system", "any", "write").
+role_permission("system", "any", "delete").
+role_permission("system", "any", "execute").
+role_permission("system", "any", "admin").
+
+// Admin role
+role_permission("admin", "agent_config", "read").
+role_permission("admin", "agent_config", "write").
+role_permission("admin", "agent_config", "delete").
+role_permission("admin", "memory", "read").
+role_permission("admin", "memory", "write").
+role_permission("admin", "memory", "purge").
+
+// Orchestrator role
+role_permission("orchestrator", "agent", "spawn").
+role_permission("orchestrator", "agent", "terminate").
+role_permission("orchestrator", "agent", "route").
+role_permission("orchestrator", "conversation", "arbitrate").
+
+// Moderator role
+role_permission("moderator", "conversation", "read").
+role_permission("moderator", "conversation", "moderate").
+role_permission("moderator", "agent", "mute").
+role_permission("moderator", "agent", "unmute").
+
+// Agent role
+role_permission("agent", "conversation", "read").
+role_permission("agent", "conversation", "write").
+role_permission("agent", "own_memory", "read").
+role_permission("agent", "own_memory", "write").
+role_permission("agent", "tool", "execute").
+
+// Guest role
+role_permission("guest", "conversation", "read").
+role_permission("guest", "public_resource", "read").
+
+// ============================================================================
+// Capability-Based Permissions
+// ============================================================================
+
+.decl capability_permission(cap: Capability, resource_type: symbol, action: Action)
+
+// Memory capabilities
+capability_permission("memory_read", "memory", "read").
+capability_permission("memory_write", "memory", "write").
+capability_permission("memory_admin", "memory", "purge").
+
+// Tool capabilities
+capability_permission("tool_execute", "tool", "execute").
+capability_permission("tool_admin", "tool", "configure").
+
+// External capabilities
+capability_permission("external_api", "external", "call").
+capability_permission("web_fetch", "web", "fetch").
+
+// LLM capabilities
+capability_permission("llm_basic", "llm", "query").
+capability_permission("llm_advanced", "llm", "stream").
+capability_permission("llm_admin", "llm", "configure").
+
+// ============================================================================
+// Inherited Permissions (Role Hierarchy Closure)
+// ============================================================================
+
+.decl inherited_role(agent: AgentId, role: Role)
+
+// Direct role assignment
+inherited_role(A, R) :- agent_role(A, R).
+
+// Transitive role inheritance
+inherited_role(A, Parent) :-
+    inherited_role(A, Child),
+    role_hierarchy(Parent, Child).
+
+// ============================================================================
+// Core Access Control Logic
+// ============================================================================
+
+.decl can_access_by_role(agent: AgentId, resource_type: symbol, action: Action)
+.decl can_access_by_capability(agent: AgentId, resource_type: symbol, action: Action)
+.decl can_access_by_ownership(agent: AgentId, resource: ResourceId, action: Action)
+.decl can_access(agent: AgentId, resource: ResourceId, action: Action)
+
+// Role-based access
+can_access_by_role(A, ResType, Act) :-
+    inherited_role(A, R),
+    role_permission(R, ResType, Act).
+
+// Capability-based access
+can_access_by_capability(A, ResType, Act) :-
+    agent_capability(A, Cap),
+    capability_permission(Cap, ResType, Act).
+
+// Ownership-based access (owners have full access to their resources)
+can_access_by_ownership(A, Res, "read") :- resource_owner(Res, A).
+can_access_by_ownership(A, Res, "write") :- resource_owner(Res, A).
+can_access_by_ownership(A, Res, "delete") :- resource_owner(Res, A).
+
+// Combined access check
+can_access(A, Res, Act) :-
+    agent(A),
+    resource(Res),
+    resource_type(Res, ResType),
+    can_access_by_role(A, ResType, Act).
+
+can_access(A, Res, Act) :-
+    agent(A),
+    resource(Res),
+    resource_type(Res, ResType),
+    can_access_by_capability(A, ResType, Act).
+
+can_access(A, Res, Act) :-
+    agent(A),
+    resource(Res),
+    can_access_by_ownership(A, Res, Act).
+
+// Wildcard resource type ("any" matches all)
+can_access(A, Res, Act) :-
+    agent(A),
+    resource(Res),
+    can_access_by_role(A, "any", Act).
+
+// ============================================================================
+// Trust-Based Access Control
+// ============================================================================
+
+.decl trust_requirement(resource_type: symbol, min_trust: Level)
+.decl meets_trust_requirement(agent: AgentId, resource: ResourceId)
+
+// Define trust requirements for sensitive operations
+trust_requirement("sensitive", 7).
+trust_requirement("confidential", 8).
+trust_requirement("restricted", 9).
+trust_requirement("top_secret", 10).
+
+// Check if agent meets trust requirement
+meets_trust_requirement(A, Res) :-
+    agent_trust_level(A, AgentTrust),
+    resource_sensitivity(Res, ResSensitivity),
+    AgentTrust >= ResSensitivity.
+
+// Trust-gated access
+.decl can_access_trusted(agent: AgentId, resource: ResourceId, action: Action)
+
+can_access_trusted(A, Res, Act) :-
+    can_access(A, Res, Act),
+    meets_trust_requirement(A, Res).
+
+// ============================================================================
+// Context-Based Access Control
+// ============================================================================
+
+.decl context_requirement(action: Action, required_ctx: Context)
+.decl context_satisfied(agent: AgentId, action: Action)
+
+// Define context requirements
+context_requirement("execute_external", "production_approved").
+context_requirement("purge", "maintenance_window").
+context_requirement("admin", "admin_session").
+
+// Check if required context is active
+context_satisfied(A, Act) :-
+    agent(A),
+    context_requirement(Act, ReqCtx),
+    active_context(ReqCtx).
+
+// Actions without context requirements are always satisfied
+context_satisfied(A, Act) :-
+    agent(A),
+    action(Act),
+    !context_requirement(Act, _).
+
+// Context-gated access
+.decl can_access_in_context(agent: AgentId, resource: ResourceId, action: Action)
+
+can_access_in_context(A, Res, Act) :-
+    can_access_trusted(A, Res, Act),
+    context_satisfied(A, Act).
+
+// ============================================================================
+// Delegation Rules
+// ============================================================================
+
+.decl delegation(delegator: AgentId, delegatee: AgentId, resource: ResourceId, action: Action)
+.decl valid_delegation(delegator: AgentId, delegatee: AgentId, resource: ResourceId, action: Action)
+
+// Delegation is valid if delegator has the permission
+valid_delegation(Delegator, Delegatee, Res, Act) :-
+    delegation(Delegator, Delegatee, Res, Act),
+    can_access_in_context(Delegator, Res, Act),
+    agent(Delegatee).
+
+// Delegated access
+.decl has_delegated_access(agent: AgentId, resource: ResourceId, action: Action)
+
+has_delegated_access(A, Res, Act) :-
+    valid_delegation(_, A, Res, Act).
+
+// ============================================================================
+// Final Access Decision
+// ============================================================================
+
+.decl access_granted(agent: AgentId, resource: ResourceId, action: Action)
+.decl access_denied(agent: AgentId, resource: ResourceId, action: Action, reason: symbol)
+
+// Grant access through direct permissions
+access_granted(A, Res, Act) :-
+    can_access_in_context(A, Res, Act).
+
+// Grant access through delegation
+access_granted(A, Res, Act) :-
+    has_delegated_access(A, Res, Act).
+
+// Deny access with reasons
+access_denied(A, Res, Act, "no_permission") :-
+    agent(A), resource(Res), action(Act),
+    !can_access(A, Res, Act),
+    !has_delegated_access(A, Res, Act).
+
+access_denied(A, Res, Act, "insufficient_trust") :-
+    agent(A), resource(Res),
+    can_access(A, Res, Act),
+    !meets_trust_requirement(A, Res).
+
+access_denied(A, Res, Act, "context_not_satisfied") :-
+    agent(A), resource(Res),
+    can_access_trusted(A, Res, Act),
+    !context_satisfied(A, Act).
+
+// ============================================================================
+// Audit Relations (for logging)
+// ============================================================================
+
+.decl access_audit(agent: AgentId, resource: ResourceId, action: Action, granted: symbol, reason: symbol)
+
+access_audit(A, Res, Act, "granted", "direct") :-
+    access_granted(A, Res, Act),
+    can_access_in_context(A, Res, Act).
+
+access_audit(A, Res, Act, "granted", "delegated") :-
+    access_granted(A, Res, Act),
+    has_delegated_access(A, Res, Act),
+    !can_access_in_context(A, Res, Act).
+
+access_audit(A, Res, Act, "denied", Reason) :-
+    access_denied(A, Res, Act, Reason).
+
+// ============================================================================
+// Output Declarations
+// ============================================================================
+
+.output access_granted
+.output access_denied
+.output access_audit

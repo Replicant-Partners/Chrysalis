@@ -24,9 +24,11 @@ log.warn('"agent-morph" is deprecated. Use "chrysalis" CLI instead.');
 import { program } from 'commander';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import chalk from 'chalk';
 import { Converter } from '../converter/Converter';
 import { adapterRegistry } from '../adapters/unified-adapter';
 import { generateKeyPair } from '../core/Encryption';
+import { isSuccess } from '../../shared/api-core/src/result';
 
 // Adapters are now auto-registered or loaded via registry-v2
 // Legacy manual registration is removed.
@@ -52,8 +54,20 @@ program
       const sourceAgent = JSON.parse(inputData);
       
       // Get adapters
-      const fromAdapter = adapterRegistry.get(options.from) as any;
-      const toAdapter = adapterRegistry.get(options.to) as any;
+      const fromResult = adapterRegistry.getSafe(options.from);
+      const toResult = adapterRegistry.getSafe(options.to);
+      
+      if (!isSuccess(fromResult)) {
+        console.error(chalk.red(`❌ ${fromResult.error.message}`));
+        process.exit(1);
+      }
+      if (!isSuccess(toResult)) {
+        console.error(chalk.red(`❌ ${toResult.error.message}`));
+        process.exit(1);
+      }
+      
+      const fromAdapter = fromResult.value;
+      const toAdapter = toResult.value;
       
       log.info('convert options', { from: fromAdapter.name, fromVersion: fromAdapter.version, to: toAdapter.name, toVersion: toAdapter.version });
       

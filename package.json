@@ -43,7 +43,8 @@
   "bin": {
     "chrysalis": "dist/cli/chrysalis-cli.js",
     "agent-morph": "dist/cli/agent-morph.js",
-    "agent-morph-v2": "dist/cli/agent-morph-v2.js"
+    "agent-morph-v2": "dist/cli/agent-morph-v2.js",
+    "chrysalis-task": "dist/cli/adapter-task.js"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.10.8",

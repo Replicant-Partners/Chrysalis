@@ -24,11 +24,13 @@
 import { program } from 'commander';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import chalk from 'chalk';
 import { Converter } from '../converter/Converter';
 import { ConverterV2 } from '../converter/ConverterV2';
 import { adapterRegistry } from '../adapters/unified-adapter';
 import { generateKeyPair } from '../core/Encryption';
 import { getConfig, initializeConfig, validateConfig, exportConfig } from '../core/config';
+import { isSuccess } from '../../shared/api-core/src/result';
 import type { AgentImplementationType, SyncProtocol } from '../core/UniformSemanticAgentV2';
 
 // Adapters are now auto-registered or loaded via registry-v2
@@ -59,8 +61,20 @@ program
       const sourceAgent = JSON.parse(inputData);
       
       // Get adapters
-      const fromAdapter = adapterRegistry.get(options.from) as any;
-      const toAdapter = adapterRegistry.get(options.to) as any;
+      const fromResult = adapterRegistry.getSafe(options.from);
+      const toResult = adapterRegistry.getSafe(options.to);
+      
+      if (!isSuccess(fromResult)) {
+        console.error(chalk.red(`❌ ${fromResult.error.message}`));
+        process.exit(1);
+      }
+      if (!isSuccess(toResult)) {
+        console.error(chalk.red(`❌ ${toResult.error.message}`));
+        process.exit(1);
+      }
+      
+      const fromAdapter = fromResult.value;
+      const toAdapter = toResult.value;
       
       console.log(`From: ${fromAdapter.name} v${fromAdapter.version}`);
       console.log(`To: ${toAdapter.name} v${toAdapter.version}`);
