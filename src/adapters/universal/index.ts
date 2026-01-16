@@ -2,14 +2,22 @@
  * Universal LLM-Powered Adapter
  * 
  * A single adapter that translates between ALL agent protocols by:
- * 1. Fetching protocol specifications from registered URLs
- * 2. Applying mapping principles via LLM prompts
- * 3. Returning the translated agent representation
+ * 1. Using semantic category mapping (IDENTITY, CAPABILITIES, INSTRUCTIONS, STATE, etc.)
+ * 2. Fetching protocol specifications from registered URLs (with fallbacks)
+ * 3. Applying mapping principles via LLM prompts
+ * 4. Returning the translated agent representation
  * 
  * This replaces 22 hand-coded adapters with one LLM-delegated adapter.
  * 
+ * KEY INSIGHT: Map by the MEANING of the category in the schema, not by field names.
+ * "tool" in MCP === "skill" in A2A === "function" in OpenAI === "action" in LMOS
+ * 
+ * ## Version History
+ * - v1.0: Basic adapter with simple registry and prompts
+ * - v2.0: Enhanced adapter with semantic categories, morphing, caching, verification
+ * 
  * @module adapters/universal
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 import { MAPPING_PRINCIPLES_PROMPT, buildTranslationPrompt } from './prompts';
@@ -287,6 +295,71 @@ Return JSON with:
 export function createUniversalAdapter(llm: LLMProvider): UniversalAdapter {
   return new UniversalAdapter(llm);
 }
+
+// ============================================================================
+// V2 Exports (RECOMMENDED)
+// ============================================================================
+
+/**
+ * V2 Adapter - Enhanced version with:
+ * - Semantic category mapping
+ * - Protocol-specific hints
+ * - Agent morphing
+ * - Intelligent caching with TTL
+ * - Bidirectional verification
+ * - Field mapping learning
+ */
+export {
+  // Main class
+  UniversalAdapterV2,
+  
+  // Factory functions
+  createUniversalAdapterV2,
+  createSimpleAdapter,
+  
+  // Types
+  type LLMProviderV2,
+  type TranslationResultV2,
+  type MorphingResult,
+  type UniversalAdapterV2Config
+} from './adapter-v2';
+
+// V2 Registry with semantic hints
+export {
+  PROTOCOL_REGISTRY_V2,
+  type ProtocolEntryV2,
+  type SemanticHints,
+  type MinimalSchema,
+  getRegisteredProtocols,
+  getProtocol,
+  getProtocolsByTrustLevel,
+  isProtocolRegistered,
+  getSemanticHints,
+  getSpecUrls
+} from './registry-v2';
+
+// V2 Prompts with semantic categories
+export {
+  SEMANTIC_CATEGORIES,
+  MAPPING_PRINCIPLES_COMPACT,
+  buildTranslationPromptV2,
+  buildValidationPromptV2,
+  buildCapabilityDiscoveryPromptV2,
+  buildFieldMappingPromptV2,
+  buildAgentMorphingPrompt
+} from './prompts-v2';
+
+// V1 Prompts (legacy compatibility)
+export {
+  MAPPING_PRINCIPLES_PROMPT,
+  buildTranslationPrompt,
+  buildValidationPrompt,
+  buildCapabilityDiscoveryPrompt,
+  buildFieldMappingPrompt
+} from './prompts';
+
+// Full types
+export * from './types';
 
 // ============================================================================
 // Default Export

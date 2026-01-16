@@ -369,10 +369,21 @@ export {
 // Key insight: Map by SEMANTIC CATEGORY MEANING, not syntactic field names.
 // The LLM applies mapping principles to protocol specifications dynamically.
 //
+// "tool" in MCP === "skill" in A2A === "function" in OpenAI === "action" in LMOS
+//
+// ## V2 Enhancements (RECOMMENDED)
+// - Semantic category system (IDENTITY, CAPABILITIES, INSTRUCTIONS, STATE, etc.)
+// - Protocol-specific semantic hints for accurate mapping
+// - Agent morphing for identity-preserving transformations
+// - Intelligent spec caching with TTL from registry
+// - Field mapping cache with learning
+// - Bidirectional round-trip verification
+//
 // See: docs/architecture/UNIVERSAL_ADAPTER_DESIGN.md
 // See: src/adapters/universal/README.md
 // ============================================================================
 
+// V1 Adapter (basic, still supported)
 export {
   UniversalAdapter,
   createUniversalAdapter,
@@ -384,6 +395,37 @@ export type {
   ProtocolSpec,
   TranslationResult,
   LLMProvider
+} from './universal';
+
+// V2 Adapter (RECOMMENDED - enhanced with semantic categories and morphing)
+export {
+  // Main class
+  UniversalAdapterV2,
+  createUniversalAdapterV2,
+  createSimpleAdapter,
+  
+  // Types
+  type LLMProviderV2,
+  type TranslationResultV2,
+  type MorphingResult,
+  type UniversalAdapterV2Config,
+  
+  // V2 Registry with semantic hints
+  PROTOCOL_REGISTRY_V2,
+  type ProtocolEntryV2,
+  type SemanticHints,
+  getRegisteredProtocols,
+  getProtocol,
+  getProtocolsByTrustLevel,
+  isProtocolRegistered,
+  getSemanticHints,
+  getSpecUrls,
+  
+  // Semantic Categories
+  SEMANTIC_CATEGORIES,
+  MAPPING_PRINCIPLES_COMPACT,
+  buildTranslationPromptV2,
+  buildAgentMorphingPrompt
 } from './universal';
 
 // ============================================================================

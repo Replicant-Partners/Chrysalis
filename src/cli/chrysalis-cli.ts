@@ -576,6 +576,35 @@ program
   });
 
 /**
+ * Chat command - Interactive multi-agent TUI
+ */
+program
+  .command('chat')
+  .description('Start interactive multi-agent chat TUI')
+  .option('--agent <name>', 'Start with specific agent focused')
+  .option('--session <id>', 'Resume existing session')
+  .option('--no-sidebar', 'Hide sidebar on start')
+  .option('--debug', 'Enable debug mode')
+  .action(async (options) => {
+    try {
+      // Dynamic import to avoid loading Ink when not needed
+      const { startTUI } = await import('../tui');
+      await startTUI({
+        agent: options.agent,
+        session: options.session,
+        noSidebar: options.sidebar === false,
+        debug: options.debug,
+      });
+    } catch (error: any) {
+      console.error('\n❌ TUI Error:', error.message);
+      if (error.message.includes('ink')) {
+        console.error('\n💡 Make sure Ink is installed: npm install ink ink-text-input');
+      }
+      process.exit(1);
+    }
+  });
+
+/**
  * Version command with deprecation notice for old CLIs
  */
 program
@@ -599,6 +628,8 @@ program
   .addHelpText('after', `
 
 Examples:
+  $ chrysalis chat                          # Start interactive multi-agent TUI
+  $ chrysalis chat --agent architect        # Start with architect agent focused
   $ chrysalis morph --from elizaos --to crewai --input agent.json --output morphed.json
   $ chrysalis morph --type mcp --from elizaos --to mcp --input agent.json --output mcp_agent.json
   $ chrysalis sync --instance-id inst_123 --agent-file agent.json

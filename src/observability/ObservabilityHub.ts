@@ -1,15 +1,15 @@
 /**
  * Observability Hub - Unified Observability Infrastructure
- * 
+ *
  * Integrates logging, tracing, metrics into a single coherent
  * observability system that feeds the AI-Led Adaptive Maintenance System.
- * 
+ *
  * Features:
  * - Unified API for all observability concerns
  * - Correlation across logs, traces, and metrics
  * - Adaptation hooks for proactive maintenance
  * - Health monitoring and alerting
- * 
+ *
  * @module observability/ObservabilityHub
  * @version 2.0.0
  */
@@ -200,7 +200,7 @@ export class ObservabilityHub extends EventEmitter {
 
   async runHealthChecks(): Promise<SystemHealth> {
     const results: HealthCheckResult[] = [];
-    
+
     for (const [name, check] of this.healthChecks) {
       try {
         const startTime = performance.now();

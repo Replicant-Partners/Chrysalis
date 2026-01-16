@@ -9,20 +9,20 @@ flowchart TB
     subgraph Application
         A[Components] --> B[ObservabilityHub]
     end
-    
+
     subgraph Observability
         B --> C[CentralizedLogger]
         B --> D[TracingManager]
         B --> F[MetricsSink]
-        
+
         C --> G[ConsoleSink]
         C --> H[FileSink]
         C --> I[AdaptationSink]
-        
+
         F --> J[Prometheus]
         F --> K[OpenTelemetry]
     end
-    
+
     subgraph AI-Led Maintenance
         I --> L[Error Patterns]
         I --> M[Metric Anomalies]
@@ -74,7 +74,7 @@ try {
   const dbSpan = tracer().startSpan(span, 'database-lookup');
   // ... database work
   tracer().endSpan(dbSpan);
-  
+
   tracer().setStatus(span, 'ok');
 } catch (error) {
   tracer().setStatus(span, 'error', error.message);
@@ -262,11 +262,11 @@ interface LogEntry {
 ## Quick Start
 
 ```typescript
-import { 
-  initializeObservability, 
-  logger, 
+import {
+  initializeObservability,
+  logger,
   tracer,
-  getObservabilityHub 
+  getObservabilityHub
 } from './observability';
 
 // Initialize once at startup

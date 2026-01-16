@@ -226,4 +226,44 @@ See `docs/architecture/UNIVERSAL_ADAPTER_DESIGN.md` for full migration plan.
 
 ---
 
+## V2 Adapter (RECOMMENDED)
+
+The `UniversalAdapterV2` adds:
+
+- **Semantic Categories**: Protocol-agnostic conceptual buckets (IDENTITY, CAPABILITIES, STATE, etc.)
+- **Protocol Hints**: Registry entries include semantic hints for more accurate mapping
+- **Agent Morphing**: Identity-preserving transformations with detailed reports
+- **Intelligent Caching**: Spec caching with TTL from registry, field mapping learning
+- **Bidirectional Verification**: Optional round-trip validation
+
+```typescript
+import { createUniversalAdapterV2 } from './adapters/universal';
+
+const adapter = createUniversalAdapterV2(llm, {
+  enableSpecCache: true,
+  enableMappingCache: true,
+  enableVerification: true
+});
+
+// Translation
+const result = await adapter.translate(agent, 'crewai', 'mcp');
+
+// Morphing (identity-preserving)
+const morphed = await adapter.morph(agent, 'openai', 'a2a', {
+  preserveExtensions: true,
+  targetCapabilities: ['streaming']
+});
+```
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| `docs/architecture/UNIVERSAL_ADAPTER_DESIGN.md` | Original design specification |
+| `docs/architecture/UNIVERSAL_ADAPTER_REVIEW.md` | Architecture review and optimizations |
+| `docs/specs/UNIVERSAL_ADAPTER_TASK_SPECIFICATION.md` | **Task structure, LLM config, prompt pipeline** |
+| `docs/patterns/SEMANTIC_MEDIATION_PATTERN.md` | Design pattern documentation |
+
+---
+
 **Remember**: Every line of transformation code you write is a line that could have been a prompt. Choose wisely.

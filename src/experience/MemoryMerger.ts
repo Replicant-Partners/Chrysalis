@@ -1,9 +1,9 @@
 /**
  * Memory Merger v3.1 - Merge memories from instances into source agent
- * 
+ *
  * Implements intelligent memory merging with deduplication,
  * similarity detection, and conflict resolution.
- * 
+ *
  * v3.0: Jaccard similarity (lexical overlap)
  * v3.1: Configurable similarity (Jaccard or embedding-based)
  * Future: Vector indexing for O(log N) search
@@ -93,7 +93,7 @@ export class MemoryMerger {
   private metricsSink?: MetricsSink;
   private rateBuckets: Map<string, { count: number; windowStart: number }> = new Map();
   private log = logger('MemoryMerger');
-  
+
   constructor(config?: Partial<MemoryMergerConfig>) {
     // Default: v3.0 behavior (Jaccard)
     this.config = {
@@ -113,7 +113,7 @@ export class MemoryMerger {
     this.vectorIndex = this.config.vector_index;
     this.metricsSink = this.config.metrics_sink || createMetricsSinkFromEnv() || undefined;
   }
-  
+
   /**
    * Initialize (for embedding-based mode)
    */
@@ -125,7 +125,7 @@ export class MemoryMerger {
           'Provide embedding_service in config or use similarity_method: "jaccard"'
         );
       }
-      
+
       if (!this.config.embedding_service.isReady()) {
         await this.config.embedding_service.initialize();
       }
@@ -139,7 +139,7 @@ export class MemoryMerger {
       );
     }
   }
-  
+
   /**
    * Add single memory
    */
@@ -206,7 +206,7 @@ export class MemoryMerger {
     if (this.config.similarity_method === 'embedding' && this.config.embedding_service) {
       memory.embedding = memory.embedding || await this.config.embedding_service.embed(memory.content);
     }
-    
+
     // Initialize episodic memory if not exists
     if (!agent.memory.collections) {
       agent.memory.collections = {};
@@ -214,7 +214,7 @@ export class MemoryMerger {
     if (!agent.memory.collections.episodic) {
       agent.memory.collections.episodic = [];
     }
-    
+
     // Store memory (simplified - would use vector DB in production)
     this.memoryIndex.set(memory.memory_id, memory);
 
@@ -223,14 +223,14 @@ export class MemoryMerger {
       await this.vectorIndex.upsert(memory.memory_id, memory.embedding);
       this.recordMetric('vector.upsert', Date.now() - start);
     }
-    
-    logger.debug('Memory added', { 
-      memory_id: memory.memory_id, 
+
+    logger.debug('Memory added', {
+      memory_id: memory.memory_id,
       content_preview: memory.content.substring(0, 50),
-      source: sourceInstance 
+      source: sourceInstance
     });
   }
-  
+
   /**
    * Merge batch of memories
    */
@@ -245,7 +245,7 @@ export class MemoryMerger {
       deduplicated: 0,
       conflicts: 0
     };
-    
+
     for (const memoryData of memories) {
       const content = memoryData.content || memoryData.text || '';
       await this.emitEvent('ingest.start', {
@@ -253,10 +253,10 @@ export class MemoryMerger {
         memoryHash: this.hashContent(content),
         decision: 'pending'
       });
-      
+
       // Check for duplicates
       const duplicate = await this.findDuplicate(memoryData);
-      
+
       if (duplicate) {
         await this.emitEvent('match.candidate', {
           sourceInstance,
@@ -287,13 +287,13 @@ export class MemoryMerger {
         });
       }
     }
-    
+
     return result;
   }
-  
+
   /**
    * Find duplicate memory
-   * 
+   *
    * v3.0: Linear scan with Jaccard (O(N))
    * v3.1: Linear scan with embeddings (O(N))
    * v3.2: Vector index search (O(log N))
@@ -325,7 +325,7 @@ export class MemoryMerger {
       }
       return null;
     }
-    
+
     // Current: Linear scan O(N)
     const searchContent = memoryData.content || memoryData.text || '';
     for (const [, memory] of this.memoryIndex) {
@@ -334,10 +334,10 @@ export class MemoryMerger {
         return { memory, similarity };
       }
     }
-    
+
     return null;
   }
-  
+
   /**
    * Merge with existing memory
    */
@@ -349,27 +349,27 @@ export class MemoryMerger {
     // Update confidence (weighted average)
     const weight = 0.7;  // Weight new data higher
     existing.confidence = existing.confidence * (1 - weight) + (newData.confidence || 0.8) * weight;
-    
+
     // Update access info
     existing.accessed_count++;
     existing.last_accessed = new Date().toISOString();
-    
+
     // Add source instance if not already present
     if (!existing.source_instances.includes(sourceInstance)) {
       existing.source_instances.push(sourceInstance);
     }
-    
-    logger.debug('Memory merged with existing', { 
-      memory_id: existing.memory_id, 
+
+    logger.debug('Memory merged with existing', {
+      memory_id: existing.memory_id,
       content_preview: existing.content.substring(0, 50),
       source: sourceInstance,
       source_count: existing.source_instances.length
     });
   }
-  
+
   /**
    * Calculate similarity between two texts
-   * 
+   *
    * v3.0: Jaccard (lexical)
    * v3.1: Configurable (Jaccard or embedding)
    */
@@ -380,21 +380,21 @@ export class MemoryMerger {
       return await this.embeddingSimilarity(text1, text2);
     }
   }
-  
+
   /**
    * Jaccard similarity (v3.0 - lexical overlap)
    */
   private jaccardSimilarity(text1: string, text2: string): number {
     const words1 = new Set(text1.toLowerCase().split(/\s+/));
     const words2 = new Set(text2.toLowerCase().split(/\s+/));
-    
+
     const intersection = new Set([...words1].filter(w => words2.has(w)));
     const union = new Set([...words1, ...words2]);
-    
+
     if (union.size === 0) return 0;
     return intersection.size / union.size;
   }
-  
+
   /**
    * Embedding similarity (v3.1 - semantic)
    */
@@ -402,15 +402,15 @@ export class MemoryMerger {
     if (!this.config.embedding_service) {
       throw new Error('Embedding service not configured');
     }
-    
+
     const [emb1, emb2] = await Promise.all([
       this.config.embedding_service.embed(text1),
       this.config.embedding_service.embed(text2)
     ]);
-    
+
     return this.cosineSimilarity(emb1, emb2);
   }
-  
+
   /**
    * Cosine similarity for embeddings
    */
@@ -421,7 +421,7 @@ export class MemoryMerger {
     }
     return dot;  // Assumes normalized
   }
-  
+
   /**
    * Get configuration summary
    */
