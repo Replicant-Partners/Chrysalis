@@ -1,6 +1,8 @@
 # Chrysalis
 
-**Uniform Semantic Agent Transformation System**
+**Semantic Agent Transformation System**
+
+*Agents operating agentically in semantic/meaning space*
 
 [![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -92,7 +94,7 @@ cd ui && npm run build
 
 | Capability | Description | Source |
 |------------|-------------|--------|
-| **Agent Schema V2** | Enhanced schema with experience sync, instances, protocols | [`UniformSemanticAgentV2.ts`](src/core/UniformSemanticAgentV2.ts) |
+| **Semantic Agent V2** | Agents operating in semantic space with experience sync, instances, protocols | [`UniformSemanticAgentV2.ts`](src/core/UniformSemanticAgentV2.ts) |
 | **Framework Adapters** | Multi-protocol support (MCP, A2A, ACP, Agent Protocol) | [`src/adapters/`](src/adapters/) |
 | **Bridge Service** | Agent translation with REST API and caching | [`src/bridge/`](src/bridge/), [`src/api/bridge/`](src/api/bridge/) |
 | **Universal Adapter** | JSON-driven LLM task orchestration with flow execution | [`src/universal_adapter/`](src/universal_adapter/) |
@@ -203,7 +205,7 @@ npm run dev             # Development mode
 ```mermaid
 flowchart TB
     subgraph Core[TypeScript Core]
-        USA[UniformSemanticAgentV2]
+        SA[SemanticAgent]
         Adapters[Framework Adapters]
         Patterns[Cryptographic Patterns]
     end

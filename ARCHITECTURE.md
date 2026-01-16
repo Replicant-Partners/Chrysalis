@@ -108,7 +108,7 @@ The pattern resolver (located in `src/core/patterns/`) selects implementations b
 ```mermaid
 flowchart LR
     subgraph Core["Core Layer"]
-        USA[UniformSemanticAgentV2]
+        USA[SemanticAgent]
         Patterns[Cryptographic Patterns]
         CB[CircuitBreaker]
         CostControl[Cost Control]
@@ -186,7 +186,7 @@ flowchart LR
 
 | Component | Responsibility | Source |
 |-----------|---------------|--------|
-| **UniformSemanticAgentV2** | Enhanced agent schema with experience sync, instances, protocols | [`src/core/UniformSemanticAgentV2.ts`](src/core/UniformSemanticAgentV2.ts) |
+| **SemanticAgent** | Enhanced agent schema with experience sync, instances, protocols | [`src/core/SemanticAgent.ts`](src/core/SemanticAgent.ts) |
 | **Cryptographic Patterns** | Hash, signatures, DAG, CRDT, gossip, Byzantine resistance | [`src/core/patterns/`](src/core/patterns/) |
 | **CircuitBreaker** | Fault tolerance for external service calls | [`src/utils/CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
 | **CostControl** | Token counting, budget limits, rate limiting | [`src/utils/CostControl.ts`](src/utils/CostControl.ts) |
@@ -297,11 +297,11 @@ flowchart TD
 
 ## Data Models
 
-### Uniform Semantic Agent Schema
+### Semantic Agent Schema
 
 ```mermaid
 classDiagram
-    class UniformSemanticAgentV2 {
+    class SemanticAgent {
         +string schema_version
         +Identity identity
         +Personality personality
@@ -356,8 +356,8 @@ classDiagram
         +OODAStep act
     }
 
-    UniformSemanticAgentV2 --> Identity
-    UniformSemanticAgentV2 --> Memory
+    SemanticAgent --> Identity
+    SemanticAgent --> Memory
     Memory --> Collections
     Collections --> Episode
     Episode --> OODAInterrogatives
@@ -439,7 +439,7 @@ async initializeSync(
   instanceId: string,
   protocol: SyncProtocol,
   config: ExperienceSyncConfig,
-  sourceAgent?: UniformSemanticAgentV2,
+  sourceAgent?: SemanticAgent,
   syncEndpoint?: string
 ): Promise<void>;
 
