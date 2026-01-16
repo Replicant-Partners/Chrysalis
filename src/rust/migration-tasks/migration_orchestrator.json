@@ -1,0 +1,77 @@
+{
+  "name": "migration_orchestrator",
+  "description": "Orchestrates the entire TypeScript to Rust migration, ensuring dependency order and validation gates",
+  "goal": {
+    "description": "Complete Rust migration in dependency order with all validation gates passed",
+    "target_conditions": [
+      {
+        "description": "All phases complete with acceptance criteria met",
+        "evaluation_type": "GOAL_MET",
+        "category": "all_phases_complete"
+      }
+    ]
+  },
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4.5",
+    "endpoint": "https://api.anthropic.com/v1/messages",
+    "temperature": 0.1,
+    "max_tokens": 8192
+  },
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "migration_plan",
+        "category": "documentation",
+        "source_url": "file://../../plans/abstract-honking-lovelace.md",
+        "description": "Complete migration plan with phases and dependencies"
+      },
+      {
+        "name": "refactoring_plan",
+        "category": "documentation",
+        "source_url": "file://../../plans/REFACTORING_AND_CONSOLIDATION_PLAN.md",
+        "description": "TypeScript refactoring alignment context"
+      }
+    ]
+  },
+  "prompts": [
+    {
+      "index": 0,
+      "template": "Read migration plan {{registry:migration_plan}} and extract:\n\n1. Phase dependencies (what must complete before what)\n2. Go/No-Go gates and their criteria\n3. Risk mitigation strategies\n4. Rollback triggers\n\nReturn structured dependency graph.",
+      "description": "Extract migration structure"
+    },
+    {
+      "index": 1,
+      "template": "Check Phase 0 (Infrastructure) status:\n\n- Cargo workspace compiles? (cargo build --all)\n- CI/CD pipeline configured? (.github/workflows/rust.yml exists)\n- FFI Hello World working? (napi-rs test)\n\nReturn 'infra_ready' if all pass, 'infra_blocked' with blockers if not.",
+      "description": "Phase 0 gate"
+    },
+    {
+      "index": 2,
+      "template": "Check Phase 1 (Core Types) status:\n\n- UniformSemanticAgentV2 in Rust? (chrysalis-core/src/agent.rs)\n- FFI bindings working?\n- Property tests passing? (cargo test chrysalis-core)\n- Performance: ≥5x faster?\n\nReturn 'core_ready' or 'core_blocked'.",
+      "description": "Phase 1 gate"
+    },
+    {
+      "index": 3,
+      "template": "Check Phase 2 (Security) status:\n\n- API Key Wallet implemented with Argon2?\n- Security audit passed?\n- Cost Control ≥10x faster?\n\nReturn 'security_ready' or 'security_blocked'.",
+      "description": "Phase 2 gate"
+    },
+    {
+      "index": 4,
+      "template": "Check Phase 3 (Adapters) status:\n\n- Base traits defined?\n- All protocol adapters implemented? (MCP, A2A, ACP, Agent Protocol)\n- Protocol compliance verified?\n- Performance targets met?\n\nReturn 'adapters_ready' or 'adapters_blocked'.",
+      "description": "Phase 3 gate"
+    },
+    {
+      "index": 5,
+      "template": "Check Phase 4 (Sync) status:\n\n- CRDT ≥10x faster?\n- Gossip protocol tested with 1000 peers?\n- Experience sync: 1000 events/sec?\n- Fault tolerance verified?\n\nReturn 'sync_ready' or 'sync_blocked'.",
+      "description": "Phase 4 gate"
+    },
+    {
+      "index": 6,
+      "template": "Generate migration status report:\n\nPhases completed: {{response:P1}}, {{response:P2}}, {{response:P3}}, {{response:P4}}, {{response:P5}}\n\nFor each phase:\n- Status (complete/blocked/in-progress)\n- Blockers (if any)\n- Next actions\n- Risks\n\nProvide comprehensive status.",
+      "description": "Status report"
+    }
+  ],
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0[Extract Structure]\n    P0 --> P1[Check Phase 0]\n    P1 -->|infra_ready| P2[Check Phase 1]\n    P1 -->|infra_blocked| P1\n    P2 -->|core_ready| P3A[Check Phase 2]\n    P2 -->|core_blocked| P2\n    P2 -->|core_ready| P3B[Check Phase 3a]\n    P3A -->|security_ready| P4[Check Phase 3b]\n    P3A -->|security_blocked| P3A\n    P3B -->|traits_ready| P4\n    P3B -->|traits_blocked| P3B\n    P4 -->|adapters_ready| P5[Check Phase 4]\n    P4 -->|adapters_blocked| P4\n    P5 -->|sync_ready| P6[Generate Report]\n    P5 -->|sync_blocked| P5\n    P6 --> GOAL\n    GOAL -->|all_phases_complete| END\n    GOAL -->|phases_incomplete| P1"
+  }
+}

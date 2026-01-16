@@ -1,0 +1,23 @@
+[package]
+name = "chrysalis-ffi"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "FFI bindings for Node.js via napi-rs"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+chrysalis-core = { path = "../chrysalis-core" }
+chrysalis-security = { path = "../chrysalis-security" }
+chrysalis-adapters = { path = "../chrysalis-adapters" }
+chrysalis-sync = { path = "../chrysalis-sync" }
+napi.workspace = true
+napi-derive.workspace = true
+serde_json.workspace = true
+
+[build-dependencies]
+napi-build = "2.1"

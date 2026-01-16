@@ -1,0 +1,28 @@
+[package]
+name = "chrysalis-adapters"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Protocol adapters for agent frameworks"
+
+[dependencies]
+chrysalis-core = { path = "../chrysalis-core" }
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+async-trait.workspace = true
+reqwest.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[features]
+default = ["mcp", "a2a", "acp", "agent-protocol"]
+mcp = []
+a2a = []
+acp = []
+agent-protocol = []

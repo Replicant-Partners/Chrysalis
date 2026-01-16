@@ -1,0 +1,79 @@
+[workspace]
+resolver = "2"
+members = [
+    "chrysalis-core",
+    "chrysalis-adapters",
+    "chrysalis-sync",
+    "chrysalis-security",
+    "chrysalis-ffi",
+    "chrysalis-wasm",
+]
+
+[workspace.package]
+version = "3.1.1"
+edition = "2021"
+authors = ["Chrysalis Team"]
+license = "MIT"
+repository = "https://github.com/Replicant-Partners/Chrysalis"
+
+[workspace.dependencies]
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+async-trait = "0.1"
+
+# Cryptography
+sha2 = "0.10"
+sha3 = "0.10"
+blake3 = "1.5"
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+aes-gcm = "0.10"
+argon2 = "0.5"
+zeroize = { version = "1.7", features = ["derive"] }
+ring = "0.17"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# HTTP/WebSocket
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+tokio-tungstenite = "0.21"
+
+# CRDT
+yrs = "0.18"
+
+# Utilities
+hex = "0.4"
+rand = "0.8"
+uuid = { version = "1.6", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# FFI
+napi = "2.16"
+napi-derive = "2.16"
+
+# WASM
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+getrandom = { version = "0.2", features = ["js"] }
+
+# Testing
+proptest = "1.4"
+criterion = "0.5"
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.bench]
+inherits = "release"

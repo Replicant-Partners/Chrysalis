@@ -1,0 +1,99 @@
+{
+  "name": "protocol_adapter_migration",
+  "description": "Template for migrating protocol-specific adapters (MCP, A2A, ACP, etc.) to Rust",
+  "goal": {
+    "description": "Migrate protocol adapter to Rust with protocol compliance and performance gains",
+    "target_conditions": [
+      {
+        "description": "Adapter compiles and implements UnifiedAdapter trait",
+        "evaluation_type": "GOAL_MET",
+        "category": "trait_implemented"
+      },
+      {
+        "description": "Protocol compliance verified against external specification",
+        "evaluation_type": "GOAL_MET",
+        "category": "protocol_compliant"
+      },
+      {
+        "description": "Performance: 2-5x faster message parsing than TypeScript",
+        "evaluation_type": "GOAL_MET",
+        "category": "performance_met"
+      }
+    ]
+  },
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4.5",
+    "endpoint": "https://api.anthropic.com/v1/messages",
+    "temperature": 0.1,
+    "max_tokens": 8192
+  },
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "protocol_spec",
+        "category": "specification",
+        "source_url": "{{spec_url}}",
+        "description": "Official protocol specification"
+      },
+      {
+        "name": "typescript_adapter",
+        "category": "source_code",
+        "source_url": "file://{{adapter_path}}",
+        "description": "TypeScript adapter implementation"
+      },
+      {
+        "name": "adapter_tests",
+        "category": "tests",
+        "source_url": "file://{{tests_path}}",
+        "description": "Existing TypeScript test suite"
+      },
+      {
+        "name": "async_trait",
+        "category": "reference",
+        "source_url": "https://docs.rs/async-trait/latest/async_trait/",
+        "description": "Async trait support"
+      }
+    ]
+  },
+  "prompts": [
+    {
+      "index": 0,
+      "template": "Parse protocol specification {{registry:protocol_spec}} and extract:\n\n1. **Required Capabilities**: What features must the adapter support?\n2. **Message Schemas**: Request and response message formats\n3. **Error Codes**: Standard error codes and meanings\n4. **Lifecycle**: Connection, authentication, disconnection flow\n5. **Streaming**: Does the protocol support streaming responses?\n\nProvide structured extraction.",
+      "description": "Extract protocol requirements"
+    },
+    {
+      "index": 1,
+      "template": "Analyze TypeScript adapter {{registry:typescript_adapter}} and tests {{registry:adapter_tests}}:\n\n1. How does it implement the protocol from {{response:P0}}?\n2. What edge cases are tested?\n3. What are the performance bottlenecks?\n4. What protocol-specific quirks exist?\n\nProvide migration analysis.",
+      "description": "Analyze TypeScript implementation"
+    },
+    {
+      "index": 2,
+      "template": "Design Rust adapter implementation using {{registry:async_trait}}:\n\nBased on:\n- Protocol requirements: {{response:P0}}\n- TypeScript implementation: {{response:P1}}\n\nDesign:\n1. Rust struct for adapter state\n2. Implementation of UnifiedAdapter trait\n3. Protocol-specific message types\n4. Error type hierarchy\n5. Async patterns for I/O\n\nProvide Rust API design.",
+      "description": "Design Rust adapter"
+    },
+    {
+      "index": 3,
+      "template": "Implement Rust adapter:\n{{response:P2}}\n\nGenerate complete implementation including:\n1. Struct definition with state fields\n2. UnifiedAdapter trait implementation\n3. Protocol message parsing (serde)\n4. Async operations with tokio\n5. Comprehensive error handling\n6. Unit tests\n\nEnsure idiomatic Rust code.",
+      "description": "Implement adapter"
+    },
+    {
+      "index": 4,
+      "template": "Validate against protocol specification {{registry:protocol_spec}}:\n\nRust implementation: {{response:P3}}\n\nCheck:\n1. All required capabilities implemented?\n2. Message formats match spec?\n3. Error codes correct?\n4. Lifecycle methods present?\n\nReturn 'protocol_compliant' or 'protocol_violations' with list of issues.",
+      "description": "Protocol compliance check"
+    },
+    {
+      "index": 5,
+      "template": "Generate integration tests for TypeScript ↔ Rust FFI:\n\nTests should verify:\n1. TypeScript can call Rust adapter via FFI\n2. Data serialization roundtrips correctly\n3. Errors propagate correctly\n4. Async operations work (Rust Future → TS Promise)\n5. Performance benchmarks (Rust ≥2x faster)\n\nGenerate Jest test suite.",
+      "description": "Generate integration tests"
+    },
+    {
+      "index": 6,
+      "template": "Final validation:\n\nCompile check: cargo build\nUnit tests: cargo test\nIntegration tests: npm run test:integration:{{protocol}}\nBenchmark: cargo bench\n\nReturn 'trait_implemented' and 'performance_met' if successful, or failure categories with details.",
+      "description": "Comprehensive validation"
+    }
+  ],
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0[Extract Protocol Spec]\n    P0 --> P1[Analyze TS Implementation]\n    P1 --> P2[Design Rust Adapter]\n    P2 --> P3[Implement Adapter]\n    P3 --> P4[Protocol Compliance]\n    P4 -->|protocol_compliant| P5[Integration Tests]\n    P4 -->|protocol_violations| P2\n    P5 --> P6[Final Validation]\n    P6 -->|trait_implemented| P6B{Performance}\n    P6 -->|trait_failed| P3\n    P6B -->|performance_met| GOAL\n    P6B -->|performance_failed| P2\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P1"
+  }
+}

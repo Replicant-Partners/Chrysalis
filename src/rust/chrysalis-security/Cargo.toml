@@ -1,0 +1,31 @@
+[package]
+name = "chrysalis-security"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Security components: API key management and cost control"
+
+[dependencies]
+chrysalis-core = { path = "../chrysalis-core" }
+serde.workspace = true
+serde_json.workspace = true
+aes-gcm.workspace = true
+argon2.workspace = true
+zeroize.workspace = true
+ring.workspace = true
+thiserror.workspace = true
+rand.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+
+# Benchmarks will be added in Phase 2 implementation
+# [[bench]]
+# name = "token_counting"
+# harness = false
+#
+# [[bench]]
+# name = "wallet_operations"
+# harness = false

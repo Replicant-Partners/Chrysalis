@@ -92,29 +92,35 @@ cd ui && npm run build
 
 | Capability | Description | Source |
 |------------|-------------|--------|
-| **Agent Schema v2.0** | Three implementation types with OODA interrogatives | [`UniformSemanticAgentV2.ts`](src/core/UniformSemanticAgentV2.ts) |
-| **Adaptive Pattern Resolution** | Context-aware MCP/Go/Embedded selection | [`PatternResolver.ts`](src/fabric/PatternResolver.ts) |
-| **Memory Merging** | Jaccard + embedding similarity with deduplication | [`MemoryMerger.ts`](src/experience/MemoryMerger.ts) |
-| **Experience Sync** | Streaming, lumped, and check-in protocols | [`ExperienceSyncManager.ts`](src/sync/ExperienceSyncManager.ts) |
-| **Observability** | Voyeur event bus + SSE viewer + Prometheus metrics | [`src/observability/`](src/observability/) |
-| **Circuit Breaker** | Fault tolerance for external service calls | [`CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
-| **Fireproof Layer** | Local-first CRDT document store | [`memory_system/fireproof/`](memory_system/fireproof/) |
-| **Canvas Architecture** | 5 canvas types with widget system | [`src/canvas/`](src/canvas/) |
+| **Agent Schema V2** | Enhanced schema with experience sync, instances, protocols | [`UniformSemanticAgentV2.ts`](src/core/UniformSemanticAgentV2.ts) |
+| **Framework Adapters** | Multi-protocol support (MCP, A2A, ACP, Agent Protocol) | [`src/adapters/`](src/adapters/) |
+| **Bridge Service** | Agent translation with REST API and caching | [`src/bridge/`](src/bridge/), [`src/api/bridge/`](src/api/bridge/) |
+| **Universal Adapter** | JSON-driven LLM task orchestration with flow execution | [`src/universal_adapter/`](src/universal_adapter/) |
+| **Experience Sync** | Streaming, lumped, and check-in protocols | [`src/sync/`](src/sync/) |
+| **Cryptographic Patterns** | Hash, signatures, DAG, CRDT, gossip, Byzantine resistance | [`src/core/patterns/`](src/core/patterns/) |
+| **Circuit Breaker** | Fault tolerance for external service calls | [`src/utils/CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
+| **Cost Control** | Token counting, budget limits, rate limiting | [`src/utils/CostControl.ts`](src/utils/CostControl.ts) |
+| **API Key Wallet** | Encrypted API key storage with auto-lock | [`src/security/ApiKeyWallet.ts`](src/security/ApiKeyWallet.ts) |
+| **Canvas Architecture** | Multi-canvas system with widget registry | [`src/canvas/`](src/canvas/) |
+| **Terminal PTY Server** | WebSocket PTY backend for terminal widgets | [`src/services/terminal/`](src/services/terminal/) |
+| **Python Memory System** | Fireproof CRDT store, embedding services | [`memory_system/`](memory_system/) |
+| **Go LLM Gateway** | Multi-provider gateway with circuit breaker | [`go-services/`](go-services/) |
 
 ### In Progress 🔄
 
 | Feature | Status |
 |---------|--------|
-| Canvas React Integration | Prototype complete, needs Vite integration |
-| Terminal PTY Server | WebSocket server implemented |
-| System Agent Middleware | SCM routing implemented |
+| Canvas React Integration | Prototype implementation, build integration pending |
+| Universal Adapter Wiring | Python implementation complete, TypeScript integration pending |
+| Test Coverage Expansion | Core tests passing, UI tests needed |
 
 ### Planned 📋
 
-- True gossip protocol (epidemic spreading)
-- Full CRDT state management
-- Vector database persistence (LanceDB)
-- VoyeurBus UI client
+- True gossip protocol (epidemic spreading with O(log N) convergence)
+- Full CRDT state management (production OR-Set, LWW, G-Set)
+- Vector database persistence (LanceDB integration)
+- Slash command system (`/invite`, `/agent`, `/canvas`)
+- E2E test suite (Playwright integration tests)
 
 ---
 
@@ -123,24 +129,39 @@ cd ui && npm run build
 ```
 Chrysalis/
 ├── src/                      # TypeScript core
-│   ├── core/                 # Agent schema, patterns
-│   ├── fabric/               # Pattern resolution
-│   ├── memory/               # Memory adapters, embeddings
-│   ├── experience/           # Merging algorithms
-│   ├── sync/                 # Experience synchronization
-│   ├── agents/system/        # System agent middleware
-│   ├── canvas/               # Canvas & widget architecture
-│   ├── observability/        # Voyeur, metrics
-│   └── services/             # Terminal PTY, gateway
+│   ├── core/                 # Agent schema V1/V2, cryptographic patterns
+│   ├── adapters/             # Framework adapters (MCP, A2A, ACP, multi-agent)
+│   ├── bridge/               # Agent translation orchestration
+│   ├── api/bridge/           # Bridge REST API controller
+│   ├── a2a-client/           # Agent-to-Agent protocol client
+│   ├── sync/                 # Experience synchronization protocols
+│   ├── agents/               # Agent bridges (Serena, ACP, Agent Registry)
+│   ├── canvas/               # Canvas system (core, widgets, layout, execution)
+│   ├── services/             # Terminal PTY server, Gateway LLM client
+│   ├── voice/                # Voice integration (STT/TTS providers)
+│   ├── security/             # API key wallet, encryption, registry
+│   ├── utils/                # Circuit breaker, cost control, HTTP client
+│   ├── quality/              # Quality system tools and patterns
+│   ├── observability/        # Logging and metrics (Voyeur removed)
+│   └── universal_adapter/    # Python: JSON-driven task orchestration
 ├── memory_system/            # Python semantic services
 │   ├── fireproof/            # CRDT document store
 │   ├── embedding/            # Vector embeddings
 │   ├── graph/                # Knowledge graphs
 │   └── hooks/                # Zep integration
+├── go-services/              # Go LLM gateway (multi-provider)
+├── projects/                 # Sub-projects
+│   ├── SkillBuilder/         # Skill management and synthesis
+│   ├── KnowledgeBuilder/     # Knowledge management
+│   └── AgentBuilder/         # Agent construction tools
 ├── docs/                     # Documentation
-│   ├── STATUS.md             # Implementation status
-│   └── INDEX.md              # Navigation hub
-└── go-services/              # Go LLM gateway
+│   ├── STATUS.md             # Implementation status (authoritative)
+│   ├── INDEX.md              # Navigation hub
+│   ├── architecture/         # Architecture deep-dives
+│   ├── api/                  # API documentation
+│   ├── guides/               # How-to guides
+│   └── archive/              # Historical documentation
+└── Agents/                   # Agent definitions (system, custom modes, wshobson)
 ```
 
 ---
@@ -182,37 +203,53 @@ npm run dev             # Development mode
 ```mermaid
 flowchart TB
     subgraph Core[TypeScript Core]
-        USA[UniformSemanticAgent]
-        PR[PatternResolver]
+        USA[UniformSemanticAgentV2]
+        Adapters[Framework Adapters]
+        Patterns[Cryptographic Patterns]
     end
 
-    subgraph Memory[Memory Layer]
-        MM[MemoryMerger]
-        VIF[VectorIndex]
-        EB[EmbeddingBridge]
+    subgraph Bridge[Bridge Layer]
+        Orchestrator[Translation Orchestrator]
+        Cache[Translation Cache]
+        API[REST API Controller]
     end
 
-    subgraph Sync[Sync Layer]
+    subgraph Protocols[Protocol Stack]
+        MCP[MCP Client/Server]
+        A2A[A2A Protocol]
+        ACP[ACP Bridge]
+        AP[Agent Protocol]
+    end
+
+    subgraph Sync[Experience Sync]
         ESM[ExperienceSyncManager]
-        ET[ExperienceTransport]
+        Streaming[Streaming Protocol]
+        Lumped[Lumped Protocol]
+        CheckIn[Check-in Protocol]
     end
 
-    subgraph Python[Python memory_system]
-        FP[Fireproof]
-        EMB[Embedding]
+    subgraph Python[Python Services]
+        UA[Universal Adapter]
+        FP[Fireproof CRDT]
+        EMB[Embedding Service]
     end
 
-    subgraph UI[React UI]
-        CVS[10 Canvas Types]
+    subgraph Canvas[Canvas System]
+        Core_C[Canvas Core]
+        Widgets[Widget Registry]
+        Layout[Layout Engine]
     end
 
-    USA --> PR
-    USA --> MM
-    MM --> VIF
-    MM --> EB
-    ESM --> MM
-    EB -.-> Python
-    UI -.-> Core
+    USA --> Adapters
+    USA --> Patterns
+    Adapters --> Bridge
+    Bridge --> Protocols
+    ESM --> Streaming
+    ESM --> Lumped
+    ESM --> CheckIn
+    Canvas --> Core_C
+    Core_C --> Widgets
+    Python -.-> Core
 ```
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for complete system design.
@@ -259,4 +296,5 @@ MIT License — see [`LICENSE`](LICENSE) for details.
 ---
 
 **Version**: 3.1.1
-**Last Updated**: January 15, 2026
+**Last Updated**: January 16, 2026
+**Documentation Review**: Aligned with actual implementation

@@ -65,6 +65,14 @@ git-init.sh
 # Data files (may contain user data)
 data/cache.db
 
+# Rust build artifacts
+src/rust/target/
+src/rust/**/target/
+*.rlib
+*.rmeta
+Cargo.lock
+!src/rust/Cargo.lock
+
 # Snyk Security Extension - AI Rules (auto-generated)
 .cursor/rules/snyk_rules.mdc
 go-services/gateway

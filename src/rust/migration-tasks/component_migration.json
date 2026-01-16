@@ -1,0 +1,100 @@
+{
+  "name": "typescript_to_rust_component_migration",
+  "description": "Template for migrating any TypeScript component to Rust with behavioral equivalence",
+  "goal": {
+    "description": "Migrate a TypeScript component to Rust with full behavioral equivalence and performance improvement",
+    "target_conditions": [
+      {
+        "description": "Rust code compiles without errors",
+        "evaluation_type": "GOAL_MET",
+        "category": "compilation_success"
+      },
+      {
+        "description": "All TypeScript tests pass with Rust implementation via FFI",
+        "evaluation_type": "GOAL_MET",
+        "category": "tests_pass"
+      },
+      {
+        "description": "Performance improvement ≥2x over TypeScript baseline",
+        "evaluation_type": "GOAL_MET",
+        "category": "performance_met"
+      }
+    ]
+  },
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4.5",
+    "endpoint": "https://api.anthropic.com/v1/messages",
+    "temperature": 0.2,
+    "max_tokens": 4096
+  },
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "typescript_source",
+        "category": "source_code",
+        "source_url": "file://{{component_path}}",
+        "description": "TypeScript source file to migrate"
+      },
+      {
+        "name": "rust_std",
+        "category": "reference",
+        "source_url": "https://doc.rust-lang.org/std/",
+        "description": "Rust standard library documentation"
+      },
+      {
+        "name": "serde",
+        "category": "reference",
+        "source_url": "https://docs.rs/serde/latest/serde/",
+        "description": "Serde serialization framework"
+      },
+      {
+        "name": "tokio",
+        "category": "reference",
+        "source_url": "https://docs.rs/tokio/latest/tokio/",
+        "description": "Tokio async runtime"
+      },
+      {
+        "name": "napi_rs",
+        "category": "reference",
+        "source_url": "https://napi.rs/",
+        "description": "napi-rs FFI framework"
+      }
+    ]
+  },
+  "prompts": [
+    {
+      "index": 0,
+      "template": "Analyze the TypeScript component at {{registry:typescript_source}} and extract:\n\n1. **Data Structures**: All interfaces, types, and classes\n2. **Async Patterns**: Promise usage, async/await patterns, event emitters\n3. **Error Handling**: Error types, error propagation patterns\n4. **External Dependencies**: npm packages used and their purposes\n5. **Business Logic**: Core algorithms and workflows\n6. **State Management**: Mutable vs immutable state, state transitions\n\nProvide a structured analysis report.",
+      "description": "Extract TypeScript component structure"
+    },
+    {
+      "index": 1,
+      "template": "Given the TypeScript analysis:\n{{response:P0}}\n\nMap TypeScript patterns to Rust equivalents using {{registry:rust_std}}, {{registry:serde}}, and {{registry:tokio}}:\n\n- **Interfaces/Types** → Rust structs with #[derive(Serialize, Deserialize)]\n- **Promises/async** → async fn with tokio::spawn\n- **Error Handling** → Result<T, E> with thiserror\n- **JSON serialization** → serde_json\n- **Event Emitters** → tokio::sync::broadcast channels\n- **State Management** → Arc<RwLock<T>> or Arc<Mutex<T>>\n\nProvide Rust API design with trait definitions.",
+      "description": "Design Rust equivalents"
+    },
+    {
+      "index": 2,
+      "template": "Generate complete Rust implementation based on:\n{{response:P1}}\n\nRequirements:\n1. Use idiomatic Rust patterns\n2. Include serde serialization for all data types\n3. Implement async operations with tokio\n4. Use Result<T, E> for error handling with custom error types\n5. Add comprehensive inline documentation (//! and ///)\n6. Include basic unit tests\n\nGenerate complete Rust code.",
+      "description": "Generate Rust implementation"
+    },
+    {
+      "index": 3,
+      "template": "Create napi-rs FFI bindings for the Rust implementation:\n{{response:P2}}\n\nUsing {{registry:napi_rs}}, generate:\n\n1. #[napi] annotated functions for TypeScript interop\n2. Type conversions between Rust types and JavaScript/TypeScript types\n3. Error conversion (Rust Result → JS Error)\n4. Async function support (Rust Future → JS Promise)\n5. TypeScript type declarations (.d.ts file)\n\nEnsure all public APIs are exposed.",
+      "description": "Create FFI bindings"
+    },
+    {
+      "index": 4,
+      "template": "Generate property-based tests for equivalence verification between TypeScript and Rust:\n\nTypeScript component: {{registry:typescript_source}}\nRust implementation: {{response:P2}}\n\nCreate tests that verify:\n1. **JSON Roundtrip**: TS serialize → Rust parse → Rust serialize → TS parse (identity)\n2. **Behavioral Equivalence**: Same inputs produce same outputs\n3. **Error Handling**: Same errors for same invalid inputs\n4. **Performance**: Rust is ≥2x faster\n\nUse proptest for property-based testing. Generate test code.",
+      "description": "Generate equivalence tests"
+    },
+    {
+      "index": 5,
+      "template": "Validate the complete migration:\n\nRust code: {{response:P2}}\nFFI bindings: {{response:P3}}\nTests: {{response:P4}}\n\nPerform validation:\n1. Check Rust code compiles (cargo build)\n2. Check tests pass (cargo test)\n3. Check FFI compiles (napi build)\n4. Run equivalence tests\n5. Run performance benchmarks\n\nReturn 'compilation_success' if compiles, 'tests_pass' if all tests pass, 'performance_met' if ≥2x faster.\nReturn 'compilation_failed', 'tests_failed', or 'performance_failed' with details if any check fails.",
+      "description": "Validation gate"
+    }
+  ],
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0[Analyze TypeScript]\n    P0 --> P1[Map to Rust]\n    P1 --> P2[Generate Rust]\n    P2 --> P3[Create FFI]\n    P3 --> P4[Generate Tests]\n    P4 --> P5[Validate]\n    P5 -->|compilation_success| P5B{Tests}\n    P5 -->|compilation_failed| P2\n    P5B -->|tests_pass| P5C{Performance}\n    P5B -->|tests_failed| P2\n    P5C -->|performance_met| GOAL\n    P5C -->|performance_failed| P1\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P1"
+  }
+}

@@ -1,8 +1,8 @@
 # Chrysalis Architecture Specification
 
 **Version**: 3.1.1
-**Last Updated**: January 15, 2026
-**Status**: Current
+**Last Updated**: January 16, 2026
+**Status**: Current (Aligned with implementation)
 
 ---
 
@@ -91,7 +91,7 @@ flowchart TB
 
 ### Adaptive Resolution
 
-The [`AdaptivePatternResolver`](https://github.com/chrysalis-ai/agents/blob/main/src/fabric/PatternResolver.ts#L300) selects implementations based on deployment context:
+The pattern resolver (located in `src/core/patterns/`) selects implementations based on deployment context:
 
 | Context | Resolution | Latency |
 |---------|------------|---------|
@@ -109,24 +109,28 @@ The [`AdaptivePatternResolver`](https://github.com/chrysalis-ai/agents/blob/main
 flowchart LR
     subgraph Core["Core Layer"]
         USA[UniformSemanticAgentV2]
-        PR[PatternResolver]
+        Patterns[Cryptographic Patterns]
         CB[CircuitBreaker]
+        CostControl[Cost Control]
     end
 
-    subgraph Memory["Memory Layer"]
-        MM[MemoryMerger]
-        VIF[VectorIndexFactory]
-        EB[EmbeddingBridge]
-        MS[MemorySanitizer]
+    subgraph Adapters["Framework Adapters"]
+        FABase[Base Adapters]
+        MCP[MCP Adapter]
+        A2A[A2A Adapter]
+        ACP[ACP Adapter]
+        CrewAI[CrewAI Adapter]
+        Eliza[ElizaOS Adapter]
     end
 
-    subgraph Fireproof["Fireproof Layer"]
-        FP[FireproofDocument]
-        CRDT[CRDT Sync]
-        LF[Local-First Storage]
+    subgraph Bridge["Bridge Layer"]
+        Orchestrator[Translation Orchestrator]
+        Cache[Translation Cache]
+        Validation[Validation]
+        API[REST API Controller]
     end
 
-    subgraph Sync["Sync Layer"]
+    subgraph Sync["Experience Sync Layer"]
         ESM[ExperienceSyncManager]
         SS[StreamingSync]
         LS[LumpedSync]
@@ -134,58 +138,67 @@ flowchart LR
         ET[ExperienceTransport]
     end
 
-    subgraph Observability["Observability"]
-        VB[VoyeurBus]
-        VWS[VoyeurWebServer]
-        MET[MetricsSink]
+    subgraph Security["Security Layer"]
+        Wallet[API Key Wallet]
+        Registry[API Key Registry]
+        Crypto[Encryption Utils]
     end
 
-    subgraph Adapters["Framework Adapters"]
-        MCP[MCPAdapter]
-        MA[MultiAgentAdapter]
-        OA[OrchestratedAdapter]
+    subgraph Python["Python Services"]
+        UA[Universal Adapter]
+        FP[Fireproof CRDT]
+        EMB[Embedding Service]
+        Graph[Graph Store]
     end
 
-    USA --> PR
-    PR --> CB
-    USA --> MM
-    MM --> VIF
-    MM --> EB
-    MM --> MS
-    MM --> VB
+    subgraph Canvas["Canvas System"]
+        CanvasCore[Canvas Core]
+        Widgets[Widget Registry]
+        Layout[Layout Engine]
+        Terminal[Terminal PTY]
+    end
 
-    MM --> FP
-    FP --> CRDT
-    CRDT --> LF
+    USA --> Patterns
+    USA --> Adapters
+    Adapters --> Bridge
+    Bridge --> Orchestrator
+    Orchestrator --> Cache
+    Orchestrator --> Validation
+    Bridge --> API
 
     ESM --> SS
     ESM --> LS
     ESM --> CS
     ESM --> ET
-    ESM --> MM
-    ESM --> VB
 
-    VB --> VWS
-    VB --> MET
+    Security --> Wallet
+    Wallet --> Crypto
 
-    USA --> MCP
-    USA --> MA
-    USA --> OA
+    Python --> UA
+    Python --> FP
+    Python --> EMB
+
+    Canvas --> CanvasCore
+    CanvasCore --> Widgets
 ```
 
 ### Component Responsibilities
 
 | Component | Responsibility | Source |
 |-----------|---------------|--------|
-| **UniformSemanticAgentV2** | Agent schema, validation, type definitions | [`src/core/UniformSemanticAgentV2.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/core/UniformSemanticAgentV2.ts) |
-| **PatternResolver** | Adaptive pattern implementation selection | [`src/fabric/PatternResolver.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/fabric/PatternResolver.ts) |
-| **CircuitBreaker** | Fault tolerance for external service calls | [`src/utils/CircuitBreaker.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/utils/CircuitBreaker.ts) |
-| **MemoryMerger** | Memory deduplication and similarity-based merging | [`src/experience/MemoryMerger.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/experience/MemoryMerger.ts) |
-| **VectorIndexFactory** | Backend selection (HNSW/LanceDB/brute) | [`src/memory/VectorIndexFactory.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/memory/VectorIndexFactory.ts) |
-| **EmbeddingBridge** | Embedding provider abstraction | [`src/memory/EmbeddingBridge.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/memory/EmbeddingBridge.ts) |
-| **FireproofDocument** | Local-first CRDT document store | [`src/fireproof/`](https://github.com/chrysalis-ai/agents/blob/main/src/fireproof/) |
-| **ExperienceSyncManager** | Sync protocol coordination | [`src/sync/ExperienceSyncManager.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/sync/ExperienceSyncManager.ts) |
-| **VoyeurBus** | Observability event bus | [`src/observability/VoyeurEvents.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/observability/VoyeurEvents.ts) |
+| **UniformSemanticAgentV2** | Enhanced agent schema with experience sync, instances, protocols | [`src/core/UniformSemanticAgentV2.ts`](src/core/UniformSemanticAgentV2.ts) |
+| **Cryptographic Patterns** | Hash, signatures, DAG, CRDT, gossip, Byzantine resistance | [`src/core/patterns/`](src/core/patterns/) |
+| **CircuitBreaker** | Fault tolerance for external service calls | [`src/utils/CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
+| **CostControl** | Token counting, budget limits, rate limiting | [`src/utils/CostControl.ts`](src/utils/CostControl.ts) |
+| **Framework Adapters** | Protocol translation (MCP, A2A, ACP, CrewAI, ElizaOS) | [`src/adapters/`](src/adapters/) |
+| **Translation Orchestrator** | Agent morphing with shadow data and caching | [`src/bridge/orchestrator.ts`](src/bridge/orchestrator.ts) |
+| **Bridge REST API** | HTTP API for agent translation | [`src/api/bridge/controller.ts`](src/api/bridge/controller.ts) |
+| **ExperienceSyncManager** | Sync protocol coordination (streaming, lumped, check-in) | [`src/sync/ExperienceSyncManager.ts`](src/sync/ExperienceSyncManager.ts) |
+| **API Key Wallet** | Encrypted API key storage with auto-lock | [`src/security/ApiKeyWallet.ts`](src/security/ApiKeyWallet.ts) |
+| **Universal Adapter** | JSON-driven LLM task orchestration | [`src/universal_adapter/core.py`](src/universal_adapter/core.py) |
+| **Fireproof** | Local-first CRDT document store (Python) | [`memory_system/fireproof/`](memory_system/fireproof/) |
+| **Canvas System** | Multi-canvas workspace with widget system | [`src/canvas/`](src/canvas/) |
+| **Terminal PTY Server** | WebSocket PTY backend | [`src/services/terminal/TerminalPTYServer.ts`](src/services/terminal/TerminalPTYServer.ts) |
 
 ---
 
@@ -249,34 +262,35 @@ sequenceDiagram
     ESM->>Source: update metadata.evolution
 ```
 
-### Memory Merge Decision Flow
+### Universal Adapter Task Execution Flow
 
 ```mermaid
 flowchart TD
-    Input[Memory Input] --> Sanitize{Sanitize}
-    Sanitize -->|Blocked| Reject[Reject + Log]
-    Sanitize -->|OK| RateCheck{Rate Limit?}
-    RateCheck -->|Exceeded| Reject
-    RateCheck -->|OK| Method{Similarity Method}
+    Start[Task Request] --> Load[Load Task Schema]
+    Load --> Parse[Parse Flow Diagram]
+    Parse --> Validate{Validate Flow}
+    Validate -->|Invalid| Error[Return Error]
+    Validate -->|Valid| Execute[Execute Flow]
 
-    Method -->|Jaccard| Jaccard[Word Overlap]
-    Method -->|Embedding| Embed[Vector Similarity]
+    Execute --> Node{Node Type}
+    Node -->|LLM| CallLLM[Call LLM Provider]
+    Node -->|EVAL| Evaluate[Evaluate Response]
+    Node -->|LOOP| Loop[Increment Counter]
+    Node -->|GOAL_CHECK| GoalCheck[Verify Goal]
 
-    Jaccard --> Threshold{> threshold?}
-    Embed --> Threshold
+    CallLLM --> Next[Next Node]
+    Evaluate --> Next
+    Loop --> LoopCheck{Max Iterations?}
+    LoopCheck -->|No| Next
+    LoopCheck -->|Yes| Exit[Loop Exit]
 
-    Threshold -->|Yes| Merge[Merge Existing]
-    Threshold -->|No| Add[Add New]
+    GoalCheck -->|Met| Complete[Return Success]
+    GoalCheck -->|Failed| Retry{Retry Available?}
+    Retry -->|Yes| Execute
+    Retry -->|No| FailResult[Return Failure]
 
-    Merge --> Index{Vector Index?}
-    Add --> Index
-
-    Index -->|Yes| Upsert[Upsert to Index]
-    Index -->|No| Store[Store in Map]
-
-    Upsert --> Voyeur[Emit Voyeur Event]
-    Store --> Voyeur
-    Voyeur --> Metrics[Record Metrics]
+    Exit --> Next
+    Next --> Node
 ```
 
 ---
@@ -390,47 +404,31 @@ interface ExperienceEvent {
 
 ## API Contracts
 
-### Pattern Resolver API
+### Bridge REST API
 
 ```typescript
-// Create resolver for deployment model
-function createPatternResolver(
-  deploymentModel: 'embedded' | 'distributed' | 'adaptive',
-  mcpClient?: MCPPatternClient
-): AdaptivePatternResolver;
+// Agent Translation
+POST /api/v1/bridge/translate
+Body: { agent: UniformSemanticAgent, targetFramework: string }
+Response: { agent: FrameworkAgent, shadow: ShadowFields }
 
-// Resolve hash implementation
-async resolveHash(): Promise<PatternResolution<HashImplementation>>;
+// Batch Translation
+POST /api/v1/bridge/translate/batch
+Body: { agents: UniformSemanticAgent[], targetFramework: string }
+Response: { results: TranslationResult[] }
 
-// Resolve signature implementation
-async resolveSignature(): Promise<PatternResolution<SignatureImplementation>>;
+// Ingest to Canonical
+POST /api/v1/bridge/ingest
+Body: { agent: FrameworkAgent, sourceFramework: string }
+Response: { agent: UniformSemanticAgent }
 
-// Get circuit breaker statistics
-getCircuitBreakerStats(): {
-  hash: CircuitBreakerStats;
-  signature: CircuitBreakerStats;
-};
-```
+// Health Check
+GET /api/v1/bridge/health
+Response: { status: string, adapters: string[] }
 
-### Memory Merger API
-
-```typescript
-// Initialize merger (required for embedding mode)
-async initialize(): Promise<void>;
-
-// Add single memory
-async addMemory(
-  agent: UniformSemanticAgentV2,
-  memoryData: any,
-  sourceInstance: string
-): Promise<void>;
-
-// Merge batch of memories
-async mergeBatch(
-  agent: UniformSemanticAgentV2,
-  memories: any[],
-  sourceInstance: string
-): Promise<MemoryMergeResult>;
+// Statistics
+GET /api/v1/bridge/stats
+Response: { translations: number, cache_hits: number, frameworks: Record<string, number> }
 ```
 
 ### Experience Sync API
@@ -455,6 +453,30 @@ async sendBatch(instanceId: string, batch: ExperienceBatch): Promise<{ batch_id:
 async checkIn(instanceId: string, state: any): Promise<MergeResult>;
 ```
 
+### Universal Adapter API (Python)
+
+```python
+# Execute task by name
+adapter.execute_task(
+    task_name: str,
+    context: dict[str, Any]
+) -> TaskResult
+
+# Execute task from file
+adapter.execute(
+    task_path: str,
+    context: dict[str, Any]
+) -> TaskResult
+
+# Run task with custom LLM config
+adapter.run_task(
+    task_name: str,
+    llm_provider: str,
+    model: str,
+    context: dict[str, Any]
+) -> TaskResult
+```
+
 ---
 
 ## Configuration
@@ -471,22 +493,6 @@ async checkIn(instanceId: string, state: any): Promise<MergeResult>;
 | `METRICS_PROMETHEUS` | Enable Prometheus | `false` | No |
 | `METRICS_PROM_PORT` | Prometheus port | `9464` | No |
 | `METRICS_OTEL` | Enable OpenTelemetry | `false` | No |
-
-### Memory Merger Configuration
-
-```typescript
-interface MemoryMergerConfig {
-  similarity_method: 'jaccard' | 'embedding';  // Default: 'jaccard'
-  similarity_threshold: number;                 // Default: 0.9
-  embedding_service?: EmbeddingService;
-  use_vector_index: boolean;                    // Default: false
-  vector_index_type?: 'hnsw' | 'lance' | 'brute';
-  voyeur?: VoyeurSink;
-  slow_mode_ms?: number;                        // For debugging
-  sanitize?: (content: string, source: string) => SanitizeResult;
-  rate_limit?: { windowMs: number; max: number };
-}
-```
 
 ### Experience Sync Configuration
 
@@ -538,10 +544,10 @@ flowchart TB
         L1B[Ed25519 Signatures]
     end
 
-    subgraph Layer2["Layer 2: Input Validation"]
-        L2A[Memory Sanitizer]
-        L2B[Rate Limiting]
-        L2C[Trust Tiers]
+    subgraph Layer2["Layer 2: API Security"]
+        L2A[Encrypted Key Storage]
+        L2B[Auto-lock Wallet]
+        L2C[Cost Control]
     end
 
     subgraph Layer3["Layer 3: Byzantine Resistance"]
@@ -553,7 +559,7 @@ flowchart TB
     subgraph Layer4["Layer 4: Fault Tolerance"]
         L4A[Circuit Breaker]
         L4B[Graceful Degradation]
-        L4C[Fallback Patterns]
+        L4C[Retry Logic]
     end
 
     Layer1 --> Layer2 --> Layer3 --> Layer4
@@ -563,19 +569,22 @@ flowchart TB
 
 | Threat | Defense | Implementation |
 |--------|---------|----------------|
-| Agent impersonation | Cryptographic fingerprint | [`generateAgentFingerprint()`](https://github.com/chrysalis-ai/agents/blob/main/src/core/patterns/Hashing.ts) |
-| Malicious instances | Byzantine threshold (2/3) | [`hasSupermajority()`](https://github.com/chrysalis-ai/agents/blob/main/src/core/patterns/ByzantineResistance.ts) |
-| Memory poisoning | Sanitizer + rate limits | [`MemorySanitizer`](https://github.com/chrysalis-ai/agents/blob/main/src/experience/MemorySanitizer.ts) |
-| Service unavailability | Circuit breaker | [`CircuitBreaker`](https://github.com/chrysalis-ai/agents/blob/main/src/utils/CircuitBreaker.ts) |
-| Timing attacks | Logical clocks | [`LamportClock`](https://github.com/chrysalis-ai/agents/blob/main/src/core/patterns/LogicalTime.ts) |
+| Agent impersonation | Cryptographic fingerprint | [`src/core/patterns/Hashing.ts`](src/core/patterns/Hashing.ts) |
+| Malicious instances | Byzantine threshold (2/3) | [`src/core/patterns/ByzantineResistance.ts`](src/core/patterns/ByzantineResistance.ts) |
+| API key exposure | Encrypted wallet with AES-256-GCM | [`src/security/ApiKeyWallet.ts`](src/security/ApiKeyWallet.ts) |
+| Cost overruns | Budget limits + rate limiting | [`src/utils/CostControl.ts`](src/utils/CostControl.ts) |
+| Service unavailability | Circuit breaker with backoff | [`src/utils/CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
+| Timing attacks | Logical clocks (Lamport, Vector) | [`src/core/patterns/LogicalTime.ts`](src/core/patterns/LogicalTime.ts) |
 
-### Trust Tiers
+### API Key Security
 
-The memory sanitizer implements trust tiers for ingest control:
+The API Key Wallet implements defense-in-depth:
 
-1. **Trusted**: Internal instances, no filtering
-2. **Verified**: Known external sources, basic filtering
-3. **Untrusted**: Unknown sources, strict filtering + rate limits
+1. **Encryption at Rest**: AES-256-GCM encryption
+2. **Password Protection**: Master password required
+3. **Auto-lock**: Configurable timeout (default 30 minutes)
+4. **In-memory Cache**: Keys cached for 5 minutes after unlock
+5. **Key Rotation**: Support for rotating compromised keys
 
 ---
 
@@ -585,21 +594,22 @@ The memory sanitizer implements trust tiers for ingest control:
 
 | Operation | Complexity | Latency | Scale Limit |
 |-----------|-----------|---------|-------------|
-| Hash (embedded) | O(N) | ~0.1ms | Any |
-| Hash (Go gRPC) | O(N) | ~5ms | Any |
-| Memory search (Jaccard) | O(N²) | ~10ms | <1K memories |
-| Memory search (embedding) | O(N²) | ~50ms | <5K memories |
-| Memory search (HNSW) | O(log N) | ~5ms | Millions |
-| Experience sync (RPC) | O(N) | ~100ms | <100 instances |
+| Hash (SHA-384) | O(N) | ~0.1ms | Any |
+| Signature (Ed25519) | O(1) | ~0.5ms | Any |
+| Agent translation | O(N) | ~10-50ms | Any |
+| Bridge API (cached) | O(1) | ~1ms | Any |
+| Bridge API (uncached) | O(N) | ~50ms | Any |
+| Experience sync (streaming) | O(1) per event | ~100ms | <1000 instances |
+| Experience sync (lumped) | O(N) batch | ~500ms | <100 instances |
+| Cost tracking | O(1) | <1ms | Any |
 
-### Memory Evolution Path
+### Performance Optimization Strategies
 
-```mermaid
-flowchart LR
-    V30["v3.0: Jaccard<br/>O(N²), <1K"] --> V31["v3.1: Embedding<br/>O(N²), <5K"]
-    V31 --> V32["v3.2: HNSW<br/>O(log N), millions"]
-    V32 --> Future["Future: Vector DB<br/>Persistent, distributed"]
-```
+1. **Translation Caching**: LRU cache for agent translations
+2. **Connection Pooling**: HTTP client reuses connections
+3. **Circuit Breaker**: Fast-fail on unavailable services
+4. **Retry with Backoff**: Exponential backoff for transient failures
+5. **Cost-aware Routing**: Select cheaper models when possible
 
 ---
 
@@ -668,12 +678,16 @@ Agent:
 
 ### Internal Documentation
 
-- [Implementation Status](docs/STATUS.md)
-- [Universal Patterns Research](docs/research/universal-patterns/PATTERNS_ANCHORED.md)
-- [Security Analysis](docs/research/deep-research/SECURITY_ATTACKS.md)
-- [Memory System](memory_system/README.md)
+- [Implementation Status](docs/STATUS.md) - Authoritative implementation status
+- [Documentation Index](docs/INDEX.md) - Navigation hub
+- [Universal Patterns Research](docs/research/universal-patterns/PATTERNS_ANCHORED.md) - Pattern foundation
+- [Security Analysis](docs/research/deep-research/SECURITY_ATTACKS.md) - Security research
+- [Memory System](memory_system/README.md) - Python package documentation
+- [Universal Adapter](src/universal_adapter/README.md) - Task orchestration system
+- [Bridge API](src/api/bridge/README.md) - Bridge service documentation
 
 ---
 
 **Document Owner**: Chrysalis Team
 **Review Cadence**: Monthly or on major releases
+**Last Major Revision**: January 16, 2026 - Aligned with actual implementation, removed references to deleted components

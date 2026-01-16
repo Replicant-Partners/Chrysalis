@@ -1,0 +1,24 @@
+[package]
+name = "chrysalis-wasm"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "WASM bindings for browser usage"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+chrysalis-core = { path = "../chrysalis-core" }
+wasm-bindgen.workspace = true
+js-sys.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+getrandom.workspace = true
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+# Profile configuration is defined in workspace root Cargo.toml

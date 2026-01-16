@@ -1,0 +1,29 @@
+[package]
+name = "chrysalis-sync"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Experience synchronization and distributed state management"
+
+[dependencies]
+chrysalis-core = { path = "../chrysalis-core" }
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+async-trait.workspace = true
+reqwest.workspace = true
+tokio-tungstenite.workspace = true
+yrs.workspace = true
+thiserror.workspace = true
+rand.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[features]
+default = ["crdt", "gossip", "transport"]
+crdt = []
+gossip = []
+transport = []
