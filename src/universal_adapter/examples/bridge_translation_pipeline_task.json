@@ -1,0 +1,75 @@
+{
+  "name": "bridge_translation_pipeline",
+  "version": "1.0.0",
+  "taskId": "task-bridge-translate-001",
+  "taskType": "translate",
+  "priority": "critical",
+  "goal": {
+    "description": "Validate a translation request, apply cache logic, and output a translation plan",
+    "target_conditions": [
+      {
+        "description": "Translation pipeline plan produced with cache and validation steps",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 12 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "12"
+      }
+    ]
+  },
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.2,
+    "max_tokens": 1600,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "bridge_orchestrator",
+        "category": "reference",
+        "source_url": "docs/BRIDGE_IMPLEMENTATION.md"
+      },
+      {
+        "name": "compatibility_matrix",
+        "category": "reference",
+        "source_url": "docs/ARCHITECTURE_AUDIT_2026-01-16.md"
+      }
+    ]
+  },
+  "input": {
+    "translation_request": "{\"agent\":{\"framework\":\"mcp\",\"data\":{\"name\":\"demo\"}},\"targetFramework\":\"a2a\"}"
+  },
+  "prompts": [
+    {
+      "template": "Validate translation request:\n{{translation_request}}\nList required fields and any missing data.",
+      "role": "user",
+      "description": "Validate translation request"
+    },
+    {
+      "template": "Decide cache status (cache_hit or cache_miss) based on request and cache policy. Provide rationale.",
+      "role": "user",
+      "description": "Cache decision"
+    },
+    {
+      "template": "If cache miss, outline canonicalization steps and fidelity checks.",
+      "role": "user",
+      "description": "Canonicalization plan"
+    },
+    {
+      "template": "Outline target translation and validation steps using adapter registry and compatibility checks.",
+      "role": "user",
+      "description": "Target translation plan"
+    },
+    {
+      "template": "Finalize pipeline summary: validation, cache usage, translation, persistence. Include decision points.",
+      "role": "user",
+      "description": "Finalize plan"
+    }
+  ],
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 -->|cache_hit| P4\n    P1 -->|cache_miss| P2\n    P2 --> P3\n    P3 --> P4\n    P4 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P2"
+  }
+}

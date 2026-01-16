@@ -1,6 +1,9 @@
 {
   "name": "simple_qa",
   "version": "1.0.0",
+  "taskId": "task-simple-qa-001",
+  "taskType": "qa",
+  "priority": "normal",
 
   "goal": {
     "description": "Answer a question with a clear, concise response",
@@ -8,19 +11,29 @@
       {
         "description": "Response contains an answer",
         "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 5 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "5"
       }
     ]
   },
 
   "resource_llm": {
-    "provider": "mock",
-    "model": "mock-model",
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
     "temperature": 0.5,
-    "max_tokens": 1024
+    "max_tokens": 1024,
+    "api_key_env": "ANTHROPIC_API_KEY"
   },
 
   "resource_registry": {
     "entries": []
+  },
+
+  "input": {
+    "question": "What is the capital of France?"
   },
 
   "prompts": [
@@ -32,6 +45,6 @@
   ],
 
   "flow_diagram": {
-    "mermaid": "graph TD\n    START((Start)) --> P0[Answer Question]\n    P0 --> END((End))"
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P0"
   }
 }

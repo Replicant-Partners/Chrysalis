@@ -4,6 +4,7 @@ import { WebSocketServer } from 'ws';
 import * as Y from 'yjs';
 import { sendJson, sendText } from '../../demo/milestone1/http';
 import { ResolutionEventPayload, SemanticClaimPayload } from '../../demo/milestone1/types';
+import { createLogger } from '../../shared/logger';
 
 type TxRecord = {
   txId: string;
@@ -25,6 +26,7 @@ export class ProjectionService {
   private readonly crdtDocsByRoom = new Map<string, Y.Doc>();
   private readonly crdtPeersByRoom = new Map<string, Set<any>>();
   private lastSeenTxId: string | undefined;
+  private log = createLogger('projection-service');
 
   constructor(private readonly config: ProjectionServiceConfig) {}
 
@@ -38,7 +40,7 @@ export class ProjectionService {
     await new Promise<void>((resolve) => server.listen(this.config.crdtPort, resolve));
 
     this.pollLoop().catch((err) => {
-      console.error('[ProjectionService] pollLoop error', err);
+      this.log.error('pollLoop error', { error: err instanceof Error ? err.message : String(err) });
     });
 
     return { httpServer: server, wss };

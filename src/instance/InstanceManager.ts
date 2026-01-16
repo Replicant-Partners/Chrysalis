@@ -5,14 +5,15 @@
  * across different implementation types and frameworks.
  */
 
-import type { 
-  UniformSemanticAgentV2, 
-  InstanceMetadata, 
+import type {
+  UniformSemanticAgentV2,
+  InstanceMetadata,
   AgentImplementationType,
   SyncProtocol,
   ExperienceTransportConfig
 } from '../core/UniformSemanticAgentV2';
 import * as crypto from 'crypto';
+import { createLogger } from '../shared/logger';
 
 /**
  * Instance deployment result
@@ -60,6 +61,7 @@ export interface TerminationReport {
  */
 export class InstanceManager {
   private instances: Map<string, InstanceMetadata> = new Map();
+  private log = createLogger('instance-manager');
   
   /**
    * Create new instance
@@ -71,7 +73,7 @@ export class InstanceManager {
     syncProtocol: SyncProtocol,
     transport?: ExperienceTransportConfig
   ): Promise<InstanceDeployment> {
-    console.log(`Creating ${targetType} instance for ${sourceAgent.identity.name}...`);
+    this.log.info('creating instance', { targetType, agent: sourceAgent.identity.name });
     
     // Generate instance ID
     const instance_id = crypto.randomUUID();
@@ -120,10 +122,12 @@ export class InstanceManager {
       }
     };
     
-    console.log(`✓ Instance ${instance_id} created`);
-    console.log(`  Type: ${targetType}`);
-    console.log(`  Framework: ${framework}`);
-    console.log(`  Sync: ${syncProtocol}`);
+    this.log.info('instance created', {
+      instance_id,
+      targetType,
+      framework,
+      syncProtocol,
+    });
     
     return {
       instance_id,
@@ -152,7 +156,7 @@ export class InstanceManager {
     instance.endpoint = endpoint;
     instance.health.last_heartbeat = new Date().toISOString();
     
-    console.log(`✓ Instance ${instance_id} registered at ${endpoint}`);
+    this.log.info('instance registered', { instance_id, endpoint, capabilities });
   }
   
   /**
@@ -198,9 +202,11 @@ export class InstanceManager {
     reason: string,
     performFinalSync: boolean
   ): Promise<TerminationReport> {
-    console.log(`Terminating instance ${instance_id}...`);
-    console.log(`  Reason: ${reason}`);
-    console.log(`  Final sync: ${performFinalSync}`);
+    this.log.info('terminating instance', {
+      instance_id,
+      reason,
+      performFinalSync,
+    });
     
     const instance = this.instances.get(instance_id);
     if (!instance) {
@@ -209,7 +215,7 @@ export class InstanceManager {
     
     // Perform final sync if requested
     if (performFinalSync) {
-      console.log('  → Performing final sync...');
+      this.log.info('performing final sync before termination', { instance_id });
       // Final sync handled by ExperienceSyncManager
     }
     
@@ -232,7 +238,11 @@ export class InstanceManager {
       statistics: instance.statistics
     };
     
-    console.log(`✓ Instance ${instance_id} terminated`);
+    this.log.info('instance terminated', {
+      instance_id,
+      total_runtime,
+      final_sync_performed: performFinalSync,
+    });
     
     return report;
   }

@@ -22,12 +22,15 @@ export interface GatewayLLMClientConfig {
 /**
  * Minimal HTTP client for the Go LLM gateway (/v1/chat).
  */
+import { createLogger } from '../../shared/logger';
+
 export class GatewayLLMClient {
   private baseUrl: string;
   private authToken?: string;
   private model?: string;
   private fetchImpl: typeof fetch;
   private streamDefault?: boolean;
+  private log = createLogger('gateway-llm');
 
   constructor(config: GatewayLLMClientConfig = {}) {
     const envBase = typeof process !== 'undefined' ? (process.env.GATEWAY_BASE_URL || process.env.NEXT_PUBLIC_GATEWAY_BASE_URL || process.env.VITE_GATEWAY_BASE_URL) : undefined;
@@ -72,14 +75,13 @@ export class GatewayLLMClient {
 
     if (!res.ok) {
       const text = await res.text();
-      console.error(JSON.stringify({
-        event: 'gateway_chat_error',
+      this.log.error('gateway chat error', {
         requestId,
         status: res.status,
         body: text,
         baseUrl: this.baseUrl,
         agentId,
-      }));
+      });
       throw new Error(`Gateway chat failed: ${res.status} ${text}`);
     }
 
@@ -91,15 +93,14 @@ export class GatewayLLMClient {
       requestId: res.headers.get('X-Request-Id') || requestId,
       durationMs: Date.now() - started,
     };
-    console.debug(JSON.stringify({
-      event: 'gateway_chat',
+    this.log.debug('gateway chat', {
       requestId: response.requestId,
       durationMs: response.durationMs,
       provider: response.provider,
       model: response.model,
       baseUrl: this.baseUrl,
       agentId,
-    }));
+    });
     return response;
   }
 

@@ -262,6 +262,14 @@ class TaskSchema:
     # Metadata
     name: str = ""
     version: str = "1.0.0"
+    task_id: str = ""
+    task_type: str = ""
+    priority: str = "normal"
+    created_at: str | None = None
+    prompt_pipeline: Mapping[str, Any] = field(default_factory=dict)
+    input_context: Mapping[str, Any] = field(default_factory=dict)
+    output_spec: Mapping[str, Any] = field(default_factory=dict)
+    metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.prompts:
@@ -294,7 +302,15 @@ class TaskSchema:
             prompts=prompts,
             flow_diagram=FlowDiagram.from_dict(data.get('flow_diagram', {})),
             name=data.get('name', ''),
-            version=data.get('version', '1.0.0')
+            version=data.get('version', '1.0.0'),
+            task_id=data.get('taskId', '') or data.get('task_id', ''),
+            task_type=data.get('taskType', '') or data.get('task_type', ''),
+            priority=data.get('priority', 'normal'),
+            created_at=data.get('createdAt') or data.get('created_at'),
+            prompt_pipeline=data.get('promptPipeline', {}) or data.get('prompt_pipeline', {}),
+            input_context=data.get('input', {}) or data.get('input_context', {}),
+            output_spec=data.get('output', {}) or data.get('output_spec', {}),
+            metadata=data.get('metadata', {}),
         )
 
     @classmethod

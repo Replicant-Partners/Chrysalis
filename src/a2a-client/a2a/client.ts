@@ -7,6 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { createLogger } from '../../shared/logger';
 import {
   AgentCard,
   AgentCapabilities,
@@ -435,15 +436,18 @@ export class A2AClient extends EventEmitter {
   }
   
   private log(level: 'info' | 'error' | 'debug', message: string): void {
-    if (this.config.debug || level === 'error') {
-      const prefix = `[A2AClient] [${level.toUpperCase()}]`;
-      if (level === 'error') {
-        console.error(`${prefix} ${message}`);
-      } else {
-        console.log(`${prefix} ${message}`);
+    const logger = createLogger('a2a-client');
+    if (level === 'error') {
+      logger.error(message);
+    } else if (level === 'debug') {
+      if (this.config.debug) {
+        logger.debug(message);
+      }
+    } else {
+      if (this.config.debug) {
+        logger.info(message);
       }
     }
-    
     this.emit('log', { level, message });
   }
   

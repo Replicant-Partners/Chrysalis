@@ -17,6 +17,9 @@
  * enables fair cost allocation across agents.
  */
 
+import { createLogger } from '../shared/logger';
+const costLog = createLogger('cost-control');
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -277,7 +280,7 @@ export function calculateCost(
 ): number {
   const pricing = MODEL_PRICING[modelId];
   if (!pricing) {
-    console.warn(`Unknown model: ${modelId}, using zero cost`);
+    costLog.warn(`Unknown model: ${modelId}, using zero cost`);
     return 0;
   }
   
@@ -316,6 +319,7 @@ export class CostController {
   private idCounter = 0;
   private lastDailyReset: Date;
   private lastMonthlyReset: Date;
+  private log = createLogger('cost-control');
   
   constructor(budget: Partial<BudgetConfig> = {}) {
     this.budget = {
@@ -435,7 +439,7 @@ export class CostController {
         return { allowed: true };
         
       case 'warn':
-        console.warn(`[CostControl] Budget limit exceeded. Estimated cost: $${estimatedCost.toFixed(4)}`);
+        this.log.warn('Budget limit exceeded', { estimatedCost });
         return { allowed: true };
         
       case 'block':
@@ -769,7 +773,7 @@ export function createCostTrackingMiddleware(
     // Check budget
     const { allowed, reason } = controller.canProceed(estimatedCost);
     if (!allowed) {
-      console.warn(`[CostControl] Operation blocked: ${reason}`);
+      controller['log']?.warn('Operation blocked', { reason });
       return null;
     }
     

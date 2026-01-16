@@ -1,4 +1,7 @@
 import { CapabilityGatewayService, defaultRepoRoot } from './CapabilityGatewayService';
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('capability-gateway');
 
 function parseArg(name: string, def?: string): string | undefined {
   const idx = process.argv.indexOf(`--${name}`);
@@ -16,11 +19,11 @@ async function main(): Promise<void> {
 
   const svc = new CapabilityGatewayService({ port, ledgerBaseUrl, repoRoot, apiKeysPath, allowBootstrap, rateLimitPerMinute });
   await svc.start();
-  console.log(`[CapabilityGateway] up http://localhost:${port} (ledger=${ledgerBaseUrl}) auth=${apiKeysPath}`);
+  log.info('gateway started', { port, ledgerBaseUrl, apiKeysPath, allowBootstrap, rateLimitPerMinute });
   await new Promise(() => {});
 }
 
 main().catch((err) => {
-  console.error(err);
+  log.error('gateway failed to start', { error: err instanceof Error ? err.message : String(err) });
   process.exitCode = 1;
 });

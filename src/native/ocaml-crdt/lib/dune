@@ -1,0 +1,5 @@
+(library
+ (name chrysalis_crdt)
+ (public_name chrysalis_crdt)
+ (libraries yojson lwt)
+ (preprocess (pps ppx_deriving ppx_deriving_yojson js_of_ocaml-ppx)))

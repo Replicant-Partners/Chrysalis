@@ -1,0 +1,51 @@
+{
+  "name": "agent_quick_config",
+  "version": "1.0.0",
+  "taskId": "task-agent-quick-001",
+  "taskType": "agent_config",
+  "priority": "normal",
+
+  "goal": {
+    "description": "Produce a minimal UniformSemanticAgentV2-compatible config block",
+    "target_conditions": [
+      {
+        "description": "Config includes identity and capabilities",
+        "evaluation_type": "CONTAINS",
+        "expected_value": "\"identity\""
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "template",
+    "model": "template-v1",
+    "temperature": 0.0,
+    "max_tokens": 0
+  },
+
+  "resource_registry": {
+    "entries": []
+  },
+
+  "input": {
+    "name": "Agent Zero",
+    "designation": "Universal Adapter Generated",
+    "bio": "Auto-generated agent.",
+    "traits": ["reliable", "concise"],
+    "capabilities": ["research", "synthesis"],
+    "llm_provider": "anthropic",
+    "llm_model": "claude-3-5-sonnet-20241022"
+  },
+
+  "prompts": [
+    {
+      "template": "{\n  \"identity\": {\n    \"name\": \"{{name}}\",\n    \"designation\": \"{{designation}}\",\n    \"bio\": \"{{bio}}\",\n    \"fingerprint\": \"generated\",\n    \"version\": \"1.0.0\"\n  },\n  \"personality\": {\n    \"core_traits\": {{traits}}\n  },\n  \"capabilities\": {\n    \"primary\": {{capabilities}},\n    \"domains\": [],\n    \"secondary\": []\n  },\n  \"llm\": {\n    \"provider\": \"{{llm_provider}}\",\n    \"model\": \"{{llm_model}}\"\n  }\n}",
+      "role": "user",
+      "description": "Render agent config with provided inputs"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| END"
+  }
+}

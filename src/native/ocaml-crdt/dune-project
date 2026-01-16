@@ -1,0 +1,23 @@
+(lang dune 3.0)
+(name chrysalis_crdt)
+(version 0.1.0)
+(generate_opam_files true)
+
+(source (github chrysalis/ocaml-crdt))
+(license MIT)
+(authors "Chrysalis Team")
+(maintainers "team@chrysalis.dev")
+
+(package
+ (name chrysalis_crdt)
+ (synopsis "Conflict-free Replicated Data Types for Chrysalis")
+ (description "Immutable CRDT implementations with formal correctness guarantees")
+ (depends
+  (ocaml (>= 4.14))
+  (dune (>= 3.0))
+  (ppx_deriving (>= 5.0))
+  (ppx_deriving_yojson (>= 3.0))
+  (yojson (>= 2.0))
+  (lwt (>= 5.0))
+  (js_of_ocaml (>= 5.0))
+  (js_of_ocaml-ppx (>= 5.0))))

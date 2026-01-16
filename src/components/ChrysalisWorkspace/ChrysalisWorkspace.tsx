@@ -19,7 +19,8 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import * as Y from 'yjs';
 import { ChatPane } from './ChatPane';
-import { AgentCanvas } from '../AgentCanvas';
+import { AgentCanvas, CanvasTabs, CanvasTab } from '../AgentCanvas';
+import { tokens, ThemeMode } from '../shared/tokens';
 import {
   ChrysalisWorkspaceProps,
   ChatMessage,
@@ -41,13 +42,13 @@ import { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
 // =============================================================================
 
 const styles = {
-  workspace: {
+  workspace: (mode: ThemeMode) => ({
     display: 'flex',
     height: '100vh',
     width: '100vw',
-    backgroundColor: '#11111b',
+    backgroundColor: tokens.color.surface.base[mode],
     overflow: 'hidden',
-  },
+  }),
   leftPanel: {
     height: '100%',
     minWidth: 280,
@@ -61,6 +62,8 @@ const styles = {
     minWidth: 400,
     overflow: 'hidden',
     position: 'relative' as const,
+    display: 'flex',
+    flexDirection: 'column' as const,
   },
   rightPanel: {
     height: '100%',
@@ -78,12 +81,12 @@ const styles = {
     transition: 'background-color 0.2s',
     zIndex: 10,
   },
-  resizeHandleActive: {
-    backgroundColor: '#89b4fa',
-  },
-  resizeHandleHover: {
-    backgroundColor: '#45475a',
-  },
+  resizeHandleActive: (mode: ThemeMode) => ({
+    backgroundColor: tokens.color.text.secondary[mode],
+  }),
+  resizeHandleHover: (mode: ThemeMode) => ({
+    backgroundColor: tokens.color.border.subtle[mode],
+  }),
   canvasOverlay: {
     position: 'absolute' as const,
     top: 0,
@@ -96,7 +99,7 @@ const styles = {
     backgroundColor: 'rgba(17, 17, 27, 0.95)',
     pointerEvents: 'none' as const,
   },
-  dropOverlay: {
+  dropOverlay: (mode: ThemeMode) => ({
     position: 'absolute' as const,
     top: 0,
     left: 0,
@@ -105,40 +108,40 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(137, 180, 250, 0.1)',
-    border: '2px dashed #89b4fa',
+    backgroundColor: tokens.color.surface.base[mode],
+    border: `2px dashed ${tokens.color.text.secondary[mode]}`,
     borderRadius: 8,
     margin: 8,
     pointerEvents: 'none' as const,
-  },
-  dropOverlayText: {
-    color: '#89b4fa',
+  }),
+  dropOverlayText: (mode: ThemeMode) => ({
+    color: tokens.color.text.secondary[mode],
     fontSize: 18,
     fontWeight: 600,
     textAlign: 'center' as const,
-  },
-  emptyCanvas: {
+  }),
+  emptyCanvas: (mode: ThemeMode) => ({
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-    backgroundColor: '#1e1e2e',
-    color: '#6c7086',
+    backgroundColor: tokens.color.surface.secondaryPane[mode],
+    color: tokens.color.text.secondary[mode],
     textAlign: 'center' as const,
     padding: 40,
-  },
+  }),
   emptyCanvasIcon: {
     fontSize: 64,
     marginBottom: 24,
     opacity: 0.5,
   },
-  emptyCanvasTitle: {
+  emptyCanvasTitle: (mode: ThemeMode) => ({
     fontSize: 24,
     fontWeight: 600,
-    color: '#cdd6f4',
+    color: tokens.color.text.primary[mode],
     marginBottom: 12,
-  },
+  }),
   emptyCanvasSubtitle: {
     fontSize: 14,
     lineHeight: 1.6,
@@ -208,9 +211,10 @@ function createCanvasAgentFromBinding(binding: AgentBinding, position: AgentPosi
 interface ResizeHandleProps {
   onResize: (delta: number) => void;
   position: 'left' | 'right';
+  mode: ThemeMode;
 }
 
-const ResizeHandle: React.FC<ResizeHandleProps> = ({ onResize, position }) => {
+const ResizeHandle: React.FC<ResizeHandleProps> = ({ onResize, position, mode }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const startXRef = useRef(0);
@@ -247,8 +251,8 @@ const ResizeHandle: React.FC<ResizeHandleProps> = ({ onResize, position }) => {
     <div
       style={{
         ...styles.resizeHandle,
-        ...(isDragging ? styles.resizeHandleActive : {}),
-        ...(isHovering && !isDragging ? styles.resizeHandleHover : {}),
+        ...(isDragging ? styles.resizeHandleActive(mode) : {}),
+        ...(isHovering && !isDragging ? styles.resizeHandleHover(mode) : {}),
       }}
       onMouseDown={handleMouseDown}
       onMouseEnter={() => setIsHovering(true)}
@@ -301,12 +305,20 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
   // Panel sizing state
   const [panelSizes, setPanelSizes] = useState<PanelSizes>(config.defaultPanelSizes);
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const mode: ThemeMode = 'dark';
+  const [canvasTabs, setCanvasTabs] = useState<CanvasTab[]>([
+    { id: 'canvas-commons', label: 'Commons', isReady: true },
+    { id: 'canvas-scratch', label: 'Scratch', isReady: true },
+  ]);
+  const [activeCanvasTabId, setActiveCanvasTabId] = useState<string>('canvas-commons');
   
   // Chat state
   const [leftMessages, setLeftMessages] = useState<ChatMessage[]>([]);
   const [rightMessages, setRightMessages] = useState<ChatMessage[]>([]);
   const [leftTyping, setLeftTyping] = useState(false);
   const [rightTyping, setRightTyping] = useState(false);
+  const [leftDndState, setLeftDndState] = useState<'off' | 'on'>('off');
+  const [rightDndState, setRightDndState] = useState<'off' | 'on'>('off');
   const [snapToGrid, setSnapToGrid] = useState<boolean>(config.canvasSnapToGrid);
   const [showGrid, setShowGrid] = useState<boolean>(config.canvasShowGrid);
   const [gridSize, setGridSize] = useState<number>(config.canvasGridSize);
@@ -931,7 +943,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
   }, [config.enableDocumentDrop, onDocumentDrop, onMemoryEvent]);
   
   return (
-    <div ref={workspaceRef} style={styles.workspace}>
+    <div ref={workspaceRef} style={styles.workspace(mode)}>
       {/* Left Chat Pane */}
       <div style={{ ...styles.leftPanel, width: `${panelSizes.leftWidth}%` }}>
         <ChatPane
@@ -942,13 +954,18 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
           isAgentTyping={leftTyping}
           showMemoryIndicators={config.showMemoryIndicators}
           maxMessages={config.maxMessagesPerPane}
+          dndState={leftDndState}
           onSendMessage={handleSendLeftMessage}
           onClearChat={handleClearLeftChat}
+          onInviteClick={() => {
+            onMessageSent?.(createMessage('Invite requested', userId, userName, 'system'), 'left');
+          }}
+          onToggleDnd={setLeftDndState}
         />
       </div>
       
       {/* Left Resize Handle */}
-      <ResizeHandle onResize={handleLeftResize} position="left" />
+        <ResizeHandle onResize={handleLeftResize} position="left" mode={mode} />
       
       {/* Center Canvas */}
       <div
@@ -957,6 +974,17 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
+        <CanvasTabs
+          tabs={canvasTabs}
+          activeTabId={activeCanvasTabId}
+          mode={mode}
+          onSelectTab={setActiveCanvasTabId}
+          onOpenCanvas={() => {
+            const newId = `canvas-${Date.now()}`;
+            setCanvasTabs((prev) => [...prev, { id: newId, label: `Canvas ${prev.length + 1}`, isReady: true }]);
+            setActiveCanvasTabId(newId);
+          }}
+        />
         {config.enableYjs && (
           <div style={{ position: 'absolute', top: 8, right: 12, zIndex: 5, fontSize: 12, color: '#9aa4b5' }}>
             YJS sync enabled
@@ -979,8 +1007,8 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
         
         {/* Drop Overlay for Embedding Files */}
         {isDropTarget && (
-          <div style={styles.dropOverlay}>
-            <div style={styles.dropOverlayText}>
+          <div style={styles.dropOverlay(mode)}>
+            <div style={styles.dropOverlayText(mode)}>
               📄 Drop to learn from document
             </div>
           </div>
@@ -988,7 +1016,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       </div>
       
       {/* Right Resize Handle */}
-      <ResizeHandle onResize={handleRightResize} position="right" />
+      <ResizeHandle onResize={handleRightResize} position="right" mode={mode} />
 
       {/* Right Chat Pane */}
       {secondaryAgent ? (
@@ -1008,15 +1036,20 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
             isAgentTyping={rightTyping}
             showMemoryIndicators={config.showMemoryIndicators}
             maxMessages={config.maxMessagesPerPane}
+            dndState={rightDndState}
             onSendMessage={handleSendRightMessage}
             onClearChat={handleClearRightChat}
+            onInviteClick={() => {
+              onMessageSent?.(createMessage('Invite requested', userId, userName, 'system'), 'right');
+            }}
+            onToggleDnd={setRightDndState}
           />
         </div>
       ) : (
-        <div style={{ ...styles.rightPanel, width: `${panelSizes.rightWidth}%`, backgroundColor: '#181825' }}>
-          <div style={{ ...styles.emptyCanvas, backgroundColor: '#181825' }}>
+        <div style={{ ...styles.rightPanel, width: `${panelSizes.rightWidth}%` }}>
+          <div style={styles.emptyCanvas(mode)}>
             <div style={styles.emptyCanvasIcon}>🤖</div>
-            <div style={styles.emptyCanvasTitle}>No Secondary Agent</div>
+            <div style={styles.emptyCanvasTitle(mode)}>No Secondary Agent</div>
             <div style={styles.emptyCanvasSubtitle}>
               Add a secondary agent to enable multi-agent conversations.
             </div>

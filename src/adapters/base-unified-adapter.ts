@@ -509,7 +509,20 @@ export abstract class BaseUnifiedAdapter extends EventEmitter implements Unified
    */
   protected log(message: string, ...args: unknown[]): void {
     if (this.config.debug) {
-      console.log(`[${this.protocol}] ${message}`, ...args);
+      const entry = {
+        timestamp: new Date().toISOString(),
+        level: 'debug',
+        scope: `adapter:${this.protocol}`,
+        message,
+        meta: args && args.length ? args : undefined
+      };
+      // Emit via shared logger if present; fallback to console
+      try {
+        const { createLogger } = require('../shared/logger');
+        createLogger(`adapter:${this.protocol}`).debug(message, { meta: entry.meta });
+      } catch {
+        console.log(JSON.stringify(entry));
+      }
     }
   }
   

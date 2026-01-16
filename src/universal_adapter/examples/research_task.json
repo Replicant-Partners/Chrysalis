@@ -1,6 +1,9 @@
 {
   "name": "research_synthesis",
   "version": "1.0.0",
+  "taskId": "task-research-001",
+  "taskType": "research",
+  "priority": "high",
 
   "goal": {
     "description": "Research a topic, synthesize findings, and produce a structured summary",
@@ -46,6 +49,11 @@
     ]
   },
 
+  "input": {
+    "topic": "Explain the impact of CRDTs on distributed systems",
+    "aspects": ["convergence", "performance", "conflict resolution"]
+  },
+
   "prompts": [
     {
       "template": "You are a research assistant. Given the topic: '{{topic}}', identify 3-5 key aspects that should be investigated. List them as bullet points.",
@@ -70,6 +78,6 @@
   ],
 
   "flow_diagram": {
-    "mermaid": "graph TD\n    START((Start)) --> P0[Decompose Topic]\n    P0 --> LOOP([Research Loop])\n    LOOP -->|continue| P1[Investigate Aspect]\n    P1 --> P2{Quality Check}\n    P2 -->|sufficient| P3[Synthesize Results]\n    P2 -->|needs_more| LOOP\n    LOOP -->|exit| P3\n    P3 --> END((End))"
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> LOOP\n    LOOP -->|continue| P1\n    P1 --> P2\n    P2 -->|sufficient| P3\n    P2 -->|needs_more| LOOP\n    LOOP -->|exit| P3\n    P3 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| LOOP"
   }
 }

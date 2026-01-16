@@ -4,6 +4,8 @@
 
 ## Executive Summary
 
+**Status: Deferred.** Voice mode is currently paused; the integration below is retained for future work but is not active in the product.
+
 This specification defines the voice mode integration for Chrysalis, enabling dual-mode chatbox UI (text + voice), provider-agnostic voice services, and voice cloning capabilities. The design builds on GaryVision elder-friendly patterns while maintaining Chrysalis' uniform semantic agent architecture.
 
 ---

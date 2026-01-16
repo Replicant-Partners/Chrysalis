@@ -1,0 +1,287 @@
+// Chrysalis Flow Graph Execution - Datalog Specification
+//
+// This Datalog program specifies the semantics of flow graph execution
+// for the Universal Adapter. It provides:
+// - Declarative graph traversal
+// - Condition evaluation
+// - Termination proofs for DAGs
+// - Deterministic execution ordering
+
+// ============================================================================
+// Base Relations (Input Facts)
+// ============================================================================
+
+// Node definition: node(id, type, handler)
+// Types: "start", "prompt", "condition", "action", "end", "parallel", "join"
+.decl node(id: symbol, type: symbol, handler: symbol)
+
+// Edge definition: edge(from, to, label)
+// Label is the condition name or "default"
+.decl edge(from: symbol, to: symbol, label: symbol)
+
+// Condition results: condition_result(node_id, label, timestamp)
+// Represents evaluated condition outcomes
+.decl condition_result(node_id: symbol, label: symbol, timestamp: number)
+
+// Node execution state: executed(node_id, timestamp)
+.decl executed(node_id: symbol, timestamp: number)
+
+// Node output: node_output(node_id, output_key, value)
+.decl node_output(node_id: symbol, output_key: symbol, value: symbol)
+
+// Variable bindings: binding(scope, name, value)
+.decl binding(scope: symbol, name: symbol, value: symbol)
+
+// ============================================================================
+// Derived Relations (Computed)
+// ============================================================================
+
+// Start nodes (nodes with no incoming edges)
+.decl start_node(id: symbol)
+start_node(id) :- node(id, "start", _).
+start_node(id) :- node(id, _, _), !edge(_, id, _).
+
+// End nodes (nodes with no outgoing edges)
+.decl end_node(id: symbol)
+end_node(id) :- node(id, "end", _).
+end_node(id) :- node(id, _, _), !edge(id, _, _).
+
+// ============================================================================
+// Reachability Analysis
+// ============================================================================
+
+// Direct reachability via edges
+.decl reachable(from: symbol, to: symbol)
+reachable(from, to) :- edge(from, to, _).
+reachable(from, to) :- edge(from, mid, _), reachable(mid, to).
+
+// Reachability with condition
+.decl reachable_if(from: symbol, to: symbol, condition: symbol)
+reachable_if(from, to, label) :- edge(from, to, label).
+reachable_if(from, to, label) :-
+    edge(from, mid, label),
+    reachable(mid, to).
+
+// Path exists between nodes
+.decl path_exists(from: symbol, to: symbol)
+path_exists(from, to) :- reachable(from, to).
+
+// All paths from start to end
+.decl valid_path(from: symbol, to: symbol)
+valid_path(from, to) :-
+    start_node(from),
+    end_node(to),
+    reachable(from, to).
+
+// ============================================================================
+// Cycle Detection (for DAG validation)
+// ============================================================================
+
+// Self-loop detection
+.decl has_self_loop(id: symbol)
+has_self_loop(id) :- edge(id, id, _).
+
+// Cycle detection via reachability
+.decl in_cycle(id: symbol)
+in_cycle(id) :- reachable(id, id).
+
+// Graph is acyclic (DAG)
+.decl is_dag()
+is_dag() :- !in_cycle(_).
+
+// ============================================================================
+// Execution Order
+// ============================================================================
+
+// Topological ordering level
+.decl topo_level(id: symbol, level: number)
+
+// Start nodes are level 0
+topo_level(id, 0) :- start_node(id).
+
+// Other nodes are max(predecessor level) + 1
+topo_level(id, level + 1) :-
+    edge(pred, id, _),
+    topo_level(pred, level),
+    !topo_level(id, _).
+
+// Nodes that can execute (all predecessors executed)
+.decl can_execute(id: symbol)
+can_execute(id) :-
+    start_node(id),
+    !executed(id, _).
+can_execute(id) :-
+    node(id, _, _),
+    !executed(id, _),
+    all_predecessors_executed(id).
+
+// Helper: all predecessors of a node are executed
+.decl all_predecessors_executed(id: symbol)
+all_predecessors_executed(id) :-
+    node(id, _, _),
+    !edge(_, id, _). // No predecessors
+all_predecessors_executed(id) :-
+    node(id, _, _),
+    edge(pred, id, _),
+    executed(pred, _),
+    !has_unexecuted_predecessor(id).
+
+// Helper: has at least one unexecuted predecessor
+.decl has_unexecuted_predecessor(id: symbol)
+has_unexecuted_predecessor(id) :-
+    edge(pred, id, _),
+    !executed(pred, _).
+
+// ============================================================================
+// Condition-Based Routing
+// ============================================================================
+
+// Next node based on condition result
+.decl next_node(current: symbol, next: symbol)
+
+// Default edge when no condition matches
+next_node(current, next) :-
+    edge(current, next, "default"),
+    !has_matching_condition(current).
+
+// Conditional edge when condition matches
+next_node(current, next) :-
+    edge(current, next, label),
+    condition_result(current, label, _),
+    label != "default".
+
+// Helper: node has a matching condition result
+.decl has_matching_condition(id: symbol)
+has_matching_condition(id) :-
+    edge(id, _, label),
+    condition_result(id, label, _),
+    label != "default".
+
+// ============================================================================
+// Parallel Execution
+// ============================================================================
+
+// Parallel branches from a parallel node
+.decl parallel_branch(parallel_id: symbol, branch_id: symbol)
+parallel_branch(parallel_id, branch_id) :-
+    node(parallel_id, "parallel", _),
+    edge(parallel_id, branch_id, _).
+
+// Join node waits for all parallel branches
+.decl join_ready(join_id: symbol)
+join_ready(join_id) :-
+    node(join_id, "join", _),
+    all_branches_complete(join_id).
+
+// All branches feeding into join are complete
+.decl all_branches_complete(join_id: symbol)
+all_branches_complete(join_id) :-
+    node(join_id, "join", _),
+    !has_incomplete_branch(join_id).
+
+// Helper: has at least one incomplete branch
+.decl has_incomplete_branch(join_id: symbol)
+has_incomplete_branch(join_id) :-
+    edge(branch, join_id, _),
+    !executed(branch, _).
+
+// ============================================================================
+// Execution Trace
+// ============================================================================
+
+// Execution sequence (for debugging/logging)
+.decl execution_sequence(step: number, node_id: symbol)
+execution_sequence(0, id) :- start_node(id), executed(id, _).
+execution_sequence(step + 1, id) :-
+    execution_sequence(step, prev),
+    next_node(prev, id),
+    executed(id, _).
+
+// ============================================================================
+// Termination Analysis
+// ============================================================================
+
+// Nodes that will eventually terminate
+.decl will_terminate(id: symbol)
+will_terminate(id) :- end_node(id).
+will_terminate(id) :-
+    node(id, _, _),
+    edge(id, next, _),
+    will_terminate(next).
+
+// Flow terminates if all start nodes eventually reach end
+.decl flow_terminates()
+flow_terminates() :-
+    is_dag(),
+    !has_non_terminating_start().
+
+// Helper: start node that doesn't reach end
+.decl has_non_terminating_start()
+has_non_terminating_start() :-
+    start_node(id),
+    !will_terminate(id).
+
+// ============================================================================
+// Data Flow
+// ============================================================================
+
+// Data dependency: node B depends on output from node A
+.decl data_dependency(consumer: symbol, producer: symbol, key: symbol)
+
+// Output propagation
+.decl available_data(node_id: symbol, key: symbol, value: symbol)
+available_data(id, key, value) :- node_output(id, key, value).
+available_data(id, key, value) :-
+    edge(prev, id, _),
+    available_data(prev, key, value).
+
+// ============================================================================
+// Validation Queries
+// ============================================================================
+
+// Invalid: node without type
+.decl invalid_node(id: symbol, reason: symbol)
+invalid_node(id, "missing_type") :- node(id, "", _).
+
+// Invalid: edge to nonexistent node
+.decl invalid_edge(from: symbol, to: symbol, reason: symbol)
+invalid_edge(from, to, "target_not_found") :-
+    edge(from, to, _),
+    !node(to, _, _).
+invalid_edge(from, to, "source_not_found") :-
+    edge(from, to, _),
+    !node(from, _, _).
+
+// Invalid: unreachable nodes (except start nodes)
+.decl unreachable_node(id: symbol)
+unreachable_node(id) :-
+    node(id, _, _),
+    !start_node(id),
+    !reachable(_, id).
+
+// Graph validation summary
+.decl graph_valid()
+graph_valid() :-
+    is_dag(),
+    !invalid_node(_, _),
+    !invalid_edge(_, _, _),
+    !unreachable_node(_).
+
+// ============================================================================
+// Output Relations
+// ============================================================================
+
+.output start_node
+.output end_node
+.output reachable
+.output in_cycle
+.output is_dag
+.output topo_level
+.output can_execute
+.output next_node
+.output will_terminate
+.output flow_terminates
+.output graph_valid
+.output invalid_node
+.output invalid_edge
+.output unreachable_node

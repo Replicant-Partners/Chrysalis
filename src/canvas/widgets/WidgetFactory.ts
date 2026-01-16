@@ -15,6 +15,7 @@ import {
 } from './types';
 import { WidgetRegistry, getWidgetRegistry } from './WidgetRegistry';
 import type { CanvasKind } from '../core/types';
+import { createLogger } from '../../shared/logger';
 
 // =============================================================================
 // Service Provider Interface
@@ -57,6 +58,7 @@ export class WidgetFactory {
   private registry: WidgetRegistry;
   private serviceProvider: ServiceProvider;
   private instances: Map<string, WidgetInstance> = new Map();
+  private log = createLogger('widget-factory');
 
   constructor(
     registry?: WidgetRegistry,
@@ -82,13 +84,13 @@ export class WidgetFactory {
   ): WidgetInstance<TData> | null {
     const definition = this.registry.get<TData>(typeId);
     if (!definition) {
-      console.error(`[WidgetFactory] Widget type '${typeId}' not found in registry`);
+      this.log.error('widget type not found in registry', { typeId });
       return null;
     }
 
     // Check if widget is allowed on this canvas
     if (!this.registry.isAllowedOnCanvas(typeId, canvasKind)) {
-      console.error(`[WidgetFactory] Widget '${typeId}' not allowed on canvas '${canvasKind}'`);
+      this.log.error('widget not allowed on canvas', { typeId, canvasKind });
       return null;
     }
 
@@ -213,9 +215,10 @@ export class WidgetFactory {
       const service = this.serviceProvider.getService(dep.service);
 
       if (!service && dep.required) {
-        console.warn(
-          `[WidgetFactory] Required service '${dep.service}' not available for widget '${definition.typeId}'`
-        );
+        this.log.warn('required service not available for widget', {
+          service: dep.service,
+          widgetType: definition.typeId,
+        });
       }
 
       if (service) {

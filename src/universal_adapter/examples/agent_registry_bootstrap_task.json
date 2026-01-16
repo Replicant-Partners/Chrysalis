@@ -1,0 +1,65 @@
+{
+  "name": "agent_registry_bootstrap",
+  "version": "1.0.0",
+  "taskId": "task-agent-registry-001",
+  "taskType": "registry",
+  "priority": "normal",
+  "goal": {
+    "description": "Select an agent bridge type, register it, and outline connection steps",
+    "target_conditions": [
+      {
+        "description": "Bridge selection and registration plan produced",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 8 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "8"
+      }
+    ]
+  },
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.3,
+    "max_tokens": 1200,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "agent_registry",
+        "category": "reference",
+        "source_url": "docs/ARCHITECTURE_AUDIT_2026-01-16.md"
+      }
+    ]
+  },
+  "input": {
+    "bridge_config": "{\"type\":\"serena\",\"projectPath\":\"/path/to/project\"}"
+  },
+  "prompts": [
+    {
+      "template": "Parse bridge config:\n{{bridge_config}}\nSummarize required fields and inferred bridge type.",
+      "role": "user",
+      "description": "Parse bridge config"
+    },
+    {
+      "template": "Select bridge type (serena, direct_llm, eliza) and list the registration method.",
+      "role": "user",
+      "description": "Select bridge type"
+    },
+    {
+      "template": "Draft registration and connection steps, including error handling and logging.",
+      "role": "user",
+      "description": "Registration plan"
+    },
+    {
+      "template": "Summarize expected registry state and connection status after bootstrap.",
+      "role": "user",
+      "description": "Connection summary"
+    }
+  ],
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 -->|serena| P2\n    P1 -->|direct_llm| P2\n    P1 -->|eliza| P2\n    P2 --> P3\n    P3 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P0"
+  }
+}

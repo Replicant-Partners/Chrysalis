@@ -16,6 +16,7 @@ import {
 } from '../../types';
 import { BaseSTTProvider } from './base';
 import { NotImplementedError } from '../../../mcp-server/chrysalis-tools';
+import { createLogger } from '../../shared/logger';
 
 /**
  * Whisper API response format
@@ -151,6 +152,7 @@ export class WhisperAPIProvider extends BaseSTTProvider {
 export class WhisperLocalProvider extends BaseSTTProvider {
   readonly name = 'Whisper Local';
   readonly type = 'whisper-local' as const;
+  private log = createLogger('voice-stt-whisper');
   
   private endpoint: string = 'http://localhost:8080/inference';
   private model: string = 'base';
@@ -166,10 +168,10 @@ export class WhisperLocalProvider extends BaseSTTProvider {
       });
       
       if (!response.ok) {
-        console.warn('Local Whisper server health check failed, but continuing...');
+        this.log.warn('Local Whisper server health check failed, but continuing...', { status: response.status });
       }
     } catch {
-      console.warn('Could not connect to local Whisper server. Make sure it is running.');
+      this.log.warn('Could not connect to local Whisper server. Make sure it is running.');
     }
   }
   

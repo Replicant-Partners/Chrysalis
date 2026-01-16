@@ -4,6 +4,7 @@ import { UnifiedMemoryClient } from '../../memory/UnifiedMemoryClient';
 import { MemoryItem } from '../../memory/types';
 import { AgentId } from '../../sync/events/types';
 import yaml from 'js-yaml';
+import { createLogger } from '../../shared/logger';
 
 export interface RoleModel {
   name: string;
@@ -13,6 +14,7 @@ export interface RoleModel {
 export class AgentBuilderAdapter {
   private agentBuilderUrl = 'http://localhost:5000';
   private memoryClient: UnifiedMemoryClient;
+  private log = createLogger('agentbuilder-adapter');
 
   constructor() {
     this.memoryClient = new UnifiedMemoryClient();
@@ -22,7 +24,7 @@ export class AgentBuilderAdapter {
     const response = await axios.post(`${this.agentBuilderUrl}/build`, { agentId, roleModel, deepeningCycles, apiKeys });
     const buildData = response.data;
 
-    console.log("--- [AgentBuilderAdapter] Received build data:", buildData);
+    this.log.info('received build data', { agentId, roleModel, deepeningCycles });
 
     if (buildData.generated_skills) {
       for (const res of buildData.generated_skills) {
@@ -44,7 +46,7 @@ export class AgentBuilderAdapter {
               source: 'skillbuilder',
             },
           };
-          console.log("--- [AgentBuilderAdapter] Inserting skill:", memoryItem);
+          this.log.info('inserting skill', { id: memoryItem.id, source: 'skillbuilder' });
           await this.memoryClient.insert(memoryItem);
         }
       }
@@ -67,7 +69,7 @@ export class AgentBuilderAdapter {
               ...knowledge.attributes,
             },
           };
-          console.log("--- [AgentBuilderAdapter] Inserting knowledge:", memoryItem);
+          this.log.info('inserting knowledge', { id: memoryItem.id, source: 'skillbuilder' });
           await this.memoryClient.insert(memoryItem);
         }
       }

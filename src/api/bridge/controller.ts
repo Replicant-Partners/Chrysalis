@@ -46,6 +46,9 @@ import {
   CanonicalAgent,
   AgentFramework,
 } from '../../adapters/base-adapter';
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('bridge-api');
 
 // ============================================================================
 // Request/Response Types
@@ -223,7 +226,7 @@ export class BridgeAPIController {
         notFound(res);
       }
     } catch (error) {
-      console.error('Bridge API error:', error);
+      log.error('Bridge API error', { error });
       serverError(res, error instanceof Error ? error.message : 'Internal server error');
     }
   }
@@ -750,7 +753,7 @@ export function startBridgeAPIServer(
 
     server.on('error', reject);
     server.listen(port, host, () => {
-      console.log(`Bridge API server listening on ${host}:${port}`);
+      log.info('Bridge API server listening', { host, port });
       resolve({ server, controller, port });
     });
   });

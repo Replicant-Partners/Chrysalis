@@ -15,6 +15,7 @@ import {
 } from '../../types';
 import { BaseTTSProvider } from './base';
 import { NotImplementedError } from '../../../mcp-server/chrysalis-tools';
+import { createLogger } from '../../shared/logger';
 
 /**
  * Coqui TTS model types
@@ -48,6 +49,7 @@ interface CoquiResponse {
 export class CoquiTTSProvider extends BaseTTSProvider {
   readonly name = 'Coqui TTS';
   readonly type = 'coqui' as const;
+  private log = createLogger('voice-tts-coqui');
   
   private endpoint = 'http://localhost:5002';
   private model: CoquiModel = 'tts_models/multilingual/multi-dataset/xtts_v2';
@@ -72,10 +74,10 @@ export class CoquiTTSProvider extends BaseTTSProvider {
       const response = await this.rateLimitedFetch(`${this.endpoint}/api/tts-models`);
       
       if (!response.ok) {
-        console.warn('Coqui server health check failed, but continuing...');
+        this.log.warn('Coqui server health check failed, but continuing...', { status: response.status });
       }
     } catch {
-      console.warn('Could not connect to Coqui TTS server. Make sure it is running.');
+      this.log.warn('Could not connect to Coqui TTS server. Make sure it is running.');
     }
   }
   

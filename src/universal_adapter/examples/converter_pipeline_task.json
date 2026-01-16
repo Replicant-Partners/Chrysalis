@@ -1,0 +1,75 @@
+{
+  "name": "converter_pipeline",
+  "version": "1.0.0",
+  "taskId": "task-converter-001",
+  "taskType": "conversion",
+  "priority": "high",
+  "goal": {
+    "description": "Convert an agent across frameworks and decide shadow handling",
+    "target_conditions": [
+      {
+        "description": "Conversion plan with shadow handling produced",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 12 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "12"
+      }
+    ]
+  },
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.3,
+    "max_tokens": 1600,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "converter_pipeline",
+        "category": "reference",
+        "source_url": "docs/ARCHITECTURE_AUDIT_2026-01-16.md"
+      }
+    ]
+  },
+  "input": {
+    "source_agent": "{\"framework\":\"eliza\",\"data\":{\"name\":\"demo-agent\"}}"
+  },
+  "prompts": [
+    {
+      "template": "Validate the source agent payload:\n{{source_agent}}\nList validation checks and required fields.",
+      "role": "user",
+      "description": "Validate source agent"
+    },
+    {
+      "template": "Outline conversion to universal format, including identity fingerprint handling.",
+      "role": "user",
+      "description": "Universal conversion"
+    },
+    {
+      "template": "Determine if target adapter supports shadow data. Respond with 'shadow_supported' or 'shadow_unsupported'.",
+      "role": "user",
+      "description": "Shadow support decision"
+    },
+    {
+      "template": "If shadow_supported, define encryption + embedding steps and restoration key handling.",
+      "role": "user",
+      "description": "Shadow packaging"
+    },
+    {
+      "template": "If shadow_unsupported, define warning and data-loss handling steps.",
+      "role": "user",
+      "description": "No-shadow handling"
+    },
+    {
+      "template": "Finalize the conversion pipeline summary with metadata outputs.",
+      "role": "user",
+      "description": "Finalize conversion"
+    }
+  ],
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 --> P2\n    P2 -->|shadow_supported| P3\n    P2 -->|shadow_unsupported| P4\n    P3 --> P5\n    P4 --> P5\n    P5 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P1"
+  }
+}

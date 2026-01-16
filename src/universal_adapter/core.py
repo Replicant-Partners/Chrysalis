@@ -13,7 +13,9 @@ The main orchestration engine that:
 from __future__ import annotations
 import time
 import asyncio
+import logging
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Mapping
 
 from .schema import (
@@ -38,6 +40,10 @@ from .engine.interpolator import TemplateInterpolator, InterpolationContext
 from .engine.llm_client import LLMClient, LLMRequest, LLMResponse, Message
 from .evaluator.categorizer import ResponseCategorizer, EvaluationResult
 from .verifier.goal_verifier import GoalVerifier, VerificationResult
+from .task_library import TaskLibrary, DEFAULT_TASK_LIBRARY
+from .logger import log_run_event
+
+logger = logging.getLogger("universal_adapter")
 
 
 @dataclass(frozen=True)
@@ -101,7 +107,11 @@ class UniversalAdapter:
         result = await adapter.execute(task_json)
     """
 
-    def __init__(self, config: AdapterConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: AdapterConfig | None = None,
+        task_library: TaskLibrary | None = None
+    ) -> None:
         """
         Initialize the Universal Adapter.
 
@@ -109,11 +119,16 @@ class UniversalAdapter:
             config: Optional configuration settings
         """
         self.config = config or AdapterConfig()
+        self.task_library = task_library or DEFAULT_TASK_LIBRARY
         self.parser = MermaidParser()
         self.interpolator = TemplateInterpolator(strict=self.config.strict_validation)
         self.verifier = GoalVerifier(require_all=self.config.require_all_conditions)
 
-    async def execute(self, task: TaskSchema | str | dict) -> AdapterResult:
+    async def execute(
+        self,
+        task: TaskSchema | str | dict,
+        variables: Mapping[str, Any] | None = None
+    ) -> AdapterResult:
         """
         Execute a task specification.
 
@@ -167,7 +182,7 @@ class UniversalAdapter:
 
             # Step 5: Execute the flow
             self._log("Starting flow execution")
-            execution_result = await executor.execute()
+            execution_result = await executor.execute(initial_variables=variables)
             self._log(f"Flow execution complete: {execution_result.status.name}")
 
             # Step 6: Verify goal if execution completed
@@ -182,7 +197,7 @@ class UniversalAdapter:
                 goal_met = goal_verification.goal_met
                 self._log(f"Goal verification: {'ACHIEVED' if goal_met else 'NOT ACHIEVED'}")
 
-            return AdapterResult(
+            result = AdapterResult(
                 success=execution_result.success and goal_met,
                 goal_met=goal_met,
                 execution_status=execution_result.status,
@@ -195,18 +210,35 @@ class UniversalAdapter:
                 metadata={
                     "task_name": task_schema.name,
                     "task_version": task_schema.version,
+                    "task_id": task_schema.task_id,
+                    "task_type": task_schema.task_type,
+                    "priority": task_schema.priority,
                     "nodes_executed": len(execution_result.history),
                 }
             )
 
+            self._log_run(task_schema, result)
+            return result
+
         except Exception as e:
-            return self._error_result(str(e), start_time)
+            err_result = self._error_result(str(e), start_time)
+            self._log_run(None, err_result, error=str(e))
+            return err_result
 
     def _parse_task(self, task: TaskSchema | str | dict) -> TaskSchema:
         """Parse task input into TaskSchema."""
         if isinstance(task, TaskSchema):
             return task
         if isinstance(task, str):
+            # Try named task from library first
+            if task in self.task_library.list_tasks():
+                return self.task_library.load(task)
+
+            path = Path(task)
+            if path.exists():
+                return TaskSchema.from_file(str(path))
+
+            # Treat as raw JSON string
             return TaskSchema.from_json(task)
         if isinstance(task, dict):
             return TaskSchema.from_dict(task)
@@ -233,9 +265,18 @@ class UniversalAdapter:
         ) -> tuple[Any, str | None]:
             return self._handle_registry_node(node, state, task)
 
+        async def goal_check_handler(
+            node: FlowNode,
+            state: ExecutionState
+        ) -> tuple[Any, str | None]:
+            verification = self.verifier.verify(task.goal, state)
+            category = "goal_met" if verification.goal_met else "goal_failed"
+            return (verification.summary, category)
+
         builder = FlowExecutorBuilder(graph)
         builder.with_handler(NodeType.PROMPT, prompt_handler)
         builder.with_handler(NodeType.REGISTRY, registry_handler)
+        builder.with_handler(NodeType.GOAL_CHECK, goal_check_handler)
         builder.with_max_iterations(self.config.max_iterations)
         builder.with_timeout_ms(self.config.timeout_ms)
 
@@ -266,7 +307,7 @@ class UniversalAdapter:
 
         # Build interpolation context
         context = InterpolationContext(
-            variables=dict(state.variables),
+            variables={**(task.input_context or {}), **dict(state.variables)},
             responses=dict(state.responses),
             registry=task.resource_registry,
             loop_index=sum(state.loop_counters.values()) if state.loop_counters else 0,
@@ -292,7 +333,6 @@ class UniversalAdapter:
 
         # Categorize response for branching
         # Use edge labels from the graph as categories
-        outgoing_edges = list(task.flow_diagram.mermaid.lower())  # simplified
         categorizer = ResponseCategorizer.from_edge_labels(
             self._extract_edge_labels(task.flow_diagram.mermaid, node.id)
         )
@@ -348,12 +388,38 @@ class UniversalAdapter:
     def _log(self, message: str) -> None:
         """Debug logging."""
         if self.config.debug_mode:
-            print(f"[UniversalAdapter] {message}")
+            logger.debug(message)
+
+    def _log_run(self, task: TaskSchema | None, result: AdapterResult, error: str | None = None) -> None:
+        """Emit a JSONL run event."""
+        try:
+            event = {
+                "@timestamp": time.time(),
+                "task_name": getattr(task, "name", None),
+                "task_id": getattr(task, "task_id", None),
+                "task_type": getattr(task, "task_type", None),
+                "task_version": getattr(task, "version", None),
+                "priority": getattr(task, "priority", None),
+                "goal_met": result.goal_met,
+                "success": result.success,
+                "status": result.execution_status.name if result.execution_status else None,
+                "iteration_count": result.iteration_count,
+                "execution_time_ms": result.execution_time_ms,
+                "errors": list(result.errors) if result.errors else ([] if not error else [error]),
+            }
+            if task:
+                event["registry_entries"] = len(task.resource_registry.entries)
+                event["llm_provider"] = task.resource_llm.provider
+                event["llm_model"] = task.resource_llm.model
+            log_run_event(event)
+        except Exception:
+            return
 
 
 async def execute_task(
     task: TaskSchema | str | dict,
-    config: AdapterConfig | None = None
+    config: AdapterConfig | None = None,
+    variables: Mapping[str, Any] | None = None
 ) -> AdapterResult:
     """
     Convenience function for task execution.
@@ -366,16 +432,17 @@ async def execute_task(
         AdapterResult
     """
     adapter = UniversalAdapter(config)
-    return await adapter.execute(task)
+    return await adapter.execute(task, variables=variables)
 
 
 def run_task(
     task: TaskSchema | str | dict,
-    config: AdapterConfig | None = None
+    config: AdapterConfig | None = None,
+    variables: Mapping[str, Any] | None = None
 ) -> AdapterResult:
     """
     Synchronous wrapper for task execution.
 
     Convenience function for non-async contexts.
     """
-    return asyncio.run(execute_task(task, config))
+    return asyncio.run(execute_task(task, config, variables))

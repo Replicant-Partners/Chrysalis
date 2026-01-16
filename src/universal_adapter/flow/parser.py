@@ -241,16 +241,24 @@ class MermaidParser:
         upper_label = parsed.label.upper()
 
         # Start nodes
-        if upper_id in ('START', 'BEGIN') or upper_label in ('START', 'BEGIN'):
+        if upper_id in ('START', 'BEGIN') or upper_label in ('START', 'BEGIN') or upper_id.startswith('START_'):
             return NodeType.START
 
         # End nodes
-        if upper_id in ('END', 'FINISH', 'DONE') or upper_label in ('END', 'FINISH', 'DONE'):
+        if (
+            upper_id in ('END', 'FINISH', 'DONE')
+            or upper_label in ('END', 'FINISH', 'DONE')
+            or upper_id.startswith('END')
+        ):
             return NodeType.END
 
         # Prompt nodes: P0, P1, PROMPT0, etc.
         if self.PROMPT_PATTERN.match(parsed.id):
             return NodeType.PROMPT
+
+        # Goal check nodes
+        if 'GOAL' in upper_id or 'VERIFY' in upper_id or 'GOAL' in upper_label:
+            return NodeType.GOAL_CHECK
 
         # Condition nodes: diamond shape or explicit naming
         if parsed.shape == 'diamond' or 'COND' in upper_id or '?' in upper_id:

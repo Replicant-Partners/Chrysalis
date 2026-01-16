@@ -1,0 +1,50 @@
+{
+  "name": "flow_guardrail",
+  "version": "1.0.0",
+  "taskId": "task-guardrail-001",
+  "taskType": "validate",
+  "priority": "normal",
+
+  "goal": {
+    "description": "Validate a Mermaid flow for completeness, ensure it is well-formed, and gate termination on goal achievement",
+    "target_conditions": [
+      {
+        "description": "Flow passes structural validation",
+        "evaluation_type": "GOAL_MET"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.0,
+    "max_tokens": 512,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+
+  "resource_registry": {
+    "entries": []
+  },
+
+  "input": {
+    "flow_definition": "graph TD; START --> A; A --> END"
+  },
+
+  "prompts": [
+    {
+      "template": "Given this flow diagram:\n{{flow_definition}}\nList structural issues such as unreachable nodes, missing exits, or absence of goal checks. If none, respond 'clean'.",
+      "role": "user",
+      "description": "Inspect flow"
+    },
+    {
+      "template": "If prior analysis was 'clean', confirm readiness to execute. Otherwise, recommend fixes. Respond with category 'ready' or 'needs_fix'.\n\nAnalysis:\n{{response:P0}}",
+      "role": "user",
+      "description": "Readiness decision"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 -->|ready| GOAL\n    P1 -->|needs_fix| GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| END_FAIL"
+  }
+}

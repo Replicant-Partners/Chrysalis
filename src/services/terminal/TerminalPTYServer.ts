@@ -14,6 +14,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { spawn, IPty } from 'node-pty';
 import { EventEmitter } from 'events';
+import { createLogger } from '../../shared/logger';
 
 // =============================================================================
 // Types
@@ -70,6 +71,8 @@ const DEFAULT_CONFIG: ServerConfig = {
   heartbeatIntervalMs: 30000,
 };
 
+const log = createLogger('terminal-pty');
+
 // =============================================================================
 // Terminal PTY Server
 // =============================================================================
@@ -105,14 +108,14 @@ export class TerminalPTYServer {
         this.wss.on('connection', (ws) => this.handleConnection(ws));
 
         this.wss.on('listening', () => {
-          console.log(`[TerminalPTY] Server listening on ws://${this.config.host}:${this.config.port}`);
+          log.info('server listening', { host: this.config.host, port: this.config.port });
           this.startHeartbeat();
           this.startCleanup();
           resolve();
         });
 
         this.wss.on('error', (error) => {
-          console.error('[TerminalPTY] Server error:', error);
+          log.error('server error', { error });
           reject(error);
         });
 
@@ -147,7 +150,7 @@ export class TerminalPTYServer {
     if (this.wss) {
       return new Promise((resolve) => {
         this.wss!.close(() => {
-          console.log('[TerminalPTY] Server stopped');
+          log.info('server stopped');
           resolve();
         });
       });
@@ -159,7 +162,7 @@ export class TerminalPTYServer {
   // ===========================================================================
 
   private handleConnection(ws: WebSocket): void {
-    console.log('[TerminalPTY] Client connected');
+    log.info('client connected');
     this.clientSessions.set(ws, new Set());
 
     ws.on('message', (data) => {
@@ -172,13 +175,13 @@ export class TerminalPTYServer {
     });
 
     ws.on('close', () => {
-      console.log('[TerminalPTY] Client disconnected');
+      log.info('client disconnected');
       // Note: We don't close sessions on disconnect - they persist for reconnection
       this.clientSessions.delete(ws);
     });
 
     ws.on('error', (error) => {
-      console.error('[TerminalPTY] WebSocket error:', error);
+      log.error('websocket error', { error });
     });
 
     // Send ping for heartbeat
@@ -259,7 +262,7 @@ export class TerminalPTYServer {
 
       // Handle PTY exit
       pty.onExit(({ exitCode, signal }) => {
-        console.log(`[TerminalPTY] Session ${sessionId} exited (code: ${exitCode}, signal: ${signal})`);
+        log.info('session exited', { sessionId, exitCode, signal });
         this.broadcast(sessionId, { type: 'exit', sessionId, payload: exitCode });
         this.sessions.delete(sessionId);
       });
@@ -268,10 +271,10 @@ export class TerminalPTYServer {
       this.send(ws, { type: 'session:created', sessionId, payload: { shell, cwd, cols, rows } });
       this.send(ws, { type: 'state', sessionId, payload: 'connected' });
 
-      console.log(`[TerminalPTY] Session ${sessionId} created (shell: ${shell}, cwd: ${cwd})`);
+      log.info('session created', { sessionId, shell, cwd });
 
     } catch (error) {
-      console.error(`[TerminalPTY] Failed to create session ${sessionId}:`, error);
+      log.error('failed to create session', { sessionId, error });
       this.sendError(ws, sessionId, `Failed to create session: ${error}`);
       this.send(ws, { type: 'state', sessionId, payload: 'error' });
     }
@@ -291,7 +294,7 @@ export class TerminalPTYServer {
       session.cols = cols;
       session.rows = rows;
       session.pty.resize(cols, rows);
-      console.log(`[TerminalPTY] Session ${sessionId} resized to ${cols}x${rows}`);
+      log.info('session resized', { sessionId, cols, rows });
     }
   }
 
@@ -304,7 +307,7 @@ export class TerminalPTYServer {
         // Already dead
       }
       this.sessions.delete(sessionId);
-      console.log(`[TerminalPTY] Session ${sessionId} closed`);
+      log.info('session closed', { sessionId });
     }
   }
 
@@ -356,7 +359,7 @@ export class TerminalPTYServer {
 
       for (const [sessionId, session] of this.sessions) {
         if (now - session.lastActivity > this.config.sessionTimeoutMs) {
-          console.log(`[TerminalPTY] Session ${sessionId} timed out`);
+          log.warn('session timed out', { sessionId });
           this.closeSession(sessionId);
         }
       }
@@ -384,7 +387,7 @@ if (require.main === module) {
 
   // Graceful shutdown
   const shutdown = async () => {
-    console.log('\n[TerminalPTY] Shutting down...');
+    log.info('shutting down');
     await server.stop();
     process.exit(0);
   };
@@ -394,7 +397,7 @@ if (require.main === module) {
 
   // Start server
   server.start().catch((error) => {
-    console.error('[TerminalPTY] Failed to start:', error);
+    log.error('failed to start', { error });
     process.exit(1);
   });
 }

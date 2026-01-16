@@ -1,0 +1,70 @@
+{
+  "name": "serena_tool_router",
+  "version": "1.0.0",
+  "taskId": "task-serena-router-001",
+  "taskType": "routing",
+  "priority": "normal",
+  "goal": {
+    "description": "Translate a natural language request into Serena tool calls or fallback guidance",
+    "target_conditions": [
+      {
+        "description": "Tool plan or fallback response produced",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 10 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "10"
+      }
+    ]
+  },
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.4,
+    "max_tokens": 1400,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "serena_tools",
+        "category": "reference",
+        "source_url": "docs/ARCHITECTURE_AUDIT_2026-01-16.md"
+      }
+    ]
+  },
+  "input": {
+    "user_message": "Find symbol AdapterRegistry and list its references."
+  },
+  "prompts": [
+    {
+      "template": "Extract tool intents from the message:\n{{user_message}}\nList candidate Serena tools and required parameters.",
+      "role": "user",
+      "description": "Extract tool intents"
+    },
+    {
+      "template": "Decide if tool calls are needed. Respond with category 'tools_found' or 'no_tools'.\n\nCandidates:\n{{response:P0}}",
+      "role": "user",
+      "description": "Tool decision"
+    },
+    {
+      "template": "Construct a tool call plan JSON for Serena based on the candidates. Include tool names and args.",
+      "role": "user",
+      "description": "Build tool plan"
+    },
+    {
+      "template": "Provide a helpful fallback response when no tool call is appropriate. Offer available commands.",
+      "role": "user",
+      "description": "Fallback response"
+    },
+    {
+      "template": "Summarize the routing outcome (tool plan or fallback) with next steps.",
+      "role": "user",
+      "description": "Finalize routing"
+    }
+  ],
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 -->|tools_found| P2\n    P1 -->|no_tools| P3\n    P2 --> P4\n    P3 --> P4\n    P4 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P1"
+  }
+}

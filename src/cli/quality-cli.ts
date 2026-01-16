@@ -12,6 +12,7 @@
 
 import { Command } from 'commander';
 import * as path from 'path';
+import { createLogger } from '../shared/logger';
 import {
     QualityToolOrchestrator,
 } from '../quality/tools/QualityToolOrchestrator';
@@ -23,6 +24,7 @@ import { Flake8Adapter, BlackAdapter, MyPyAdapter } from '../quality/tools/Pytho
 import { ESLintAdapter, TypeScriptCompilerAdapter } from '../quality/tools/TypeScriptToolsAdapter';
 
 const program = new Command();
+const log = createLogger('quality-cli');
 
 program
     .name('quality')
@@ -75,27 +77,23 @@ program
             const report = aggregator.aggregateResults(result.results);
             const summary = aggregator.getSummary(report);
 
-            // Output summary
-            console.log('\nQuality Check Summary:');
-            console.log('='.repeat(70));
-            console.log(`Tools Executed: ${summary.total_tools}`);
-            console.log(`Tools Succeeded: ${summary.tools_succeeded}`);
-            console.log(`Tools Failed: ${summary.tools_failed}`);
-            console.log(`Total Issues: ${summary.total_issues}`);
-            console.log(`Total Errors: ${summary.total_errors}`);
-            console.log(`Total Warnings: ${summary.total_warnings}`);
-            console.log(`Files with Issues: ${summary.files_with_issues}`);
-            console.log(`Overall Success: ${summary.overall_success ? '✅' : '❌'}`);
-
-            if (result.errors.length > 0) {
-                console.log('\nErrors:');
-                result.errors.forEach((error) => console.log(`  - ${error}`));
-            }
+            // Output summary (structured)
+            log.info('quality summary', {
+                tools_executed: summary.total_tools,
+                tools_succeeded: summary.tools_succeeded,
+                tools_failed: summary.tools_failed,
+                total_issues: summary.total_issues,
+                total_errors: summary.total_errors,
+                total_warnings: summary.total_warnings,
+                files_with_issues: summary.files_with_issues,
+                overall_success: summary.overall_success,
+                errors: result.errors,
+            });
 
             // Exit with error code if failed
             process.exit(summary.overall_success ? 0 : 1);
         } catch (error: any) {
-            console.error('Error:', error.message);
+            log.error('quality check failed', { error: error?.message || String(error) });
             process.exit(1);
         }
     });
@@ -132,7 +130,7 @@ program
 
             // Show fixable tools
             const fixableTools = autoFixer.getFixableTools();
-            console.log(`\nFixable tools: ${fixableTools.join(', ')}`);
+            log.info('fixable tools', { tools: fixableTools });
 
             // Apply fixes
             const result = await autoFixer.applyFixes(projectRoot, {
@@ -143,24 +141,20 @@ program
             });
 
             // Output summary
-            console.log('\nAuto-Fix Summary:');
-            console.log('='.repeat(70));
-            console.log(`Tools Executed: ${result.tools_executed}`);
-            console.log(`Tools Succeeded: ${result.tools_succeeded}`);
-            console.log(`Tools Failed: ${result.tools_failed}`);
-            console.log(`Files Fixed: ${result.files_fixed}`);
-            console.log(`Execution Time: ${result.total_execution_time_ms}ms`);
-            console.log(`Overall Success: ${result.success ? '✅' : '❌'}`);
-
-            if (result.errors.length > 0) {
-                console.log('\nErrors:');
-                result.errors.forEach((error) => console.log(`  - ${error}`));
-            }
+            log.info('auto-fix summary', {
+                tools_executed: result.tools_executed,
+                tools_succeeded: result.tools_succeeded,
+                tools_failed: result.tools_failed,
+                files_fixed: result.files_fixed,
+                execution_time_ms: result.total_execution_time_ms,
+                overall_success: result.success,
+                errors: result.errors,
+            });
 
             // Exit with error code if failed
             process.exit(result.success ? 0 : 1);
         } catch (error: any) {
-            console.error('Error:', error.message);
+            log.error('auto-fix failed', { error: error?.message || String(error) });
             process.exit(1);
         }
     });
@@ -196,11 +190,11 @@ program
             });
 
             process_handle.on('error', (error: Error) => {
-                console.error('Error:', error.message);
+                log.error('metrics process error', { error: error.message });
                 process.exit(1);
             });
         } catch (error: any) {
-            console.error('Error:', error.message);
+            log.error('metrics failed', { error: error?.message || String(error) });
             process.exit(1);
         }
     });

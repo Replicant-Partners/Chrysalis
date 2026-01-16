@@ -18,10 +18,12 @@
  * @see plans/CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md - Item H-2
  */
 
+import { createLogger } from '../shared/logger';
+
+const log = createLogger('agent-morph-v2');
+
 // Deprecation warning
-console.warn('\n⚠️  DEPRECATION WARNING: "agent-morph-v2" is deprecated.');
-console.warn('   Please use "chrysalis" CLI instead.');
-console.warn('   Run "chrysalis --help" for usage information.\n');
+log.warn('"agent-morph-v2" is deprecated. Use "chrysalis" CLI instead.');
 
 import { program } from 'commander';
 import * as fs from 'fs/promises';
@@ -57,7 +59,7 @@ program
   .option('--no-experience-sync', 'Disable experience synchronization')
   .action(async (options) => {
     try {
-      console.log('\n🔄 Morphing agent...\n');
+      log.info('morphing agent');
       
       // Load input
       const inputData = await fs.readFile(options.input, 'utf-8');
@@ -67,12 +69,10 @@ program
       const toAdapter = adapterRegistry.get(options.to) as any;  // Cast to FrameworkAdapterV2
       
       if (!toAdapter.supports_experience_sync) {
-        console.warn('⚠ Adapter does not support experience sync');
+        log.warn('adapter does not support experience sync');
       }
       
-      console.log(`Type: ${options.type}`);
-      console.log(`Framework: ${toAdapter.name} v${toAdapter.version}`);
-      console.log(`Sync: ${options.sync || 'auto'}\n`);
+      log.info('morph options', { type: options.type, framework: toAdapter.name, version: toAdapter.version, sync: options.sync || 'auto' });
       
       // Load private key if provided
       let privateKey: string | undefined;
@@ -99,13 +99,12 @@ program
         JSON.stringify(result.agent, null, 2)
       );
       
-      console.log(`\n✓ Morphed agent saved to: ${options.output}`);
-      console.log(`\n📋 Instance Details:`);
-      console.log(`   Instance ID: ${result.instance_id}`);
-      console.log(`   Type: ${result.metadata.type}`);
-      console.log(`   Sync Protocol: ${result.syncChannel.protocol}`);
-      console.log(`\n🔑 Restoration Key:`);
-      console.log(`   ${result.restorationKey}\n`);
+      log.info('morph complete', {
+        output: options.output,
+        instance_id: result.instance_id,
+        type: result.metadata.type,
+        sync_protocol: result.syncChannel.protocol,
+      });
       
       // Save restoration key
       const keyFile = options.output.replace(/\.[^.]+$/, '.restoration-key.txt');

@@ -22,6 +22,7 @@ class NodeType(Enum):
     LOOP = auto()          # Iteration loop
     REGISTRY = auto()      # Registry resolution
     MERGE = auto()         # Merge point for branches
+    GOAL_CHECK = auto()    # Explicit goal verification gate
 
 
 @dataclass(frozen=True)
@@ -197,17 +198,14 @@ class FlowGraph:
         """
         errors: list[str] = []
 
-        # Check start node exists and has no incoming edges
-        if not self.incoming_edges(self.start_node):
-            pass  # Good
-        else:
-            # Start can have incoming edges in case of loops - just log
-            pass
+        reachable = self._reachable_from_start()
 
         # Check end nodes have no outgoing edges
         for end_id in self.end_nodes:
             if self.outgoing_edges(end_id):
                 errors.append(f"End node '{end_id}' has outgoing edges")
+            if end_id not in reachable:
+                errors.append(f"End node '{end_id}' is unreachable from start")
 
         # Check all edges reference valid nodes
         for edge in self.edges:
@@ -222,7 +220,53 @@ class FlowGraph:
                 if not self.outgoing_edges(node_id):
                     errors.append(f"Non-terminal node '{node_id}' has no outgoing edges")
 
+        # Ensure all nodes are reachable from start
+        unreachable = set(self.nodes.keys()) - reachable
+        if unreachable:
+            errors.append(f"Unreachable nodes from start: {', '.join(sorted(unreachable))}")
+
+        # Loop nodes must expose an exit edge
+        for node in self.nodes.values():
+            if node.node_type == NodeType.LOOP:
+                exits = [
+                    e for e in self.outgoing_edges(node.id)
+                    if (e.condition or "").lower() == "exit"
+                ]
+                if not exits:
+                    errors.append(f"Loop node '{node.id}' is missing an exit edge labeled 'exit'")
+
+        # Goal check enforcement: require at least one goal check gate
+        goal_checks = {
+            node_id for node_id, node in self.nodes.items()
+            if node.node_type == NodeType.GOAL_CHECK
+            or "goal" in node.label.lower()
+            or "goal" in node_id.lower()
+        }
+        if not goal_checks:
+            errors.append("Flow is missing a goal check gate; add a GOAL_CHECK node before termination")
+        else:
+            for end_id in self.end_nodes:
+                incoming = self.incoming_edges(end_id)
+                if not any(edge.source in goal_checks for edge in incoming):
+                    errors.append(f"End node '{end_id}' must be gated by a GOAL_CHECK node")
+
         return (len(errors) == 0, errors)
+
+    def _reachable_from_start(self) -> set[str]:
+        """Return set of node IDs reachable from the start node."""
+        visited: set[str] = set()
+        stack = [self.start_node]
+
+        while stack:
+            node_id = stack.pop()
+            if node_id in visited:
+                continue
+            visited.add(node_id)
+            for succ in self.successors(node_id):
+                if succ not in visited:
+                    stack.append(succ)
+
+        return visited
 
     def __len__(self) -> int:
         """Number of nodes in the graph."""

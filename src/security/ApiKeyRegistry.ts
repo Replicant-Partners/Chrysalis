@@ -13,6 +13,7 @@
  */
 
 import { ApiKeyProvider, ApiKeyWallet } from './ApiKeyWallet';
+import { createLogger } from '../shared/logger';
 
 export type ApiKeyScope = 'global' | 'persona' | 'service';
 
@@ -55,6 +56,7 @@ export type KeyRegistryEventHandler = (event: KeyRegistryEvent) => void;
 export class ApiKeyRegistry {
   private records: Map<string, ApiKeyRegistryRecord> = new Map();
   private eventHandlers: Map<KeyRegistryEventType, Set<KeyRegistryEventHandler>> = new Map();
+  private log = createLogger('api-key-registry');
 
   register(record: ApiKeyRegistryRecord): void {
     if (this.records.has(record.id)) {
@@ -138,7 +140,7 @@ export class ApiKeyRegistry {
         try {
           handler(event);
         } catch (error) {
-          console.error(`Key registry event handler error for ${event.type}:`, error);
+          this.log.error('key registry event handler error', { event: event.type, error });
         }
       }
     }

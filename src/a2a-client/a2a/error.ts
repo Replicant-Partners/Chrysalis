@@ -17,7 +17,7 @@ import { JsonRpcError, A2A_ERROR_CODES } from '../types';
  *   await client.sendTask(params);
  * } catch (error) {
  *   if (error instanceof A2AError) {
- *     console.log('Cause:', error.cause);
+ *     // Inspect error.cause as needed
  *   }
  * }
  * ```

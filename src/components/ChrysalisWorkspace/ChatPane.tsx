@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { tokens, ThemeMode } from '../shared/tokens';
 import {
   ChatPaneProps,
   ChatMessage,
@@ -24,67 +25,91 @@ import {
 // =============================================================================
 
 const styles = {
-  container: {
+  container: (mode: ThemeMode, isPrimary: boolean) => ({
     display: 'flex',
     flexDirection: 'column' as const,
     height: '100%',
-    backgroundColor: '#1e1e2e',
-    borderRight: '1px solid #313244',
+    backgroundColor: isPrimary
+      ? tokens.color.surface.primaryPane[mode]
+      : tokens.color.surface.secondaryPane[mode],
+    borderRight: `1px solid ${tokens.color.border.subtle[mode]}`,
     overflow: 'hidden',
-  },
-  containerRight: {
+  }),
+  containerRight: (mode: ThemeMode) => ({
     borderRight: 'none',
-    borderLeft: '1px solid #313244',
-  },
-  header: {
+    borderLeft: `1px solid ${tokens.color.border.subtle[mode]}`,
+  }),
+  header: (mode: ThemeMode) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '12px 16px',
-    backgroundColor: '#181825',
-    borderBottom: '1px solid #313244',
-  },
+    backgroundColor: tokens.color.surface.base[mode],
+    borderBottom: `1px solid ${tokens.color.border.subtle[mode]}`,
+  }),
   headerInfo: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
   },
-  avatar: {
+  avatar: (mode: ThemeMode) => ({
     width: 32,
     height: 32,
     borderRadius: '50%',
-    backgroundColor: '#89b4fa',
+    backgroundColor: tokens.color.border.subtle[mode],
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: '14px',
     fontWeight: 600,
-    color: '#1e1e2e',
-  },
+    color: tokens.color.text.primary[mode],
+  }),
   agentInfo: {
     display: 'flex',
     flexDirection: 'column' as const,
   },
-  agentName: {
+  agentName: (mode: ThemeMode) => ({
     fontSize: '14px',
     fontWeight: 600,
-    color: '#cdd6f4',
-  },
-  agentType: {
+    color: tokens.color.text.primary[mode],
+  }),
+  agentType: (mode: ThemeMode) => ({
     fontSize: '11px',
-    color: '#6c7086',
+    color: tokens.color.text.secondary[mode],
     textTransform: 'uppercase' as const,
+  }),
+  headerActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
   },
-  clearButton: {
+  iconButton: (mode: ThemeMode) => ({
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    border: `1px solid ${tokens.color.border.subtle[mode]}`,
+    background: 'transparent',
+    color: tokens.color.text.secondary[mode],
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: `all ${tokens.motion.snap} ${tokens.motion.easeSnap}`,
+  }),
+  iconButtonActive: (mode: ThemeMode) => ({
+    color: tokens.color.text.primary[mode],
+    borderColor: tokens.color.text.secondary[mode],
+  }),
+  clearButton: (mode: ThemeMode) => ({
     padding: '4px 8px',
     fontSize: '11px',
     backgroundColor: 'transparent',
-    border: '1px solid #45475a',
-    borderRadius: '4px',
-    color: '#6c7086',
+    border: `1px solid ${tokens.color.border.subtle[mode]}`,
+    borderRadius: '6px',
+    color: tokens.color.text.secondary[mode],
     cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
+    transition: `all ${tokens.motion.snap} ${tokens.motion.easeSnap}`,
+  }),
   messagesContainer: {
     flex: 1,
     overflowY: 'auto' as const,
@@ -108,41 +133,43 @@ const styles = {
     alignSelf: 'center',
     maxWidth: '90%',
   },
-  message: {
+  message: (mode: ThemeMode) => ({
     padding: '10px 14px',
     borderRadius: '12px',
     fontSize: '14px',
     lineHeight: '1.5',
     wordBreak: 'break-word' as const,
-  },
-  messageUser: {
-    backgroundColor: '#89b4fa',
-    color: '#1e1e2e',
+    color: tokens.color.text.primary[mode],
+    backgroundColor: tokens.color.surface.base[mode],
+  }),
+  messageUser: (mode: ThemeMode) => ({
+    backgroundColor: tokens.color.text.primary[mode],
+    color: tokens.color.surface.base[mode],
     borderBottomRightRadius: '4px',
-  },
-  messageAgent: {
-    backgroundColor: '#313244',
-    color: '#cdd6f4',
+  }),
+  messageAgent: (mode: ThemeMode) => ({
+    backgroundColor: tokens.color.surface.secondaryPane[mode],
+    color: tokens.color.text.primary[mode],
     borderBottomLeftRadius: '4px',
-  },
-  messageSystem: {
-    backgroundColor: '#45475a',
-    color: '#a6adc8',
+  }),
+  messageSystem: (mode: ThemeMode) => ({
+    backgroundColor: tokens.color.surface.base[mode],
+    color: tokens.color.text.secondary[mode],
     fontSize: '12px',
     fontStyle: 'italic' as const,
-  },
-  messageSender: {
+  }),
+  messageSender: (mode: ThemeMode) => ({
     fontSize: '11px',
-    color: '#6c7086',
+    color: tokens.color.text.secondary[mode],
     marginBottom: '4px',
     paddingLeft: '4px',
-  },
-  messageTime: {
+  }),
+  messageTime: (mode: ThemeMode) => ({
     fontSize: '10px',
-    color: '#585b70',
+    color: tokens.color.text.secondary[mode],
     marginTop: '4px',
     paddingLeft: '4px',
-  },
+  }),
   memoryIndicators: {
     display: 'flex',
     flexWrap: 'wrap' as const,
@@ -150,110 +177,99 @@ const styles = {
     marginTop: '6px',
     paddingLeft: '4px',
   },
-  memoryBadge: {
+  memoryBadge: (mode: ThemeMode) => ({
     display: 'inline-flex',
     alignItems: 'center',
     gap: '3px',
     padding: '2px 6px',
     borderRadius: '10px',
     fontSize: '10px',
-    backgroundColor: '#45475a',
-    color: '#a6adc8',
-  },
-  memoryBadgeEpisodic: {
-    backgroundColor: '#313244',
-    color: '#f9e2af',
-  },
-  memoryBadgeSemantic: {
-    backgroundColor: '#313244',
-    color: '#a6e3a1',
-  },
-  memoryBadgeSkill: {
-    backgroundColor: '#313244',
-    color: '#89dceb',
-  },
-  typingIndicator: {
+    backgroundColor: tokens.color.surface.base[mode],
+    color: tokens.color.text.secondary[mode],
+    border: `1px solid ${tokens.color.border.subtle[mode]}`,
+  }),
+  typingIndicator: (mode: ThemeMode) => ({
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
     padding: '10px 14px',
-    color: '#6c7086',
+    color: tokens.color.text.secondary[mode],
     fontSize: '13px',
-  },
+  }),
   typingDots: {
     display: 'flex',
     gap: '4px',
   },
-  typingDot: {
+  typingDot: (mode: ThemeMode) => ({
     width: 6,
     height: 6,
     borderRadius: '50%',
-    backgroundColor: '#6c7086',
+    backgroundColor: tokens.color.text.secondary[mode],
     animation: 'typingBounce 1.4s infinite ease-in-out',
-  },
-  inputContainer: {
+  }),
+  inputContainer: (mode: ThemeMode) => ({
     padding: '12px 16px',
-    backgroundColor: '#181825',
-    borderTop: '1px solid #313244',
-  },
-  inputWrapper: {
+    backgroundColor: tokens.color.surface.base[mode],
+    borderTop: `1px solid ${tokens.color.border.subtle[mode]}`,
+  }),
+  inputWrapper: (mode: ThemeMode) => ({
     display: 'flex',
     alignItems: 'flex-end',
     gap: '10px',
-    backgroundColor: '#313244',
+    backgroundColor: tokens.color.surface.secondaryPane[mode],
     borderRadius: '12px',
     padding: '8px 12px',
-  },
-  textarea: {
+  }),
+  textarea: (mode: ThemeMode) => ({
     flex: 1,
     backgroundColor: 'transparent',
     border: 'none',
     outline: 'none',
-    color: '#cdd6f4',
+    color: tokens.color.text.primary[mode],
     fontSize: '14px',
     lineHeight: '1.5',
     resize: 'none' as const,
     maxHeight: '120px',
     minHeight: '24px',
     fontFamily: 'inherit',
-  },
-  sendButton: {
+  }),
+  sendButton: (mode: ThemeMode) => ({
     padding: '6px 12px',
-    backgroundColor: '#89b4fa',
+    backgroundColor: tokens.color.text.primary[mode],
     border: 'none',
     borderRadius: '8px',
-    color: '#1e1e2e',
+    color: tokens.color.surface.base[mode],
     fontSize: '13px',
     fontWeight: 600,
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    transition: `all ${tokens.motion.snap} ${tokens.motion.easeSnap}`,
     whiteSpace: 'nowrap' as const,
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#45475a',
-    color: '#6c7086',
+  }),
+  sendButtonDisabled: (mode: ThemeMode) => ({
+    backgroundColor: tokens.color.border.subtle[mode],
+    color: tokens.color.text.secondary[mode],
     cursor: 'not-allowed',
-  },
-  emptyState: {
+  }),
+  emptyState: (mode: ThemeMode) => ({
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-    color: '#6c7086',
+    color: tokens.color.text.secondary[mode],
     textAlign: 'center' as const,
     padding: '20px',
-  },
+  }),
   emptyStateIcon: {
     fontSize: '48px',
     marginBottom: '16px',
   },
-  emptyStateTitle: {
+  emptyStateTitle: (mode: ThemeMode) => ({
     fontSize: '16px',
     fontWeight: 600,
-    color: '#cdd6f4',
+    color: tokens.color.text.primary[mode],
     marginBottom: '8px',
-  },
+  }),
   emptyStateSubtitle: {
     fontSize: '13px',
     lineHeight: '1.5',
@@ -267,7 +283,7 @@ const styles = {
 /**
  * Memory badge component
  */
-const MemoryBadge: React.FC<{ indicator: MemoryIndicator }> = ({ indicator }) => {
+const MemoryBadge: React.FC<{ indicator: MemoryIndicator; mode: ThemeMode }> = ({ indicator, mode }) => {
   const getIcon = () => {
     switch (indicator.type) {
       case 'episodic': return '🧠';
@@ -278,9 +294,9 @@ const MemoryBadge: React.FC<{ indicator: MemoryIndicator }> = ({ indicator }) =>
   
   const getBadgeStyle = () => {
     switch (indicator.type) {
-      case 'episodic': return { ...styles.memoryBadge, ...styles.memoryBadgeEpisodic };
-      case 'semantic': return { ...styles.memoryBadge, ...styles.memoryBadgeSemantic };
-      case 'skill': return { ...styles.memoryBadge, ...styles.memoryBadgeSkill };
+      case 'episodic': return { ...styles.memoryBadge(mode) };
+      case 'semantic': return { ...styles.memoryBadge(mode) };
+      case 'skill': return { ...styles.memoryBadge(mode) };
     }
   };
   
@@ -296,12 +312,12 @@ const MemoryBadge: React.FC<{ indicator: MemoryIndicator }> = ({ indicator }) =>
 /**
  * Typing indicator animation
  */
-const TypingIndicator: React.FC<{ agentName: string }> = ({ agentName }) => (
-  <div style={styles.typingIndicator}>
+const TypingIndicator: React.FC<{ agentName: string; mode: ThemeMode }> = ({ agentName, mode }) => (
+  <div style={styles.typingIndicator(mode)}>
     <div style={styles.typingDots}>
-      <span style={{ ...styles.typingDot, animationDelay: '0s' }} />
-      <span style={{ ...styles.typingDot, animationDelay: '0.2s' }} />
-      <span style={{ ...styles.typingDot, animationDelay: '0.4s' }} />
+      <span style={{ ...styles.typingDot(mode), animationDelay: '0s' }} />
+      <span style={{ ...styles.typingDot(mode), animationDelay: '0.2s' }} />
+      <span style={{ ...styles.typingDot(mode), animationDelay: '0.4s' }} />
     </div>
     <span>{agentName} is thinking...</span>
   </div>
@@ -313,7 +329,8 @@ const TypingIndicator: React.FC<{ agentName: string }> = ({ agentName }) => (
 const MessageItem: React.FC<{
   message: ChatMessage;
   showMemoryIndicators: boolean;
-}> = ({ message, showMemoryIndicators }) => {
+  mode: ThemeMode;
+}> = ({ message, showMemoryIndicators, mode }) => {
   const isUser = message.senderType === 'user';
   const isSystem = message.senderType === 'system';
   
@@ -324,10 +341,10 @@ const MessageItem: React.FC<{
   }), [isUser, isSystem]);
   
   const messageStyle = useMemo(() => ({
-    ...styles.message,
-    ...(isUser ? styles.messageUser : {}),
-    ...(isSystem ? styles.messageSystem : styles.messageAgent),
-  }), [isUser, isSystem]);
+    ...styles.message(mode),
+    ...(isUser ? styles.messageUser(mode) : {}),
+    ...(isSystem ? styles.messageSystem(mode) : styles.messageAgent(mode)),
+  }), [isUser, isSystem, mode]);
   
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -337,16 +354,16 @@ const MessageItem: React.FC<{
   return (
     <div style={wrapperStyle}>
       {!isUser && !isSystem && (
-        <span style={styles.messageSender}>{message.senderName}</span>
+        <span style={styles.messageSender(mode)}>{message.senderName}</span>
       )}
       <div style={messageStyle}>
         {message.content}
       </div>
-      <span style={styles.messageTime}>{formatTime(message.timestamp)}</span>
+      <span style={styles.messageTime(mode)}>{formatTime(message.timestamp)}</span>
       {showMemoryIndicators && message.memoryIndicators && message.memoryIndicators.length > 0 && (
         <div style={styles.memoryIndicators}>
           {message.memoryIndicators.map((indicator, idx) => (
-            <MemoryBadge key={`${indicator.memoryId}-${idx}`} indicator={indicator} />
+            <MemoryBadge key={`${indicator.memoryId}-${idx}`} indicator={indicator} mode={mode} />
           ))}
         </div>
       )}
@@ -370,8 +387,13 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   isAgentTyping = false,
   showMemoryIndicators = true,
   maxMessages = 500,
+  showInviteButton = true,
+  showDndButton = true,
+  dndState = 'off',
   onSendMessage,
   onClearChat,
+  onInviteClick,
+  onToggleDnd,
 }) => {
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -388,10 +410,12 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
     [messages, maxMessages]
   );
   
+  const mode: ThemeMode = 'dark';
+  const isPrimary = paneId === 'left';
   const containerStyle = useMemo(() => ({
-    ...styles.container,
-    ...(paneId === 'right' ? styles.containerRight : {}),
-  }), [paneId]);
+    ...styles.container(mode, isPrimary),
+    ...(paneId === 'right' ? styles.containerRight(mode) : {}),
+  }), [mode, isPrimary, paneId]);
   
   const canSend = inputValue.trim().length > 0 && !isLoading;
   
@@ -464,9 +488,9 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   return (
     <div style={containerStyle}>
       {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerInfo}>
-          <div style={styles.avatar}>
+        <div style={styles.header(mode)}>
+          <div style={styles.headerInfo}>
+            <div style={styles.avatar(mode)}>
             {agent.avatarUrl ? (
               <img src={agent.avatarUrl} alt={agent.agentName} style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
             ) : (
@@ -474,19 +498,44 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
             )}
           </div>
           <div style={styles.agentInfo}>
-            <span style={styles.agentName}>{agent.agentName}</span>
-            <span style={styles.agentType}>{agent.agentType} Agent</span>
+            <span style={styles.agentName(mode)}>{agent.agentName}</span>
+            <span style={styles.agentType(mode)}>{agent.agentType} Agent</span>
           </div>
         </div>
-        {onClearChat && (
-          <button 
-            style={styles.clearButton}
-            onClick={handleClear}
-            title="Clear chat history"
-          >
-            Clear
-          </button>
-        )}
+        <div style={styles.headerActions}>
+          {showInviteButton && (
+            <button
+              style={styles.iconButton(mode)}
+              onClick={onInviteClick}
+              title="Invite participants"
+              aria-label="Invite participants"
+            >
+              +
+            </button>
+          )}
+          {showDndButton && (
+            <button
+              style={{
+                ...styles.iconButton(mode),
+                ...(dndState === 'on' ? styles.iconButtonActive(mode) : {}),
+              }}
+              onClick={() => onToggleDnd?.(dndState === 'on' ? 'off' : 'on')}
+              title={dndState === 'on' ? 'Disable Do Not Disturb' : 'Enable Do Not Disturb'}
+              aria-label="Toggle Do Not Disturb"
+            >
+              {dndState === 'on' ? 'DND' : '•'}
+            </button>
+          )}
+          {onClearChat && (
+            <button
+              style={styles.clearButton(mode)}
+              onClick={handleClear}
+              title="Clear chat history"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
       
       {/* Messages */}
@@ -496,9 +545,9 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
         onScroll={handleScroll}
       >
         {displayMessages.length === 0 ? (
-          <div style={styles.emptyState}>
+          <div style={styles.emptyState(mode)}>
             <div style={styles.emptyStateIcon}>💬</div>
-            <div style={styles.emptyStateTitle}>Start a conversation</div>
+            <div style={styles.emptyStateTitle(mode)}>Start a conversation</div>
             <div style={styles.emptyStateSubtitle}>
               Send a message to {agent.agentName} to begin.
               <br />
@@ -512,20 +561,21 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
                 key={message.id} 
                 message={message} 
                 showMemoryIndicators={showMemoryIndicators}
+                mode={mode}
               />
             ))}
-            {isAgentTyping && <TypingIndicator agentName={agent.agentName} />}
+            {isAgentTyping && <TypingIndicator agentName={agent.agentName} mode={mode} />}
             <div ref={messagesEndRef} />
           </>
         )}
       </div>
       
       {/* Input */}
-      <div style={styles.inputContainer}>
-        <div style={styles.inputWrapper}>
+      <div style={styles.inputContainer(mode)}>
+        <div style={styles.inputWrapper(mode)}>
           <textarea
             ref={textareaRef}
-            style={styles.textarea}
+            style={styles.textarea(mode)}
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
@@ -535,8 +585,8 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
           />
           <button
             style={{
-              ...styles.sendButton,
-              ...(canSend ? {} : styles.sendButtonDisabled),
+              ...styles.sendButton(mode),
+              ...(canSend ? {} : styles.sendButtonDisabled(mode)),
             }}
             onClick={handleSend}
             disabled={!canSend}

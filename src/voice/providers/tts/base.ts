@@ -16,6 +16,7 @@ import {
   AudioChunk,
   VoiceProfile,
 } from '../../types';
+import { createLogger } from '../../shared/logger';
 
 /**
  * Audio playback state
@@ -43,6 +44,7 @@ export abstract class BaseTTSProvider implements ITTSProvider {
   
   protected config: TTSProviderConfig | null = null;
   protected initialized = false;
+  protected log = createLogger('voice-tts');
   protected voiceCache: Map<string, VoiceProfile[]> = new Map();
   protected playbackState: PlaybackState = {
     audio: null,
@@ -61,14 +63,14 @@ export abstract class BaseTTSProvider implements ITTSProvider {
    */
   async initialize(config: TTSProviderConfig): Promise<void> {
     if (this.initialized) {
-      console.warn(`${this.name} already initialized`);
+      this.log.warn(`${this.name} already initialized`);
       return;
     }
     
     this.config = config;
     await this.doInitialize(config);
     this.initialized = true;
-    console.log(`${this.name} initialized`);
+    this.log.info(`${this.name} initialized`);
   }
   
   /**

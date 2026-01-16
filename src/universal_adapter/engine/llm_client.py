@@ -328,27 +328,21 @@ class AnthropicProvider(LLMProvider):
         return (len(errors) == 0, errors)
 
 
-class MockProvider(LLMProvider):
-    """Mock provider for testing."""
+class TemplateProvider(LLMProvider):
+    """
+    Template provider - returns the interpolated prompt as-is.
 
-    def __init__(self, responses: Mapping[str, str] | None = None) -> None:
-        self.responses = dict(responses) if responses else {}
-        self.call_count = 0
-        self.calls: list[LLMRequest] = []
+    Useful for deterministic tasks that only need variable expansion
+    without calling an external LLM.
+    """
 
     async def complete(self, request: LLMRequest) -> LLMResponse:
-        self.call_count += 1
-        self.calls.append(request)
-
-        # Look for matching response or return default
-        last_message = request.messages[-1].content
-        content = self.responses.get(last_message, f"Mock response #{self.call_count}")
-
+        content = request.messages[-1].content if request.messages else ""
         return LLMResponse(
             content=content,
             model=request.model,
             finish_reason="stop",
-            usage={"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30}
+            usage={"prompt_tokens": len(content.split()), "completion_tokens": 0, "total_tokens": len(content.split())}
         )
 
     def validate_config(self, config: ResourceLLM) -> tuple[bool, list[str]]:
@@ -365,7 +359,7 @@ class LLMClient:
     PROVIDERS = {
         "openai": OpenAIProvider,
         "anthropic": AnthropicProvider,
-        "mock": MockProvider,
+        "template": TemplateProvider,
     }
 
     def __init__(self, config: ResourceLLM) -> None:
@@ -395,10 +389,10 @@ class LLMClient:
 
         provider_class = self.PROVIDERS[provider_name]
 
-        if provider_name == "mock":
-            return provider_class()
+        if provider_name == "template":
+            return provider_class()  # type: ignore[arg-type]
         else:
-            return provider_class(api_key=api_key, endpoint=self.config.endpoint)
+            return provider_class(api_key=api_key, endpoint=self.config.endpoint)  # type: ignore[arg-type]
 
     async def complete(self, request: LLMRequest) -> LLMResponse:
         """Execute a completion request."""

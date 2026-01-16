@@ -1,0 +1,81 @@
+{
+  "name": "experience_sync_protocol",
+  "version": "1.0.0",
+  "taskId": "task-experience-sync-001",
+  "taskType": "sync",
+  "priority": "high",
+  "goal": {
+    "description": "Select an experience sync protocol and outline merge actions",
+    "target_conditions": [
+      {
+        "description": "Protocol selection and merge plan produced",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 10 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "10"
+      }
+    ]
+  },
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.3,
+    "max_tokens": 1500,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "experience_sync_manager",
+        "category": "reference",
+        "source_url": "docs/ARCHITECTURE_AUDIT_2026-01-16.md"
+      },
+      {
+        "name": "memory_system",
+        "category": "reference",
+        "source_url": "docs/AGENTIC_MEMORY_DESIGN.md"
+      }
+    ]
+  },
+  "input": {
+    "protocol_options": ["streaming", "lumped", "check_in"],
+    "sync_config": "{\"streaming\":{\"enabled\":true,\"interval_ms\":500},\"transport\":{\"type\":\"https\"}}"
+  },
+  "prompts": [
+    {
+      "template": "Review the sync configuration:\n{{sync_config}}\nSummarize relevant constraints (latency, batching, transport).",
+      "role": "user",
+      "description": "Summarize sync config"
+    },
+    {
+      "template": "Select the best protocol from {{protocol_options}} for the configuration summary:\n{{response:P0}}\nRespond with one of: streaming, lumped, check_in.",
+      "role": "user",
+      "description": "Choose protocol"
+    },
+    {
+      "template": "Draft streaming plan: event emission cadence, transport send path, and state updates.",
+      "role": "user",
+      "description": "Streaming plan"
+    },
+    {
+      "template": "Draft lumped plan: batch schedule, merge steps, and status updates.",
+      "role": "user",
+      "description": "Lumped plan"
+    },
+    {
+      "template": "Draft check-in plan: payload composition, merge steps, and status updates.",
+      "role": "user",
+      "description": "Check-in plan"
+    },
+    {
+      "template": "Synthesize the selected protocol plan into a single execution outline with checkpoints.",
+      "role": "user",
+      "description": "Finalize plan"
+    }
+  ],
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 -->|streaming| P2\n    P1 -->|lumped| P3\n    P1 -->|check_in| P4\n    P2 --> P5\n    P3 --> P5\n    P4 --> P5\n    P5 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P1"
+  }
+}

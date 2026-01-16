@@ -15,8 +15,6 @@
 import type {
   SystemAgentBinding,
   SystemAgentPersonaId,
-  PersonaConfig,
-  SCMPolicy,
 } from './types';
 
 import {
@@ -41,6 +39,19 @@ import {
 
 import { createSystemContext, type SystemContext } from './TriggerEvaluator';
 import type { SCMContext, SCMGateResult, SCMIntentType } from './SharedConversationMiddleware';
+import {
+  MetaCognitiveLayer,
+  createMetaCognitiveLayer,
+  type MetaCognitiveConfig,
+} from './MetaCognitiveLayer';
+import {
+  CriticPipeline,
+  FinishCritic,
+  type CriticPipelineResult,
+  type CriticContext,
+  type CriticPipelineConfig,
+} from './critic';
+import type { CondenserMessage } from '../../experience/ContextCondenser';
 
 import type { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
 import { logger } from '../../observability';
@@ -61,6 +72,12 @@ export interface SystemAgentChatServiceConfig {
   loaderConfig?: SystemAgentLoaderConfig;
   /** Enable mock mode (for testing without LLM) */
   mockMode?: boolean;
+  /** Enable OpenHands-lite middleware chain */
+  enableOpenHandsLite?: boolean;
+  /** Meta-cognitive layer config overrides */
+  metaConfig?: Partial<MetaCognitiveConfig>;
+  /** Critic pipeline configuration */
+  criticConfig?: CriticPipelineConfig;
 }
 
 /**
@@ -138,6 +155,9 @@ export class SystemAgentChatService {
   private initialized: boolean = false;
   private conversationHistory: Map<string, ChatMessage[]> = new Map();
   private enhancedBindings: Map<SystemAgentPersonaId, SystemAgentBinding> = new Map();
+  private metaLayer?: MetaCognitiveLayer;
+  private criticPipeline?: CriticPipeline;
+  private openHandsEnabled: boolean = false;
 
   constructor(config: SystemAgentChatServiceConfig = {}) {
     this.config = {
@@ -150,6 +170,14 @@ export class SystemAgentChatService {
       ...config.scmConfig,
     });
     this.behaviorLoader = createBehaviorLoader({});
+
+    this.openHandsEnabled = config.enableOpenHandsLite ?? true;
+    if (this.openHandsEnabled) {
+      this.metaLayer = createMetaCognitiveLayer(config.metaConfig);
+      this.criticPipeline = new CriticPipeline([
+        new FinishCritic(),
+      ], config.criticConfig);
+    }
   }
 
   // ===========================================================================
@@ -408,9 +436,33 @@ Respond in JSON format with: scorecard, riskScore, confidence, recommendations, 
       const responseStartTime = Date.now();
 
       try {
+        const metaResult = this.metaLayer
+          ? await this.metaLayer.process(
+              this.toCondenserMessages(this.conversationHistory.get(threadId) || []),
+              winner.agentId as SystemAgentPersonaId
+            )
+          : undefined;
+
+        if (metaResult && !metaResult.shouldProceed) {
+          responses.push({
+            agentId: winner.agentId as SystemAgentPersonaId,
+            content: `I detected a loop or stall (${metaResult.stuckAnalysis?.patternDescription ?? 'stuck state'}). ` +
+              `Suggested next step: ${metaResult.suggestions[0] ?? 'Try a different approach or clarify the goal.'}`,
+            intentType: 'clarify',
+            confidence: 0.2,
+            latencyMs: Date.now() - responseStartTime,
+            metadata: {
+              stuckAnalysis: metaResult.stuckAnalysis,
+              warnings: metaResult.warnings,
+              suggestions: metaResult.suggestions,
+            },
+          });
+          continue;
+        }
+
         // Generate response using the agent
         const evaluation = await binding.evaluate(
-          this.buildAgentPrompt(message, threadId),
+          this.buildAgentPrompt(message, threadId, metaResult?.condensedMessages),
           {
             temperature: binding.config.modelConfig.defaultTemperature,
             maxTokens: 2048,
@@ -418,7 +470,7 @@ Respond in JSON format with: scorecard, riskScore, confidence, recommendations, 
           }
         );
 
-        responses.push({
+        const baseResponse: AgentResponse = {
           agentId: winner.agentId as SystemAgentPersonaId,
           content: this.formatAgentResponse(evaluation, winner.gateOutput.intentType),
           intentType: winner.gateOutput.intentType,
@@ -428,7 +480,31 @@ Respond in JSON format with: scorecard, riskScore, confidence, recommendations, 
             scorecard: evaluation.scorecard,
             riskScore: evaluation.riskScore,
           },
-        });
+        };
+
+        if (this.criticPipeline) {
+          const criticContext: CriticContext = {
+            agentId: winner.agentId as SystemAgentPersonaId,
+            userMessage: message,
+            response: baseResponse,
+            condensedMessages: metaResult?.condensedMessages,
+            stuckDetected: metaResult?.stuckAnalysis?.isStuck,
+            intentType: winner.gateOutput.intentType,
+          };
+
+          const criticResult = this.criticPipeline.evaluate(criticContext);
+          if (criticResult.verdict !== 'pass') {
+            baseResponse.content = this.applyCriticVerdict(baseResponse.content, criticResult);
+            baseResponse.confidence = Math.min(baseResponse.confidence, 0.6);
+          }
+
+          baseResponse.metadata = {
+            ...baseResponse.metadata,
+            critic: criticResult,
+          };
+        }
+
+        responses.push(baseResponse);
 
         // Record the turn
         this.behaviorLoader.recordAgentTurn(winner.agentId);
@@ -558,7 +634,18 @@ Respond in JSON format with: scorecard, riskScore, confidence, recommendations, 
   /**
    * Build prompt for agent
    */
-  private buildAgentPrompt(message: ChatMessage, threadId: string): string {
+  private buildAgentPrompt(
+    message: ChatMessage,
+    threadId: string,
+    condensedMessages?: CondenserMessage[]
+  ): string {
+    if (condensedMessages && condensedMessages.length > 0) {
+      const condensedText = condensedMessages
+        .map(m => `${m.role}: ${m.content}`)
+        .join('\n');
+      return `## User Message\n${message.content}\n\n## Condensed Context\n${condensedText}`;
+    }
+
     const history = this.conversationHistory.get(threadId) || [];
     const recentHistory = history.slice(-5);
 
@@ -573,9 +660,64 @@ Respond in JSON format with: scorecard, riskScore, confidence, recommendations, 
     return `## User Message\n${message.content}${contextPart}`;
   }
 
+  private toCondenserMessages(messages: ChatMessage[]): CondenserMessage[] {
+    return messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      metadata: {
+        agentId: msg.targetAgentId,
+      },
+    }));
+  }
+
+  private applyCriticVerdict(
+    content: string,
+    criticResult: CriticPipelineResult
+  ): string {
+    const suggestions = criticResult.suggestions.slice(0, 3).join('\n- ');
+    return `${content}\n\n---\nCritic feedback (${criticResult.verdict}, score ${criticResult.aggregateScore.toFixed(2)}):\n- ${suggestions}`;
+  }
+
   /**
    * Format evaluation result as chat response
    */
+  private formatAgentResponse(
+    evaluation: {
+      scorecard: Record<string, number | string[]>;
+      riskScore: number;
+      confidence: number;
+      recommendations: string[];
+      requiresHumanReview: boolean;
+    },
+    intentType?: SCMIntentType
+  ): string {
+    // Format based on intent type
+    if (intentType === 'clarify') {
+      return `I'd like to clarify something: ${evaluation.recommendations[0] || 'Could you provide more details?'}`;
+    }
+
+    if (intentType === 'coach') {
+      return `Here's a suggestion: ${evaluation.recommendations[0] || 'Let me help you think through this.'}\n\nConfidence: ${(evaluation.confidence * 100).toFixed(0)}%`;
+    }
+
+    // Default response format
+    const parts: string[] = [];
+
+    if (evaluation.recommendations.length > 0) {
+      parts.push(evaluation.recommendations[0]);
+    }
+
+    if (evaluation.riskScore > 0.5) {
+      parts.push(`\n\n⚠️ Note: Risk score is ${(evaluation.riskScore * 100).toFixed(0)}%`);
+    }
+
+    if (evaluation.requiresHumanReview) {
+      parts.push('\n\n👤 This may benefit from human review.');
+    }
+
+    return parts.join('') || 'I\'ve analyzed your request. Let me know if you need more details.';
+  }
   private formatAgentResponse(
     evaluation: {
       scorecard: Record<string, number | string[]>;
@@ -790,7 +932,11 @@ Respond in JSON format with: scorecard, riskScore, confidence, recommendations, 
    * Log observability event
    */
   private emitEvent(event: { kind: string; timestamp: string; [key: string]: unknown }): void {
-    logger('SystemAgentChatService').debug('event', { event });
+    logger('SystemAgentChatService').debug('event', {
+      kind: event.kind,
+      timestamp: event.timestamp,
+      event_json: JSON.stringify(event),
+    });
   }
 
   /**

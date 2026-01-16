@@ -385,7 +385,7 @@ export class ACPBridge extends BaseBridge {
     this.acpClient.on('agentRequest', (request: unknown) => {
       // TODO: Implement handlers for agent requests
       // This allows the ACP agent to request file access, terminal, etc.
-      console.log('ACP Agent Request:', request);
+      this.log?.info('ACP Agent Request', { request });
     });
   }
 
@@ -492,7 +492,11 @@ ${JSON.stringify(this.acpCapabilities, null, 2)}
     } catch (error) {
       // Fallback to LLM if hybrid mode is enabled
       if (this.acpConfig.hybridMode && this.llmClient) {
-        console.warn('ACP agent failed, falling back to LLM:', error);
+        this.log.warn('ACP agent failed, falling back to LLM', {
+          error: error instanceof Error ? error.message : String(error),
+          bridgeId: this.id,
+          sessionId: this.currentSessionId,
+        });
         return this.sendViaLLM(message, context);
       }
 

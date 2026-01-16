@@ -1,0 +1,71 @@
+{
+  "name": "agent_morphing",
+  "version": "1.0.0",
+  "taskId": "task-morph-001",
+  "taskType": "morph",
+  "priority": "high",
+
+  "goal": {
+    "description": "Morph an agent into a constrained execution profile without losing identity or safety requirements",
+    "target_conditions": [
+      {
+        "description": "Morph retains identity description and safety policies",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Morph completes within 12 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "12"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "openai",
+    "model": "gpt-4o",
+    "temperature": 0.3,
+    "max_tokens": 4096,
+    "api_key_env": "OPENAI_API_KEY"
+  },
+
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "safety_policies",
+        "category": "policy",
+        "source_url": "https://chrysalis.dev/policies/safety-v1"
+      },
+      {
+        "name": "capability_hints",
+        "category": "reference",
+        "source_url": "https://chrysalis.dev/mappings/capability-hints"
+      }
+    ]
+  },
+
+  "input": {
+    "agent_payload": "{ \"name\": \"guardian\", \"purpose\": \"monitor\", \"constraints\": [\"never delete data\"] }"
+  },
+
+  "prompts": [
+    {
+      "template": "You are morphing the following agent into a constrained execution profile:\n\n{{agent_payload}}\n\nUse safety policies at {{registry:safety_policies}}. Identify identity anchors (name, purpose) and mandatory safety constraints.",
+      "role": "user",
+      "description": "Extract anchors and constraints"
+    },
+    {
+      "template": "Apply the capability hints ({{registry:capability_hints}}) and craft the morphed agent. Preserve identity anchors and embed safety constraints. Return JSON with sections: identity, capabilities, constraints, memory, tools.",
+      "role": "user",
+      "description": "Morph agent"
+    },
+    {
+      "template": "Verify the morphed agent preserves identity anchors and all safety constraints. Respond with 'goal_met' or 'goal_failed' and list any missing items.\n\nOriginal anchors: {{response:P0}}\nMorphed agent: {{response:P1}}",
+      "role": "user",
+      "description": "Goal-aligned verification"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 --> P2\n    P2 -->|goal_met| GOAL\n    P2 -->|goal_failed| P1\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P0"
+  }
+}

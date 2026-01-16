@@ -15,10 +15,11 @@
  * @see plans/CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md - Item H-2
  */
 
+import { createLogger } from '../shared/logger';
+
+const log = createLogger('agent-morph');
 // Deprecation warning
-console.warn('\n⚠️  DEPRECATION WARNING: "agent-morph" is deprecated.');
-console.warn('   Please use "chrysalis" CLI instead.');
-console.warn('   Run "chrysalis --help" for usage information.\n');
+log.warn('"agent-morph" is deprecated. Use "chrysalis" CLI instead.');
 
 import { program } from 'commander';
 import * as fs from 'fs/promises';
@@ -47,7 +48,7 @@ program
   .option('--no-original', 'Do not include original in shadow')
   .action(async (options) => {
     try {
-      console.log('\n🔄 Converting agent...\n');
+      log.info('converting agent');
       
       // Load input
       const inputData = await fs.readFile(options.input, 'utf-8');
@@ -57,8 +58,7 @@ program
       const fromAdapter = adapterRegistry.get(options.from) as any;
       const toAdapter = adapterRegistry.get(options.to) as any;
       
-      console.log(`From: ${fromAdapter.name} v${fromAdapter.version}`);
-      console.log(`To: ${toAdapter.name} v${toAdapter.version}\n`);
+      log.info('convert options', { from: fromAdapter.name, fromVersion: fromAdapter.version, to: toAdapter.name, toVersion: toAdapter.version });
       
       // Load private key if provided
       let privateKey: string | undefined;
@@ -84,9 +84,7 @@ program
         JSON.stringify(result.agent, null, 2)
       );
       
-      console.log(`\n✓ Converted agent saved to: ${options.output}`);
-      console.log(`\n🔑 Restoration Key (SAVE THIS!):`);
-      console.log(`   ${result.restorationKey}\n`);
+      log.info('conversion complete', { output: options.output, restorationKey: result.restorationKey });
       
       // Save restoration key to file
       const keyFile = options.output.replace(/\.[^.]+$/, '.restoration-key.txt');

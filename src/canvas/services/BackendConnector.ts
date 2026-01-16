@@ -13,6 +13,7 @@
 import { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
 import { getConfig } from '../../core/config';
 import { EventEmitter } from 'events';
+import { createLogger } from '../../shared/logger';
 
 // =============================================================================
 // Service Status
@@ -87,6 +88,7 @@ export class BackendConnector {
   // Initialization state
   private initialized = false;
   private initializing = false;
+  private log = createLogger('backend-connector');
 
   constructor(config?: Partial<BackendConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -203,7 +205,7 @@ export class BackendConnector {
       health.lastCheck = Date.now();
       health.error = undefined;
 
-      console.log(`[BackendConnector] Gateway connected (provider: ${data.provider})`);
+      this.log.info('gateway connected', { provider: data.provider });
 
     } catch (err) {
       health.status = 'error';
@@ -270,7 +272,7 @@ export class BackendConnector {
           health.status = 'connected';
           health.lastCheck = Date.now();
           health.error = undefined;
-          console.log('[BackendConnector] Terminal connected');
+          this.log.info('terminal connected');
           resolve();
         };
 
@@ -374,7 +376,7 @@ export class BackendConnector {
       health.lastCheck = Date.now();
       health.error = undefined;
 
-      console.log(`[BackendConnector] Storage initialized (${this.config.storageType})`);
+      this.log.info('storage initialized', { storageType: this.config.storageType });
 
     } catch (err) {
       health.status = 'error';
@@ -565,7 +567,10 @@ class FireproofAdapter implements StorageAdapter {
     // TODO: Import and initialize Fireproof
     // import { fireproof } from '@fireproof/core';
     // this.db = fireproof('chrysalis-canvas');
-    console.warn('[FireproofAdapter] Fireproof not yet integrated - falling back to localStorage');
+    // Use shared logger if available on BackendConnector
+    const globalAny = globalThis as any;
+    const logger = globalAny?.backendConnectorLogger || console;
+    logger.warn('[FireproofAdapter] Fireproof not yet integrated - falling back to localStorage');
   }
 
   async get(key: string): Promise<unknown | null> {

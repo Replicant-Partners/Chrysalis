@@ -1,6 +1,13 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(npx jest:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "tessl"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

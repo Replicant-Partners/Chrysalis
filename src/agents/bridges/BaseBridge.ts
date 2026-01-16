@@ -25,6 +25,7 @@ import {
   AgentCapability,
   AgentType
 } from './types';
+import { createLogger } from '../../shared/logger';
 
 /**
  * Generate unique ID
@@ -43,6 +44,7 @@ export abstract class BaseBridge implements IAgentBridge {
   protected tools: Map<string, AgentTool> = new Map();
   protected retryCount: number = 0;
   protected lastError?: Error;
+  protected log = createLogger('bridge');
   
   constructor(config: BridgeConfig) {
     this.config = {
@@ -159,7 +161,7 @@ export abstract class BaseBridge implements IAgentBridge {
         try {
           handler(event);
         } catch (error) {
-          console.error(`Event handler error for ${event.type}:`, error);
+          this.log.error('bridge event handler error', { event: event.type, error });
         }
       }
     }
@@ -258,11 +260,13 @@ export abstract class BaseBridge implements IAgentBridge {
         
         if (attempt < maxRetries) {
           const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
-          console.log(
-            `${operationName} failed (attempt ${attempt + 1}/${maxRetries + 1}), ` +
-            `retrying in ${delay}ms:`,
-            lastError.message
-          );
+          this.log.warn('retrying operation', {
+            operation: operationName,
+            attempt: attempt + 1,
+            maxRetries: maxRetries + 1,
+            delayMs: delay,
+            error: lastError.message,
+          });
           await this.sleep(delay);
         }
       }

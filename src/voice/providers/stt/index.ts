@@ -14,6 +14,9 @@ import {
 import { BaseSTTProvider } from './base';
 import { WhisperAPIProvider, WhisperLocalProvider } from './whisper';
 import { BrowserSTTProvider, isBrowserSTTAvailable } from './browser';
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('voice-stt');
 
 // Re-export all providers
 export { BaseSTTProvider } from './base';
@@ -40,30 +43,9 @@ export const DEFAULT_STT_FALLBACK_CHAIN: STTProviderType[] = [
  */
 export async function createSTTProvider(
   type: STTProviderType,
-  config: Partial<Omit<STTProviderConfig, 'provider'>> = {}
+  _config: Partial<Omit<STTProviderConfig, 'provider'>> = {}
 ): Promise<ISTTProvider> {
-  let provider: BaseSTTProvider;
-  
-  switch (type) {
-    case 'whisper-api':
-      provider = new WhisperAPIProvider();
-      break;
-    case 'whisper-local':
-      provider = new WhisperLocalProvider();
-      break;
-    case 'browser':
-      provider = new BrowserSTTProvider();
-      break;
-    case 'deepgram':
-    case 'openai':
-      // These would need separate implementations
-      throw new Error(`${type} provider not yet implemented`);
-    default:
-      throw new Error(`Unknown STT provider type: ${type}`);
-  }
-  
-  await provider.initialize(config);
-  return provider;
+  throw new Error('STT providers are deferred (voice features paused)');
 }
 
 /**
@@ -76,41 +58,10 @@ export async function createSTTProvider(
  * @returns Initialized STT provider
  */
 export async function createSTTProviderWithFallback(
-  config: Partial<Omit<STTProviderConfig, 'provider'>> = {},
-  fallbackChain: STTProviderType[] = DEFAULT_STT_FALLBACK_CHAIN
+  _config: Partial<Omit<STTProviderConfig, 'provider'>> = {},
+  _fallbackChain: STTProviderType[] = DEFAULT_STT_FALLBACK_CHAIN
 ): Promise<ISTTProvider> {
-  const errors: Array<{ type: STTProviderType; error: Error }> = [];
-  
-  for (const type of fallbackChain) {
-    try {
-      // Skip browser provider if not available
-      if (type === 'browser' && !isBrowserSTTAvailable()) {
-        errors.push({ type, error: new Error('Browser STT not available') });
-        continue;
-      }
-      
-      // Skip whisper-api if no API key provided
-      if (type === 'whisper-api' && !config.apiKey) {
-        errors.push({ type, error: new Error('No API key for Whisper API') });
-        continue;
-      }
-      
-      const provider = await createSTTProvider(type, config);
-      console.log(`STT provider initialized: ${type}`);
-      return provider;
-    } catch (error) {
-      errors.push({ 
-        type, 
-        error: error instanceof Error ? error : new Error(String(error))
-      });
-    }
-  }
-  
-  // All providers failed
-  const errorDetails = errors
-    .map(e => `${e.type}: ${e.error.message}`)
-    .join('; ');
-  throw new Error(`All STT providers failed: ${errorDetails}`);
+  throw new Error('STT providers are deferred (voice features paused)');
 }
 
 /**

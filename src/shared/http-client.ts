@@ -16,6 +16,9 @@
  */
 
 import { encodeBasicAuth } from './encoding';
+import { createLogger } from './logger';
+
+const log = createLogger('http-client');
 
 // ============================================================================
 // Types
@@ -579,19 +582,25 @@ export class HttpClient {
    * Log message
    */
   private log(level: 'debug' | 'info' | 'warn' | 'error', message: string): void {
-    if (this.config.debug || level === 'error' || level === 'warn') {
-      if (this.config.logger) {
-        this.config.logger(level, `[HttpClient] ${message}`);
-      } else {
-        const prefix = `[HttpClient] [${level.toUpperCase()}]`;
-        if (level === 'error') {
-          console.error(`${prefix} ${message}`);
-        } else if (level === 'warn') {
-          console.warn(`${prefix} ${message}`);
-        } else {
-          console.log(`${prefix} ${message}`);
-        }
-      }
+    if (!this.config.debug && level === 'debug') {
+      return;
+    }
+
+    const prefix = `[HttpClient]`;
+    if (this.config.logger) {
+      this.config.logger(level, `${prefix} ${message}`);
+      return;
+    }
+
+    // Unified JSON log
+    if (level === 'error') {
+      log.error(message, { prefix });
+    } else if (level === 'warn') {
+      log.warn(message, { prefix });
+    } else if (level === 'info') {
+      log.info(message, { prefix });
+    } else {
+      log.debug(message, { prefix });
     }
   }
 }

@@ -1,0 +1,79 @@
+{
+  "name": "protocol_translation",
+  "version": "2.0.0",
+  "taskId": "task-translate-001",
+  "taskType": "translate",
+  "priority": "critical",
+  "createdAt": "2026-01-17T12:00:00Z",
+
+  "goal": {
+    "description": "Translate an agent definition from a source protocol to a target protocol with semantic fidelity",
+    "target_conditions": [
+      {
+        "description": "Translated agent aligns with target protocol schema",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Flow completes within 15 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "15"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.4,
+    "max_tokens": 4096,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "source_spec",
+        "category": "schema",
+        "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/schema"
+      },
+      {
+        "name": "target_spec",
+        "category": "schema",
+        "source_url": "https://google.github.io/A2A/specification/"
+      },
+      {
+        "name": "field_mappings",
+        "category": "reference",
+        "source_url": "https://chrysalis.dev/mappings/usa-to-a2a"
+      }
+    ]
+  },
+
+  "input": {
+    "source_protocol": "mcp",
+    "target_protocol": "a2a",
+    "agent_payload": "{ \"name\": \"demo-agent\", \"tools\": [{\"name\": \"search\", \"description\": \"web search\"}] }"
+  },
+
+  "prompts": [
+    {
+      "template": "You are translating an agent from {{source_protocol}} to {{target_protocol}}.\nUse the source spec at {{registry:source_spec}} and target spec at {{registry:target_spec}}.\nSummarize key schema constraints and semantic categories required by the target.",
+      "role": "user",
+      "description": "Summarize protocol constraints"
+    },
+    {
+      "template": "Using the constraints:\n{{response:P0}}\nAnd the field mappings: {{registry:field_mappings}}\nTranslate the agent below to the target protocol, preserving capabilities and intent.\n\nInput agent:\n{{agent_payload}}",
+      "role": "user",
+      "description": "Perform translation"
+    },
+    {
+      "template": "Validate the translated agent against the target protocol.\n- Flag missing required fields\n- Ensure capabilities map semantically\n- Return 'pass' or 'retry' and list issues\n\nTranslation:\n{{response:P1}}",
+      "role": "user",
+      "description": "Validate translation"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 --> P2\n    P2 -->|pass| GOAL\n    P2 -->|retry| P1\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P1"
+  }
+}

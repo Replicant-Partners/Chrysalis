@@ -14,6 +14,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { createLogger } from '../../shared/logger';
 
 // =============================================================================
 // Types
@@ -161,6 +162,7 @@ export class AdaIntegrationService extends EventEmitter {
   private messageHistory: AdaMessage[] = [];
   private pendingProposal?: AdaActionProposal;
   private conversationId?: string;
+  private log = createLogger('ada-integration');
 
   constructor(config: Partial<AdaServiceConfig> = {}) {
     super();
@@ -412,7 +414,7 @@ export class AdaIntegrationService extends EventEmitter {
       await this.sendMessage(message, 'stall_help');
     } catch (error) {
       // Ignore rate limit errors for auto-assist
-      console.warn('Ada auto-assist rate limited:', error);
+      this.log.warn('Ada auto-assist rate limited', { error });
     }
   }
 

@@ -13,6 +13,9 @@
 
 import { ResourceError, type ErrorContext } from './errors';
 import { type AsyncDisposable, type Disposable, type DisposableResource } from './types';
+import { createLogger } from '../shared/logger';
+
+const log = createLogger('bridge-lifecycle');
 
 // ============================================================================
 // Polyfills for Symbol.dispose/asyncDispose
@@ -98,7 +101,7 @@ export class ManagedResource<T> implements DisposableResource<T> {
     const result = this._disposer(this._value);
     if (result instanceof Promise) {
       // Fire and forget for sync disposal of async resources
-      result.catch(console.error);
+      result.catch((error) => log.error('async dispose error', { resourceType: 'ManagedResource', error }));
     }
   }
 }
@@ -138,22 +141,22 @@ export class DisposableStack implements AsyncDisposable, Disposable {
       throw ResourceError.disposed('DisposableStack');
     }
     
-    this.disposables.push({
-      dispose: () => {
-        if (Symbol.asyncDispose in disposable) {
-          const asyncDispose = disposable[Symbol.asyncDispose];
-          if (asyncDispose) {
-            return asyncDispose.call(disposable);
+      this.disposables.push({
+        dispose: () => {
+          if (Symbol.asyncDispose in disposable) {
+            const asyncDispose = disposable[Symbol.asyncDispose];
+            if (asyncDispose) {
+              return asyncDispose.call(disposable);
+            }
           }
-        }
-        if (Symbol.dispose in disposable) {
-          const syncDispose = disposable[Symbol.dispose];
-          if (syncDispose) {
-            syncDispose.call(disposable);
+          if (Symbol.dispose in disposable) {
+            const syncDispose = disposable[Symbol.dispose];
+            if (syncDispose) {
+              syncDispose.call(disposable);
+            }
           }
-        }
-      },
-    });
+        },
+      });
     
     return disposable;
   }
@@ -216,10 +219,10 @@ export class DisposableStack implements AsyncDisposable, Disposable {
       try {
         const result = this.disposables[i].dispose();
         if (result instanceof Promise) {
-          result.catch(console.error);
+          result.catch((error) => log.error('defer dispose error', { error }));
         }
       } catch (error) {
-        console.error('Error during disposal:', error);
+        log.error('error during disposal', { error });
       }
     }
     
@@ -386,8 +389,8 @@ export class GracefulShutdown implements AsyncDisposable {
   listenForSignals(signals: string[] = ['SIGTERM', 'SIGINT']): void {
     for (const signal of signals) {
       const handler = () => {
-        console.log(`Received ${signal}, initiating graceful shutdown...`);
-        this.shutdown().catch(console.error);
+        log.info('received shutdown signal', { signal });
+        this.shutdown().catch((error) => log.error('shutdown error', { error }));
       };
       
       process.on(signal, handler);
@@ -420,10 +423,10 @@ export class GracefulShutdown implements AsyncDisposable {
       
       for (const { name, handler } of this.handlers) {
         try {
-          console.log(`Shutting down: ${name}`);
+          log.info('shutting down resource', { name });
           await handler();
         } catch (error) {
-          console.error(`Error shutting down ${name}:`, error);
+          log.error('error shutting down resource', { name, error });
           errors.push(error instanceof Error ? error : new Error(String(error)));
         }
       }
@@ -575,7 +578,9 @@ export class ResourcePool<T> implements AsyncDisposable {
     
     if (this.disposed) {
       // Destroy if pool is disposed
-      Promise.resolve(this.options.destroy(resource)).catch(console.error);
+      Promise.resolve(this.options.destroy(resource)).catch((error) =>
+        log.error('resource destroy error', { error })
+      );
       return;
     }
     
@@ -615,7 +620,9 @@ export class ResourcePool<T> implements AsyncDisposable {
     
     await Promise.all(
       allResources.map(r => 
-        Promise.resolve(this.options.destroy(r)).catch(console.error)
+        Promise.resolve(this.options.destroy(r)).catch((error) =>
+          log.error('resource destroy error', { error })
+        )
       )
     );
     
@@ -661,7 +668,9 @@ export class ResourcePool<T> implements AsyncDisposable {
         }
         
         this.available.shift();
-        Promise.resolve(this.options.destroy(oldest.resource)).catch(console.error);
+        Promise.resolve(this.options.destroy(oldest.resource)).catch((error) =>
+          log.error('resource destroy error', { error })
+        );
       }
     }, Math.min(this.options.idleTimeoutMs / 2, 5000));
   }
@@ -701,4 +710,3 @@ export async function usingAll<T extends AsyncDisposable[], R>(
     }
   }
 }
-

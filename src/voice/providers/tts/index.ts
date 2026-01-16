@@ -16,6 +16,9 @@ import { ElevenLabsTTSProvider } from './elevenlabs';
 import { CoquiTTSProvider, isCoquiAvailable } from './coqui';
 import { BrowserTTSProvider, isBrowserTTSAvailable } from './browser';
 import { NotImplementedError } from '../../../mcp-server/chrysalis-tools';
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('voice-tts');
 
 // Re-export all providers
 export { BaseTTSProvider } from './base';
@@ -43,29 +46,9 @@ export const DEFAULT_TTS_FALLBACK_CHAIN: TTSProviderType[] = [
  */
 export async function createTTSProvider(
   type: TTSProviderType,
-  config: Partial<Omit<TTSProviderConfig, 'provider'>> = {}
+  _config: Partial<Omit<TTSProviderConfig, 'provider'>> = {}
 ): Promise<ITTSProvider> {
-  const fullConfig: TTSProviderConfig = { provider: type, ...config };
-  let provider: BaseTTSProvider;
-  
-  switch (type) {
-    case 'elevenlabs':
-      provider = new ElevenLabsTTSProvider();
-      break;
-    case 'coqui':
-      provider = new CoquiTTSProvider();
-      break;
-    case 'browser':
-      provider = new BrowserTTSProvider();
-      break;
-    case 'openai':
-      throw new NotImplementedError('OpenAI TTS provider');
-    default:
-      throw new Error(`Unknown TTS provider type: ${type}`);
-  }
-  
-  await provider.initialize(fullConfig);
-  return provider;
+  throw new Error('TTS providers are deferred (voice features paused)');
 }
 
 /**
@@ -78,51 +61,10 @@ export async function createTTSProvider(
  * @returns Initialized TTS provider
  */
 export async function createTTSProviderWithFallback(
-  config: Partial<Omit<TTSProviderConfig, 'provider'>> = {},
-  fallbackChain: TTSProviderType[] = DEFAULT_TTS_FALLBACK_CHAIN
+  _config: Partial<Omit<TTSProviderConfig, 'provider'>> = {},
+  _fallbackChain: TTSProviderType[] = DEFAULT_TTS_FALLBACK_CHAIN
 ): Promise<ITTSProvider> {
-  const errors: Array<{ type: TTSProviderType; error: Error }> = [];
-  
-  for (const type of fallbackChain) {
-    try {
-      // Skip browser provider if not available
-      if (type === 'browser' && !isBrowserTTSAvailable()) {
-        errors.push({ type, error: new Error('Browser TTS not available') });
-        continue;
-      }
-      
-      // Skip ElevenLabs if no API key
-      if (type === 'elevenlabs' && !config.apiKey) {
-        errors.push({ type, error: new Error('No API key for ElevenLabs') });
-        continue;
-      }
-      
-      // Check Coqui availability
-      if (type === 'coqui') {
-        const coquiEndpoint = config.endpoint || 'http://localhost:5002';
-        const available = await isCoquiAvailable(coquiEndpoint);
-        if (!available) {
-          errors.push({ type, error: new Error('Coqui server not available') });
-          continue;
-        }
-      }
-      
-      const provider = await createTTSProvider(type, config);
-      console.log(`TTS provider initialized: ${type}`);
-      return provider;
-    } catch (error) {
-      errors.push({
-        type,
-        error: error instanceof Error ? error : new Error(String(error)),
-      });
-    }
-  }
-  
-  // All providers failed
-  const errorDetails = errors
-    .map(e => `${e.type}: ${e.error.message}`)
-    .join('; ');
-  throw new Error(`All TTS providers failed: ${errorDetails}`);
+  throw new Error('TTS providers are deferred (voice features paused)');
 }
 
 /**

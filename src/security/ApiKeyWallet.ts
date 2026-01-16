@@ -22,6 +22,7 @@ import {
   hash,
   secureWipe
 } from './crypto';
+import { createLogger } from '../shared/logger';
 
 /**
  * Supported API key providers
@@ -127,6 +128,7 @@ export class ApiKeyWallet {
   private state: WalletState = 'uninitialized';
   private autoLockTimer: NodeJS.Timeout | null = null;
   private eventHandlers: Map<WalletEventType, Set<WalletEventHandler>> = new Map();
+  private log = createLogger('api-key-wallet');
   private settings: WalletSettings = { ...DEFAULT_SETTINGS };
   
   constructor() {}
@@ -605,7 +607,7 @@ export class ApiKeyWallet {
         try {
           handler({ type, payload });
         } catch (error) {
-          console.error(`Wallet event handler error for ${type}:`, error);
+          this.log.error('wallet event handler error', { event: type, error });
         }
       }
     }

@@ -201,6 +201,10 @@ export function createChrysalisMCPServer(
  * npx ts-node src/mcp-server/index.ts
  * ```
  */
+import { createLogger } from '../shared/logger';
+
+const log = createLogger('mcp-server');
+
 export async function main(): Promise<void> {
   const server = createChrysalisMCPServer({
     name: 'chrysalis-mcp-server',
@@ -215,43 +219,43 @@ export async function main(): Promise<void> {
   
   // Set up event listeners
   server.on('log', (event) => {
-    console.error(`[${event.level}] ${event.message}`);
+    log.info(event.message, { level: event.level });
   });
   
   server.on('client-connected', (data) => {
-    console.error(`Client connected: ${data.clientInfo?.name || 'unknown'}`);
+    log.info('client connected', { client: data.clientInfo?.name || 'unknown' });
   });
   
   server.on('client-disconnected', () => {
-    console.error('Client disconnected');
+    log.info('client disconnected');
   });
   
   server.on('tool-called', (data) => {
-    console.error(`Tool called: ${data.tool}`);
+    log.info('tool called', { tool: data.tool });
   });
   
   // Handle shutdown
   process.on('SIGINT', async () => {
-    console.error('Shutting down...');
+    log.info('shutting down');
     await server.stop();
     process.exit(0);
   });
   
   process.on('SIGTERM', async () => {
-    console.error('Shutting down...');
+    log.info('shutting down');
     await server.stop();
     process.exit(0);
   });
   
   // Start server
   await server.start({ type: 'stdio' });
-  console.error('Chrysalis MCP Server started (stdio)');
+  log.info('server started (stdio)');
 }
 
 // Run if executed directly
 if (require.main === module) {
   main().catch((err) => {
-    console.error('Fatal error:', err);
+    log.error('fatal error', { error: err });
     process.exit(1);
   });
 }

@@ -15,6 +15,7 @@ import {
   TranscriptSegment,
 } from '../../types';
 import { BaseSTTProvider } from './base';
+import { createLogger } from '../../shared/logger';
 
 // Web Speech API types
 interface SpeechRecognitionEvent extends Event {
@@ -79,6 +80,7 @@ declare global {
 export class BrowserSTTProvider extends BaseSTTProvider {
   readonly name = 'Browser Web Speech';
   readonly type = 'browser' as const;
+  private log = createLogger('voice-stt-browser');
   
   private recognition: SpeechRecognition | null = null;
   private isStreaming = false;
@@ -143,7 +145,7 @@ export class BrowserSTTProvider extends BaseSTTProvider {
    * Handle speech recognition errors
    */
   private handleError(event: SpeechRecognitionErrorEvent): void {
-    console.error('Speech recognition error:', event.error, event.message);
+    this.log.error('speech recognition error', { error: event.error, message: event.message });
     
     // Map Web Speech API errors to user-friendly messages
     const errorMessages: Record<string, string> = {
@@ -174,7 +176,7 @@ export class BrowserSTTProvider extends BaseSTTProvider {
       resolver({ value: errorResult, done: true });
     }
     
-    console.warn(`Browser STT error: ${message}`);
+    this.log.warn('browser stt error', { message, code: event.error });
   }
   
   /**

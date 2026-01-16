@@ -44,7 +44,7 @@ class ExecutionState:
     timestamp: float
 
     @staticmethod
-    def initial(start_node: str) -> ExecutionState:
+    def initial(start_node: str, variables: Mapping[str, Any] | None = None) -> ExecutionState:
         """Create initial execution state."""
         return ExecutionState(
             current_node=start_node,
@@ -52,7 +52,7 @@ class ExecutionState:
             loop_counters={},
             responses={},
             categories={},
-            variables={},
+            variables=dict(variables or {}),
             timestamp=time.time()
         )
 
@@ -182,7 +182,7 @@ class FlowExecutor:
         """Register a handler for a node type."""
         self.handlers[node_type] = handler
 
-    async def execute(self) -> ExecutionResult:
+    async def execute(self, initial_variables: Mapping[str, Any] | None = None) -> ExecutionResult:
         """
         Execute the flow graph from start to end.
 
@@ -190,7 +190,7 @@ class FlowExecutor:
             ExecutionResult with final state and history
         """
         start_time = time.time()
-        state = ExecutionState.initial(self.graph.start_node)
+        state = ExecutionState.initial(self.graph.start_node, variables=initial_variables)
         history: list[ExecutionState] = [state]
 
         try:
@@ -251,6 +251,13 @@ class FlowExecutor:
                     )
 
                 # Transition to next state
+                if node.node_type == NodeType.LOOP:
+                    # Track loop iterations to support exit conditions
+                    if category == "continue":
+                        state = state.increment_loop(node.id)
+                    elif category == "exit":
+                        state = state.reset_loop(node.id)
+
                 state = state.with_transition(
                     next_node=next_node_id,
                     response=response,

@@ -472,33 +472,6 @@ export {
 } from './acp';
 
 // ============================================================================
-// LEGACY ADAPTERS REMOVED
-// ============================================================================
-//
-// The following adapters have been removed as part of the complexity reduction:
-// - BaseAdapter (base-adapter.ts)
-// - MCPAdapter (MCPAdapter.ts)
-// - CrewAIAdapter (CrewAIAdapter.ts)
-// - USAAdapter (usa-adapter.ts)
-// - ElizaOSAdapter (ElizaOSAdapter.ts)
-// - MultiAgentAdapter (MultiAgentAdapter.ts)
-// - OrchestratedAdapter (OrchestratedAdapter.ts)
-// - LangChainAdapter (langchain-adapter.ts)
-// - LMOSAdapter (lmos-adapter.ts)
-// - And others...
-//
-// USE UniversalAdapter INSTEAD:
-//   const adapter = createUniversalAdapter(llmProvider);
-//   const result = await adapter.translate(agent, 'mcp', 'usa');
-//
-// The Universal Adapter maps by SEMANTIC CATEGORY MEANING, delegating
-// translation logic to LLMs through structured prompts.
-//
-// See: docs/architecture/UNIVERSAL_ADAPTER_DESIGN.md
-// See: src/adapters/universal/README.md
-// ============================================================================
-
-// ============================================================================
 // Type Re-exports for Convenience
 // ============================================================================
 

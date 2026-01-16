@@ -205,18 +205,25 @@ export interface ChatPaneProps {
   agent: AgentBinding;
   messages: ChatMessage[];
   participants: ChatParticipant[];
-  
+
   // State
   isLoading?: boolean;
   isAgentTyping?: boolean;
-  
+
   // Configuration
   showMemoryIndicators?: boolean;
   maxMessages?: number;
-  
+
+  // Persistent affordances
+  showInviteButton?: boolean;
+  showDndButton?: boolean;
+  dndState?: 'off' | 'on';
+
   // Callbacks
   onSendMessage: (content: string) => void;
   onClearChat?: () => void;
+  onInviteClick?: () => void;
+  onToggleDnd?: (state: 'off' | 'on') => void;
 }
 
 /**

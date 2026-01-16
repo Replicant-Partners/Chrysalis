@@ -24,6 +24,7 @@ import {
 import { SerenaBridge, SerenaConfig, createSerenaBridge } from './SerenaBridge';
 import { DirectLLMBridge, DirectLLMConfig, createDirectLLMBridge } from './DirectLLMBridge';
 import { ElizaOSBridge, ElizaOSConfig, createElizaOSBridge } from './ElizaOSBridge';
+import { createLogger } from '../../shared/logger';
 
 /**
  * Registry event types
@@ -54,6 +55,7 @@ export class AgentRegistry implements IAgentRegistry {
   private bridges: Map<string, IAgentBridge> = new Map();
   private eventHandlers: Map<RegistryEventType, Set<RegistryEventHandler>> = new Map();
   private bridgeEventUnsubscribers: Map<string, () => void> = new Map();
+  private log = createLogger('agent-registry');
   
   constructor() {}
   
@@ -251,7 +253,7 @@ export class AgentRegistry implements IAgentRegistry {
       try {
         await bridge.disconnect();
       } catch (error) {
-        console.error(`Failed to disconnect ${bridge.id}:`, error);
+        this.log.error('Failed to disconnect bridge', { bridgeId: bridge.id, error });
       }
     }
   }
@@ -360,7 +362,7 @@ export class AgentRegistry implements IAgentRegistry {
         try {
           handler(event);
         } catch (error) {
-          console.error(`Registry event handler error for ${event.type}:`, error);
+          this.log.error('registry event handler error', { event: event.type, error });
         }
       }
     }
@@ -382,7 +384,7 @@ export class AgentRegistry implements IAgentRegistry {
       try {
         await bridge.destroy();
       } catch (error) {
-        console.error(`Failed to destroy ${bridge.id}:`, error);
+        this.log.error('Failed to destroy bridge', { bridgeId: bridge.id, error });
       }
     }
     

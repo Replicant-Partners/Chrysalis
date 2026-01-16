@@ -15,6 +15,8 @@
  * identify performance bottlenecks, and track system health.
  */
 
+import { createLogger as createSharedLogger } from '../shared/logger';
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -596,6 +598,7 @@ export class Logger {
   private _minLevel: LogLevel = 'info';
   private _exporters: LogExporter[] = [];
   private _tracer?: Tracer;
+  private sharedLogger = createSharedLogger('observability');
   
   private static LEVEL_PRIORITY: Record<LogLevel, number> = {
     debug: 0,
@@ -608,6 +611,7 @@ export class Logger {
     this._name = name;
     this._minLevel = options?.minLevel ?? 'info';
     this._tracer = options?.tracer;
+    this.sharedLogger = createSharedLogger(`observability:${name}`);
   }
   
   /**
@@ -669,24 +673,10 @@ export class Logger {
       entry.spanId = activeSpan.context.spanId;
     }
     
-    // Console output
+    // Emit via shared logger for unified JSONL output
     const prefix = `[${new Date().toISOString()}] [${level.toUpperCase()}] [${this._name}]`;
     const contextStr = entry.traceId ? ` [trace:${entry.traceId.slice(0, 8)}]` : '';
-    
-    switch (level) {
-      case 'debug':
-        console.debug(`${prefix}${contextStr}`, message, attributes ?? '');
-        break;
-      case 'info':
-        console.info(`${prefix}${contextStr}`, message, attributes ?? '');
-        break;
-      case 'warn':
-        console.warn(`${prefix}${contextStr}`, message, attributes ?? '');
-        break;
-      case 'error':
-        console.error(`${prefix}${contextStr}`, message, attributes ?? '');
-        break;
-    }
+    this.sharedLogger[level](`${prefix}${contextStr} ${message}`, attributes);
     
     // Export
     for (const exporter of this._exporters) {

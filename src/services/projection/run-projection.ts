@@ -1,4 +1,7 @@
 import { ProjectionService } from './ProjectionService';
+import { createLogger } from '../../shared/logger';
+
+const log = createLogger('projection-service');
 
 function parseArg(name: string, def?: string): string | undefined {
   const idx = process.argv.indexOf(`--${name}`);
@@ -14,12 +17,11 @@ async function main(): Promise<void> {
 
   const svc = new ProjectionService({ crdtPort, ledgerBaseUrl, pollIntervalMs, tailBatchSize });
   await svc.start();
-  console.log(`[ProjectionService] up ws://localhost:${crdtPort} (polling ${ledgerBaseUrl})`);
+  log.info('projection service started', { crdtPort, ledgerBaseUrl, pollIntervalMs, tailBatchSize });
   await new Promise(() => {});
 }
 
 main().catch((err) => {
-  console.error(err);
+  log.error('projection service failed to start', { error: err instanceof Error ? err.message : String(err) });
   process.exitCode = 1;
 });
-

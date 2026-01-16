@@ -19,6 +19,7 @@ import {
   TerminalEventType,
   DEFAULT_MULTIPLEXER_CONFIG,
 } from './types';
+import { createLogger } from '../../shared/logger';
 
 // =============================================================================
 // WebSocket PTY Backend
@@ -37,6 +38,7 @@ export class WebSocketPTYBackend implements PTYBackend {
   private messageQueue: Array<{ type: string; payload: unknown }> = [];
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private log = createLogger('terminal-manager');
 
   constructor(private serverUrl: string) {}
 
@@ -61,7 +63,7 @@ export class WebSocketPTYBackend implements PTYBackend {
         };
 
         this.ws.onerror = (error) => {
-          console.error('[TerminalManager] WebSocket error:', error);
+          this.log.error('websocket error', { error: error instanceof Error ? error.message : String(error) });
           reject(error);
         };
 
@@ -131,7 +133,7 @@ export class WebSocketPTYBackend implements PTYBackend {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       setTimeout(() => {
-        this.connectToServer().catch(console.error);
+        this.connectToServer().catch((error) => this.log.error('reconnect failed', { error: error instanceof Error ? error.message : String(error) }));
       }, 1000 * this.reconnectAttempts);
     }
   }

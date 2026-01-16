@@ -22,6 +22,7 @@ import {
   type Disposable,
   generateCorrelationId,
 } from './types';
+import { createLogger } from '../shared/logger';
 
 // ============================================================================
 // Container Types
@@ -204,6 +205,7 @@ export class Container implements AsyncDisposable {
   private disposed = false;
   private parent?: Container;
   private disposables: Array<() => void | Promise<void>> = [];
+  private log = createLogger('container');
 
   /**
    * Create a new container
@@ -420,7 +422,7 @@ export class Container implements AsyncDisposable {
         await this.disposables[i]();
       } catch (error) {
         // Log but continue disposing
-        console.error('Error disposing service:', error);
+        this.log.error('error disposing service', { error: error instanceof Error ? error.message : String(error) });
       }
     }
     
@@ -444,10 +446,10 @@ export class Container implements AsyncDisposable {
         const result = this.disposables[i]();
         if (result instanceof Promise) {
           // Log warning for async disposal in sync context
-          console.warn('Async disposal called in sync context');
+          this.log.warn('async disposal called in sync context');
         }
       } catch (error) {
-        console.error('Error disposing service:', error);
+        this.log.error('error disposing service', { error: error instanceof Error ? error.message : String(error) });
       }
     }
     

@@ -589,7 +589,7 @@ export class SerenaBridge extends BaseBridge {
     this.onboardingComplete = result.onboarding_performed;
     
     if (!this.onboardingComplete) {
-      console.log('Serena onboarding not complete. Run onboarding for better results.');
+      this.log.warn('Serena onboarding not complete. Run onboarding for better results.');
     }
   }
   

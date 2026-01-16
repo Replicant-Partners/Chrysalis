@@ -16,6 +16,7 @@ import {
 } from './types';
 
 import { type BridgeError, isBridgeError } from './errors';
+import { createLogger } from '../shared/logger';
 
 // ============================================================================
 // Log Level Types
@@ -183,6 +184,7 @@ export class ConsoleTransport implements LogTransport {
   readonly name = 'console';
   level?: LogLevelValue;
   private options: Required<ConsoleTransportOptions>;
+  private log = createLogger('bridge-console');
 
   constructor(options: ConsoleTransportOptions = {}) {
     this.options = {
@@ -198,17 +200,17 @@ export class ConsoleTransport implements LogTransport {
     
     switch (entry.level) {
       case 'DEBUG':
-        console.debug(output);
+        this.log.debug(output);
         break;
       case 'INFO':
-        console.info(output);
+        this.log.info(output);
         break;
       case 'WARN':
-        console.warn(output);
+        this.log.warn(output);
         break;
       case 'ERROR':
       case 'FATAL':
-        console.error(output);
+        this.log.error(output);
         break;
     }
   }
@@ -460,9 +462,12 @@ export class Logger implements ILogger {
         try {
           transport.write(entry);
         } catch (e) {
-          // Fallback to console
-          console.error('Log transport error:', e);
-          console.log(JSON.stringify(entry));
+          // Fallback to shared logger
+          const fallbackLog = createLogger('bridge-transport');
+          fallbackLog.error('Log transport error', {
+            error: e instanceof Error ? e.message : String(e),
+            entry,
+          });
         }
       }
     }

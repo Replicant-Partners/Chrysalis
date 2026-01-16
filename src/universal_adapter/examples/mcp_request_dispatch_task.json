@@ -1,0 +1,70 @@
+{
+  "name": "mcp_request_dispatch",
+  "version": "1.0.0",
+  "taskId": "task-mcp-dispatch-001",
+  "taskType": "dispatch",
+  "priority": "high",
+  "goal": {
+    "description": "Classify an MCP JSON-RPC request and produce a routing decision or error response",
+    "target_conditions": [
+      {
+        "description": "Request classification produced with routing details",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 8 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "8"
+      }
+    ]
+  },
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.2,
+    "max_tokens": 1200,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "mcp_protocol",
+        "category": "spec",
+        "source_url": "https://modelcontextprotocol.io/specification/2025-11-25/schema"
+      },
+      {
+        "name": "mcp_server_impl",
+        "category": "reference",
+        "source_url": "docs/BRIDGE_IMPLEMENTATION.md"
+      }
+    ]
+  },
+  "input": {
+    "request": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}"
+  },
+  "prompts": [
+    {
+      "template": "Inspect the JSON-RPC request:\n{{request}}\nCheck for required fields (jsonrpc, id, method) and compliance with MCP spec ({{registry:mcp_protocol}}). Summarize any structural issues.",
+      "role": "user",
+      "description": "Validate request structure"
+    },
+    {
+      "template": "Based on validation summary:\n{{response:P0}}\nClassify the request as 'valid' or 'invalid'. If valid, identify handler group (tools, resources, prompts, logging, lifecycle).",
+      "role": "user",
+      "description": "Classify request"
+    },
+    {
+      "template": "Produce a routing decision for a valid request. Include target handler name and required permissions.",
+      "role": "user",
+      "description": "Route valid request"
+    },
+    {
+      "template": "Produce an error response for invalid request. Include error code and message.",
+      "role": "user",
+      "description": "Build error response"
+    }
+  ],
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 -->|valid| P2\n    P1 -->|invalid| P3\n    P2 --> GOAL\n    P3 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P0"
+  }
+}

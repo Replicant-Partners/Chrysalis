@@ -13,6 +13,8 @@
  * @see COMPREHENSIVE_CODE_REVIEW.md HIGH-ARCH-001
  */
 
+import { createLogger } from '../shared/logger';
+
 export type CircuitState = 'closed' | 'open' | 'half-open';
 
 export interface CircuitBreakerConfig {
@@ -57,6 +59,7 @@ export class CircuitBreaker<T> {
   private fallbackCalls = 0;
   
   private readonly config: CircuitBreakerConfig;
+  private log = createLogger('circuit-breaker');
   
   constructor(config: Partial<CircuitBreakerConfig> = {}) {
     this.config = {
@@ -133,7 +136,7 @@ export class CircuitBreaker<T> {
     fallback: () => T | Promise<T>,
     reason: string
   ): Promise<T> {
-    console.warn(`[CircuitBreaker:${this.config.name}] Using fallback: ${reason}`);
+    this.log.warn('using fallback', { circuit: this.config.name, reason });
     return fallback();
   }
   
@@ -156,7 +159,7 @@ export class CircuitBreaker<T> {
       // Recovery successful, close circuit
       this.state = 'closed';
       this.failures = 0;
-      console.info(`[CircuitBreaker:${this.config.name}] Circuit closed after recovery`);
+      this.log.info('circuit closed after recovery', { circuit: this.config.name });
     }
   }
   
@@ -170,11 +173,14 @@ export class CircuitBreaker<T> {
     if (this.state === 'half-open') {
       // Recovery failed, reopen circuit
       this.state = 'open';
-      console.warn(`[CircuitBreaker:${this.config.name}] Circuit reopened after failed recovery`);
+      this.log.warn('circuit reopened after failed recovery', { circuit: this.config.name });
     } else if (this.failures >= this.config.failureThreshold) {
       // Threshold reached, open circuit
       this.state = 'open';
-      console.warn(`[CircuitBreaker:${this.config.name}] Circuit opened after ${this.failures} failures`);
+      this.log.warn('circuit opened after failures', {
+        circuit: this.config.name,
+        failures: this.failures
+      });
     }
   }
   
