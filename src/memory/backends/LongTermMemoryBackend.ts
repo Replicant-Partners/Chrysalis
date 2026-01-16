@@ -3,8 +3,8 @@
  *
  * Chrysalis Memory Architecture:
  * 
- *   ┌─── FIXED CHRYSALIS LAYERS (all agents) ────────────────────┐
- *   │  Beads → Fireproof (CRDT SYNC) → Byzantine → Nomic        │
+ *   ┌─── FIXED CHRYSALIS LAYERS (per agent) ─────────────────────┐
+ *   │  Beads → Fireproof (Local CRDT) → Byzantine → Nomic       │
  *   └─────────────────────────────────────────────────────────────┘
  *                                │
  *                                ▼ Syncs to (when online)
@@ -14,16 +14,18 @@
  *
  * Strategic Roles:
  * - Beads: Short-term context buffer (local, fast, TTL-based)
- * - Fireproof: DISTRIBUTED SYNC BACKBONE via CRDT (critical!)
- *   - Conflict-free replication across ALL agent instances
+ * - Fireproof: Durable local cache + sync buffer
  *   - Local-first (works offline)
- *   - Eventually consistent
+ *   - CRDT merge for concurrent LOCAL operations
+ *   - Sync queue to long-term backend
  * - Nomic: Calibration check + offline fallback when disconnected
- * - Long-term: Remote persistent storage (optional, cloud-based)
+ * - Long-term: Remote persistent storage + MULTI-AGENT SYNC
+ *   - This is where agents actually share memories (cloud-mediated)
  *
  * Philosophy:
- * - Fireproof CRDT enables multi-agent sync WITHOUT depending on cloud
- * - Long-term backends are for DURABLE REMOTE storage, not sync
+ * - Fireproof provides offline resilience and local durability
+ * - Long-term backends (Zep/Letta/Mem0) handle multi-agent sync
+ * - Agents push to cloud, retrieve from cloud → shared memory
  * - System works fully offline, syncs when reconnected
  *
  * @module memory/backends/LongTermMemoryBackend
@@ -46,7 +48,7 @@ export type LongTermBackendType =
 
 /**
  * Standardized long-term memory entry
- * 
+ *
  * This is what gets promoted FROM Fireproof TO the long-term backend.
  * Each backend translates this to their native format.
  */
@@ -89,7 +91,7 @@ export interface LongTermBackendCapabilities {
 
 /**
  * Long-term memory backend interface
- * 
+ *
  * All backends implement this. Beads/Fireproof call these methods.
  */
 export interface LongTermMemoryBackend {
@@ -133,7 +135,7 @@ export interface SearchOptions {
 
 /**
  * Zep long-term memory backend
- * 
+ *
  * Connects to existing FireproofZepSync.
  */
 export class ZepLongTermBackend implements LongTermMemoryBackend {
@@ -184,7 +186,7 @@ export class ZepLongTermBackend implements LongTermMemoryBackend {
 
   async store(entry: Omit<LongTermMemoryEntry, 'id'>): Promise<LongTermMemoryEntry> {
     const id = `zep-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    
+
     // Store as Zep memory
     await fetch(`${this.baseUrl}/api/v2/memory`, {
       method: 'POST',
@@ -212,7 +214,7 @@ export class ZepLongTermBackend implements LongTermMemoryBackend {
 
   async search(query: string, options?: SearchOptions): Promise<LongTermSearchResult> {
     const start = Date.now();
-    
+
     const response = await fetch(`${this.baseUrl}/api/v2/memory/search`, {
       method: 'POST',
       headers: {
@@ -277,7 +279,7 @@ export class ZepLongTermBackend implements LongTermMemoryBackend {
 
 /**
  * Mem0 long-term memory backend
- * 
+ *
  * Key advantages:
  * - +26% accuracy over OpenAI Memory (LOCOMO benchmark)
  * - 91% faster than full-context
@@ -310,12 +312,12 @@ export class Mem0LongTermBackend implements LongTermMemoryBackend {
       console.warn('[Mem0Backend] No MEM0_API_KEY configured');
       return false;
     }
-    
+
     try {
       // Verify connection with a simple request
       const response = await fetch(`${this.baseUrl}/v1/memories`, {
         method: 'GET',
-        headers: { 
+        headers: {
           'Authorization': `Token ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
@@ -487,7 +489,7 @@ export class Mem0LongTermBackend implements LongTermMemoryBackend {
 
 /**
  * Letta long-term memory backend
- * 
+ *
  * Note: This is a SIMPLIFIED version that only handles long-term storage.
  * The full LettaMemoryAdapter in ../adapters/ provides complete agent integration.
  */
@@ -524,13 +526,13 @@ export class LettaLongTermBackend implements LongTermMemoryBackend {
         headers: { Authorization: `Bearer ${this.apiKey}` },
       });
       this.connected = response.ok;
-      
+
       if (response.ok) {
         const agents = await response.json();
         // Use first agent or create one
         this.agentId = agents[0]?.id || null;
       }
-      
+
       return this.connected;
     } catch {
       this.connected = false;

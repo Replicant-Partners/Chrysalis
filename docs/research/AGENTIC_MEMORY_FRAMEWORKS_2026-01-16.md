@@ -354,19 +354,19 @@ This means:
 | Component | Strategic Role | Why Critical |
 |-----------|----------------|--------------|
 | **Beads** | Short-term context buffer | Fast local access, TTL-based cleanup |
-| **Fireproof** | **DISTRIBUTED SYNC BACKBONE** | CRDT replication across ALL agent instances |
+| **Fireproof** | **Durable local cache + CRDT sync buffer** | Local-first with CRDT merge, syncs to cloud |
 | **Nomic** | Calibration + Offline fallback | Works when disconnected from primary services |
-| **Long-term** | Remote persistent storage | Zep/Letta/Mem0 for durable cloud storage |
+| **Long-term** | Remote persistent storage + multi-agent sync | Zep/Letta/Mem0 for durable cloud storage |
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                    CHRYSALIS MEMORY ARCHITECTURE                        │
 │                                                                        │
-│  "Fireproof CRDT is the distributed sync backbone,                     │
-│   not just a cache layer"                                              │
+│  "Fireproof provides durable local CRDT storage,                       │
+│   Long-term backends handle multi-agent synchronization"               │
 ├────────────────────────────────────────────────────────────────────────┤
 │                                                                        │
-│  ┌─── FIXED CHRYSALIS LAYERS ───────────────────────────────────────┐ │
+│  ┌─── FIXED CHRYSALIS LAYERS (per agent) ───────────────────────────┐ │
 │  │                                                                   │ │
 │  │  ┌───────────┐                                                   │ │
 │  │  │   BEADS   │  Short-term context (TTL, max_items)              │ │
@@ -375,14 +375,14 @@ This means:
 │  │        │ promotes (importance ≥ 0.7)                             │ │
 │  │        ▼                                                         │ │
 │  │  ┌───────────────────────────────────────────────────────────┐  │ │
-│  │  │                    FIREPROOF (CRDT)                        │  │ │
+│  │  │                    FIREPROOF (Local CRDT)                  │  │ │
 │  │  │                                                            │  │ │
-│  │  │  ★ DISTRIBUTED SYNC BACKBONE ★                            │  │ │
+│  │  │  ★ DURABLE LOCAL CACHE + SYNC BUFFER ★                    │  │ │
 │  │  │                                                            │  │ │
-│  │  │  • Conflict-free replication across agent instances        │  │ │
 │  │  │  • Local-first (works offline)                             │  │ │
-│  │  │  • Eventually consistent across distributed agents         │  │ │
-│  │  │  • Byzantine-resistant with validation hooks               │  │ │
+│  │  │  • CRDT merge for concurrent local operations              │  │ │
+│  │  │  • Sync queue to long-term backend                         │  │ │
+│  │  │  • Survives process restarts                               │  │ │
 │  │  └───────────────────────┬───────────────────────────────────┘  │ │
 │  │                          │                                      │ │
 │  │        ┌─────────────────┼─────────────────┐                    │ │
@@ -392,42 +392,65 @@ This means:
 │  │  │  NOMIC    │    │ BYZANTINE │    │  SYNC TO LONG-TERM  │    │ │
 │  │  │ EMBEDDING │    │VALIDATION │    │  (when online)      │    │ │
 │  │  │           │    │           │    │                     │    │ │
-│  │  │ • Local   │    │ • >2/3    │    │  Zep | Letta | Mem0 │    │ │
-│  │  │ • Offline │    │ • Trimmed │    │  (remote storage)   │    │ │
+│  │  │ • Local   │    │ • >2/3    │    │  Push to cloud      │    │ │
+│  │  │ • Offline │    │ • Trimmed │    │  Pull from cloud    │    │ │
 │  │  │ • Backup  │    │   mean    │    │                     │    │ │
 │  │  └───────────┘    └───────────┘    └─────────────────────┘    │ │
-│  │        │                                       │               │ │
-│  │        │ calibration                           │ remote        │ │
-│  │        │ check                                 │ storage       │ │
-│  │        └───────────────────────────────────────┘               │ │
+│  └───────────────────────────────────────────────────────────────────┘ │
+│                                   │                                    │
+│                                   ▼ Sync via long-term backend         │
+│  ┌─── PLUGGABLE LONG-TERM (multi-agent sync) ───────────────────────┐ │
+│  │                                                                   │ │
+│  │  ┌─────────┐    ┌─────────┐    ┌─────────┐                      │ │
+│  │  │   ZEP   │    │  LETTA  │    │  MEM0   │                      │ │
+│  │  │ (facts) │    │(blocks) │    │ (graph) │                      │ │
+│  │  └─────────┘    └─────────┘    └─────────┘                      │ │
+│  │                                                                   │ │
+│  │  Multi-agent sync happens HERE (cloud-mediated)                  │ │
+│  │  Each agent: pushes to cloud ←→ retrieves from cloud             │ │
 │  └───────────────────────────────────────────────────────────────────┘ │
 │                                                                        │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Why This Architecture?
+### How Multi-Agent Sync Actually Works
 
-**Fireproof as Sync Backbone (not just cache):**
+**Current Implementation (Cloud-Mediated):**
 ```
-Agent A ───┐                     ┌─── Agent C
-           │                     │
-           ▼                     ▼
-      ┌─────────┐           ┌─────────┐
-      │Fireproof│◀── CRDT ──│Fireproof│
-      │   (A)   │  sync     │   (C)   │
-      └─────────┘           └─────────┘
-           ▲                     ▲
-           │                     │
-Agent B ───┘                     └─── Agent D
+Agent A ───push────▶┌─────────────────────┐◀────push─── Agent C
+                    │   ZEP / LETTA / MEM0 │
+Agent B ───push────▶│   (Cloud Backend)   │◀────push─── Agent D
+                    └─────────────────────┘
+                              │
+                    All agents retrieve from here
+                              │
+                    ▼                    ▼
+                Agent A              Agent B
+              (retrieves)          (retrieves)
 
-All agents share memories via Fireproof CRDT sync.
-Long-term backends are optional remote persistence.
+Agents sync THROUGH the cloud backend.
+Fireproof is local cache per agent.
 ```
 
-**Offline Resilience:**
-1. **Disconnected from Zep/Letta/Mem0?** → Fireproof CRDT still works locally
+**Future Enhancement (Direct P2P via native Fireproof):**
+```
+Agent A ◀──CRDT──▶ Agent B
+    ▲                 ▲
+    │     direct      │
+    │      sync       │
+    ▼                 ▼
+Agent C ◀──CRDT──▶ Agent D
+
+Native Fireproof library supports peer-to-peer
+Merkle-CRDT sync. Not yet implemented in our
+Python emulation layer.
+```
+
+### Offline Resilience
+
+1. **Disconnected from Zep/Letta/Mem0?** → Fireproof works locally, queues changes
 2. **Disconnected from embedding service?** → Nomic runs locally as fallback
-3. **Reconnected?** → CRDT merges automatically, syncs to long-term backend
+3. **Reconnected?** → Fireproof syncs queued changes to long-term backend
 
 ### Backend Selection Guide
 
@@ -442,7 +465,7 @@ Long-term backends are optional remote persistence.
 
 ✅ **Zep** - Already integrated via `FireproofZepSync`
 ✅ **Letta** - `LettaLongTermBackend` created
-✅ **Mem0** - `Mem0LongTermBackend` created  
+✅ **Mem0** - `Mem0LongTermBackend` created
 ✅ **Beads** - `memory_system/beads.py` (unchanged)
 ✅ **Fireproof** - `memory_system/fireproof/` (unchanged)
 ✅ **Nomic** - `shared/embedding.py` (unchanged)
