@@ -97,6 +97,38 @@ export type {
 // Constants
 export { DEFAULT_MEMORY_CONFIG } from './types';
 
+// ===========================================================================
+// External Memory Adapters
+// ===========================================================================
+
+// Letta Memory-First Platform
+export {
+  LettaMemoryAdapter,
+  createLettaAdapter,
+  initializeLettaAdapter,
+  type LettaAdapterConfig,
+  type LettaMemoryBlock,
+  type LettaBlockLabel,
+  type LettaAgent,
+  type LettaMessage,
+  type LettaSkill,
+} from './adapters/LettaMemoryAdapter';
+
+// Universal Memory Provider (Memory-Agnostic Abstraction)
+export {
+  UniversalMemoryClient,
+  memoryProviderRegistry,
+  createUniversalMemoryClient,
+  setupMemoryProvider,
+  type MemoryProviderType,
+  type MemoryOperation,
+  type UniversalMemoryEntry,
+  type MemorySearchResult,
+  type MemoryProviderCapabilities,
+  type MemoryProvider,
+  type UniversalMemoryConfig,
+} from './UniversalMemoryProvider';
+
 /**
  * Factory to create a memory adapter for an agent
  */
