@@ -10,7 +10,7 @@
  */
 
 import type { UniformSemanticAgentV2 } from '../core/UniformSemanticAgentV2';
-import { VoyeurEventKind, VoyeurSink } from '../observability/VoyeurEvents';
+import { logger } from '../observability';
 import { logger } from '../observability';
 import type { SanitizeResult } from './MemorySanitizer';
 import * as crypto from 'crypto';
@@ -29,7 +29,6 @@ export interface MemoryMergerConfig {
   vector_index?: VectorIndex;  // VectorIndex (optional, v3.2+)
   vector_index_type?: 'hnsw' | 'lance' | 'brute'; // Preferred backend (qdrant deprecated)
   vector_index_options?: Record<string, any>; // Backend options (collection, host, etc.)
-  voyeur?: VoyeurSink;  // Optional observer for “voyeur” mode
   slow_mode_ms?: number;  // Optional artificial delay for human-speed playback
   metrics?: (event: { kind: 'vector.upsert' | 'vector.query'; backend: string; latencyMs: number; size?: number }) => void;
   metrics_sink?: MetricsSink;
@@ -89,11 +88,11 @@ interface DuplicateMatch {
 export class MemoryMerger {
   private memoryIndex: Map<string, Memory> = new Map();
   private config: MemoryMergerConfig;
-  private voyeur?: VoyeurSink;
   private slowModeMs: number;
   private vectorIndex?: VectorIndex;
   private metricsSink?: MetricsSink;
   private rateBuckets: Map<string, { count: number; windowStart: number }> = new Map();
+  private log = logger('MemoryMerger');
   
   constructor(config?: Partial<MemoryMergerConfig>) {
     // Default: v3.0 behavior (Jaccard)
@@ -104,14 +103,12 @@ export class MemoryMerger {
       use_vector_index: config?.use_vector_index ?? false,
       vector_index: config?.vector_index,
       vector_index_type: config?.vector_index_type ?? 'hnsw',
-      voyeur: config?.voyeur,
       slow_mode_ms: config?.slow_mode_ms ?? 0,
       metrics: config?.metrics,
       metrics_sink: config?.metrics_sink,
       sanitize: config?.sanitize,
       rate_limit: config?.rate_limit
     };
-    this.voyeur = this.config.voyeur;
     this.slowModeMs = this.config.slow_mode_ms ?? 0;
     this.vectorIndex = this.config.vector_index;
     this.metricsSink = this.config.metrics_sink || createMetricsSinkFromEnv() || undefined;
@@ -161,7 +158,7 @@ export class MemoryMerger {
       bucket.count += 1;
       this.rateBuckets.set(sourceInstance, bucket);
       if (bucket.count > this.config.rate_limit.max) {
-        await this.emitVoyeur('ingest.blocked', {
+        await this.emitEvent('ingest.blocked', {
           sourceInstance,
           decision: 'rate_limited'
         });
@@ -174,7 +171,7 @@ export class MemoryMerger {
       ? this.config.sanitize(rawContent, sourceInstance)
       : { ok: true, content: rawContent };
     if (!sanitized.ok) {
-      await this.emitVoyeur('ingest.blocked', {
+      await this.emitEvent('ingest.blocked', {
         sourceInstance,
         memoryHash: this.hashContent(rawContent),
         decision: 'blocked',
@@ -185,7 +182,7 @@ export class MemoryMerger {
 
     // Check for PII in content if sanitizer didn't block it but flagged it
     if (sanitized.piiDetected && sanitized.piiDetected.length > 0) {
-        await this.emitVoyeur('ingest.pii_detected', {
+        await this.emitEvent('ingest.pii_detected', {
             sourceInstance,
             memoryHash: this.hashContent(rawContent),
             piiTypes: sanitized.piiDetected
@@ -251,7 +248,7 @@ export class MemoryMerger {
     
     for (const memoryData of memories) {
       const content = memoryData.content || memoryData.text || '';
-      await this.emitVoyeur('ingest.start', {
+      await this.emitEvent('ingest.start', {
         sourceInstance,
         memoryHash: this.hashContent(content),
         decision: 'pending'
@@ -261,7 +258,7 @@ export class MemoryMerger {
       const duplicate = await this.findDuplicate(memoryData);
       
       if (duplicate) {
-        await this.emitVoyeur('match.candidate', {
+        await this.emitEvent('match.candidate', {
           sourceInstance,
           memoryHash: this.hashContent(content),
           similarity: duplicate.similarity,
@@ -272,7 +269,7 @@ export class MemoryMerger {
         await this.mergeWithExisting(duplicate.memory, memoryData, sourceInstance);
         result.deduplicated++;
         result.updated++;  // Track that we updated an existing memory
-        await this.emitVoyeur('merge.applied', {
+        await this.emitEvent('merge.applied', {
           sourceInstance,
           memoryHash: this.hashContent(content),
           similarity: duplicate.similarity,
@@ -282,7 +279,7 @@ export class MemoryMerger {
         // Add as new
         await this.addMemory(agent, memoryData, sourceInstance);
         result.added++;
-        await this.emitVoyeur('match.none', {
+        await this.emitEvent('match.none', {
           sourceInstance,
           memoryHash: this.hashContent(content),
           threshold: this.config.similarity_threshold,
@@ -432,9 +429,8 @@ export class MemoryMerger {
     return { ...this.config };
   }
 
-  private async emitVoyeur(kind: VoyeurEventKind | string, details?: Record<string, any>): Promise<void> {
-    if (!this.voyeur) return;
-    await this.voyeur.emit({
+  private async emitEvent(kind: string, details?: Record<string, any>): Promise<void> {
+    this.log.debug('event', {
       kind,
       timestamp: new Date().toISOString(),
       ...details

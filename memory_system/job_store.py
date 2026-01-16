@@ -11,7 +11,7 @@ Features:
 - JSON-per-job storage with SHA-384 fingerprinting
 - JSONL append-only events per job
 - Worker claim pattern for distributed execution
-- VoyeurBus-compatible event structure
+- Structured event format for observability
 """
 from __future__ import annotations
 
@@ -110,7 +110,7 @@ class JobEvent:
     """
     Job event for progress/history tracking.
 
-    Compatible with VoyeurBus event structure.
+    Uses structured event format for observability.
     """
     event_id: str
     job_id: str
@@ -128,8 +128,8 @@ class JobEvent:
         """Convert to dictionary for serialization."""
         return asdict(self)
 
-    def to_voyeur_event(self) -> Dict[str, Any]:
-        """Convert to VoyeurBus event format."""
+    def to_observability_event(self) -> Dict[str, Any]:
+        """Convert to structured observability event format."""
         return {
             "kind": f"job.{self.type.lower().replace('job_', '')}",
             "timestamp": self.timestamp,
@@ -174,7 +174,7 @@ class JobStore:
         return os.path.join(self.jobs_dir, f"{job_id}.json")
 
     def add_event_listener(self, listener: EventListener) -> None:
-        """Add a listener for job events (for VoyeurBus integration)."""
+        """Add a listener for job events (for observability integration)."""
         self._event_listeners.append(listener)
 
     def remove_event_listener(self, listener: EventListener) -> None:

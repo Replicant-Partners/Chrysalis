@@ -4,9 +4,8 @@
  * Connects:
  * - SystemAgentLoader (persona configs)
  * - SCMRouter (Gate → Plan → Realize)
- * - LLM providers (OpenAI, Anthropic, Ollama)
+ * - LLM providers (via Go Gateway)
  * - Memory system (Fireproof, Beads)
- * - VoyeurBus (observability)
  *
  * This is the main entry point for system agent interactions.
  *
@@ -44,7 +43,7 @@ import { createSystemContext, type SystemContext } from './TriggerEvaluator';
 import type { SCMContext, SCMGateResult, SCMIntentType } from './SharedConversationMiddleware';
 
 import type { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
-import type { VoyeurBus, VoyeurEvent } from '../../observability/VoyeurEvents';
+import { logger } from '../../observability';
 
 // =============================================================================
 // Types
@@ -56,8 +55,6 @@ import type { VoyeurBus, VoyeurEvent } from '../../observability/VoyeurEvents';
 export interface SystemAgentChatServiceConfig {
   /** Gateway client for Go LLM service (required - single source of truth) */
   gatewayClient?: GatewayLLMClient;
-  /** VoyeurBus for observability events */
-  voyeur?: VoyeurBus;
   /** SCM router config */
   scmConfig?: SCMRouterConfig;
   /** System agent loader config */
@@ -117,7 +114,6 @@ export interface ChatRoutingResult {
  * ```typescript
  * const service = new SystemAgentChatService({
  *   gatewayClient: new GatewayLLMClient(),
- *   voyeur: voyeurBus,
  * });
  *
  * await service.initialize();
@@ -151,12 +147,9 @@ export class SystemAgentChatService {
 
     this.loader = getSystemAgentLoader(config.loaderConfig);
     this.router = createSCMRouter({
-      voyeur: config.voyeur,
       ...config.scmConfig,
     });
-    this.behaviorLoader = createBehaviorLoader({
-      voyeur: config.voyeur,
-    });
+    this.behaviorLoader = createBehaviorLoader({});
   }
 
   // ===========================================================================
@@ -794,14 +787,10 @@ Respond in JSON format with: scorecard, riskScore, confidence, recommendations, 
   // ===========================================================================
 
   /**
-   * Emit event to VoyeurBus
+   * Log observability event
    */
-  private emitEvent(event: VoyeurEvent): void {
-    if (this.config.voyeur) {
-      this.config.voyeur.emit(event).catch(() => {
-        // Silently ignore emission errors
-      });
-    }
+  private emitEvent(event: { kind: string; timestamp: string; [key: string]: unknown }): void {
+    logger('SystemAgentChatService').debug('event', { event });
   }
 
   /**

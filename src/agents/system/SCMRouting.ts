@@ -32,7 +32,6 @@ import {
   createSystemContext,
   type SystemContext,
 } from './TriggerEvaluator';
-import type { VoyeurBus } from '../../observability/VoyeurEvents';
 
 // =============================================================================
 // Types
@@ -57,7 +56,6 @@ export interface SCMRouterConfig {
   maxAgentsPerTurn?: number;
   diversityWeight?: number;
   enableBehavior?: boolean;
-  voyeur?: VoyeurBus;
 }
 
 // =============================================================================
@@ -78,7 +76,6 @@ export class SCMRouter {
       maxAgentsPerTurn: config.maxAgentsPerTurn ?? 2,
       diversityWeight: config.diversityWeight ?? 0.15,
       enableBehavior: config.enableBehavior ?? true,
-      voyeur: config.voyeur as VoyeurBus,
     };
 
     this.arbiter = createArbiter({
@@ -88,7 +85,6 @@ export class SCMRouter {
     });
 
     this.behaviorLoader = new BehaviorLoader({
-      voyeur: this.config.voyeur,
       enableTriggers: this.config.enableBehavior,
       enableOpeners: this.config.enableBehavior,
       enableIdioms: this.config.enableBehavior,

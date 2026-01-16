@@ -12,7 +12,6 @@
  * - Load behavior configs from PersonaConfig
  * - Initialize sub-components
  * - Provide unified API for behavior evaluation
- * - Emit events to VoyeurBus
  */
 
 import type { PersonaConfig, BehaviorConfig, SCMPolicy, DEFAULT_SCM_POLICY } from './types';
@@ -20,7 +19,7 @@ import { TriggerEvaluator, createSystemContext, type SystemContext, type Trigger
 import { OpenerSelector, createSelectionContext, type SelectionContext, type OpenerSelection } from './OpenerSelector';
 import { IdiomRegistry, createIdiomContext, type IdiomContext, type IdiomSelection } from './IdiomRegistry';
 import { SharedConversationMiddleware, type SCMContext, type SCMGateResult } from './SharedConversationMiddleware';
-import type { VoyeurBus, VoyeurEvent } from '../../observability/VoyeurEvents';
+import { logger } from '../../observability';
 
 // =============================================================================
 // Types
@@ -36,7 +35,6 @@ export interface BehaviorEvaluation {
 }
 
 export interface BehaviorLoaderConfig {
-  voyeur?: VoyeurBus;
   enableTriggers?: boolean;
   enableOpeners?: boolean;
   enableIdioms?: boolean;
@@ -53,8 +51,8 @@ export class BehaviorLoader {
   private scmInstances: Map<string, SharedConversationMiddleware> = new Map();
   private configs: Map<string, BehaviorConfig> = new Map();
   private scmPolicies: Map<string, SCMPolicy> = new Map();
-  private voyeur?: VoyeurBus;
   private config: BehaviorLoaderConfig;
+  private log = logger('BehaviorLoader');
 
   constructor(config: BehaviorLoaderConfig = {}) {
     this.config = {
@@ -63,7 +61,6 @@ export class BehaviorLoader {
       enableIdioms: true,
       ...config,
     };
-    this.voyeur = config.voyeur;
     this.idiomRegistry = new IdiomRegistry();
   }
 
@@ -304,14 +301,10 @@ export class BehaviorLoader {
   }
 
   /**
-   * Emit event to VoyeurBus if available
+   * Log observability event
    */
-  private emitEvent(event: VoyeurEvent): void {
-    if (this.voyeur) {
-      this.voyeur.emit(event).catch(() => {
-        // Silently ignore emission errors
-      });
-    }
+  private emitEvent(event: { kind: string; timestamp: string; [key: string]: unknown }): void {
+    this.log.debug('event', { event });
   }
 
   /**

@@ -1,19 +1,17 @@
 /**
  * Observability Hub - Unified Observability Infrastructure
  * 
- * Integrates logging, tracing, metrics, and the Voyeur event bus into a
- * single coherent observability system that feeds the AI-Led Adaptive
- * Maintenance System.
+ * Integrates logging, tracing, metrics into a single coherent
+ * observability system that feeds the AI-Led Adaptive Maintenance System.
  * 
  * Features:
  * - Unified API for all observability concerns
  * - Correlation across logs, traces, and metrics
- * - Real-time event streaming via Voyeur
  * - Adaptation hooks for proactive maintenance
  * - Health monitoring and alerting
  * 
  * @module observability/ObservabilityHub
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 import { EventEmitter } from 'events';
@@ -33,7 +31,6 @@ import {
   initializeLogger,
   createCorrelationId,
 } from './CentralizedLogger';
-import { VoyeurBus, VoyeurEvent, VoyeurSink } from './VoyeurEvents';
 import {
   MetricsSink,
   VectorOpMetric,
@@ -90,8 +87,6 @@ export interface ObservabilityConfig {
   enablePrometheus?: boolean;
   prometheusPort?: number;
   enableOtel?: boolean;
-  enableVoyeur?: boolean;
-  voyeurSlowModeMs?: number;
   healthCheckIntervalMs?: number;
   enableAdaptation?: boolean;
   adaptationIntervalMs?: number;
@@ -113,43 +108,6 @@ export interface AdaptationEvent {
 }
 
 // ============================================================================
-// Voyeur Logger Sink
-// ============================================================================
-
-class VoyeurLoggerSink implements VoyeurSink {
-  private logger: CentralizedLogger;
-
-  constructor(logger: CentralizedLogger) {
-    this.logger = logger;
-  }
-
-  emit(event: VoyeurEvent): void {
-    const level = this.mapKindToLevel(event.kind);
-    this.logger.timed(
-      level,
-      `Voyeur: ${event.kind}`,
-      event.latencyMs ?? 0,
-      {
-        voyeurKind: event.kind,
-        memoryHash: event.memoryHash,
-        similarity: event.similarity,
-        threshold: event.threshold,
-        sourceInstance: event.sourceInstance,
-        decision: event.decision,
-        ...event.details,
-      }
-    );
-  }
-
-  private mapKindToLevel(kind: string): LogLevel {
-    if (kind === 'error') return 'error';
-    if (kind.includes('blocked') || kind.includes('deferred')) return 'warn';
-    if (kind.includes('complete') || kind.includes('applied')) return 'info';
-    return 'debug';
-  }
-}
-
-// ============================================================================
 // Observability Hub Implementation
 // ============================================================================
 
@@ -157,7 +115,6 @@ export class ObservabilityHub extends EventEmitter {
   private config: ObservabilityConfig;
   private logger: CentralizedLogger;
   private tracer: TracingManager;
-  private voyeurBus: VoyeurBus;
   private metricsSink?: MetricsSink;
   private adaptationSink?: AdaptationSink;
   private healthChecks: Map<string, () => Promise<HealthCheckResult>> = new Map();
@@ -176,11 +133,6 @@ export class ObservabilityHub extends EventEmitter {
     this.tracer = getTracer();
     this.adaptationSink = getAdaptationSink() ?? undefined;
 
-    this.voyeurBus = new VoyeurBus({
-      slowModeMs: config.voyeurSlowModeMs,
-      sinks: config.enableVoyeur ? [new VoyeurLoggerSink(this.logger)] : [],
-    });
-
     if (config.enablePrometheus || config.enableOtel) {
       this.metricsSink = createMetricsSinkFromEnv();
     }
@@ -197,7 +149,6 @@ export class ObservabilityHub extends EventEmitter {
       config: {
         enablePrometheus: config.enablePrometheus,
         enableOtel: config.enableOtel,
-        enableVoyeur: config.enableVoyeur,
         enableAdaptation: config.enableAdaptation,
       },
     });
@@ -236,18 +187,6 @@ export class ObservabilityHub extends EventEmitter {
 
   recordMetric(name: string, value: number, tags?: Record<string, string>): void {
     this.logger.timed('debug', `Metric: ${name}`, value, { metricName: name, ...tags });
-  }
-
-  getVoyeurBus(): VoyeurBus {
-    return this.voyeurBus;
-  }
-
-  async emitVoyeur(event: VoyeurEvent): Promise<void> {
-    await this.voyeurBus.emit(event);
-  }
-
-  addVoyeurSink(sink: VoyeurSink): void {
-    this.voyeurBus.addSink(sink);
   }
 
   registerHealthCheck(name: string, check: () => Promise<HealthCheckResult>): void {
@@ -504,7 +443,6 @@ let globalHub: ObservabilityHub | null = null;
 export function initializeObservability(config?: ObservabilityConfig): ObservabilityHub {
   if (globalHub) return globalHub;
   globalHub = new ObservabilityHub({
-    enableVoyeur: true,
     enableAdaptation: true,
     healthCheckIntervalMs: 60000,
     ...config,

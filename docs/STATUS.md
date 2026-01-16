@@ -201,9 +201,9 @@ flowchart TB
 
 | Component | File | Status |
 |-----------|------|--------|
-| Voyeur Event Bus | `src/observability/VoyeurEvents.ts` | ✅ Implemented |
-| SSE Web Server | `src/observability/VoyeurWebServer.ts` | ✅ Implemented |
+| ObservabilityHub | `src/observability/ObservabilityHub.ts` | ✅ Implemented |
 | Metrics Sink | `src/observability/Metrics.ts` | ✅ Implemented |
+| Centralized Logger | `src/observability/CentralizedLogger.ts` | ✅ Implemented |
 
 ### Python Memory System
 
@@ -227,7 +227,7 @@ flowchart TB
 | Cryptographic Identity | SHA-384 + Ed25519 | `src/core/patterns/` |
 | Memory Deduplication | Jaccard + embedding similarity | `src/experience/MemoryMerger.ts` |
 | Experience Sync | Streaming, Lumped, Check-in protocols | `src/sync/` |
-| Observability | Voyeur bus + SSE + metrics | `src/observability/` |
+| Observability | Logging + tracing + metrics | `src/observability/` |
 | Fireproof Layer | Local-first CRDT document store | `memory_system/fireproof/` |
 | Canvas Architecture | 5 canvas types with widget system | `src/canvas/` |
 | **ACP Adapter** | Client + Server + Bridge for ACP ecosystem | `src/adapters/acp/` |
@@ -252,7 +252,7 @@ flowchart TB
 | OpenTelemetry Integration | ✅ Complete | Dependencies installed, no @ts-nocheck |
 | Sync Module Types | ✅ Complete | Logger signatures fixed, TypeScript clean |
 | Terminal WebSocket Backend | ✅ Complete | Server implemented, ready for deployment |
-| VoyeurBus UI Client | ✅ Complete | `useVoyeurEvents` hook ready |
+| **Voyeur Removal** | ✅ Complete | Replaced with standard logging |
 | Error Boundary | ✅ Complete | User-friendly error display with recovery |
 | Feedback Widget | ✅ Complete | In-app feedback mechanism working |
 
@@ -277,7 +277,7 @@ flowchart TB
 | Gap | Impact | Blocking |
 |-----|--------|----------|
 | Backend/UI Type Mismatch | YJS sync may fail | Real backend integration |
-| VoyeurBus missing from UI | Cannot observe agent activity | Core feature |
+| Universal Adapter not wired | Cannot translate protocols | v2 registry + LLM integration |
 
 ### High Priority 🟡
 
@@ -350,7 +350,7 @@ cd go-services && go test ./...
 3. Implement code-splitting to reduce bundle size
 
 ### Medium-term
-1. Implement VoyeurBus client in UI
+1. Wire Universal Adapter v2 to Go LLM Gateway
 2. Add slash command system
 3. Complete Wiki authentication flow
 

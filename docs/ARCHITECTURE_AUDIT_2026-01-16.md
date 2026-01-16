@@ -1,6 +1,6 @@
 # Architecture Audit - January 16, 2026
 
-**Purpose**: Document the gap between specifications and implementation.  
+**Purpose**: Document the gap between specifications and implementation.
 **Status**: Critical architectural failures identified.
 
 ---
@@ -142,23 +142,23 @@ Memory system is mostly implemented but Mem0 adapter is missing, and multi-agent
 
 ---
 
-## 5. Voyeur Observability System
+## 5. Voyeur Observability System (REMOVED)
 
-### Spec Requirements
+### Status: ✅ DELETED
 
-None - **DEPRECATED**
+Voyeur was removed on 2026-01-16 as it violated entity sovereignty principles.
 
-### What Was Built
-
-50 files reference Voyeur. Core implementation:
+**Deleted Files:**
 - `src/observability/VoyeurEvents.ts`
 - `src/observability/VoyeurWebServer.ts`
 - `src/observability/ConsoleVoyeurSink.ts`
 - `src/cli/voyeurTail.ts`
+- `docs/voyeur-*.md`
+- `docs/current/OBSERVABILITY_VOYEUR.md`
 
-### Impact
-
-Dead code that should be removed.
+**Replaced With:**
+- Standard structured logging via `logger()` function
+- OpenTelemetry-based tracing and metrics
 
 ---
 
@@ -225,7 +225,7 @@ Code exists but untested with actual ACP agents.
 | **Universal Adapter** | CRITICAL | v2 not integrated, no LLM connected, non-functional |
 | **System Agents** | MEDIUM | Gateway now works; need to verify integration |
 | **Memory System** | MEDIUM | Missing Mem0, no P2P sync |
-| **Voyeur** | LOW | Dead code to remove |
+| **Voyeur** | ✅ REMOVED | Replaced with standard logging |
 | **Canvas/UI** | MEDIUM | Gateway now works; need to verify integration |
 | **ACP Adapter** | MEDIUM | Untested |
 
@@ -251,6 +251,6 @@ Code exists but untested with actual ACP agents.
 
 ---
 
-**Document Created**: January 16, 2026  
-**Author**: Architecture Audit  
+**Document Created**: January 16, 2026
+**Author**: Architecture Audit
 **Next Step**: User decision on remediation approach

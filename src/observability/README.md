@@ -13,7 +13,6 @@ flowchart TB
     subgraph Observability
         B --> C[CentralizedLogger]
         B --> D[TracingManager]
-        B --> E[VoyeurBus]
         B --> F[MetricsSink]
         
         C --> G[ConsoleSink]
@@ -100,7 +99,6 @@ import { initializeObservability, getObservabilityHub } from './observability';
 
 // Initialize with configuration
 const hub = initializeObservability({
-  enableVoyeur: true,
   enableAdaptation: true,
   enablePrometheus: true,
   healthCheckIntervalMs: 60000,
@@ -130,27 +128,6 @@ hub.on('adaptation:event', (event) => {
 // Get system health
 const health = await hub.runHealthChecks();
 console.log('System status:', health.status);
-```
-
-### VoyeurBus
-
-Real-time event streaming for agent cognition visibility.
-
-```typescript
-import { VoyeurBus } from './observability';
-import { startVoyeurWebServer } from './observability';
-
-const bus = new VoyeurBus({ slowModeMs: 100 });
-
-// Add to ObservabilityHub
-hub.addVoyeurSink({
-  name: 'custom',
-  emit: (event) => console.log('Voyeur:', event),
-});
-
-// Start web server for SSE streaming
-startVoyeurWebServer(bus, { port: 8787, redact: true });
-// View at http://localhost:8787
 ```
 
 ### Metrics
@@ -197,8 +174,6 @@ initializeObservability({
   enablePrometheus: true,
   prometheusPort: 9464,
   enableOtel: true,
-  enableVoyeur: true,
-  voyeurSlowModeMs: 100,
   healthCheckIntervalMs: 60000,
   enableAdaptation: true,
   adaptationIntervalMs: 60000,
@@ -296,7 +271,6 @@ import {
 
 // Initialize once at startup
 initializeObservability({
-  enableVoyeur: true,
   enableAdaptation: true,
 });
 
@@ -320,5 +294,4 @@ hub.registerHealthCheck('cache', checkCache);
 
 - [OpenTelemetry Specification](https://opentelemetry.io/docs/specs/)
 - [Prometheus Exposition Format](https://prometheus.io/docs/instrumenting/exposition_formats/)
-- [Server-Sent Events](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 - [AI-Led Adaptive Maintenance Spec](../../plans/ai-led-adaptive-maintenance-system-spec.md)

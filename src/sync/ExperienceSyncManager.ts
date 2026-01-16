@@ -22,7 +22,7 @@ import { MemoryMerger } from '../experience/MemoryMerger';
 import { SkillAccumulator } from '../experience/SkillAccumulator';
 import { KnowledgeIntegrator } from '../experience/KnowledgeIntegrator';
 import { createExperienceTransport, ExperienceTransport, TransportPayload } from './ExperienceTransport';
-import { VoyeurBus, VoyeurEvent } from '../observability/VoyeurEvents';
+import { logger } from '../observability';
 import { vectorIndexFromEnv } from '../memory/VectorIndexFactory';
 import { createMetricsSinkFromEnv } from '../observability/Metrics';
 import { defaultMemorySanitizer } from '../experience/MemorySanitizer';
@@ -90,22 +90,20 @@ export class ExperienceSyncManager {
   private transports: Map<string, ExperienceTransport> = new Map();
   private sourceAgents: Map<string, UniformSemanticAgentV2> = new Map();
   private syncConfigs: Map<string, ExperienceSyncConfig> = new Map();
-  private voyeur?: VoyeurBus;
-  private readonly logger: CentralizedLogger;
+  private readonly log = logger('ExperienceSyncManager');
+  private readonly centralizedLogger: CentralizedLogger;
 
   private initialized = false;
 
-  constructor(opts?: { voyeur?: VoyeurBus }) {
+  constructor(opts?: Record<string, never>) {
     this.streamingSync = new StreamingSync();
     this.lumpedSync = new LumpedSync();
     this.checkInSync = new CheckInSync();
 
-    this.voyeur = opts?.voyeur;
-    this.logger = getLogger('ExperienceSyncManager');
+    this.centralizedLogger = getLogger('ExperienceSyncManager');
 
     const indexEnv = vectorIndexFromEnv();
     this.memoryMerger = new MemoryMerger({
-      voyeur: this.voyeur,
       vector_index_type: indexEnv.kind,
       vector_index_options: indexEnv.options,
       metrics_sink: createMetricsSinkFromEnv(),
@@ -175,7 +173,7 @@ export class ExperienceSyncManager {
 
     this.syncStatus.set(instanceId, status);
 
-    await this.emitVoyeur({
+    await this.emitEvent({
       kind: 'sync.init',
       timestamp: new Date().toISOString(),
       sourceInstance: instanceId,
@@ -226,7 +224,7 @@ export class ExperienceSyncManager {
     await this.streamingSync.streamEvent(instanceId, event);
 
     status.backlog_size++;
-    await this.emitVoyeur({
+    await this.emitEvent({
       kind: 'sync.event',
       timestamp: new Date().toISOString(),
       sourceInstance: instanceId,
@@ -265,7 +263,7 @@ export class ExperienceSyncManager {
     const storedConfig = this.syncConfigs.get(instanceId);
     status.next_sync = this.calculateNextSync(status.protocol, storedConfig ?? {} as ExperienceSyncConfig);
 
-    await this.emitVoyeur({
+    await this.emitEvent({
       kind: 'sync.batch',
       timestamp: new Date().toISOString(),
       sourceInstance: instanceId,
@@ -305,7 +303,7 @@ export class ExperienceSyncManager {
     const checkInConfig = this.syncConfigs.get(instanceId);
     status.next_sync = this.calculateNextSync(status.protocol, checkInConfig ?? {} as ExperienceSyncConfig);
 
-    await this.emitVoyeur({
+    await this.emitEvent({
       kind: 'sync.check_in',
       timestamp: new Date().toISOString(),
       sourceInstance: instanceId,
@@ -382,7 +380,7 @@ export class ExperienceSyncManager {
       result.memories_added = memoryResult.added;
       result.memories_updated = memoryResult.updated;
       result.memories_deduplicated = memoryResult.deduplicated;
-      await this.emitVoyeur({
+      await this.emitEvent({
         kind: 'merge.memories',
         timestamp: new Date().toISOString(),
         sourceInstance: batch.instance_id,
@@ -403,7 +401,7 @@ export class ExperienceSyncManager {
       );
       result.skills_added = skillResult.added;
       result.skills_updated = skillResult.updated;
-      await this.emitVoyeur({
+      await this.emitEvent({
         kind: 'merge.skills',
         timestamp: new Date().toISOString(),
         sourceInstance: batch.instance_id,
@@ -424,7 +422,7 @@ export class ExperienceSyncManager {
       );
       result.knowledge_added = knowledgeResult.added;
       result.knowledge_verified = knowledgeResult.verified;
-      await this.emitVoyeur({
+      await this.emitEvent({
         kind: 'merge.knowledge',
         timestamp: new Date().toISOString(),
         sourceInstance: batch.instance_id,
@@ -577,9 +575,8 @@ export class ExperienceSyncManager {
     }
   }
 
-  private async emitVoyeur(event: VoyeurEvent): Promise<void> {
-    if (!this.voyeur) return;
-    await this.voyeur.emit(event);
+  private async emitEvent(event: { kind: string; timestamp: string; [key: string]: unknown }): Promise<void> {
+    this.log.debug('event', { event });
   }
 
   private async updateCharacteristic(
