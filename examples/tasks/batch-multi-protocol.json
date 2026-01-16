@@ -1,0 +1,50 @@
+{
+  "type": "batch",
+  "name": "Multi-Protocol Agent Translation Batch",
+  "tasks": [
+    {
+      "type": "translate",
+      "name": "USA to MCP",
+      "sourceProtocol": "usa",
+      "targetProtocol": "mcp",
+      "agent": {
+        "apiVersion": "usa/v2",
+        "kind": "Agent",
+        "metadata": { "name": "SimpleAgent" },
+        "identity": { "name": "Simple Agent", "role": "Assistant" },
+        "capabilities": { "tools": [] }
+      }
+    },
+    {
+      "type": "translate",
+      "name": "USA to A2A",
+      "sourceProtocol": "usa",
+      "targetProtocol": "a2a",
+      "agent": {
+        "apiVersion": "usa/v2",
+        "kind": "Agent",
+        "metadata": { "name": "CollaborativeAgent" },
+        "identity": { "name": "Collaborative Agent", "role": "Team Member" },
+        "capabilities": { "tools": [] }
+      }
+    },
+    {
+      "type": "morph",
+      "name": "CrewAI to OpenAI",
+      "sourceProtocol": "crewai",
+      "targetProtocol": "openai",
+      "agent": {
+        "role": "Data Scientist",
+        "goal": "Analyze data and build models",
+        "backstory": "Expert data scientist",
+        "tools": []
+      }
+    }
+  ],
+  "stopOnError": false,
+  "metadata": {
+    "description": "Batch translation demonstrating multiple protocols",
+    "created": "2026-01-16T23:00:00Z",
+    "author": "Chrysalis Team"
+  }
+}
