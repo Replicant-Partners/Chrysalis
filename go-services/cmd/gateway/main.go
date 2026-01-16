@@ -31,17 +31,14 @@ func main() {
 		log.Fatal("no providers configured; set LLM_PROVIDER and appropriate API keys")
 	}
 
-	// Create multi-provider with circuit breakers
-	multiProvider, err := llm.NewMultiProvider(llm.MultiProviderConfig{
+	// Create model router - routes requests to correct provider based on model name
+	// This is the CORRECT approach: route by model, not failover
+	router, err := llm.NewModelRouter(llm.ModelRouterConfig{
 		Providers:   providers,
 		CostTracker: costTracker,
-		CircuitConfig: llm.CircuitBreakerConfig{
-			FailureThreshold: cfg.CircuitFailureThreshold,
-			ResetTimeout:     time.Duration(cfg.CircuitResetTimeMs) * time.Millisecond,
-		},
 	})
 	if err != nil {
-		log.Fatalf("failed to create multi-provider: %v", err)
+		log.Fatalf("failed to create model router: %v", err)
 	}
 
 	// Log configured providers
@@ -49,7 +46,7 @@ func main() {
 	for _, p := range providers {
 		providerNames = append(providerNames, p.ID())
 	}
-	log.Printf("configured providers: %v", providerNames)
+	log.Printf("configured providers: %v (routing by model name)", providerNames)
 
 	// Parse CORS allowed origins from environment
 	var allowedOrigins []string
@@ -62,16 +59,26 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	srv := httpserver.New(multiProvider, cfg.AuthToken, cfg.RateLimitRPS, cfg.RateLimitBurst, allowedOrigins)
+	srv := httpserver.New(router, cfg.AuthToken, cfg.RateLimitRPS, cfg.RateLimitBurst, allowedOrigins)
 	srv.RegisterRoutes(mux)
 
-	// Add metrics endpoint for multi-provider
+	// Add metrics endpoint for model router
 	mux.HandleFunc("/v1/providers", func(w http.ResponseWriter, r *http.Request) {
-		metrics := multiProvider.GetMetrics()
+		metrics := router.GetMetrics()
 		w.Header().Set("Content-Type", "application/json")
-		// Simple JSON encoding for metrics
+		// JSON encoding for route metrics
+		routeJSON := "{"
+		first := true
+		for provider, hits := range metrics.RouteHits {
+			if !first {
+				routeJSON += ","
+			}
+			routeJSON += `"` + provider + `":` + strconv.FormatInt(hits, 10)
+			first = false
+		}
+		routeJSON += "}"
 		w.Write([]byte(`{"total_calls":` + strconv.FormatInt(metrics.TotalCalls, 10) +
-			`,"failovers":` + strconv.FormatInt(metrics.Failovers, 10) + `}`))
+			`,"routes":` + routeJSON + `}`))
 	})
 
 	server := &http.Server{
