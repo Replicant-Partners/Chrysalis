@@ -24,22 +24,29 @@ Multiple core components do not match their specifications. The codebase require
 | Cache layer keyed by promptId + schemaVersion + hash(input) | adaptive-llm-layer-prompts-and-connectors.md |
 | Per-agent rate limiting | Implied by multi-agent architecture |
 
-### What Was Built
+### What Was Built (UPDATED 2026-01-16)
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Model-based routing | ✅ | Routes `llama*` → Ollama, `claude*` → Anthropic, etc. |
 | Multiple providers | ✅ | OpenAI, Anthropic, Ollama, OpenRouter |
 | Streaming | ✅ | SSE-based |
-| **Per-agent rate limiting** | ❌ | Single process-level bucket for ALL requests |
-| **Per-agent configuration** | ❌ | No agent-specific model tier lookup |
-| **ComplexityRouter** | ❌ | Not implemented |
-| **Cache layer** | ❌ | Not implemented |
-| **Concurrent multi-agent support** | ⚠️ | HTTP server handles goroutines, but all share same rate limit |
+| **Per-agent rate limiting** | ✅ | `agents.Registry` with per-agent `rate.Limiter` |
+| **Per-agent configuration** | ✅ | `AgentConfig` with model tier, default model, temperature |
+| **ComplexityRouter** | ✅ | Routes by agent tier (local_slm/cloud_llm/hybrid) + complexity assessment |
+| **Cache layer** | ✅ | `ResponseCache` with TTL |
+| **Concurrent multi-agent support** | ✅ | Each agent has own config and rate limit bucket |
+| **Built-in agents** | ✅ | Ada, Lea, Phil, David, prompt-engineer, ai-engineer, universal-adapter |
+
+### Files Added/Modified
+
+- `go-services/internal/agents/registry.go` - Agent registry with per-agent config and rate limiters
+- `go-services/internal/llm/complexity_router.go` - ComplexityRouter implementation
+- `go-services/internal/http/server.go` - Updated for per-agent rate limiting
+- `go-services/cmd/gateway/main.go` - Wired agent registry and complexity router
 
 ### Impact
 
-The gateway cannot serve its intended purpose as a centralized LLM service for multiple agents with different requirements. All agents compete for the same rate limit bucket. No intelligent routing based on task complexity.
+~~The gateway cannot serve its intended purpose.~~ **FIXED.** Gateway now supports multi-agent concurrent access with per-agent rate limiting and model tier routing.
 
 ---
 
@@ -214,12 +221,12 @@ Code exists but untested with actual ACP agents.
 
 | Component | Severity | Issue |
 |-----------|----------|-------|
-| **Go LLM Gateway** | CRITICAL | Single-tenant, no per-agent config, no ComplexityRouter |
+| **Go LLM Gateway** | ✅ FIXED | Per-agent config, ComplexityRouter, cache implemented |
 | **Universal Adapter** | CRITICAL | v2 not integrated, no LLM connected, non-functional |
-| **System Agents** | HIGH | Depend on broken gateway |
+| **System Agents** | MEDIUM | Gateway now works; need to verify integration |
 | **Memory System** | MEDIUM | Missing Mem0, no P2P sync |
 | **Voyeur** | LOW | Dead code to remove |
-| **Canvas/UI** | MEDIUM | Depends on broken gateway |
+| **Canvas/UI** | MEDIUM | Gateway now works; need to verify integration |
 | **ACP Adapter** | MEDIUM | Untested |
 
 ---

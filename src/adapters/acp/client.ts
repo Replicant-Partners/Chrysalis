@@ -591,12 +591,12 @@ export class ACPMultiClient extends EventEmitter {
    */
   addAgent(id: string, client: ACPClient): void {
     this.clients.set(id, client);
-    
+
     // Forward events
     client.on('notification', (notification) => {
       this.emit('notification', { agentId: id, notification });
     });
-    
+
     client.on('error', (error) => {
       this.emit('error', { agentId: id, error });
     });
@@ -673,7 +673,7 @@ export class ACPMultiClient extends EventEmitter {
    */
   async promptAll(content: string): Promise<Map<string, PromptResponse | Error>> {
     const results = new Map<string, PromptResponse | Error>();
-    
+
     const promises = Array.from(this.clients.entries()).map(async ([id, client]) => {
       try {
         const response = await client.prompt(content);
@@ -682,7 +682,7 @@ export class ACPMultiClient extends EventEmitter {
         results.set(id, error instanceof Error ? error : new Error(String(error)));
       }
     });
-    
+
     await Promise.all(promises);
     return results;
   }

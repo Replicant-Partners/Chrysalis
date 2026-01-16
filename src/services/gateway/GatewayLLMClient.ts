@@ -39,9 +39,22 @@ export class GatewayLLMClient {
     this.streamDefault = config.stream;
   }
 
-  async chat(agentId: string, messages: GatewayLLMMessage[], temperature?: number): Promise<GatewayLLMResponse> {
+  /**
+   * Send a chat completion request.
+   * @param agentId - The agent making the request (for tracking)
+   * @param messages - Conversation messages
+   * @param temperature - Optional temperature override
+   * @param model - Optional model override (routes to correct provider)
+   */
+  async chat(agentId: string, messages: GatewayLLMMessage[], temperature?: number, model?: string): Promise<GatewayLLMResponse> {
     const requestId = this.generateRequestId();
     const started = Date.now();
+    const requestModel = model ?? this.model;
+    
+    if (!requestModel) {
+      throw new Error('No model specified. Provide model in constructor config or per-call.');
+    }
+    
     const res = await this.fetchImpl(`${this.baseUrl}/v1/chat`, {
       method: 'POST',
       headers: {
@@ -52,7 +65,7 @@ export class GatewayLLMClient {
       body: JSON.stringify({
         agent_id: agentId,
         messages,
-        model: this.model,
+        model: requestModel,
         temperature,
       }),
     });
@@ -90,8 +103,21 @@ export class GatewayLLMClient {
     return response;
   }
 
-  async *stream(agentId: string, messages: GatewayLLMMessage[], temperature?: number): AsyncGenerator<GatewayLLMResponse> {
+  /**
+   * Stream a chat completion response.
+   * @param agentId - The agent making the request (for tracking)
+   * @param messages - Conversation messages
+   * @param temperature - Optional temperature override
+   * @param model - Optional model override (routes to correct provider)
+   */
+  async *stream(agentId: string, messages: GatewayLLMMessage[], temperature?: number, model?: string): AsyncGenerator<GatewayLLMResponse> {
     const requestId = this.generateRequestId();
+    const requestModel = model ?? this.model;
+    
+    if (!requestModel) {
+      throw new Error('No model specified. Provide model in constructor config or per-call.');
+    }
+    
     const res = await this.fetchImpl(`${this.baseUrl}/v1/chat/stream`, {
       method: 'POST',
       headers: {
@@ -102,7 +128,7 @@ export class GatewayLLMClient {
       body: JSON.stringify({
         agent_id: agentId,
         messages,
-        model: this.model,
+        model: requestModel,
         temperature,
       }),
     });

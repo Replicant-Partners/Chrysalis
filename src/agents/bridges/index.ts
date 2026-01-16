@@ -1,8 +1,8 @@
 /**
  * Agent Bridges Module
- * 
+ *
  * Exports all agent bridge implementations and utilities.
- * 
+ *
  * @module agents/bridges
  */
 

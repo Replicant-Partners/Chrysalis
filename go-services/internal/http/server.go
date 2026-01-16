@@ -10,63 +10,66 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Replicant-Partners/Chrysalis/go-services/internal/agents"
 	"github.com/Replicant-Partners/Chrysalis/go-services/internal/llm"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"golang.org/x/time/rate"
 )
 
 // Server wraps the HTTP handlers for the gateway.
+// Now supports multi-agent concurrent access with per-agent rate limiting.
 type Server struct {
 	provider       llm.Provider
+	registry       *agents.Registry // Per-agent config and rate limiters
 	auth           string
-	limiter        *rate.Limiter
 	requests       *prometheus.CounterVec
 	latency        *prometheus.HistogramVec
-	registry       *prometheus.Registry
-	allowedOrigins map[string]bool // CORS allowed origins
+	promRegistry   *prometheus.Registry
+	allowedOrigins map[string]bool
 }
 
-// New constructs a new Server.
-// allowedOrigins specifies CORS allowed origins. If empty, uses localhost defaults for development.
-// In production, always specify explicit origins.
-func New(provider llm.Provider, authToken string, rps float64, burst int, allowedOrigins []string) *Server {
-	var limiter *rate.Limiter
-	if rps > 0 && burst > 0 {
-		limiter = rate.NewLimiter(rate.Limit(rps), burst)
-	}
-	registry := prometheus.NewRegistry()
+// ServerConfig holds configuration for creating a new server.
+type ServerConfig struct {
+	Provider       llm.Provider
+	AgentRegistry  *agents.Registry // Required for per-agent rate limiting
+	AuthToken      string
+	AllowedOrigins []string
+}
+
+// New constructs a new Server with per-agent rate limiting.
+func New(cfg ServerConfig) *Server {
+	promRegistry := prometheus.NewRegistry()
 	requests := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "gateway_requests_total",
 		Help: "Total gateway requests",
-	}, []string{"path", "status"})
+	}, []string{"path", "status", "agent_id"})
 	latency := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    "gateway_request_duration_seconds",
 		Help:    "Gateway request durations",
 		Buckets: prometheus.DefBuckets,
-	}, []string{"path"})
-	registry.MustRegister(requests, latency)
+	}, []string{"path", "agent_id"})
+	promRegistry.MustRegister(requests, latency)
 
 	// Build allowed origins map
 	origins := make(map[string]bool)
-	if len(allowedOrigins) == 0 {
+	if len(cfg.AllowedOrigins) == 0 {
 		// Default to localhost for development
 		origins["http://localhost:3000"] = true
 		origins["http://localhost:8080"] = true
 		origins["http://127.0.0.1:3000"] = true
 	} else {
-		for _, o := range allowedOrigins {
+		for _, o := range cfg.AllowedOrigins {
 			origins[o] = true
 		}
 	}
 
 	return &Server{
-		provider:       provider,
-		auth:           authToken,
-		limiter:        limiter,
+		provider:       cfg.Provider,
+		registry:       cfg.AgentRegistry,
+		auth:           cfg.AuthToken,
 		requests:       requests,
 		latency:        latency,
-		registry:       registry,
+		promRegistry:   promRegistry,
 		allowedOrigins: origins,
 	}
 }
@@ -74,17 +77,54 @@ func New(provider llm.Provider, authToken string, rps float64, burst int, allowe
 // RegisterRoutes attaches handlers to a mux.
 func (s *Server) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/healthz", s.wrapCORS(s.handleHealth))
-	mux.HandleFunc("/v1/chat", s.wrapCORS(s.wrapRateLimit(s.wrapAuth(s.handleChat))))
-	mux.HandleFunc("/v1/chat/stream", s.wrapCORS(s.wrapRateLimit(s.wrapAuth(s.handleChatStream))))
-	mux.Handle("/metrics", promhttp.HandlerFor(s.registry, promhttp.HandlerOpts{}))
+	mux.HandleFunc("/v1/chat", s.wrapCORS(s.wrapAuth(s.handleChat)))
+	mux.HandleFunc("/v1/chat/stream", s.wrapCORS(s.wrapAuth(s.handleChatStream)))
+	mux.HandleFunc("/v1/agents", s.wrapCORS(s.wrapAuth(s.handleListAgents)))
+	mux.Handle("/metrics", promhttp.HandlerFor(s.promRegistry, promhttp.HandlerOpts{}))
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	reqID := requestID(r)
 	w.Header().Set("X-Request-Id", reqID)
-	s.writeJSONWithMetrics(w, r, http.StatusOK, map[string]any{
-		"status":   "ok",
-		"provider": s.provider.ID(),
+
+	agentCount := 0
+	if s.registry != nil {
+		agentCount = len(s.registry.List())
+	}
+
+	s.writeJSONWithMetrics(w, r, "", http.StatusOK, map[string]any{
+		"status":       "ok",
+		"provider":     s.provider.ID(),
+		"agent_count":  agentCount,
+		"multi_tenant": true,
+	})
+}
+
+func (s *Server) handleListAgents(w http.ResponseWriter, r *http.Request) {
+	reqID := requestID(r)
+	w.Header().Set("X-Request-Id", reqID)
+
+	if s.registry == nil {
+		s.writeJSONWithMetrics(w, r, "", http.StatusOK, map[string]any{
+			"agents": []string{},
+		})
+		return
+	}
+
+	agentIDs := s.registry.List()
+	agentConfigs := make([]map[string]any, 0, len(agentIDs))
+	for _, id := range agentIDs {
+		cfg := s.registry.Get(id)
+		agentConfigs = append(agentConfigs, map[string]any{
+			"id":          cfg.ID,
+			"name":        cfg.Name,
+			"model_tier":  cfg.ModelTier,
+			"default_model": cfg.DefaultModel,
+		})
+	}
+
+	s.writeJSONWithMetrics(w, r, "", http.StatusOK, map[string]any{
+		"agents": agentConfigs,
 	})
 }
 
@@ -94,17 +134,33 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
 	if r.Method != http.MethodPost {
-		s.writeJSONWithMetrics(w, r, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		s.writeJSONWithMetrics(w, r, "", http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
 		return
 	}
 
 	var req llm.CompletionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		s.writeJSONWithMetrics(w, r, http.StatusBadRequest, map[string]string{"error": "invalid json"})
+		s.writeJSONWithMetrics(w, r, "", http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
 	if req.AgentID == "" || len(req.Messages) == 0 {
-		s.writeJSONWithMetrics(w, r, http.StatusBadRequest, map[string]string{"error": "agent_id and messages are required"})
+		s.writeJSONWithMetrics(w, r, "", http.StatusBadRequest, map[string]string{"error": "agent_id and messages are required"})
+		return
+	}
+
+	// Per-agent rate limiting
+	if s.registry != nil && !s.registry.Allow(req.AgentID) {
+		agentCfg := s.registry.Get(req.AgentID)
+		s.logJSON(map[string]any{
+			"event":    "rate_limited",
+			"req_id":   reqID,
+			"agent_id": req.AgentID,
+			"tier":     agentCfg.ModelTier,
+		})
+		s.writeJSONWithMetrics(w, r, req.AgentID, http.StatusTooManyRequests, map[string]string{
+			"error":    "rate limit exceeded",
+			"agent_id": req.AgentID,
+		})
 		return
 	}
 
@@ -113,21 +169,26 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		s.logJSON(map[string]any{
 			"event":       "chat_error",
 			"req_id":      reqID,
+			"agent_id":    req.AgentID,
 			"path":        "/v1/chat",
 			"duration_ms": time.Since(start).Milliseconds(),
 			"error":       err.Error(),
 		})
-		s.writeJSONWithMetrics(w, r, http.StatusBadGateway, map[string]string{"error": "llm failure"})
+		s.writeJSONWithMetrics(w, r, req.AgentID, http.StatusBadGateway, map[string]string{"error": "llm failure"})
 		return
 	}
+
+	s.latency.WithLabelValues("/v1/chat", req.AgentID).Observe(time.Since(start).Seconds())
 	s.logJSON(map[string]any{
 		"event":       "chat_ok",
 		"req_id":      reqID,
+		"agent_id":    req.AgentID,
 		"path":        "/v1/chat",
-		"provider":    s.provider.ID(),
+		"provider":    resp.Provider,
+		"model":       resp.Model,
 		"duration_ms": time.Since(start).Milliseconds(),
 	})
-	s.writeJSONWithMetrics(w, r, http.StatusOK, resp)
+	s.writeJSONWithMetrics(w, r, req.AgentID, http.StatusOK, resp)
 }
 
 func (s *Server) handleChatStream(w http.ResponseWriter, r *http.Request) {
@@ -139,31 +200,34 @@ func (s *Server) handleChatStream(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	if r.Method != http.MethodGet && r.Method != http.MethodPost {
-		s.writeJSONWithMetrics(w, r, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+	if r.Method != http.MethodPost {
+		s.writeJSONWithMetrics(w, r, "", http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
 		return
 	}
 
 	var req llm.CompletionRequest
-	if r.Method == http.MethodPost {
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			s.writeJSONWithMetrics(w, r, http.StatusBadRequest, map[string]string{"error": "invalid json"})
-			return
-		}
-	} else {
-		// GET not fully supported; reject for clarity
-		s.writeJSONWithMetrics(w, r, http.StatusBadRequest, map[string]string{"error": "stream requires POST body"})
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		s.writeJSONWithMetrics(w, r, "", http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
 
 	if req.AgentID == "" || len(req.Messages) == 0 {
-		s.writeJSONWithMetrics(w, r, http.StatusBadRequest, map[string]string{"error": "agent_id and messages are required"})
+		s.writeJSONWithMetrics(w, r, "", http.StatusBadRequest, map[string]string{"error": "agent_id and messages are required"})
+		return
+	}
+
+	// Per-agent rate limiting
+	if s.registry != nil && !s.registry.Allow(req.AgentID) {
+		s.writeJSONWithMetrics(w, r, req.AgentID, http.StatusTooManyRequests, map[string]string{
+			"error":    "rate limit exceeded",
+			"agent_id": req.AgentID,
+		})
 		return
 	}
 
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		s.writeJSONWithMetrics(w, r, http.StatusInternalServerError, map[string]string{"error": "streaming unsupported"})
+		s.writeJSONWithMetrics(w, r, req.AgentID, http.StatusInternalServerError, map[string]string{"error": "streaming unsupported"})
 		return
 	}
 
@@ -190,22 +254,26 @@ func (s *Server) handleChatStream(w http.ResponseWriter, r *http.Request) {
 		flusher.Flush()
 		return nil
 	})
+
 	if err != nil && !errors.Is(err, context.Canceled) {
 		s.logJSON(map[string]any{
 			"event":       "chat_stream_error",
 			"req_id":      reqID,
+			"agent_id":    req.AgentID,
 			"path":        "/v1/chat/stream",
 			"error":       err.Error(),
 			"duration_ms": time.Since(start).Milliseconds(),
 		})
-		// Send error chunk if possible
 		_, _ = w.Write([]byte("data: {\"error\":\"stream failure\",\"done\":true}\n\n"))
 		flusher.Flush()
 		return
 	}
+
+	s.latency.WithLabelValues("/v1/chat/stream", req.AgentID).Observe(time.Since(start).Seconds())
 	s.logJSON(map[string]any{
 		"event":       "chat_stream_ok",
 		"req_id":      reqID,
+		"agent_id":    req.AgentID,
 		"path":        "/v1/chat/stream",
 		"provider":    s.provider.ID(),
 		"duration_ms": time.Since(start).Milliseconds(),
@@ -227,7 +295,6 @@ func (s *Server) wrapAuth(next http.HandlerFunc) http.HandlerFunc {
 }
 
 // wrapCORS adds CORS headers with origin validation.
-// Only origins in the allowedOrigins map are permitted.
 func (s *Server) wrapCORS(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
@@ -239,20 +306,6 @@ func (s *Server) wrapCORS(next http.HandlerFunc) http.HandlerFunc {
 		}
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		next(w, r)
-	}
-}
-
-// wrapRateLimit enforces a simple per-process rate limit.
-func (s *Server) wrapRateLimit(next http.HandlerFunc) http.HandlerFunc {
-	if s.limiter == nil {
-		return next
-	}
-	return func(w http.ResponseWriter, r *http.Request) {
-		if !s.limiter.Allow() {
-			s.writeJSONWithMetrics(w, r, http.StatusTooManyRequests, map[string]string{"error": "rate limit exceeded"})
 			return
 		}
 		next(w, r)
@@ -271,10 +324,12 @@ func requestID(r *http.Request) string {
 }
 
 // writeJSONWithMetrics writes JSON, records metrics, and sets content type.
-func (s *Server) writeJSONWithMetrics(w http.ResponseWriter, r *http.Request, status int, v any) {
-	if s.requests != nil && s.latency != nil {
-		s.requests.WithLabelValues(r.URL.Path, http.StatusText(status)).Inc()
-		// latency recorded at caller; here we only track count
+func (s *Server) writeJSONWithMetrics(w http.ResponseWriter, r *http.Request, agentID string, status int, v any) {
+	if s.requests != nil {
+		if agentID == "" {
+			agentID = "unknown"
+		}
+		s.requests.WithLabelValues(r.URL.Path, http.StatusText(status), agentID).Inc()
 	}
 	writeJSON(w, status, v)
 }

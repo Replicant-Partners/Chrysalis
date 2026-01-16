@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Replicant-Partners/Chrysalis/go-services/internal/agents"
 	"github.com/Replicant-Partners/Chrysalis/go-services/internal/config"
 	httpserver "github.com/Replicant-Partners/Chrysalis/go-services/internal/http"
 	"github.com/Replicant-Partners/Chrysalis/go-services/internal/llm"
@@ -19,34 +21,73 @@ import (
 func main() {
 	cfg := config.FromEnv()
 
+	// Initialize agent registry with built-in agents
+	// This provides per-agent configuration: model tier, rate limits, etc.
+	agentRegistry := agents.NewRegistry()
+	agentRegistry.LoadBuiltInAgents()
+	log.Printf("loaded %d built-in agents", len(agentRegistry.List()))
+
+	// Optionally load additional agent configs from directory
+	if agentConfigDir := os.Getenv("AGENT_CONFIG_DIR"); agentConfigDir != "" {
+		if err := agentRegistry.LoadFromDir(agentConfigDir); err != nil {
+			log.Printf("warning: failed to load agent configs from %s: %v", agentConfigDir, err)
+		}
+	}
+
 	// Initialize cost tracker
 	costTracker := llm.NewCostTracker(llm.CostTrackerConfig{
 		DailyBudgetUSD:   cfg.DailyBudgetUSD,
 		MonthlyBudgetUSD: cfg.MonthlyBudgetUSD,
 	})
 
-	// Build provider list based on config
-	providers := buildProviders(cfg)
-	if len(providers) == 0 {
+	// Build providers
+	allProviders := buildProviders(cfg)
+	if len(allProviders) == 0 {
 		log.Fatal("no providers configured; set LLM_PROVIDER and appropriate API keys")
 	}
 
-	// Create model router - routes requests to correct provider based on model name
-	// This is the CORRECT approach: route by model, not failover
-	router, err := llm.NewModelRouter(llm.ModelRouterConfig{
-		Providers:   providers,
-		CostTracker: costTracker,
-	})
-	if err != nil {
-		log.Fatalf("failed to create model router: %v", err)
+	// Separate local (Ollama) from cloud providers
+	var localProvider llm.Provider
+	cloudProviders := make(map[string]llm.Provider)
+	for _, p := range allProviders {
+		if p.ID() == "ollama" {
+			localProvider = p
+		} else {
+			cloudProviders[p.ID()] = p
+		}
 	}
 
-	// Log configured providers
+	// Require Ollama for local/hybrid routing
+	if localProvider == nil {
+		log.Printf("warning: Ollama not configured, hybrid routing will fall back to cloud providers")
+		// Use first available as fallback
+		for _, p := range allProviders {
+			localProvider = p
+			break
+		}
+	}
+
+	// Create ComplexityRouter - routes based on agent config and task complexity
+	// This is the CORRECT approach per spec: per-agent model tier, complexity assessment
+	router, err := llm.NewComplexityRouter(llm.ComplexityRouterConfig{
+		Registry:       agentRegistry,
+		LocalProvider:  localProvider,
+		CloudProviders: cloudProviders,
+		CostTracker:    costTracker,
+		CacheEnabled:   true,
+		CacheTTL:       5 * time.Minute,
+	})
+	if err != nil {
+		log.Fatalf("failed to create complexity router: %v", err)
+	}
+
+	// Log configuration
 	var providerNames []string
-	for _, p := range providers {
+	for _, p := range allProviders {
 		providerNames = append(providerNames, p.ID())
 	}
-	log.Printf("configured providers: %v (routing by model name)", providerNames)
+	log.Printf("configured providers: %v", providerNames)
+	log.Printf("complexity router: local=%s, cloud=%v", localProvider.ID(), keys(cloudProviders))
 
 	// Parse CORS allowed origins from environment
 	var allowedOrigins []string
@@ -58,27 +99,27 @@ func main() {
 		}
 	}
 
+	// Create HTTP server with per-agent rate limiting
 	mux := http.NewServeMux()
-	srv := httpserver.New(router, cfg.AuthToken, cfg.RateLimitRPS, cfg.RateLimitBurst, allowedOrigins)
+	srv := httpserver.New(httpserver.ServerConfig{
+		Provider:       router,
+		AgentRegistry:  agentRegistry,
+		AuthToken:      cfg.AuthToken,
+		AllowedOrigins: allowedOrigins,
+	})
 	srv.RegisterRoutes(mux)
 
-	// Add metrics endpoint for model router
-	mux.HandleFunc("/v1/providers", func(w http.ResponseWriter, r *http.Request) {
+	// Add metrics endpoint for complexity router
+	mux.HandleFunc("/v1/router/metrics", func(w http.ResponseWriter, r *http.Request) {
 		metrics := router.GetMetrics()
 		w.Header().Set("Content-Type", "application/json")
-		// JSON encoding for route metrics
-		routeJSON := "{"
-		first := true
-		for provider, hits := range metrics.RouteHits {
-			if !first {
-				routeJSON += ","
-			}
-			routeJSON += `"` + provider + `":` + strconv.FormatInt(hits, 10)
-			first = false
-		}
-		routeJSON += "}"
-		w.Write([]byte(`{"total_calls":` + strconv.FormatInt(metrics.TotalCalls, 10) +
-			`,"routes":` + routeJSON + `}`))
+		json.NewEncoder(w).Encode(map[string]any{
+			"total_calls": metrics.TotalCalls,
+			"local_hits":  metrics.LocalHits,
+			"cloud_hits":  metrics.CloudHits,
+			"cache_hits":  metrics.CacheHits,
+			"cost_status": metrics.CostStatus,
+		})
 	})
 
 	server := &http.Server{
@@ -91,8 +132,8 @@ func main() {
 
 	// Graceful shutdown
 	go func() {
-		log.Printf("gateway listening on :%d (providers=%v, rps=%.2f, burst=%d)",
-			cfg.Port, providerNames, cfg.RateLimitRPS, cfg.RateLimitBurst)
+		log.Printf("gateway listening on :%d (agents=%d, providers=%v, per-agent-rate-limiting=enabled)",
+			cfg.Port, len(agentRegistry.List()), providerNames)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server error: %v", err)
 		}
@@ -111,7 +152,6 @@ func main() {
 }
 
 // buildProviders creates providers based on configuration.
-// Primary provider first, then fallbacks in order.
 func buildProviders(cfg config.Config) []llm.Provider {
 	var providers []llm.Provider
 
@@ -208,4 +248,12 @@ func defaultModel(configured, fallback string) string {
 		return configured
 	}
 	return fallback
+}
+
+func keys(m map[string]llm.Provider) []string {
+	result := make([]string, 0, len(m))
+	for k := range m {
+		result = append(result, k)
+	}
+	return result
 }

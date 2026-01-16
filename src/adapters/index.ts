@@ -1,9 +1,9 @@
 /**
  * Chrysalis Adapters Module
- * 
+ *
  * Central export point for all adapter implementations, protocol types,
  * capabilities, version registry, and unified adapter interface.
- * 
+ *
  * @module adapters
  * @version 1.0.0
  */
@@ -20,24 +20,24 @@ export {
   ProtocolFamily,
   ProtocolMaturity,
   ProtocolMetadata,
-  
+
   // Constants
   PROTOCOL_FAMILIES,
   PROTOCOL_METADATA,
   LEGACY_FRAMEWORKS,
   NEW_FRAMEWORKS,
   ALL_FRAMEWORKS,
-  
+
   // Type guards
   isAgentFramework,
   isLegacyFramework,
   isNewFramework,
-  
+
   // Utilities
   getProtocolFamily,
   getFrameworksByFamily,
   getCompatibilityLevel,
-  
+
   // Default export
   default as protocolTypes
 } from './protocol-types';
@@ -51,7 +51,7 @@ export {
   UniversalMessage,
   UniversalMessageType,
   UniversalPayload,
-  
+
   // Agent types
   UniversalAgentRef,
   UniversalAgentCard,
@@ -60,53 +60,53 @@ export {
   OAuth2Flows,
   ContentMode,
   SkillExample,
-  
+
   // Task types
   UniversalTaskRef,
   UniversalTaskState,
   UniversalMessagePart,
   UniversalArtifact,
   TaskStateTransition,
-  
+
   // Tool types
   UniversalToolInvoke,
   UniversalToolDef,
   JsonSchema,
-  
+
   // Resource types
   UniversalResourceRef,
-  
+
   // Prompt types
   UniversalPromptRef,
   PromptArgument,
-  
+
   // Discovery types
   UniversalDiscoveryQuery,
   UniversalDiscoveryResult,
-  
+
   // Streaming types
   UniversalStreamChunk,
-  
+
   // Error types
   UniversalError,
   ErrorCode,
-  
+
   // Trace context
   TraceContext,
-  
+
   // Factory functions
   createMessage,
   createTaskRequest,
   createToolInvoke,
   createError,
-  
+
   // Type guards
   isTaskMessage,
   isToolMessage,
   isResourceMessage,
   isErrorMessage,
   isStreamingMessage,
-  
+
   // Default export
   default as protocolMessages
 } from './protocol-messages';
@@ -123,10 +123,10 @@ export {
   FeatureDeclaration,
   FeatureCompatibility,
   CompatibilityResult,
-  
+
   // Constants
   PROTOCOL_CAPABILITIES,
-  
+
   // Query functions
   getProtocolCapability,
   supportsFeature,
@@ -135,16 +135,16 @@ export {
   getProtocolsWithFeature,
   getCommonFeatures,
   calculateFeatureOverlap,
-  
+
   // Compatibility functions
   getFeatureCompatibility,
   getAllFeatureCompatibilities,
   calculateTranslationFidelity,
-  
+
   // Recommendation functions
   getRecommendedProtocol,
   getProtocolCombination,
-  
+
   // Default export
   default as protocolCapabilities
 } from './protocol-capabilities';
@@ -163,10 +163,10 @@ export {
   CompatibilityLevel as VersionCompatibilityLevel,
   CompatibilityIssue,
   ProtocolHealth,
-  
+
   // Constants
   PROTOCOL_VERSION_REGISTRY,
-  
+
   // Version utilities
   parseVersion,
   formatVersion,
@@ -174,7 +174,7 @@ export {
   satisfiesRange,
   isSameMajor,
   incrementVersion,
-  
+
   // Query functions
   getProtocolVersionInfo,
   getCurrentSpecVersion,
@@ -182,21 +182,21 @@ export {
   isSpecVersionSupported,
   getDeprecations,
   getBreakingChanges,
-  
+
   // Compatibility functions
   checkVersionCompatibility,
   getMigrationPath,
-  
+
   // Health functions
   getProtocolHealth,
   getAllProtocolHealth,
   getProtocolsByHealth,
-  
+
   // Registry management
   registerProtocolVersion,
   getEffectiveVersionInfo,
   clearRuntimeRegistry,
-  
+
   // Default export
   default as protocolRegistry
 } from './protocol-registry';
@@ -215,20 +215,20 @@ export {
   RegisteredHook,
   HookChainResult,
   ExecutionStats,
-  
+
   // Version Negotiation Types
   NegotiationStrategy,
   NegotiationRequest,
   NegotiationResult,
   NegotiationHistoryEntry,
-  
+
   // Extension Types
   ExtensionPoint,
   ExtensionType,
   ExtensionHandler,
   ExtensionInput,
   ExtensionOutput,
-  
+
   // Sensor Types
   PatternSensor,
   PatternDetectionFn,
@@ -236,26 +236,26 @@ export {
   SensorMetrics,
   SensorHistoryEntry,
   SensorReading,
-  
+
   // Classes
   AdaptationHookExecutor,
   VersionNegotiator,
   ExtensibilityManager,
   PatternSensorManager,
-  
+
   // Global Instances
   hookExecutor,
   versionNegotiator,
   extensibilityManager,
   patternSensorManager,
-  
+
   // Factory Functions
   createPreConversionHook,
   createPostConversionHook,
   createErrorHook,
   createVersionMismatchHook,
   createPatternDetectedHook,
-  
+
   // Default export
   default as adaptationHooks
 } from './adaptation-hooks';
@@ -274,19 +274,19 @@ export {
   InvocationOptions,
   RdfBasedAdapter,
   UsaBasedAdapter,
-  
+
   // Factory functions
   wrapRdfAdapter,
   wrapUsaAdapter,
   createUnifiedAdapter,
-  
+
   // Registry
   adapterRegistry,
-  
+
   // Protocol bridge
   ProtocolBridge,
   protocolBridge,
-  
+
   // Default export
   default as unifiedAdapter
 } from './unified-adapter';
@@ -404,11 +404,11 @@ export {
   ACPMultiClient,
   ACPAgentFactory,
   createACPClient,
-  
+
   // Server (expose as ACP agent)
   ACPServer,
   createACPServer,
-  
+
   // Types
   type ACPMessage,
   type ACPRequest,

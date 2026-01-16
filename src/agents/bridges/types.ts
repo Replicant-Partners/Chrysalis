@@ -1,25 +1,25 @@
 /**
  * Agent Bridge Types
- * 
+ *
  * Defines the common interface for connecting various AI agents
  * to the ChrysalisTerminal system.
- * 
+ *
  * Supported agent types:
  * - Serena (oraios/serena) - MCP-based code agent
- * - ElizaOS - Character-based conversational agents  
+ * - ElizaOS - Character-based conversational agents
  * - DirectLLM - Claude, GPT, Ollama via API
  * - CrewAI - Multi-agent crews
  * - Custom - User-defined agents
- * 
+ *
  * @module agents/bridges/types
  */
 
 /**
  * Agent bridge connection status
  */
-export type BridgeStatus = 
+export type BridgeStatus =
   | 'disconnected'
-  | 'connecting' 
+  | 'connecting'
   | 'connected'
   | 'error'
   | 'reconnecting';
@@ -76,7 +76,7 @@ export interface AgentResponse {
   timestamp: number;
   status: 'success' | 'error' | 'partial';
   metadata?: Record<string, unknown>;
-  
+
   // For tool-using agents
   toolCalls?: Array<{
     id: string;
@@ -85,10 +85,10 @@ export interface AgentResponse {
     result?: unknown;
     status: 'pending' | 'running' | 'completed' | 'failed';
   }>;
-  
+
   // For streaming responses
   isComplete?: boolean;
-  
+
   // Cost tracking
   usage?: {
     promptTokens?: number;
@@ -106,27 +106,27 @@ export interface BridgeConfig {
   name: string;
   type: AgentType;
   enabled: boolean;
-  
+
   // Connection settings
   endpoint?: string;
   apiKey?: string;
   timeout?: number;
   maxRetries?: number;
-  
+
   // Agent-specific config
   model?: string;
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;
-  
+
   // Serena-specific
   projectPath?: string;
   languages?: string[];
-  
+
   // ElizaOS-specific
   characterFile?: string;
   evaluatorMode?: string;
-  
+
   // Custom config
   custom?: Record<string, unknown>;
 }
@@ -194,27 +194,27 @@ export interface AgentTool {
 export interface AgentContext {
   // Conversation history
   messages: AgentMessage[];
-  
+
   // Memory context from MemU
   memoryContext?: string;
-  
+
   // Available tools
   tools?: AgentTool[];
-  
+
   // Current terminal state
   terminalState?: {
     sessionId: string;
     widgets: unknown[];
     participants: unknown[];
   };
-  
+
   // Custom context
   custom?: Record<string, unknown>;
 }
 
 /**
  * Abstract agent bridge interface
- * 
+ *
  * All agent bridges must implement this interface to connect
  * to the ChrysalisTerminal system.
  */
@@ -222,25 +222,25 @@ export interface IAgentBridge {
   // Identity
   readonly id: string;
   readonly info: AgentInfo;
-  
+
   // Connection
   connect(): Promise<void>;
   disconnect(): Promise<void>;
   getStatus(): BridgeStatus;
-  
+
   // Messaging
   send(message: AgentMessage, context?: AgentContext): Promise<AgentResponse>;
   stream?(message: AgentMessage, context?: AgentContext): AsyncIterable<AgentResponse>;
-  
+
   // Events
   on(eventType: BridgeEventType, handler: BridgeEventHandler): () => void;
   off(eventType: BridgeEventType, handler: BridgeEventHandler): void;
-  
+
   // Tools (optional)
   registerTool?(tool: AgentTool): void;
   unregisterTool?(toolName: string): void;
   getTools?(): AgentTool[];
-  
+
   // Lifecycle
   destroy(): Promise<void>;
 }
