@@ -214,3 +214,32 @@ export type {
   AgentResponse,
   ChatRoutingResult,
 } from './SystemAgentChatService';
+
+// System Agent Tools (NEW - Open Interpreter patterns)
+export {
+  CodeExecutor,
+  getCodeExecutor,
+  resetCodeExecutor,
+  assessRisk,
+} from './tools';
+export type {
+  ExecutionLanguage,
+  ExecutionRequest,
+  ExecutionResult,
+  PermissionRequest,
+  PermissionHandler,
+  CodeExecutorConfig,
+} from './tools';
+
+// Meta-Cognitive Layer (NEW - OpenHands + Open Interpreter integration)
+export {
+  MetaCognitiveLayer,
+  createMetaCognitiveLayer,
+  createMinimalMetaCognitiveLayer,
+  DEFAULT_META_CONFIG,
+} from './MetaCognitiveLayer';
+export type {
+  MetaCognitiveConfig,
+  MetaCognitiveResult,
+  AgentCodeExecutionRequest,
+} from './MetaCognitiveLayer';
