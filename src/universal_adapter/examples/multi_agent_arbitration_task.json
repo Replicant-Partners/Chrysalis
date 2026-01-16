@@ -1,0 +1,85 @@
+{
+  "name": "multi_agent_arbitration",
+  "version": "1.0.0",
+  "taskId": "task-arbitration-001",
+  "taskType": "arbitration",
+  "priority": "high",
+
+  "goal": {
+    "description": "Rank agent candidates by priority and confidence, apply diversity bonuses, enforce turn budgets, and select winners while preventing pile-on",
+    "target_conditions": [
+      {
+        "description": "Winners selected from eligible candidates",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 5 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "5"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.0,
+    "max_tokens": 1024,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "arbiter_config",
+        "category": "config",
+        "description": "Default arbiter configuration",
+        "data": {
+          "strategy": "priority_then_diversity",
+          "maxAgentsPerTurn": 2,
+          "diversityWeight": 0.15,
+          "globalTurnBudget": 5
+        }
+      },
+      {
+        "name": "coordination_tags",
+        "category": "schema",
+        "description": "Valid coordination tags for diversity calculation",
+        "data": ["risk_assessment", "empathy", "logic", "metacognition", "planning", "creativity"]
+      }
+    ]
+  },
+
+  "input": {
+    "candidates": [
+      {"agentId": "ada", "shouldSpeak": true, "confidence": 0.85, "priority": 0.9, "complementTags": ["risk_assessment", "logic"]},
+      {"agentId": "lea", "shouldSpeak": true, "confidence": 0.75, "priority": 0.7, "complementTags": ["empathy", "creativity"]},
+      {"agentId": "phil", "shouldSpeak": true, "confidence": 0.80, "priority": 0.6, "complementTags": ["planning", "logic"]},
+      {"agentId": "david", "shouldSpeak": false, "confidence": 0.70, "priority": 0.5, "complementTags": ["metacognition"]}
+    ],
+    "recent_turn_count": 2,
+    "strategy": "priority_then_diversity"
+  },
+
+  "prompts": [
+    {
+      "template": "Filter eligible candidates (shouldSpeak=true) from:\n{{candidates}}\n\nReturn JSON: {\"eligible\": [...], \"filtered_out\": [...]}",
+      "role": "user",
+      "description": "Filter eligible candidates"
+    },
+    {
+      "template": "Rank candidates by score (priority * confidence):\n{{response:P0}}\n\nUsing config: {{registry:arbiter_config}}\n\nCalculate initial scores, then apply diversity bonus for strategy '{{strategy}}'.\n\nDiversity bonus = (new_tags / total_tags) * diversityWeight\n\nReturn JSON: {\"rankings\": [{\"agentId\": \"...\", \"baseScore\": X, \"diversityBonus\": Y, \"finalScore\": Z}], \"selectedTags\": [...]}",
+      "role": "user",
+      "description": "Calculate rankings with diversity bonus"
+    },
+    {
+      "template": "Select winners from rankings:\n{{response:P1}}\n\nConstraints:\n- maxAgentsPerTurn: {{registry:arbiter_config}}\n- globalTurnBudget: {{registry:arbiter_config}}\n- recent_turn_count: {{recent_turn_count}}\n\nCheck if global budget exceeded. Select top N winners.\n\nReturn JSON: {\"winners\": [...], \"losers\": [...], \"pileOnPrevented\": bool, \"arbitrationReason\": \"...\", \"budgetExceeded\": bool}",
+      "role": "user",
+      "description": "Select winners and enforce limits"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> COND_ELIGIBLE{eligible?}\n    COND_ELIGIBLE -->|yes| P1\n    COND_ELIGIBLE -->|no| GOAL\n    P1 --> P2\n    P2 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| END"
+  }
+}

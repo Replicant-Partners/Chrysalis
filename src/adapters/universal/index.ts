@@ -361,6 +361,16 @@ export {
 // Full types
 export * from './types';
 
+// Gateway Bridge (for connecting to Go LLM Gateway)
+export {
+  GatewayLLMProvider,
+  createGatewayAdapter,
+  getSharedAdapter,
+  resetSharedAdapter,
+  quickTranslate,
+  quickMorph
+} from './gateway-bridge';
+
 // ============================================================================
 // Default Export
 // ============================================================================

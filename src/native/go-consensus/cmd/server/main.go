@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -129,7 +130,11 @@ func (h *StateHandler) OnReceive(ctx context.Context, senderID string, payload j
 }
 
 func (h *StateHandler) GetState() (json.RawMessage, error) {
-	return h.store.GetAll()
+	state, err := h.store.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(state)
 }
 
 func (h *StateHandler) GetDigest() ([]byte, error) {
@@ -139,10 +144,6 @@ func (h *StateHandler) GetDigest() ([]byte, error) {
 	}
 	return json.Marshal(state)
 }
-
-import (
-	"sync"
-)
 
 func main() {
 	flag.Parse()

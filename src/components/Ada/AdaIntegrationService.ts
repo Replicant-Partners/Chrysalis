@@ -15,6 +15,8 @@
 
 import { EventEmitter } from 'events';
 import { createLogger } from '../../shared/logger';
+import { GatewayLLMClient, GatewayLLMMessage } from '../../services/gateway/GatewayLLMClient';
+import { DEFAULT_ADA_MODEL, OLLAMA_CONFIG } from '../../config/ollama-models';
 
 // =============================================================================
 // Types
@@ -79,13 +81,17 @@ export interface AdaMessage {
 
 /** Configuration for Ada service */
 export interface AdaServiceConfig {
-  apiBaseUrl: string;
+  apiBaseUrl?: string; // Optional, falls back to gateway
   agentId?: string;
   cooldownMs: number;
   maxNotificationsPerMinute: number;
   idleThresholdMs: number;
   enableAutoAssist: boolean;
   minConfidenceForAction: number;
+  // Gateway configuration
+  gatewayBaseUrl?: string;
+  gatewayModel?: string;
+  useGateway?: boolean; // If true, use GatewayLLMClient instead of direct API
 }
 
 /** System agent API response */
@@ -103,13 +109,16 @@ interface SystemAgentResponse {
 // =============================================================================
 
 const DEFAULT_CONFIG: AdaServiceConfig = {
-  apiBaseUrl: 'http://localhost:3001/api/system-agents',
   agentId: 'ada',
   cooldownMs: 5000,
   maxNotificationsPerMinute: 6,
   idleThresholdMs: 30000,
   enableAutoAssist: true,
   minConfidenceForAction: 0.7,
+  // Use gateway with Ollama by default
+  useGateway: true,
+  gatewayBaseUrl: 'http://localhost:8080',
+  gatewayModel: DEFAULT_ADA_MODEL, // ministral-3:3b
 };
 
 // =============================================================================
@@ -162,6 +171,8 @@ export class AdaIntegrationService extends EventEmitter {
   private messageHistory: AdaMessage[] = [];
   private pendingProposal?: AdaActionProposal;
   private conversationId?: string;
+  private gatewayClient?: GatewayLLMClient;
+  private conversationHistory: GatewayLLMMessage[] = [];
   private log = createLogger('ada-integration');
 
   constructor(config: Partial<AdaServiceConfig> = {}) {
@@ -174,6 +185,19 @@ export class AdaIntegrationService extends EventEmitter {
       recentErrors: [],
       userIdleMs: 0,
     };
+    
+    // Initialize gateway client if using gateway mode
+    if (this.config.useGateway) {
+      this.gatewayClient = new GatewayLLMClient({
+        baseUrl: this.config.gatewayBaseUrl,
+        model: this.config.gatewayModel,
+      });
+      this.log.info('Ada initialized with gateway', {
+        model: this.config.gatewayModel,
+        baseUrl: this.config.gatewayBaseUrl,
+      });
+    }
+    
     this.startNotificationCounter();
   }
 
@@ -352,6 +376,12 @@ export class AdaIntegrationService extends EventEmitter {
   }
 
   private async callSystemAgentAPI(message: string): Promise<SystemAgentResponse> {
+    // Use gateway client if configured (Ollama/local models)
+    if (this.gatewayClient) {
+      return this.callViaGateway(message);
+    }
+    
+    // Fallback to direct system agent API
     const url = `${this.config.apiBaseUrl}/chat`;
 
     const body = {
@@ -384,6 +414,94 @@ export class AdaIntegrationService extends EventEmitter {
     }
 
     return data;
+  }
+
+  /**
+   * Call Ada via gateway (for Ollama/local models)
+   */
+  private async callViaGateway(userMessage: string): Promise<SystemAgentResponse> {
+    if (!this.gatewayClient) {
+      throw new Error('Gateway client not initialized');
+    }
+
+    // Build system prompt with UI context
+    const systemPrompt = this.buildSystemPrompt();
+    
+    // Add messages to conversation history
+    if (this.conversationHistory.length === 0) {
+      this.conversationHistory.push({
+        role: 'system',
+        content: systemPrompt,
+      });
+    }
+    
+    this.conversationHistory.push({
+      role: 'user',
+      content: userMessage,
+    });
+
+    // Call gateway
+    const response = await this.gatewayClient.chat(
+      this.config.agentId || 'ada',
+      this.conversationHistory,
+      0.7 // temperature for Ada
+    );
+
+    // Add assistant response to history
+    this.conversationHistory.push({
+      role: 'assistant',
+      content: response.content,
+    });
+
+    // Trim conversation history if too long (keep last 20 messages + system)
+    if (this.conversationHistory.length > 21) {
+      this.conversationHistory = [
+        this.conversationHistory[0], // Keep system message
+        ...this.conversationHistory.slice(-20),
+      ];
+    }
+
+    this.log.debug('Gateway response', {
+      model: response.model,
+      provider: response.provider,
+      durationMs: response.durationMs,
+    });
+
+    return {
+      response: response.content,
+      agentId: this.config.agentId || 'ada',
+      metadata: {
+        confidence: 0.8, // Default confidence for gateway responses
+      },
+    };
+  }
+
+  /**
+   * Build system prompt with current UI context
+   */
+  private buildSystemPrompt(): string {
+    return `You are Ada, an AI assistant integrated into the Chrysalis visual agent workspace.
+
+Your role:
+- Observe user activity and provide proactive assistance when needed
+- Help troubleshoot errors and suggest solutions
+- Guide users through complex workflows
+- Propose actions that require user approval
+
+Current context:
+- Active canvas: ${this.context.activeCanvas}
+- Selected items: ${this.context.selection.length}
+- Recent errors: ${this.context.recentErrors.length}
+
+Guidelines:
+- Be concise and helpful
+- Ask clarifying questions when needed
+- Propose actions using format: [ACTION:type:description]
+- Action types: navigate, assist, explain, execute, suggest
+- Only propose high-confidence actions
+- Respect user's focus and don't be intrusive
+
+Respond naturally and helpfully to user messages.`;
   }
 
   // ===========================================================================

@@ -23,6 +23,14 @@ thiserror = "1.0"
 js-sys = "0.3"
 hmac = "0.12"
 hkdf = "0.12"
+# AES-GCM encryption
+aes-gcm = "0.10"
+# Scrypt key derivation
+scrypt = "0.11"
+# Constant-time comparison
+subtle = "2.5"
+# Base64 encoding
+base64 = "0.21"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

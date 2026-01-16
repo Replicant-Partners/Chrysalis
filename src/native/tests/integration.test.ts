@@ -666,7 +666,7 @@ describe('Consensus: Go Service Integration', () => {
 
   // Note: These tests require the Go consensus server to be running
   describe.skip('Live Gossip Integration', () => {
-    const CONSENSUS_URL = process.env.CONSENSUS_URL || 'http://localhost:8080';
+    const CONSENSUS_URL = process.env.CONSENSUS_URL || 'http://localhost:8090';
     let sync: SyncCoordinatorClient;
 
     beforeAll(async () => {

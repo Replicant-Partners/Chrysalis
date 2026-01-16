@@ -388,6 +388,167 @@ pub fn hkdf_sha256(
 }
 
 // ============================================================================
+// AES-256-GCM Encryption
+// ============================================================================
+
+use aes_gcm::{
+    aead::{Aead, KeyInit},
+    Aes256Gcm, Nonce,
+};
+
+/// AES-256-GCM encryption constants
+const AES_KEY_LENGTH: usize = 32;  // 256 bits
+const AES_NONCE_LENGTH: usize = 12; // 96 bits (GCM standard)
+
+/// Encrypt data using AES-256-GCM
+/// Returns: nonce (12 bytes) || ciphertext || auth_tag (16 bytes)
+#[wasm_bindgen]
+pub fn aes_gcm_encrypt(plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, JsValue> {
+    if key.len() != AES_KEY_LENGTH {
+        return Err(JsValue::from_str(&format!(
+            "Invalid key length: expected {}, got {}",
+            AES_KEY_LENGTH,
+            key.len()
+        )));
+    }
+
+    let cipher = Aes256Gcm::new_from_slice(key)
+        .map_err(|e| JsValue::from_str(&format!("Failed to create cipher: {}", e)))?;
+
+    // Generate random nonce
+    let mut nonce_bytes = [0u8; AES_NONCE_LENGTH];
+    getrandom::getrandom(&mut nonce_bytes).expect("Failed to generate nonce");
+    let nonce = Nonce::from_slice(&nonce_bytes);
+
+    let ciphertext = cipher
+        .encrypt(nonce, plaintext)
+        .map_err(|e| JsValue::from_str(&format!("Encryption failed: {}", e)))?;
+
+    // Prepend nonce to ciphertext
+    let mut result = Vec::with_capacity(AES_NONCE_LENGTH + ciphertext.len());
+    result.extend_from_slice(&nonce_bytes);
+    result.extend_from_slice(&ciphertext);
+
+    Ok(result)
+}
+
+/// Decrypt data encrypted with AES-256-GCM
+/// Input format: nonce (12 bytes) || ciphertext || auth_tag (16 bytes)
+#[wasm_bindgen]
+pub fn aes_gcm_decrypt(encrypted: &[u8], key: &[u8]) -> Result<Vec<u8>, JsValue> {
+    if key.len() != AES_KEY_LENGTH {
+        return Err(JsValue::from_str(&format!(
+            "Invalid key length: expected {}, got {}",
+            AES_KEY_LENGTH,
+            key.len()
+        )));
+    }
+
+    if encrypted.len() < AES_NONCE_LENGTH + 16 {
+        return Err(JsValue::from_str("Encrypted data too short"));
+    }
+
+    let cipher = Aes256Gcm::new_from_slice(key)
+        .map_err(|e| JsValue::from_str(&format!("Failed to create cipher: {}", e)))?;
+
+    let nonce = Nonce::from_slice(&encrypted[..AES_NONCE_LENGTH]);
+    let ciphertext = &encrypted[AES_NONCE_LENGTH..];
+
+    cipher
+        .decrypt(nonce, ciphertext)
+        .map_err(|e| JsValue::from_str(&format!("Decryption failed: {}", e)))
+}
+
+/// Generate a random AES-256 key
+#[wasm_bindgen]
+pub fn generate_aes_key() -> Vec<u8> {
+    random_bytes(AES_KEY_LENGTH)
+}
+
+// ============================================================================
+// Scrypt Key Derivation
+// ============================================================================
+
+use scrypt::{scrypt, Params as ScryptParams};
+
+/// Scrypt parameters matching Node.js defaults
+const SCRYPT_LOG_N: u8 = 14;  // N = 2^14 = 16384
+const SCRYPT_R: u32 = 8;
+const SCRYPT_P: u32 = 1;
+
+/// Derive a key from password using scrypt
+#[wasm_bindgen]
+pub fn scrypt_derive_key(
+    password: &[u8],
+    salt: &[u8],
+    key_length: usize,
+) -> Result<Vec<u8>, JsValue> {
+    let params = ScryptParams::new(SCRYPT_LOG_N, SCRYPT_R, SCRYPT_P, key_length)
+        .map_err(|e| JsValue::from_str(&format!("Invalid scrypt params: {}", e)))?;
+
+    let mut output = vec![0u8; key_length];
+    scrypt(password, salt, &params, &mut output)
+        .map_err(|e| JsValue::from_str(&format!("Scrypt failed: {}", e)))?;
+
+    Ok(output)
+}
+
+/// Generate a random salt for scrypt
+#[wasm_bindgen]
+pub fn generate_salt() -> Vec<u8> {
+    random_bytes(32) // 256-bit salt
+}
+
+/// Encrypt with password (scrypt + AES-GCM)
+/// Returns: salt (32 bytes) || nonce (12 bytes) || ciphertext || auth_tag
+#[wasm_bindgen]
+pub fn encrypt_with_password(plaintext: &[u8], password: &str) -> Result<Vec<u8>, JsValue> {
+    let salt = generate_salt();
+    let key = scrypt_derive_key(password.as_bytes(), &salt, AES_KEY_LENGTH)?;
+
+    let encrypted = aes_gcm_encrypt(plaintext, &key)?;
+
+    // Prepend salt
+    let mut result = Vec::with_capacity(32 + encrypted.len());
+    result.extend_from_slice(&salt);
+    result.extend_from_slice(&encrypted);
+
+    Ok(result)
+}
+
+/// Decrypt with password
+/// Input format: salt (32 bytes) || nonce (12 bytes) || ciphertext || auth_tag
+#[wasm_bindgen]
+pub fn decrypt_with_password(encrypted: &[u8], password: &str) -> Result<Vec<u8>, JsValue> {
+    if encrypted.len() < 32 + AES_NONCE_LENGTH + 16 {
+        return Err(JsValue::from_str("Encrypted data too short"));
+    }
+
+    let salt = &encrypted[..32];
+    let ciphertext = &encrypted[32..];
+
+    let key = scrypt_derive_key(password.as_bytes(), salt, AES_KEY_LENGTH)?;
+    aes_gcm_decrypt(ciphertext, &key)
+}
+
+// ============================================================================
+// Secure Token Generation
+// ============================================================================
+
+/// Generate a secure random token as hex string
+#[wasm_bindgen]
+pub fn generate_token(length: usize) -> String {
+    random_hex(length)
+}
+
+/// Generate a secure random token as base64 string
+#[wasm_bindgen]
+pub fn generate_token_base64(length: usize) -> String {
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
+    STANDARD.encode(random_bytes(length))
+}
+
+// ============================================================================
 // Utilities
 // ============================================================================
 

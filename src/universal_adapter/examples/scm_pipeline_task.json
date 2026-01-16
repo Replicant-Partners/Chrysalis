@@ -1,0 +1,107 @@
+{
+  "name": "scm_pipeline",
+  "version": "1.0.0",
+  "taskId": "task-scm-pipeline-001",
+  "taskType": "pipeline",
+  "priority": "high",
+
+  "goal": {
+    "description": "Execute the Shared Conversation Middleware pipeline: Gate -> Plan -> Realize with intent classification and move sequence generation",
+    "target_conditions": [
+      {
+        "description": "Gate evaluated and response planned/realized if speaking",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 6 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "6"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.3,
+    "max_tokens": 1024,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "intent_types",
+        "category": "schema",
+        "description": "Valid SCM intent types",
+        "data": ["ask", "answer", "clarify", "reflect", "coach", "brainstorm", "handoff", "summarize"]
+      },
+      {
+        "name": "move_sequences",
+        "category": "config",
+        "description": "Intent to moves mapping",
+        "data": {
+          "ask": {"moves": ["formulate_question", "await_response"], "successCriterion": "user_provides_answer"},
+          "answer": {"moves": ["provide_answer", "check_understanding"], "successCriterion": "user_acknowledges"},
+          "clarify": {"moves": ["reflect_understanding", "ask_clarification"], "successCriterion": "user_clarifies"},
+          "reflect": {"moves": ["summarize_stated", "validate_interpretation"], "successCriterion": "user_confirms"},
+          "coach": {"moves": ["ask_permission", "offer_options", "await_selection"], "successCriterion": "user_selects_next_step"},
+          "brainstorm": {"moves": ["generate_ideas", "present_options", "await_feedback"], "successCriterion": "user_reacts_to_ideas"},
+          "handoff": {"moves": ["summarize_context", "introduce_handoff", "transfer"], "successCriterion": "handoff_accepted"},
+          "summarize": {"moves": ["extract_key_points", "present_summary", "confirm"], "successCriterion": "user_acknowledges_summary"}
+        }
+      },
+      {
+        "name": "autonomy_prefixes",
+        "category": "config",
+        "description": "Autonomy-preserving language prefixes",
+        "data": {
+          "high": ["You might consider...", "One option could be...", "Would you like to explore..."],
+          "medium": ["I suggest...", "Consider...", "Try..."],
+          "low": ["You should...", "Do this:", "The next step is..."]
+        }
+      }
+    ]
+  },
+
+  "input": {
+    "agent_id": "ada",
+    "context": {
+      "latestTurnId": "turn-123",
+      "threadState": "planning",
+      "addressedToMe": true,
+      "lastSpokeAtMs": 1700000000000,
+      "messagesInLast10Min": 3,
+      "lastNTurns": [
+        {"speakerId": "user", "content": "Can you help me plan this project?", "timestamp": 1700000001000}
+      ]
+    },
+    "agent_personality": {
+      "tone": "warm",
+      "autonomy_level": "high",
+      "max_response_length": 500
+    }
+  },
+
+  "prompts": [
+    {
+      "template": "GATE EVALUATION:\n\nAgent: {{agent_id}}\nContext: {{context}}\n\nDetermine if this agent should speak. Consider:\n- Is the agent addressed directly? ({{context.addressedToMe}})\n- Thread state: {{context.threadState}}\n- Recent participation: {{context.messagesInLast10Min}} messages in last 10 min\n- Time since last spoke\n\nClassify intent type from: {{registry:intent_types}}\n\nReturn JSON: {\"shouldSpeak\": bool, \"confidence\": 0.0-1.0, \"intentType\": \"...\", \"priority\": 0.0-1.0, \"reasons\": [...]}",
+      "role": "user",
+      "description": "Gate: Determine if agent should speak"
+    },
+    {
+      "template": "PLAN RESPONSE:\n\nGate result: {{response:P0}}\nMove sequences: {{registry:move_sequences}}\n\nBased on the intent type, select the appropriate move sequence.\nGenerate specific moves for this context.\n\nReturn JSON: {\"intentType\": \"...\", \"moves\": [...], \"successCriterion\": \"...\", \"handoffTarget\": null}",
+      "role": "user",
+      "description": "Plan: Generate response plan with moves"
+    },
+    {
+      "template": "REALIZE RESPONSE:\n\nPlan: {{response:P1}}\nPersonality: {{agent_personality}}\nAutonomy prefixes: {{registry:autonomy_prefixes}}\nLast user message: {{context.lastNTurns}}\n\nGenerate the actual response text:\n- Apply the planned moves\n- Use appropriate autonomy-preserving language (level: {{agent_personality.autonomy_level}})\n- Match the agent's tone ({{agent_personality.tone}})\n- Keep under {{agent_personality.max_response_length}} characters\n\nReturn JSON: {\"text\": \"...\", \"tone\": \"...\", \"truncated\": bool, \"idiomApplied\": \"...\"}",
+      "role": "user",
+      "description": "Realize: Generate final response with style"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> COND_SPEAK{shouldSpeak?}\n    COND_SPEAK -->|yes| P1\n    COND_SPEAK -->|no| GOAL\n    P1 --> P2\n    P2 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P0"
+  }
+}

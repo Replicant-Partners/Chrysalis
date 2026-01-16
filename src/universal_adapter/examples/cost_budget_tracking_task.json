@@ -1,0 +1,77 @@
+{
+  "name": "cost_budget_tracking",
+  "version": "1.0.0",
+  "taskId": "task-cost-budget-001",
+  "taskType": "budget",
+  "priority": "high",
+
+  "goal": {
+    "description": "Track LLM operation costs and enforce budget limits with configurable policies",
+    "target_conditions": [
+      {
+        "description": "Cost calculated and budget checked",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 3 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "3"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-haiku-20240307",
+    "temperature": 0.0,
+    "max_tokens": 256,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "model_pricing",
+        "category": "config",
+        "description": "Model pricing table for cost calculations",
+        "data": {
+          "gpt-4o": {"input": 0.0025, "output": 0.01},
+          "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
+          "claude-3-5-sonnet": {"input": 0.003, "output": 0.015},
+          "claude-3-opus": {"input": 0.015, "output": 0.075},
+          "claude-3-haiku": {"input": 0.00025, "output": 0.00125}
+        }
+      }
+    ]
+  },
+
+  "input": {
+    "operation_type": "completion",
+    "model_id": "claude-3-5-sonnet",
+    "input_tokens": 1000,
+    "output_tokens": 500,
+    "agent_id": "default-agent",
+    "daily_limit": 10.00,
+    "monthly_limit": 100.00,
+    "current_daily_spend": 0.0,
+    "current_monthly_spend": 0.0,
+    "policy": "warn"
+  },
+
+  "prompts": [
+    {
+      "template": "Calculate the cost for this LLM operation:\n- Model: {{model_id}}\n- Input tokens: {{input_tokens}}\n- Output tokens: {{output_tokens}}\n\nUse pricing from registry: {{registry:model_pricing}}\n\nRespond with JSON: {\"input_cost\": X, \"output_cost\": Y, \"total_cost\": Z}",
+      "role": "user",
+      "description": "Calculate operation cost"
+    },
+    {
+      "template": "Check budget status:\n- Calculated cost: {{response:P0}}\n- Daily spend: ${{current_daily_spend}}, Limit: ${{daily_limit}}\n- Monthly spend: ${{current_monthly_spend}}, Limit: ${{monthly_limit}}\n- Policy: {{policy}}\n\nRespond with category: 'allowed', 'warning', or 'blocked' and include updated totals.",
+      "role": "user",
+      "description": "Check budget and enforce policy"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 -->|allowed| GOAL\n    P1 -->|warning| GOAL\n    P1 -->|blocked| GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| END"
+  }
+}

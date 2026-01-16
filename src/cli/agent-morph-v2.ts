@@ -28,21 +28,12 @@ log.warn('"agent-morph-v2" is deprecated. Use "chrysalis" CLI instead.');
 import { program } from 'commander';
 import * as fs from 'fs/promises';
 import { ConverterV2 } from '../converter/ConverterV2';
-import { adapterRegistry } from '../core/AdapterRegistry';
-import { MCPAdapter } from '../adapters/MCPAdapter';
-import { MultiAgentAdapter } from '../adapters/MultiAgentAdapter';
-import { OrchestratedAdapter } from '../adapters/OrchestratedAdapter';
-import { ElizaOSAdapter } from '../adapters/ElizaOSAdapter';
-import { CrewAIAdapter } from '../adapters/CrewAIAdapter';
+import { adapterRegistry } from '../adapters/unified-adapter';
 import { generateKeyPair } from '../core/Encryption';
 import type { AgentImplementationType, SyncProtocol } from '../core/UniformSemanticAgentV2';
 
-// Register all adapters
-adapterRegistry.register(new MCPAdapter(), ['mcp', 'cline']);
-adapterRegistry.register(new MultiAgentAdapter(), ['multi', 'crew', 'crewai']);
-adapterRegistry.register(new OrchestratedAdapter(), ['orchestrated', 'protocol']);
-adapterRegistry.register(new ElizaOSAdapter(), ['elizaos', 'eliza']);
-adapterRegistry.register(new CrewAIAdapter(), ['crewai-legacy']);
+// Adapters are now auto-registered or loaded via registry-v2
+// Legacy manual registration is removed.
 
 /**
  * Morph command

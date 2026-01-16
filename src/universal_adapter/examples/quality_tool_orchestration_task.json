@@ -1,0 +1,75 @@
+{
+  "name": "quality_tool_orchestration",
+  "version": "1.0.0",
+  "taskId": "task-quality-orch-001",
+  "taskType": "orchestration",
+  "priority": "normal",
+
+  "goal": {
+    "description": "Execute quality tools in parallel and aggregate results into unified metrics",
+    "target_conditions": [
+      {
+        "description": "All available tools executed and results aggregated",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 10 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "10"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.0,
+    "max_tokens": 1024,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "quality_tools",
+        "category": "config",
+        "description": "Available quality analysis tools",
+        "data": {
+          "eslint": {"type": "linter", "languages": ["javascript", "typescript"]},
+          "prettier": {"type": "formatter", "languages": ["javascript", "typescript", "css"]},
+          "tsc": {"type": "type_checker", "languages": ["typescript"]},
+          "biome": {"type": "linter", "languages": ["javascript", "typescript"]}
+        }
+      }
+    ]
+  },
+
+  "input": {
+    "target_path": "./src",
+    "file_extensions": [".ts", ".tsx"],
+    "available_tools": ["eslint", "tsc"],
+    "execution_mode": "parallel"
+  },
+
+  "prompts": [
+    {
+      "template": "Filter available quality tools for target:\n- Target path: {{target_path}}\n- File extensions: {{file_extensions}}\n- Requested tools: {{available_tools}}\n- Tool registry: {{registry:quality_tools}}\n\nReturn JSON list of tools that can run on these files: {\"executable_tools\": [...], \"skipped_tools\": [...], \"reason\": \"...\"}",
+      "role": "user",
+      "description": "Filter available tools"
+    },
+    {
+      "template": "Simulate execution of quality tools:\n- Tools to run: {{response:P0}}\n- Mode: {{execution_mode}}\n\nFor each tool, generate realistic output with:\n- issues_found: number\n- errors: number\n- warnings: number\n- fixable: number\n- execution_time_ms: number\n\nReturn JSON: {\"tool_results\": [{\"tool\": \"...\", \"status\": \"success|error\", ...}]}",
+      "role": "user",
+      "description": "Execute tools (simulated)"
+    },
+    {
+      "template": "Aggregate quality tool results:\n{{response:P1}}\n\nProduce unified metrics:\n- total_issues: sum of all issues\n- total_errors: sum of errors\n- total_warnings: sum of warnings\n- fixable_count: sum of fixable\n- tools_succeeded: count\n- tools_failed: count\n- overall_status: 'pass' if no errors, 'warn' if only warnings, 'fail' if errors\n\nReturn JSON with aggregated metrics.",
+      "role": "user",
+      "description": "Aggregate results"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> P1\n    P1 --> P2\n    P2 --> GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| P1"
+  }
+}

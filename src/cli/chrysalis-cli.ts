@@ -26,40 +26,13 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Converter } from '../converter/Converter';
 import { ConverterV2 } from '../converter/ConverterV2';
-import { adapterRegistry } from '../core/AdapterRegistry';
-import { ElizaOSAdapter } from '../adapters/ElizaOSAdapter';
-import { CrewAIAdapter } from '../adapters/CrewAIAdapter';
+import { adapterRegistry } from '../adapters/unified-adapter';
 import { generateKeyPair } from '../core/Encryption';
 import { getConfig, initializeConfig, validateConfig, exportConfig } from '../core/config';
 import type { AgentImplementationType, SyncProtocol } from '../core/UniformSemanticAgentV2';
 
-// Conditionally import v2 adapters (they may not exist in all setups)
-let MCPAdapter: any;
-let MultiAgentAdapter: any;
-let OrchestratedAdapter: any;
-
-try {
-  MCPAdapter = require('../adapters/MCPAdapter').MCPAdapter;
-  MultiAgentAdapter = require('../adapters/MultiAgentAdapter').MultiAgentAdapter;
-  OrchestratedAdapter = require('../adapters/OrchestratedAdapter').OrchestratedAdapter;
-} catch {
-  // V2 adapters not available
-}
-
-// Register adapters
-adapterRegistry.register(new ElizaOSAdapter(), ['elizaos', 'eliza']);
-adapterRegistry.register(new CrewAIAdapter(), ['crewai', 'crew']);
-
-// Register v2 adapters if available
-if (MCPAdapter) {
-  adapterRegistry.register(new MCPAdapter(), ['mcp', 'cline']);
-}
-if (MultiAgentAdapter) {
-  adapterRegistry.register(new MultiAgentAdapter(), ['multi', 'multi_agent']);
-}
-if (OrchestratedAdapter) {
-  adapterRegistry.register(new OrchestratedAdapter(), ['orchestrated', 'protocol']);
-}
+// Adapters are now auto-registered or loaded via registry-v2
+// Legacy manual registration is removed.
 
 /**
  * Morph command - Unified transformation command

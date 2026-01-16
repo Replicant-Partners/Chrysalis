@@ -25,14 +25,11 @@ import { program } from 'commander';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Converter } from '../converter/Converter';
-import { adapterRegistry } from '../core/AdapterRegistry';
-import { ElizaOSAdapter } from '../adapters/ElizaOSAdapter';
-import { CrewAIAdapter } from '../adapters/CrewAIAdapter';
+import { adapterRegistry } from '../adapters/unified-adapter';
 import { generateKeyPair } from '../core/Encryption';
 
-// Register adapters
-adapterRegistry.register(new ElizaOSAdapter(), ['eliza']);
-adapterRegistry.register(new CrewAIAdapter(), ['crew']);
+// Adapters are now auto-registered or loaded via registry-v2
+// Legacy manual registration is removed.
 
 /**
  * Convert command

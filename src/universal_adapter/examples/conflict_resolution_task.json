@@ -1,0 +1,93 @@
+{
+  "name": "conflict_resolution",
+  "version": "1.0.0",
+  "taskId": "task-conflict-001",
+  "taskType": "resolution",
+  "priority": "high",
+
+  "goal": {
+    "description": "Detect and resolve conflicts between persona evaluation outputs using Social Choice Theory principles",
+    "target_conditions": [
+      {
+        "description": "All conflicts detected and resolution strategies applied",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within 6 iterations",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "6"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.0,
+    "max_tokens": 1024,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "conflict_thresholds",
+        "category": "config",
+        "description": "Thresholds for conflict detection",
+        "data": {
+          "RISK_DISAGREEMENT": 0.3,
+          "OVERCONFIDENCE_RISK": 7,
+          "PHIL_CONFIDENCE": 0.7,
+          "THRESHOLD_BOUNDARY_LOW": 0.28,
+          "THRESHOLD_BOUNDARY_HIGH": 0.32,
+          "BLIND_SPOTS_MINIMUM": 3,
+          "CONFIDENCE_REDUCTION_FACTOR": 0.8,
+          "UNANIMOUS_CONFIDENCE": 0.85
+        }
+      },
+      {
+        "name": "conflict_types",
+        "category": "schema",
+        "description": "Valid conflict types and their resolutions",
+        "data": {
+          "risk_disagreement": {"resolution": "weighted_average", "adjustment": -0.1},
+          "confidence_mismatch": {"resolution": "conservative_merge", "adjustment": -0.2},
+          "threshold_boundary": {"resolution": "human_escalation", "adjustment": -0.2},
+          "blind_spot": {"resolution": "human_escalation", "adjustment": -0.2},
+          "unanimous_concern": {"resolution": "conservative_merge", "adjustment": -0.15}
+        }
+      }
+    ]
+  },
+
+  "input": {
+    "persona_outputs": {
+      "ada": {"personaId": "ada", "riskScore": 0.6, "confidence": 0.85},
+      "lea": {"personaId": "lea", "riskScore": 0.25, "confidence": 0.80},
+      "phil": {"personaId": "phil", "confidence": 0.75},
+      "david": {"personaId": "david", "confidence": 0.70, "scorecard": {"overconfidenceRisk": 8, "blindSpots": ["market risk", "competition"]}}
+    }
+  },
+
+  "prompts": [
+    {
+      "template": "Detect conflicts in persona outputs:\n{{persona_outputs}}\n\nUsing thresholds: {{registry:conflict_thresholds}}\n\nCheck for:\n1. risk_disagreement: |ada.riskScore - lea.riskScore| > RISK_DISAGREEMENT\n2. confidence_mismatch: david.overconfidenceRisk > OVERCONFIDENCE_RISK AND phil.confidence > PHIL_CONFIDENCE\n3. threshold_boundary: avgRisk between THRESHOLD_BOUNDARY_LOW and THRESHOLD_BOUNDARY_HIGH\n4. blind_spot: david.blindSpots.length >= BLIND_SPOTS_MINIMUM\n5. unanimous_concern: avgConfidence > UNANIMOUS_CONFIDENCE\n\nReturn JSON: {\"conflicts\": [{\"type\": \"...\", \"personas\": [...], \"severity\": X, \"description\": \"...\"}]}",
+      "role": "user",
+      "description": "Detect all conflicts"
+    },
+    {
+      "template": "Resolve detected conflicts:\n{{response:P0}}\n\nUsing resolution strategies: {{registry:conflict_types}}\n\nFor each conflict:\n- Apply the suggested resolution strategy\n- Calculate confidence adjustment\n- Determine if human escalation is needed\n\nReturn JSON: {\"resolutions\": [{\"conflict_type\": \"...\", \"strategy\": \"...\", \"adjustment\": X, \"resolved\": bool, \"explanation\": \"...\"}]}",
+      "role": "user",
+      "description": "Apply resolution strategies"
+    },
+    {
+      "template": "Aggregate conflict resolutions:\n{{response:P1}}\n\nCalculate:\n- totalAdjustment: sum of all adjustments (cap at -0.4)\n- requiresHumanReview: true if any conflict unresolved or used human_escalation\n- explanations: list of all resolution explanations\n\nReturn JSON: {\"totalAdjustment\": X, \"requiresHumanReview\": bool, \"explanations\": [...], \"finalConfidenceCap\": Y}",
+      "role": "user",
+      "description": "Aggregate all resolutions"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START --> P0\n    P0 --> COND_CONFLICTS{conflicts?}\n    COND_CONFLICTS -->|yes| P1\n    COND_CONFLICTS -->|no| GOAL\n    P1 --> P2\n    P2 --> COND_HUMAN{human_review?}\n    COND_HUMAN -->|yes| GOAL\n    COND_HUMAN -->|no| GOAL\n    GOAL -->|goal_met| END\n    GOAL -->|goal_failed| END"
+  }
+}

@@ -21,7 +21,10 @@
     "service:gateway": "npm run build && node dist/services/capability-gateway/run-gateway.js",
     "service:terminal": "npm run build && node dist/api/terminal/run-terminal-server.js",
     "service:feedback": "npm run build && node dist/api/feedback/run-feedback-server.js",
-    "service:system-agents": "npm run build && node dist/api/system-agents/run-system-agents-server.js"
+    "service:system-agents": "npm run build && node dist/api/system-agents/run-system-agents-server.js",
+    "test:adapter": "tsx scripts/test-adapter.ts",
+    "adapter:list": "tsx scripts/test-adapter.ts --list",
+    "adapter:demo": "tsx scripts/test-adapter.ts --demo"
   },
   "keywords": [
     "agent",

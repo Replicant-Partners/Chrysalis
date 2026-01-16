@@ -9,7 +9,12 @@
       "Bash(~/.cargo/bin/wasm-pack build:*)",
       "Bash(export PATH=\"$HOME/.cargo/bin:$PATH\")",
       "Bash(opam --version:*)",
-      "Bash(go version:*)"
+      "Bash(go version:*)",
+      "Bash(dune:*)",
+      "Bash(sudo apt-get update:*)",
+      "Bash(sudo apt-get install:*)",
+      "Bash(/home/mdz-axolotl/.local/go/bin/go build:*)",
+      "Bash(/home/mdz-axolotl/Documents/GitClones/Chrysalis/src/native/go-consensus/bin/consensus-server:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
