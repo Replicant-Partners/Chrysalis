@@ -1,0 +1,37 @@
+{
+  "name": "simple_qa",
+  "version": "1.0.0",
+
+  "goal": {
+    "description": "Answer a question with a clear, concise response",
+    "target_conditions": [
+      {
+        "description": "Response contains an answer",
+        "evaluation_type": "GOAL_MET"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "mock",
+    "model": "mock-model",
+    "temperature": 0.5,
+    "max_tokens": 1024
+  },
+
+  "resource_registry": {
+    "entries": []
+  },
+
+  "prompts": [
+    {
+      "template": "Answer the following question concisely:\n\n{{question}}\n\nProvide a clear, direct answer.",
+      "role": "user",
+      "description": "Answer the question"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START((Start)) --> P0[Answer Question]\n    P0 --> END((End))"
+  }
+}

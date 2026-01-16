@@ -1,0 +1,75 @@
+{
+  "name": "research_synthesis",
+  "version": "1.0.0",
+
+  "goal": {
+    "description": "Research a topic, synthesize findings, and produce a structured summary",
+    "target_conditions": [
+      {
+        "description": "Produce a comprehensive research summary",
+        "evaluation_type": "GOAL_MET"
+      },
+      {
+        "description": "Complete within iteration limit",
+        "evaluation_type": "ITERATION_LIMIT",
+        "expected_value": "20"
+      }
+    ]
+  },
+
+  "resource_llm": {
+    "provider": "anthropic",
+    "model": "claude-3-5-sonnet-20241022",
+    "temperature": 0.7,
+    "max_tokens": 4096,
+    "api_key_env": "ANTHROPIC_API_KEY"
+  },
+
+  "resource_registry": {
+    "entries": [
+      {
+        "name": "research_methodology",
+        "category": "methodology",
+        "source_url": "https://docs.example.com/research-methods"
+      },
+      {
+        "name": "output_schema",
+        "category": "schema",
+        "schema_ref": "#/definitions/ResearchSummary",
+        "source_url": "https://docs.example.com/schemas/research-summary"
+      },
+      {
+        "name": "citation_format",
+        "category": "format",
+        "source_url": "https://docs.example.com/citation-guide"
+      }
+    ]
+  },
+
+  "prompts": [
+    {
+      "template": "You are a research assistant. Given the topic: '{{topic}}', identify 3-5 key aspects that should be investigated. List them as bullet points.",
+      "role": "user",
+      "description": "Initial topic decomposition"
+    },
+    {
+      "template": "Based on the research aspects identified:\n\n{{response:P0}}\n\nFor aspect {{loop.index}}, provide detailed findings including:\n- Key facts and data\n- Notable perspectives\n- Open questions\n\nBe thorough and cite sources where applicable.",
+      "role": "user",
+      "description": "Deep dive on each aspect"
+    },
+    {
+      "template": "Review the following research findings:\n\n{{response:P1}}\n\nIs this research sufficient for a comprehensive summary? Answer 'sufficient' if ready, or 'needs_more' if additional investigation needed.",
+      "role": "user",
+      "description": "Quality check"
+    },
+    {
+      "template": "Synthesize all research findings into a structured summary following this format:\n\n# Research Summary: {{topic}}\n\n## Executive Summary\n[2-3 sentence overview]\n\n## Key Findings\n[Bullet points of main discoveries]\n\n## Detailed Analysis\n[Expanded discussion of each aspect]\n\n## Conclusions\n[Synthesis and implications]\n\n## References\n[Sources consulted]\n\nPrevious research:\n{{response:P1}}",
+      "role": "user",
+      "description": "Final synthesis"
+    }
+  ],
+
+  "flow_diagram": {
+    "mermaid": "graph TD\n    START((Start)) --> P0[Decompose Topic]\n    P0 --> LOOP([Research Loop])\n    LOOP -->|continue| P1[Investigate Aspect]\n    P1 --> P2{Quality Check}\n    P2 -->|sufficient| P3[Synthesize Results]\n    P2 -->|needs_more| LOOP\n    LOOP -->|exit| P3\n    P3 --> END((End))"
+  }
+}
