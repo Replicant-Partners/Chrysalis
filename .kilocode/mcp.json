@@ -1,48 +1,237 @@
 {
-  "mcpServers": {
-    "context7": {
+  "servers": {
+    "sourcery": {
+      "type": "stdio",
+      "command": "sourcery",
+      "args": ["mcp"]
+    },
+    "sentry": {
+      "type": "sse",
+      "url": "https://mcp.sentry.dev/sse"
+    },
+    "github": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "-e",
+        "GITHUB_TOOLSETS",
+        "-e",
+        "GITHUB_READ_ONLY",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}",
+        "GITHUB_TOOLSETS": "",
+        "GITHUB_READ_ONLY": ""
+      }
+    },
+    "sequentialthinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "filesystem": {
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
-        "@upstash/context7-mcp"
-      ],
+        "@modelcontextprotocol/server-filesystem",
+        "/home/mdz-axolotl/Documents/GitClones"
+      ]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
       "env": {
         "DEFAULT_MINIMUM_TOKENS": ""
       }
     },
     "brave-search": {
+      "type": "stdio",
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-brave-search"
-      ],
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
       "env": {
-        "BRAVE_API_KEY": "BSAPEQWOUQnuMA4C9v_KbkViRr3zzxG"
+        "BRAVE_API_KEY": "${env:BRAVE_API_KEY}"
       }
     },
-    "e2b": {
+    "tavily": {
+      "type": "stdio",
       "command": "npx",
-      "args": [
-        "-y",
-        "@e2b/mcp-server"
-      ],
+      "args": ["-y", "tavily-mcp@0.2.3"],
       "env": {
-        "E2B_API_KEY": "e2b_0cbffabd9b752a4f603d0f6fa5f4ce9840d665b3"
+        "TAVILY_API_KEY": "${env:TAVILY_API_KEY}"
       }
+    },
+    "exa": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "exa-mcp-server"],
+      "env": {
+        "EXA_API_KEY": "${env:EXA_API_KEY}"
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@0.0.38"]
     },
     "oxylabs": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["oxylabs-mcp"],
+      "env": {
+        "OXYLABS_USERNAME": "${env:OXYLABS_USERNAME}",
+        "OXYLABS_PASSWORD": "${env:OXYLABS_PASSWORD}"
+      }
+    },
+    "time": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-server-time"]
+    },
+    "kagi": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["kagimcp"],
+      "env": {
+        "KAGI_API_KEY": "${env:KAGI_API_KEY}",
+        "KAGI_SUMMARIZER_ENGINE": ""
+      }
+    },
+    "codegen": {
+      "type": "stdio",
       "command": "uvx",
       "args": [
-        "oxylabs-mcp"
-      ],
+        "--from",
+        "git+https://github.com/codegen-sh/codegen-sdk.git#egg=codegen-mcp-server&subdirectory=codegen-examples/examples/codegen-mcp-server",
+        "codegen-mcp-server"
+      ]
+    },
+    "e2b": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@e2b/mcp-server"],
       "env": {
-        "OXYLABS_USERNAME": "mdz@axolotl.partners",
-        "OXYLABS_PASSWORD": "2026$#Scrapper"
+        "E2B_API_KEY": "${env:E2B_API_KEY}"
+      }
+    },
+    "browserbase": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@browserbasehq/mcp"],
+      "env": {
+        "BROWSERBASE_API_KEY": "${env:BROWSERBASE_API_KEY}",
+        "BROWSERBASE_PROJECT_ID": "${env:BROWSERBASE_PROJECT_ID}"
       }
     },
     "microsoft-learn": {
-      "type": "streamable-http",
+      "type": "http",
       "url": "https://learn.microsoft.com/api/mcp"
+    },
+    "octagon-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "octagon-mcp"],
+      "env": {
+        "OCTAGON_API_KEY": "${env:OCTAGON_API_KEY}"
+      }
+    },
+    "octagon-vc-agents": {
+      "type": "stdio",
+      "command": "pipx",
+      "args": ["run", "--pip-args=--no-cache-dir", "octagon-vc-agents", "run"],
+      "env": {
+        "OCTAGON_API_KEY": "${env:OCTAGON_API_KEY}"
+      }
+    },
+    "deepwiki": {
+      "type": "sse",
+      "url": "https://mcp.deepwiki.com/sse"
+    },
+    "octagon-deep-research": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "octagon-deep-research-mcp@latest"],
+      "env": {
+        "OCTAGON_API_KEY": "${env:OCTAGON_API_KEY}"
+      }
+    },
+    "intugle": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from", "intugle", "intugle-mcp"],
+      "env": {
+        "LLM_PROVIDER": "openai:gpt-4o-mini"
+      }
+    },
+    "stackoverflow": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "mcp.stackoverflow.com"]
+    },
+    "shannon-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "server-shannon-thinking@latest"]
+    },
+    "zotero": {
+      "type": "stdio",
+      "command": "zotero-mcp",
+      "env": {
+        "ZOTERO_LOCAL": "true",
+        "ZOTERO_EMBEDDING_MODEL": "openai",
+        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}",
+        "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small"
+      }
+    },
+    "biomcp": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--with", "biomcp-python", "biomcp", "run"]
+    },
+    "video-gen": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/home/mdz-axolotl/Documents/GitClones/mcp-video-gen/build/index.js"],
+      "env": {
+        "RUNWAYML_API_SECRET": "${env:RUNWAYML_API_SECRET}",
+        "LUMAAI_API_KEY": "${env:LUMAAI_API_KEY}",
+        "OPENROUTER_API_KEY": "${env:OPENROUTER_API_KEY}"
+      }
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--project-root",
+        "/home/mdz-axolotl/Documents/GitClones"
+      ]
+    },
+    "mas-sequential-thinking": {
+      "type": "stdio",
+      "command": "mcp-server-mas-sequential-thinking",
+      "env": {
+        "LLM_PROVIDER": "anthropic",
+        "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}",
+        "ANTHROPIC_ENHANCED_MODEL_ID": "claude-sonnet-4-20250514",
+        "ANTHROPIC_STANDARD_MODEL_ID": "claude-3-5-haiku-20241022",
+        "EXA_API_KEY": "${env:EXA_API_KEY}"
+      }
     }
   }
 }

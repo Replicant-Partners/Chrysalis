@@ -36,6 +36,7 @@ import {
   checkVersionCompatibility,
   getProtocolHealth
 } from './protocol-registry';
+import { UniversalAdapterV2, UniversalAdapterV2Config } from './universal/adapter-v2';
 
 // ============================================================================
 // Adapter Pattern Types
@@ -44,9 +45,10 @@ import {
 /**
  * Identifies which adapter pattern an implementation uses.
  */
-export type AdapterPattern = 
+export type AdapterPattern =
   | 'rdf-based'    // BaseAdapter pattern with toCanonical/fromCanonical
   | 'usa-based'    // FrameworkAdapter pattern with toUniversal/fromUniversal
+  | 'universal-v2' // Universal Adapter V2 (LLM-based)
   | 'unified';     // New unified pattern
 
 /**
@@ -295,16 +297,24 @@ export function wrapUsaAdapter(
 }
 
 /**
- * Create a unified adapter from either legacy pattern.
- * 
+ * Create a unified adapter from either legacy pattern or V2 config.
+ *
  * @param protocol - Protocol identifier
- * @param adapter - Legacy adapter instance (either pattern)
+ * @param adapterOrConfig - Legacy adapter instance or V2 config
  * @returns Unified adapter wrapper
  */
 export function createUnifiedAdapter(
   protocol: AgentFramework,
-  adapter: RdfBasedAdapter | UsaBasedAdapter
+  adapterOrConfig: RdfBasedAdapter | UsaBasedAdapter | UniversalAdapterV2Config
 ): UnifiedAdapter {
+  // Check for V2 config
+  if ('llm' in adapterOrConfig) {
+    const v2Adapter = new UniversalAdapterV2(adapterOrConfig as UniversalAdapterV2Config);
+    return new UniversalAdapterV2Wrapper(protocol, v2Adapter);
+  }
+
+  const adapter = adapterOrConfig as RdfBasedAdapter | UsaBasedAdapter;
+
   // Detect pattern by interface
   if ('toCanonical' in adapter && 'fromCanonical' in adapter) {
     return wrapRdfAdapter(protocol, adapter as RdfBasedAdapter);
@@ -312,6 +322,120 @@ export function createUnifiedAdapter(
     return wrapUsaAdapter(protocol, adapter as UsaBasedAdapter);
   }
   throw new Error(`Unknown adapter pattern for protocol: ${protocol}`);
+}
+
+/**
+ * Wrapper for Universal Adapter V2.
+ */
+class UniversalAdapterV2Wrapper implements UnifiedAdapter {
+  readonly protocol: AgentFramework;
+  readonly pattern: AdapterPattern = 'universal-v2';
+  readonly version: string = '2.0.0';
+  
+  private readonly adapter: UniversalAdapterV2;
+  private ready = false;
+  
+  constructor(protocol: AgentFramework, adapter: UniversalAdapterV2) {
+    this.protocol = protocol;
+    this.adapter = adapter;
+  }
+  
+  getCapabilities(): ProtocolCapability {
+    return getProtocolCapability(this.protocol);
+  }
+  
+  supportsFeature(feature: ProtocolFeature): boolean {
+    return supportsFeature(this.protocol, feature);
+  }
+  
+  getFeatureLevel(feature: ProtocolFeature): CapabilityLevel {
+    return 'native'; // V2 supports everything via LLM
+  }
+  
+  getVersionInfo(): ProtocolVersionInfo {
+    return getEffectiveVersionInfo(this.protocol);
+  }
+  
+  checkCompatibility(version: string): VersionCompatibility {
+    return checkVersionCompatibility(this.protocol, version);
+  }
+  
+  async toUniversalMessage(
+    protocolPayload: unknown,
+    messageType: UniversalMessageType,
+    options?: ConversionOptions
+  ): Promise<UniversalMessage> {
+    // Translate to USA format
+    const result = await this.adapter.translate(
+      protocolPayload as Record<string, unknown>,
+      this.protocol,
+      'usa'
+    );
+    
+    return createMessage(messageType, this.protocol, {
+      raw: options?.preserveRaw
+        ? { usa: result.translatedAgent, original: protocolPayload }
+        : { usa: result.translatedAgent }
+    }, {
+      trace: options?.trace
+    });
+  }
+  
+  async fromUniversalMessage(
+    message: UniversalMessage,
+    options?: ConversionOptions
+  ): Promise<unknown> {
+    const usa = message.payload.raw?.usa || message.payload;
+    
+    const result = await this.adapter.translate(
+      usa as Record<string, unknown>,
+      'usa',
+      this.protocol
+    );
+    
+    return result.translatedAgent;
+  }
+  
+  async invokeOperation(
+    operation: UniversalMessageType,
+    params: UniversalPayload,
+    options?: InvocationOptions
+  ): Promise<UniversalMessage> {
+    // V2 can potentially handle this via LLM tool calling
+    return createError(
+      this.protocol,
+      'UNSUPPORTED_OPERATION',
+      'Operation invocation not yet implemented in V2 wrapper',
+      { retryable: false }
+    );
+  }
+  
+  async getHealth(): Promise<AdapterHealth> {
+    return {
+      protocol: this.protocol,
+      status: 'healthy',
+      healthScore: 100,
+      isConnected: true,
+      recentErrors: 0,
+      protocolHealth: getProtocolHealth(this.protocol)
+    };
+  }
+  
+  isReady(): boolean {
+    return true;
+  }
+  
+  async initialize(): Promise<void> {
+    // No-op
+  }
+  
+  async shutdown(): Promise<void> {
+    // No-op
+  }
+  
+  async reset(): Promise<void> {
+    this.adapter.clearCaches();
+  }
 }
 
 // ============================================================================

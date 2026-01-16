@@ -44,14 +44,9 @@ export * from './core/Encryption';
 export * from './converter/Converter';
 export * from './converter/ConverterV2';
 
-// Adapters - v2 Three Types
-export * from './adapters/MCPAdapter';
-export * from './adapters/MultiAgentAdapter';
-export * from './adapters/OrchestratedAdapter';
-
-// Adapters - v1 Legacy
-export * from './adapters/ElizaOSAdapter';
-export * from './adapters/CrewAIAdapter';
+// Adapters - Universal
+export * from './adapters/universal/adapter-v2';
+export * from './adapters/unified-adapter';
 
 // Instance Management
 export * from './instance/InstanceManager';

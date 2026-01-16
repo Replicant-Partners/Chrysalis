@@ -14,11 +14,9 @@ export * from './core/Encryption';
 export * from './converter/Converter';
 
 // Adapters
-export * from './adapters/ElizaOSAdapter';
-export * from './adapters/CrewAIAdapter';
+export * from './adapters/universal/adapter-v2';
+export * from './adapters/unified-adapter';
 
 // Convenience re-exports
 export { adapterRegistry, registerAdapter, getAdapter } from './core/AdapterRegistry';
 export { Converter, createConverter } from './converter/Converter';
-export { ElizaOSAdapter } from './adapters/ElizaOSAdapter';
-export { CrewAIAdapter } from './adapters/CrewAIAdapter';

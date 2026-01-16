@@ -1,0 +1,1 @@
+/home/mdz-axolotl/Documents/GitClones/Chrysalis/src/native/rust-crypto/target/wasm32-unknown-unknown/release/chrysalis_crypto.wasm: /home/mdz-axolotl/Documents/GitClones/Chrysalis/src/native/rust-crypto/src/lib.rs

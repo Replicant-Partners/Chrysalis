@@ -1,0 +1,16 @@
+{
+  "id": "chat_workflow",
+  "name": "System Agent Chat Workflow",
+  "description": "Orchestrates the lifecycle of a user message through the System Agent architecture, including routing, generation, critique, and storage.",
+  "version": "1.0.0",
+  "inputs": {
+    "message": "ChatMessage",
+    "threadId": "string",
+    "systemContext": "SystemContext"
+  },
+  "outputs": {
+    "responses": "AgentResponse[]",
+    "routingResult": "SCMRoutingResult"
+  },
+  "workflow_file": "chat_workflow.mermaid"
+}

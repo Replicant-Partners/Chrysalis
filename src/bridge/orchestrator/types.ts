@@ -6,9 +6,22 @@
  * @module bridge/orchestrator/types
  */
 
-import { AgentFramework, CanonicalAgent, NativeAgent } from '../../adapters/base-adapter';
+import { AgentFramework } from '../../adapters/protocol-types';
 import { StoreStats, TemporalRDFStore } from '../../rdf/temporal-store';
-import { AdapterRegistry } from '../../adapters/base-adapter';
+import { AdapterRegistry } from '../../adapters/unified-adapter';
+
+// Temporary type definitions to replace legacy base-adapter types
+export interface NativeAgent {
+  framework: AgentFramework;
+  data: Record<string, unknown>;
+}
+
+export interface CanonicalAgent {
+  uri: string;
+  quads: Array<any>;
+  extensions: Array<any>;
+  metadata: Record<string, any>;
+}
 
 /**
  * Translation request

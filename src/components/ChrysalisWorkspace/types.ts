@@ -30,6 +30,21 @@ export interface MemoryIndicator {
 }
 
 /**
+ * Permission request from agent requiring user approval
+ */
+export interface PermissionRequest {
+  requestId: string;
+  agentId: string;
+  agentName: string;
+  trust: 'external' | 'internal' | 'ada';
+  action: string;
+  summary: string;
+  scopePreview?: string;
+  riskLevel?: 'low' | 'med' | 'high';
+  status: 'pending' | 'approved' | 'denied' | 'expired';
+}
+
+/**
  * Chat message structure
  */
 export interface ChatMessage {
@@ -50,6 +65,9 @@ export interface ChatMessage {
   
   // Memory indicators for UI display
   memoryIndicators?: MemoryIndicator[];
+  
+  // Permission request (for Ada or other agents requiring approval)
+  permissionRequest?: PermissionRequest;
 }
 
 /**
@@ -224,6 +242,9 @@ export interface ChatPaneProps {
   onClearChat?: () => void;
   onInviteClick?: () => void;
   onToggleDnd?: (state: 'off' | 'on') => void;
+  onPermissionApprove?: (requestId: string) => void;
+  onPermissionDeny?: (requestId: string) => void;
+  onPermissionExplain?: (requestId: string) => void;
 }
 
 /**

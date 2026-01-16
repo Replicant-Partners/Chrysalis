@@ -8,7 +8,6 @@ use sha2::{Sha256, Sha384, Sha512, Digest};
 use sha3::{Sha3_256, Sha3_384, Sha3_512};
 use ed25519_dalek::{SigningKey, VerifyingKey, Signature, Signer, Verifier};
 use rand::rngs::OsRng;
-use serde::{Serialize, Deserialize};
 
 // ============================================================================
 // Error Handling
@@ -306,14 +305,15 @@ pub fn batch_hash(items: Vec<js_sys::Uint8Array>, algorithm: HashAlgorithm) -> V
 }
 
 /// Batch verify multiple signatures
+/// Returns a Uint8Array where each byte is 0 (false) or 1 (true)
 #[wasm_bindgen]
 pub fn batch_verify(
     public_keys: Vec<js_sys::Uint8Array>,
     messages: Vec<js_sys::Uint8Array>,
     signatures: Vec<js_sys::Uint8Array>,
-) -> Vec<bool> {
+) -> Vec<u8> {
     if public_keys.len() != messages.len() || messages.len() != signatures.len() {
-        return vec![false; public_keys.len().max(messages.len()).max(signatures.len())];
+        return vec![0u8; public_keys.len().max(messages.len()).max(signatures.len())];
     }
 
     public_keys
@@ -321,7 +321,11 @@ pub fn batch_verify(
         .zip(messages.iter())
         .zip(signatures.iter())
         .map(|((pk, msg), sig)| {
-            ed25519_verify(&pk.to_vec(), &msg.to_vec(), &sig.to_vec()).unwrap_or(false)
+            if ed25519_verify(&pk.to_vec(), &msg.to_vec(), &sig.to_vec()).unwrap_or(false) {
+                1u8
+            } else {
+                0u8
+            }
         })
         .collect()
 }
@@ -330,9 +334,7 @@ pub fn batch_verify(
 // HMAC Operations
 // ============================================================================
 
-use sha2::digest::Mac;
-use sha2::digest::CtOutput;
-use hmac::Hmac;
+use hmac::{Hmac, Mac};
 
 type HmacSha256 = Hmac<Sha256>;
 type HmacSha384 = Hmac<Sha384>;

@@ -11,8 +11,22 @@
 
 import { EventEmitter } from 'events';
 import { BridgeOrchestrator, TranslationResult, TranslationRequest } from './orchestrator';
-import { NativeAgent, CanonicalAgent, AgentFramework, BaseAdapter } from '../adapters/base-adapter';
+import { AgentFramework } from '../adapters/protocol-types';
+import { UnifiedAdapter } from '../adapters/unified-adapter';
 import { NotImplementedError } from '../mcp-server/chrysalis-tools';
+
+// Temporary type definitions
+export interface NativeAgent {
+  framework: AgentFramework;
+  data: Record<string, unknown>;
+}
+
+export interface CanonicalAgent {
+  uri: string;
+  quads: Array<any>;
+  extensions: Array<any>;
+  metadata: Record<string, any>;
+}
 
 // ============================================================================
 // Event Types for Bridge Operations
@@ -745,5 +759,4 @@ export {
   NativeAgent,
   CanonicalAgent,
   AgentFramework,
-  BaseAdapter,
-} from '../adapters/base-adapter';
+};

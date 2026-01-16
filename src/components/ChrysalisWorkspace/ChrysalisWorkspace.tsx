@@ -20,7 +20,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import * as Y from 'yjs';
 import { ChatPane } from './ChatPane';
 import { AgentCanvas, CanvasTabs, CanvasTab } from '../AgentCanvas';
-import { tokens, ThemeMode } from '../shared/tokens';
+import { tokens, ThemeMode, useTheme } from '../shared';
 import {
   ChrysalisWorkspaceProps,
   ChatMessage,
@@ -305,7 +305,7 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
   // Panel sizing state
   const [panelSizes, setPanelSizes] = useState<PanelSizes>(config.defaultPanelSizes);
   const workspaceRef = useRef<HTMLDivElement>(null);
-  const mode: ThemeMode = 'dark';
+  const { mode } = useTheme();
   const [canvasTabs, setCanvasTabs] = useState<CanvasTab[]>([
     { id: 'canvas-commons', label: 'Commons', isReady: true },
     { id: 'canvas-scratch', label: 'Scratch', isReady: true },
@@ -843,6 +843,132 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       setRightMessages([]);
     }
   }, [yjsDoc, config.enableYjs]);
+
+  // Handle permission approvals
+  const handlePermissionApprove = useCallback((requestId: string) => {
+    console.log('[ChrysalisWorkspace] Permission approved:', requestId);
+    
+    // Update message status to approved
+    const updateMessageStatus = (messages: ChatMessage[]) =>
+      messages.map(msg =>
+        msg.permissionRequest?.requestId === requestId
+          ? {
+              ...msg,
+              permissionRequest: {
+                ...msg.permissionRequest,
+                status: 'approved' as const,
+              },
+            }
+          : msg
+      );
+
+    if (config.enableYjs && yjsDoc) {
+      // Update YJS arrays
+      const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
+      const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
+      const leftMessages = leftChatArray.toArray();
+      const rightMessages = rightChatArray.toArray();
+      
+      leftChatArray.delete(0, leftChatArray.length);
+      leftChatArray.push(updateMessageStatus(leftMessages));
+      
+      rightChatArray.delete(0, rightChatArray.length);
+      rightChatArray.push(updateMessageStatus(rightMessages));
+    } else {
+      setLeftMessages(updateMessageStatus);
+      setRightMessages(updateMessageStatus);
+    }
+
+    // TODO: Execute the approved action
+    // This would typically call back to AdaIntegrationService or AgentChatController
+    // to actually perform the action that was approved
+  }, [yjsDoc, config.enableYjs]);
+
+  const handlePermissionDeny = useCallback((requestId: string) => {
+    console.log('[ChrysalisWorkspace] Permission denied:', requestId);
+    
+    // Update message status to denied
+    const updateMessageStatus = (messages: ChatMessage[]) =>
+      messages.map(msg =>
+        msg.permissionRequest?.requestId === requestId
+          ? {
+              ...msg,
+              permissionRequest: {
+                ...msg.permissionRequest,
+                status: 'denied' as const,
+              },
+            }
+          : msg
+      );
+
+    if (config.enableYjs && yjsDoc) {
+      const leftChatArray = yjsDoc.getArray<ChatMessage>('leftChat');
+      const rightChatArray = yjsDoc.getArray<ChatMessage>('rightChat');
+      const leftMessages = leftChatArray.toArray();
+      const rightMessages = rightChatArray.toArray();
+      
+      leftChatArray.delete(0, leftChatArray.length);
+      leftChatArray.push(updateMessageStatus(leftMessages));
+      
+      rightChatArray.delete(0, rightChatArray.length);
+      rightChatArray.push(updateMessageStatus(rightMessages));
+    } else {
+      setLeftMessages(updateMessageStatus);
+      setRightMessages(updateMessageStatus);
+    }
+
+    // TODO: Notify agent that action was denied
+    // This would typically call AdaIntegrationService.denyAction()
+  }, [yjsDoc, config.enableYjs]);
+
+  const handlePermissionExplain = useCallback((requestId: string) => {
+    console.log('[ChrysalisWorkspace] Permission explanation requested:', requestId);
+    
+    // Find the permission request
+    const allMessages = [...leftMessages, ...rightMessages];
+    const permissionMessage = allMessages.find(
+      msg => msg.permissionRequest?.requestId === requestId
+    );
+
+    if (permissionMessage?.permissionRequest) {
+      const { action, riskLevel, scopePreview, agentName } = permissionMessage.permissionRequest;
+      
+      // Generate risk explanation message
+      let explanation = `Here's why ${agentName} needs approval:\n\n`;
+      explanation += `**Action**: ${action}\n`;
+      explanation += `**Risk Level**: ${riskLevel || 'Not assessed'}\n`;
+      
+      if (scopePreview) {
+        explanation += `**Scope**: ${scopePreview}\n`;
+      }
+      
+      explanation += `\nThis request requires your explicit approval before ${agentName} can proceed.`;
+
+      // Add explanation as a system message
+      const explanationMessage = createMessage(
+        explanation,
+        'system',
+        'System',
+        'system'
+      );
+
+      if (config.enableYjs && yjsDoc) {
+        // Add to the pane where the original request was
+        const leftHasRequest = leftMessages.some(m => m.permissionRequest?.requestId === requestId);
+        const chatArray = leftHasRequest
+          ? yjsDoc.getArray<ChatMessage>('leftChat')
+          : yjsDoc.getArray<ChatMessage>('rightChat');
+        chatArray.push([explanationMessage]);
+      } else {
+        const leftHasRequest = leftMessages.some(m => m.permissionRequest?.requestId === requestId);
+        if (leftHasRequest) {
+          setLeftMessages(prev => [...prev, explanationMessage]);
+        } else {
+          setRightMessages(prev => [...prev, explanationMessage]);
+        }
+      }
+    }
+  }, [leftMessages, rightMessages, yjsDoc, config.enableYjs, userId, userName]);
   
   // Handle document drop on canvas
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -961,6 +1087,9 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
             onMessageSent?.(createMessage('Invite requested', userId, userName, 'system'), 'left');
           }}
           onToggleDnd={setLeftDndState}
+          onPermissionApprove={handlePermissionApprove}
+          onPermissionDeny={handlePermissionDeny}
+          onPermissionExplain={handlePermissionExplain}
         />
       </div>
       
@@ -1043,6 +1172,9 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
               onMessageSent?.(createMessage('Invite requested', userId, userName, 'system'), 'right');
             }}
             onToggleDnd={setRightDndState}
+            onPermissionApprove={handlePermissionApprove}
+            onPermissionDeny={handlePermissionDeny}
+            onPermissionExplain={handlePermissionExplain}
           />
         </div>
       ) : (

@@ -3,7 +3,11 @@
     "allow": [
       "Bash(find:*)",
       "Bash(tree:*)",
-      "Bash(npx jest:*)"
+      "Bash(npx jest:*)",
+      "Bash(rustc:*)",
+      "Bash(wasm-pack:*)",
+      "Bash(~/.cargo/bin/wasm-pack build:*)",
+      "Bash(export PATH=\"$HOME/.cargo/bin:$PATH\")"
     ]
   },
   "enableAllProjectMcpServers": true,

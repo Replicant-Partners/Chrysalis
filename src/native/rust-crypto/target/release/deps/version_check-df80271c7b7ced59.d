@@ -1,0 +1,10 @@
+/home/mdz-axolotl/Documents/GitClones/Chrysalis/src/native/rust-crypto/target/release/deps/version_check-df80271c7b7ced59.d: /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs
+
+/home/mdz-axolotl/Documents/GitClones/Chrysalis/src/native/rust-crypto/target/release/deps/libversion_check-df80271c7b7ced59.rlib: /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs
+
+/home/mdz-axolotl/Documents/GitClones/Chrysalis/src/native/rust-crypto/target/release/deps/libversion_check-df80271c7b7ced59.rmeta: /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs /home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs
+
+/home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs:
+/home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs:
+/home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs:
+/home/mdz-axolotl/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs:

@@ -41,11 +41,20 @@ import {
   BridgeOrchestrator,
   TranslationResult,
 } from '../../bridge/orchestrator';
-import {
-  NativeAgent,
-  CanonicalAgent,
-  AgentFramework,
-} from '../../adapters/base-adapter';
+import { AgentFramework } from '../../adapters/protocol-types';
+
+// Temporary type definitions to replace legacy base-adapter types
+export interface NativeAgent {
+  framework: AgentFramework;
+  data: Record<string, unknown>;
+}
+
+export interface CanonicalAgent {
+  uri: string;
+  quads: Array<any>;
+  extensions: Array<any>;
+  metadata: Record<string, any>;
+}
 import { createLogger } from '../../shared/logger';
 
 const log = createLogger('bridge-api');

@@ -21,6 +21,7 @@ export type {
   ChatPanePosition,
   MemoryIndicator,
   AgentBinding,
+  PermissionRequest,
   
   // Workspace types
   WorkspaceSession,

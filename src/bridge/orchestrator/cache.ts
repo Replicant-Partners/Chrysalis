@@ -7,7 +7,8 @@
  */
 
 import { EventEmitter } from 'events';
-import { AgentFramework, CanonicalAgent, NativeAgent } from '../../adapters/base-adapter';
+import { AgentFramework } from '../../adapters/protocol-types';
+import { CanonicalAgent, NativeAgent } from './types';
 
 /**
  * Cache entry

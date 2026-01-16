@@ -11,8 +11,8 @@ description = "Core agent types and schemas for Chrysalis"
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-uuid.workspace = true
-chrono.workspace = true
+uuid = { workspace = true, features = ["v4", "serde"] }
+chrono = { workspace = true, features = ["serde"] }
 
 [dev-dependencies]
 proptest.workspace = true

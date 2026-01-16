@@ -6,7 +6,7 @@
  * @module bridge/orchestrator/validation
  */
 
-import { AgentFramework } from '../../adapters/base-adapter';
+import { AgentFramework } from '../../adapters/protocol-types';
 import { RequestValidationError, RequestValidationResult } from './types';
 
 /**

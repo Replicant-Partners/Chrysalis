@@ -12,12 +12,13 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { tokens, ThemeMode } from '../shared/tokens';
+import { tokens, ThemeMode, useTheme, PermissionCard } from '../shared';
 import {
   ChatPaneProps,
   ChatMessage,
   MemoryIndicator,
   ChatPanePosition,
+  PermissionRequest,
 } from './types';
 
 // =============================================================================
@@ -330,9 +331,13 @@ const MessageItem: React.FC<{
   message: ChatMessage;
   showMemoryIndicators: boolean;
   mode: ThemeMode;
-}> = ({ message, showMemoryIndicators, mode }) => {
+  onPermissionApprove?: (requestId: string) => void;
+  onPermissionDeny?: (requestId: string) => void;
+  onPermissionExplain?: (requestId: string) => void;
+}> = ({ message, showMemoryIndicators, mode, onPermissionApprove, onPermissionDeny, onPermissionExplain }) => {
   const isUser = message.senderType === 'user';
   const isSystem = message.senderType === 'system';
+  const hasPermissionRequest = message.permissionRequest && message.permissionRequest.status === 'pending';
   
   const wrapperStyle = useMemo(() => ({
     ...styles.messageWrapper,
@@ -367,6 +372,22 @@ const MessageItem: React.FC<{
           ))}
         </div>
       )}
+      {hasPermissionRequest && (
+        <div style={{ marginTop: '8px' }}>
+          <PermissionCard
+            requestId={message.permissionRequest.requestId}
+            agentName={message.permissionRequest.agentName}
+            trust={message.permissionRequest.trust}
+            summary={message.permissionRequest.summary}
+            scopePreview={message.permissionRequest.scopePreview}
+            riskLevel={message.permissionRequest.riskLevel}
+            mode={mode}
+            onApprove={onPermissionApprove}
+            onDeny={onPermissionDeny}
+            onExplainRisk={onPermissionExplain}
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -394,6 +415,9 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   onClearChat,
   onInviteClick,
   onToggleDnd,
+  onPermissionApprove,
+  onPermissionDeny,
+  onPermissionExplain,
 }) => {
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -410,7 +434,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
     [messages, maxMessages]
   );
   
-  const mode: ThemeMode = 'dark';
+  const { mode } = useTheme();
   const isPrimary = paneId === 'left';
   const containerStyle = useMemo(() => ({
     ...styles.container(mode, isPrimary),
@@ -562,6 +586,9 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
                 message={message} 
                 showMemoryIndicators={showMemoryIndicators}
                 mode={mode}
+                onPermissionApprove={onPermissionApprove}
+                onPermissionDeny={onPermissionDeny}
+                onPermissionExplain={onPermissionExplain}
               />
             ))}
             {isAgentTyping && <TypingIndicator agentName={agent.agentName} mode={mode} />}

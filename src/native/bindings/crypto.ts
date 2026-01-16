@@ -118,7 +118,20 @@ export async function initCrypto(): Promise<CryptoModule> {
       // Try to load the WASM module dynamically
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const wasmModule = require('../../native/rust-crypto/pkg/chrysalis_crypto');
-      cryptoModule = wasmModule as unknown as CryptoModule;
+      // Wrap batch_verify to convert Uint8Array result to boolean[]
+      const originalBatchVerify = wasmModule.batch_verify;
+      const wrappedModule = {
+        ...wasmModule,
+        batch_verify(
+          publicKeys: Uint8Array[],
+          messages: Uint8Array[],
+          signatures: Uint8Array[]
+        ): boolean[] {
+          const result: Uint8Array = originalBatchVerify(publicKeys, messages, signatures);
+          return Array.from(result).map((v) => v !== 0);
+        },
+      };
+      cryptoModule = wrappedModule as unknown as CryptoModule;
       return cryptoModule;
     } catch {
       // WASM module not available, using Node.js crypto fallback
