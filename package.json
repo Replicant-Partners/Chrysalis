@@ -104,7 +104,9 @@
   },
   "type": "commonjs",
   "workspaces": [
-    "packages/*",
-    "ui"
-  ]
+    "packages/*"
+  ],
+  "overrides": {
+    "diff": "^8.0.3"
+  }
 }
