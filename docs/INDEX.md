@@ -1,6 +1,6 @@
 # Chrysalis Documentation Index
 
-**Last Updated**: January 15, 2026  
+**Last Updated**: January 16, 2026
 **Status**: Active
 
 ---
@@ -17,11 +17,11 @@ This index is the central navigation point for all Chrysalis documentation.
 |--------------|----------|
 | Check current status | [`STATUS.md`](STATUS.md) |
 | Understand system architecture | [`ARCHITECTURE.md`](../ARCHITECTURE.md) |
-| Understand UI architecture | [`ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md`](../ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md) |
+| Understand canvas architecture | [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) |
 | Get started quickly | [`guides/QUICK_START.md`](guides/QUICK_START.md) |
 | Configure the system | [`CONFIGURATION.md`](CONFIGURATION.md) |
 | Use the memory system | [`memory_system/README.md`](../memory_system/README.md) |
-| Develop UI components | [`ui/docs/guides/DEVELOPMENT.md`](../ui/docs/guides/DEVELOPMENT.md) |
+| Build custom widgets | [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) |
 
 ---
 
@@ -55,12 +55,12 @@ docs/
 └── archive/                 # Historical documentation (flat structure)
     └── *.md                 # Archived docs with ARCHIVED prefix
 
-ui/docs/                     # UI-specific documentation
-├── CHRYSALIS_TERMINAL_ARCHITECTURE.md  # UI system architecture
-├── CANVAS_SYSTEM_USAGE_GUIDE.md        # Canvas developer guide
-├── architecture/            # UI component architecture
-├── guides/                  # UI development guides
-└── archive/                 # UI historical docs
+src/canvas/                  # Canvas system (TypeScript)
+├── core/                    # Base canvas types
+├── widgets/                 # Widget registry & factory
+├── layout/                  # Spatial layout engine
+├── terminal/                # xterm.js integration
+└── react/                   # React components & demo
 ```
 
 ---
@@ -79,8 +79,8 @@ ui/docs/                     # UI-specific documentation
 | Document | Scope |
 |----------|-------|
 | [`ARCHITECTURE.md`](../ARCHITECTURE.md) | Full system design |
-| [`ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md`](../ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md) | UI system design |
-| [`ui/docs/architecture/COMPONENT_ARCHITECTURE.md`](../ui/docs/architecture/COMPONENT_ARCHITECTURE.md) | UI component structure |
+| [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) | Canvas & widget architecture |
+| [`canvas-architecture.md`](canvas-architecture.md) | Canvas wireframe spec |
 | [`memory_system/README.md`](../memory_system/README.md) | Python memory system |
 
 ### Guides
@@ -89,15 +89,17 @@ ui/docs/                     # UI-specific documentation
 |----------|---------|
 | [`guides/QUICK_START.md`](guides/QUICK_START.md) | Get running in 15 minutes |
 | [`CONFIGURATION.md`](CONFIGURATION.md) | Environment variables |
-| [`ui/docs/guides/DEVELOPMENT.md`](../ui/docs/guides/DEVELOPMENT.md) | UI development workflow |
-| [`ui/docs/CANVAS_SYSTEM_USAGE_GUIDE.md`](../ui/docs/CANVAS_SYSTEM_USAGE_GUIDE.md) | Canvas implementation guide |
+| [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) | Build custom widgets |
+| [`guides/CANVAS_TYPE_EXTENSION_GUIDE.md`](guides/CANVAS_TYPE_EXTENSION_GUIDE.md) | Extend canvas types |
+| [`guides/WIDGET_PUBLISHING_GUIDE.md`](guides/WIDGET_PUBLISHING_GUIDE.md) | Publish widgets |
+| [`guides/MCP_SERVER_GUIDE.md`](guides/MCP_SERVER_GUIDE.md) | MCP server setup |
 
 ### API
 
 | Document | Purpose |
 |----------|---------|
 | [`api/API_REFERENCE_INDEX.md`](api/API_REFERENCE_INDEX.md) | API documentation index |
-| [`ui/docs/api/BACKEND_INTEGRATION.md`](../ui/docs/api/BACKEND_INTEGRATION.md) | UI-backend integration |
+| [`ENVIRONMENT_CONFIGURATION.md`](ENVIRONMENT_CONFIGURATION.md) | Backend config & env vars |
 
 ### Research
 
@@ -125,13 +127,13 @@ ui/docs/                     # UI-specific documentation
 | [`memory_system/README.md`](../memory_system/README.md) | Package documentation |
 | [`FIREPROOF_INTEGRATION_PROPOSAL.md`](FIREPROOF_INTEGRATION_PROPOSAL.md) | Fireproof architecture |
 
-### UI (`ui/`)
+### Canvas System (`src/canvas/`)
 
 | Document | Purpose |
 |----------|---------|
-| [`ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md`](../ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md) | UI architecture |
-| [`ui/docs/CANVAS_SYSTEM_USAGE_GUIDE.md`](../ui/docs/CANVAS_SYSTEM_USAGE_GUIDE.md) | Canvas guide |
-| [`ui/docs/guides/DEVELOPMENT.md`](../ui/docs/guides/DEVELOPMENT.md) | Development guide |
+| [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) | Widget development |
+| [`guides/CANVAS_TYPE_EXTENSION_GUIDE.md`](guides/CANVAS_TYPE_EXTENSION_GUIDE.md) | Canvas extension |
+| [`CANVAS_DEVELOPMENT_PROTOCOL.md`](CANVAS_DEVELOPMENT_PROTOCOL.md) | Development workflow |
 
 ---
 
@@ -142,12 +144,12 @@ ui/docs/                     # UI-specific documentation
 1. [`STATUS.md`](STATUS.md) — Current state and known gaps
 2. [`ARCHITECTURE.md`](../ARCHITECTURE.md) — System design
 3. [`memory_system/README.md`](../memory_system/README.md) — Python package
-4. [`ui/docs/guides/DEVELOPMENT.md`](../ui/docs/guides/DEVELOPMENT.md) — UI development
+4. [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) — Canvas development
 
 ### Architects
 
 1. [`ARCHITECTURE.md`](../ARCHITECTURE.md) — Full system design
-2. [`ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md`](../ui/docs/CHRYSALIS_TERMINAL_ARCHITECTURE.md) — UI architecture
+2. [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) — Canvas architecture
 3. [`research/universal-patterns/`](research/universal-patterns/) — Research foundation
 
 ### Operations
@@ -161,11 +163,11 @@ ui/docs/                     # UI-specific documentation
 
 ### Active Documents
 
-Documents in `docs/` (except `archive/`) and `ui/docs/` (except `archive/`) are **active** and reflect current implementation.
+Documents in `docs/` (except `archive/`) are **active** and reflect current implementation.
 
 ### Archived Documents
 
-Historical documents are moved to `docs/archive/` or `ui/docs/archive/` with:
+Historical documents are moved to `docs/archive/` with:
 - Flat structure (no nested date folders)
 - Clear indication of archived status
 - Original date in filename or content

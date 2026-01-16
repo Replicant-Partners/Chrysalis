@@ -205,7 +205,8 @@ export class SharedConversationMiddleware {
     }
 
     // 3. Check initiative mode
-    const { mode, triggers } = this.policy.initiative;
+    const mode = this.policy.initiative.mode;
+    const triggers = this.policy.initiative.triggers ?? ['direct_mention'];
 
     if (mode === 'only_when_asked') {
       if (!context.addressedToMe) {

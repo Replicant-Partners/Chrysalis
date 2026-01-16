@@ -6,30 +6,34 @@ This directory contains **active planning documents** for ongoing and future wor
 
 | Plan | Status | Description |
 |------|--------|-------------|
-| [NEXT_STEPS_2026-01-15.md](NEXT_STEPS_2026-01-15.md) | **Active** | Prioritized engineering roadmap for code fixes and project completion |
-| [DOCUMENTATION_REVIEW_PLAN_2026-01-15.md](DOCUMENTATION_REVIEW_PLAN_2026-01-15.md) | Complete | Comprehensive repository documentation review |
-| [adaptive-llm-layer-prompts-and-connectors.md](adaptive-llm-layer-prompts-and-connectors.md) | Active | LLM layer prompt engineering and connector design |
-| [agentic-frameworks-network-protocols-research.md](agentic-frameworks-network-protocols-research.md) | Research | Agent framework network protocol research |
-| [ai-led-adaptive-maintenance-system-spec.md](ai-led-adaptive-maintenance-system-spec.md) | Specification | AI-led adaptive maintenance system specification |
-| [CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md](CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md) | Active | Development process streamlining |
-| [chrysalis-integration-platform-implementation-plan.md](chrysalis-integration-platform-implementation-plan.md) | Active | Integration platform implementation |
+| [NEXT_STEPS_2026-01-15.md](NEXT_STEPS_2026-01-15.md) | **Active** | Prioritized engineering roadmap |
+| [SYSTEM_AGENT_MIDDLEWARE_ARCHITECTURE.md](SYSTEM_AGENT_MIDDLEWARE_ARCHITECTURE.md) | **Active** | System agent middleware architecture |
+| [SYSTEM_AGENT_MIDDLEWARE_TASK_PLAN.md](SYSTEM_AGENT_MIDDLEWARE_TASK_PLAN.md) | **Active** | System agent middleware tasks |
+| [system-agents-layer-completion.md](system-agents-layer-completion.md) | Active | System agents layer completion |
+| [adaptive-llm-layer-prompts-and-connectors.md](adaptive-llm-layer-prompts-and-connectors.md) | Active | LLM layer design |
 | [ERROR_CONSOLIDATION_PLAN.md](ERROR_CONSOLIDATION_PLAN.md) | Active | Error handling consolidation |
 | [P2_CODE_QUALITY_REFACTORING_PLAN.md](P2_CODE_QUALITY_REFACTORING_PLAN.md) | Active | P2 code quality refactoring |
-| [persona-layer-and-linkage.md](persona-layer-and-linkage.md) | Design | Persona layer and linkage design |
-| [phase-1a-enhanced-type-system-spec.md](phase-1a-enhanced-type-system-spec.md) | Specification | Phase 1a enhanced type system |
-| [system-agents-layer-completion.md](system-agents-layer-completion.md) | Active | System agents layer completion |
+
+## Research & Specifications
+
+| Document | Status | Description |
+|----------|--------|-------------|
+| [CHRYSALIS_COMPREHENSIVE_PATTERN_ANALYSIS.md](CHRYSALIS_COMPREHENSIVE_PATTERN_ANALYSIS.md) | Reference | Design pattern analysis |
+| [agentic-frameworks-network-protocols-research.md](agentic-frameworks-network-protocols-research.md) | Research | Network protocol research |
+| [ai-led-adaptive-maintenance-system-spec.md](ai-led-adaptive-maintenance-system-spec.md) | Specification | AI maintenance system spec |
+| [phase-1a-enhanced-type-system-spec.md](phase-1a-enhanced-type-system-spec.md) | Specification | Enhanced type system |
+| [persona-layer-and-linkage.md](persona-layer-and-linkage.md) | Design | Persona layer design |
 
 ## Recently Archived
 
-The following plans were archived on January 15, 2026 (see [docs/archive/](../docs/archive/)):
+The following plans were archived on January 16, 2026 (see [docs/archive/](../docs/archive/)):
 
-- `CODE_REVIEW_REMEDIATION_PLAN_2026-01-11.md` → Completed
-- `COMPREHENSIVE_IMPROVEMENT_WORKPLAN_2026-01-11.md` → Completed
-- `AGENT_FIREPROOF_INTEGRATION_PLAN_2026-01-13.md` → Completed
-- `FIREPROOF_CODE_REVIEW_2026-01-13.md` → Completed
-- `FIREPROOF_CODE_REVIEW_FINAL_2026-01-13.md` → Completed
-- `FIREPROOF_CODE_REVIEW_FINDINGS.md` → Completed
-- `FIREPROOF_CODE_REVIEW_REPORT.md` → Completed
+- `SESSION_SUMMARY_2026-01-15.md` → Session log
+- `FINAL_SESSION_SUMMARY_2026-01-15.md` → Session log
+- `IMPLEMENTATION_PROGRESS_2026-01-15.md` → Session progress
+- `USER_TESTING_READINESS_PLAN_2026-01-15.md` → Completed
+- `DOCUMENTATION_REVIEW_PLAN_2026-01-15.md` → Completed
+- `Superficial-Pattern-Report.md` → Superseded by comprehensive analysis
 
 ## Plan Lifecycle
 
@@ -79,5 +83,5 @@ When a plan is completed or superseded:
 
 ---
 
-**Last Updated**: January 15, 2026  
+**Last Updated**: January 16, 2026
 **Maintainer**: Chrysalis Team

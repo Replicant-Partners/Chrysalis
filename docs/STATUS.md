@@ -1,12 +1,12 @@
 # Chrysalis Implementation Status
 
-**Version**: 3.1.1  
-**Last Updated**: January 15, 2026  
-**Status**: Active Development  
-**Owner**: Chrysalis Team  
+**Version**: 3.1.1
+**Last Updated**: January 16, 2026
+**Status**: Active Development
+**Owner**: Chrysalis Team
 **Review Cadence**: Weekly
 
-> **This is the single source of truth for implementation status.**  
+> **This is the single source of truth for implementation status.**
 > All other status documents have been archived or consolidated here.
 
 ---
@@ -15,14 +15,14 @@
 
 Chrysalis is a **Uniform Semantic Agent transformation system** enabling AI agents to morph between framework implementations while maintaining persistent memory and cryptographic identity.
 
-**Current State**: Active development with separate build processes for core and UI.
+**Current State**: Active development with TypeScript core, Python memory system, and canvas architecture.
 
 | Domain | Build Status | Test Status |
 |--------|--------------|-------------|
 | TypeScript Core | ✅ Passing | ⚠️ Partial coverage |
 | Python memory_system | ✅ Passing | ✅ 9+ tests passing |
-| UI (React/Vite) | ✅ Passing | ❌ 0% coverage |
-| Go Crypto Server | ⚠️ Not verified | ⚠️ Not verified |
+| Canvas Architecture | ✅ Complete | 🔄 Prototype |
+| Go LLM Gateway | ⚠️ Not verified | ⚠️ Not verified |
 
 ---
 
@@ -70,33 +70,38 @@ npm run build
 cd memory_system && python3 -m pytest tests/ fireproof/tests/ -v
 ```
 
-### UI (React/Vite) (`ui/`)
+### Canvas Architecture (`src/canvas/`)
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| **Build** | ✅ **PASSING** | `cd ui && npm run build` |
-| **TypeScript** | ✅ 0 errors | Strict mode enabled |
-| **Framework** | Vite 5.0 + React 18.2 | |
-| **Bundle** | 1,183 kB (342 kB gzipped) | Needs code-splitting |
+| **Core Types** | ✅ Complete | Canvas, Node, Edge, Viewport types |
+| **Widget System** | ✅ Complete | Registry, Factory, lifecycle hooks |
+| **Layout Engine** | ✅ Complete | Snap-to-grid, collision detection |
+| **React Components** | 🔄 Prototype | Canvas, Toolbar, WidgetWrapper |
+| **Build Integration** | ⚠️ Pending | Needs Vite config for demo |
 
-**Canvas Implementation**: 10/10 MVP canvases complete
+**Canvas Types**: 5 types defined (architecture complete, React prototype)
 
 | Canvas | Status | Key Features |
 |--------|--------|--------------|
-| Settings | ✅ 100% | API key management, encryption |
-| Board | ✅ 100% | ReactFlow workspace, YJS sync |
-| Scrapbook | ✅ 100% | Media collection, tags, lightbox |
-| Research | ✅ 100% | Markdown editor, wiki-links |
-| Wiki | ✅ 90% | MediaWiki integration (needs auth) |
-| Terminal | ✅ 95% | xterm.js (needs WebSocket backend) |
-| Browser | ✅ 100% | iframe embedding |
-| Scenarios | ✅ 100% | Future planning, 3 view modes |
-| Curation | ✅ 100% | Research library, graph viz |
-| Media | ✅ 100% | Image/audio/video editing |
+| Settings | ✅ Spec | API key management widgets |
+| Board | ✅ Spec | General-purpose workflow canvas |
+| Scrapbook | ✅ Spec | Content collection, organization |
+| Research | ✅ Spec | Information synthesis widgets |
+| Terminal-Browser | ✅ Spec | xterm.js + sandboxed browser |
+
+**Supporting Services**:
+
+| Service | Status | Location |
+|---------|--------|----------|
+| Terminal PTY Server | ✅ Complete | `src/services/terminal/` |
+| Backend Connector | ✅ Complete | `src/canvas/services/` |
+| Widget Publishing | ✅ Spec | `src/canvas/publishing/` |
 
 ```bash
-# Verify UI build
-cd ui && npm run build
+# Canvas demo (requires Vite integration)
+cd src/canvas/react/demo
+# npm run dev (pending)
 ```
 
 ### Go Crypto Server (`go-services/`)
@@ -137,10 +142,16 @@ flowchart TB
         FP[Fireproof Layer]
     end
 
-    subgraph UI[React UI]
-        CVS[10 Canvas Types]
-        YJS[YJS CRDT Sync]
-        DS[Design System]
+    subgraph Canvas[Canvas System]
+        CVS[5 Canvas Types]
+        WGT[Widget Registry]
+        PTY[Terminal PTY]
+    end
+
+    subgraph Agents[System Agents]
+        SCM[SCM Router]
+        ARB[Arbiter]
+        BEH[Behavior Loader]
     end
 
     USA --> PR
@@ -149,7 +160,8 @@ flowchart TB
     MM --> EB
     ESM --> MM
     EB -.-> Python
-    UI -.-> Core
+    Canvas -.-> Agents
+    Agents -.-> Core
 ```
 
 ---
@@ -217,7 +229,7 @@ flowchart TB
 | Experience Sync | Streaming, Lumped, Check-in protocols | `src/sync/` |
 | Observability | Voyeur bus + SSE + metrics | `src/observability/` |
 | Fireproof Layer | Local-first CRDT document store | `memory_system/fireproof/` |
-| 10 UI Canvases | React canvas workspace system | `ui/src/components/` |
+| Canvas Architecture | 5 canvas types with widget system | `src/canvas/` |
 
 ### In Progress 🔄
 
@@ -350,5 +362,5 @@ cd go-services && go test ./...
 
 ---
 
-**Document Owner**: Chrysalis Team  
+**Document Owner**: Chrysalis Team
 **Review Cadence**: Weekly during active development

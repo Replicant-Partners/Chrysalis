@@ -247,7 +247,7 @@ Your railroads and "capital-light" businesses sound prudent, but you are forgett
 
 I maintain my position: in 2026's elevated market, the defensive investor should hold predominantly high-grade bonds (4-5% with safety of principal) and limit stocks to perhaps 25% of the portfolio in a broad index fund. For those seeking individual stocks, stick to my quantitative criteria: P/E below 15, strong balance sheet, proven earnings record. If you cannot find such stocks--and in this market, you likely cannot--then bonds are your friend.
 
-Your approach works for you because you are Warren Buffett. But the typical investor following your advice will pay premium prices for what they believe are "wonderful businesses" and discover, too late, that they overpaid for deteriorating franchises.`;
+Your approach works for you because you are Warren Buffett. But the typical investor following your advice will pay premium prices for what they believe are "wonderful businesses" and discover, too late, that they overpaid for deteriorating franchises.`
     };
 
     return specific[topic.category] || genericCounter;
@@ -273,7 +273,7 @@ You warn about technological disruption, and you are right to be cautious. That 
 
 Here is my practical advice for 2026: If you cannot find individual stocks meeting your criteria--and you are right that they are scarce--then absolutely buy an S&P 500 index fund and Treasury bonds. But if you do find a business you thoroughly understand, trading at a reasonable price relative to its earnings power, with a durable competitive position, do not let an arbitrary P/E cutoff stop you from buying something that will be worth far more in ten years.
 
-The real agreement between us is this: never speculate, always protect capital, and think like a business owner. Whether that leads you to net-nets or quality franchises depends on what Mr. Market is offering at the time.`;
+The real agreement between us is this: never speculate, always protect capital, and think like a business owner. Whether that leads you to net-nets or quality franchises depends on what Mr. Market is offering at the time.`
     };
 
     return specific[topic.category] || genericFinal;

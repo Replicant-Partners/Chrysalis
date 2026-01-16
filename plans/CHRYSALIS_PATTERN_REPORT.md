@@ -180,4 +180,13 @@ flowchart TB
 - Workspace/chat/canvas: [`src/components/ChrysalisWorkspace/ChrysalisWorkspace.tsx:264-1026`](src/components/ChrysalisWorkspace/ChrysalisWorkspace.tsx:264), [`src/components/ChrysalisWorkspace/ChatPane.tsx:364-560`](src/components/ChrysalisWorkspace/ChatPane.tsx:364), [`src/components/AgentCanvas/AgentCanvas.tsx:170-395`](src/components/AgentCanvas/AgentCanvas.tsx:170)
 - Memory + learning + controller: [`src/memory/AgentMemoryAdapter.ts:51-360`](src/memory/AgentMemoryAdapter.ts:51), [`src/agents/AgentChatController.ts:107-643`](src/agents/AgentChatController.ts:107), [`src/learning/AgentLearningPipeline.ts:99-516`](src/learning/AgentLearningPipeline.ts:99)
 - Bridges/registry/system/observability: [`src/agents/bridges/BaseBridge.ts:39-392`](src/agents/bridges/BaseBridge.ts:39), [`src/agents/bridges/AgentRegistry.ts:53-388`](src/agents/bridges/AgentRegistry.ts:53), [`src/observability/ObservabilityHub.ts:155-495`](src/observability/ObservabilityHub.ts:155), [`src/utils/CircuitBreaker.ts:71-233`](src/utils/CircuitBreaker.ts:71)
-- **System Agent Middleware (NEW)**: `../Borrowed_Ideas/SYSTEM_AGENT_MIDDLEWARE_DESIGN.md`, `src/agents/system/SharedConversationMiddleware.ts` (planned), `src/agents/system/AgentArbiter.ts` (planned)
+- **System Agent Middleware (IMPLEMENTED)**: `../Borrowed_Ideas/SYSTEM_AGENT_MIDDLEWARE_DESIGN.md`
+  - `src/agents/system/SharedConversationMiddleware.ts` ✅
+  - `src/agents/system/AgentArbiter.ts` ✅
+  - `src/agents/system/TriggerEvaluator.ts` ✅
+  - `src/agents/system/OpenerSelector.ts` ✅
+  - `src/agents/system/IdiomRegistry.ts` ✅
+  - `src/agents/system/BehaviorLoader.ts` ✅
+  - `src/agents/system/SCMRouting.ts` ✅
+  - `src/agents/system/SystemAgentChatService.ts` ✅
+  - `src/api/system-agents/controller.ts` ✅ (HTTP API)

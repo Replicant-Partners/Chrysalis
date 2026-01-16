@@ -40,7 +40,7 @@ flowchart LR
 |-----------|-------|-------|
 | TypeScript Core | ✅ Passing | ⚠️ Partial |
 | Python Memory System | ✅ Passing | ✅ Passing |
-| UI (React/Vite) | ✅ Passing | ❌ 0% |
+| Canvas System | ✅ Architecture | 🔄 Prototype |
 
 **For detailed status**: See [`docs/STATUS.md`](docs/STATUS.md)
 
@@ -99,15 +99,15 @@ cd ui && npm run build
 | **Observability** | Voyeur event bus + SSE viewer + Prometheus metrics | [`src/observability/`](src/observability/) |
 | **Circuit Breaker** | Fault tolerance for external service calls | [`CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
 | **Fireproof Layer** | Local-first CRDT document store | [`memory_system/fireproof/`](memory_system/fireproof/) |
-| **10 UI Canvases** | Settings, Board, Scrapbook, Research, Wiki, Terminal, Browser, Scenarios, Curation, Media | [`ui/src/components/`](ui/src/components/) |
+| **Canvas Architecture** | 5 canvas types with widget system | [`src/canvas/`](src/canvas/) |
 
 ### In Progress 🔄
 
-| Feature | Blocking Issue |
-|---------|----------------|
-| OpenTelemetry Integration | Missing npm dependencies |
-| Terminal WebSocket | Backend not connected |
-| Wiki Authentication | MediaWiki auth not implemented |
+| Feature | Status |
+|---------|--------|
+| Canvas React Integration | Prototype complete, needs Vite integration |
+| Terminal PTY Server | WebSocket server implemented |
+| System Agent Middleware | SCM routing implemented |
 
 ### Planned 📋
 
@@ -128,18 +128,19 @@ Chrysalis/
 │   ├── memory/               # Memory adapters, embeddings
 │   ├── experience/           # Merging algorithms
 │   ├── sync/                 # Experience synchronization
+│   ├── agents/system/        # System agent middleware
+│   ├── canvas/               # Canvas & widget architecture
 │   ├── observability/        # Voyeur, metrics
-│   └── services/             # Microservices
+│   └── services/             # Terminal PTY, gateway
 ├── memory_system/            # Python semantic services
 │   ├── fireproof/            # CRDT document store
 │   ├── embedding/            # Vector embeddings
 │   ├── graph/                # Knowledge graphs
 │   └── hooks/                # Zep integration
-├── ui/                       # React frontend (10 canvases)
 ├── docs/                     # Documentation
 │   ├── STATUS.md             # Implementation status
 │   └── INDEX.md              # Navigation hub
-└── go-services/              # Go crypto server
+└── go-services/              # Go LLM gateway
 ```
 
 ---
@@ -257,5 +258,5 @@ MIT License — see [`LICENSE`](LICENSE) for details.
 
 ---
 
-**Version**: 3.1.1  
+**Version**: 3.1.1
 **Last Updated**: January 15, 2026

@@ -27,11 +27,32 @@ import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 // =============================================================================
 
 /**
+ * Resolve the config base directory - works from both src/ and dist/src/
+ */
+function resolveConfigBaseDir(): string {
+  // Try relative to source first (for ts-node)
+  const srcPath = path.resolve(__dirname, '../../../Agents/system-agents');
+  // Fallback to dist path (for compiled js)
+  const distPath = path.resolve(__dirname, '../../../../Agents/system-agents');
+
+  try {
+    const fs = require('fs');
+    if (fs.existsSync(srcPath)) return srcPath;
+    if (fs.existsSync(distPath)) return distPath;
+  } catch {
+    // Ignore fs errors
+  }
+
+  // Default to src path
+  return srcPath;
+}
+
+/**
  * Default paths for system agent configurations
  */
 export const DEFAULT_CONFIG_PATHS = {
   /** Base directory for system agent configs */
-  baseDir: path.resolve(__dirname, '../../../Agents/system-agents'),
+  baseDir: resolveConfigBaseDir(),
 
   /** Persona config files */
   personaConfigs: {

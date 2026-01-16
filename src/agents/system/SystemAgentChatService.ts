@@ -871,6 +871,32 @@ Respond in JSON format with: scorecard, riskScore, confidence, recommendations, 
   isInitialized(): boolean {
     return this.initialized;
   }
+
+  /**
+   * Get all agent configurations
+   */
+  getAgentConfigs(): SystemAgentBinding[] {
+    return Array.from(this.enhancedBindings.values());
+  }
+
+  /**
+   * Get conversation history for a thread
+   */
+  getConversationHistory(threadId: string): ChatMessage[] {
+    return this.conversationHistory.get(threadId) || [];
+  }
+
+  /**
+   * Agent-to-agent communication (alias for agentToAgentMessage)
+   */
+  async agentToAgent(
+    fromAgentId: SystemAgentPersonaId,
+    toAgentId: SystemAgentPersonaId,
+    message: string,
+    threadId?: string
+  ): Promise<AgentResponse | null> {
+    return this.agentToAgentMessage(fromAgentId, toAgentId, message, { threadId });
+  }
 }
 
 // =============================================================================

@@ -1,6 +1,6 @@
 /**
  * Voyeur observability stream
- * 
+ *
  * Lightweight event bus for exposing agent cognition/merge steps
  * to UIs or logs, with optional slow-mode delays for human-speed playback.
  */
@@ -18,7 +18,21 @@ export type VoyeurEventKind =
   | 'job.progress'
   | 'job.output'
   | 'job.error'
-  | 'error';
+  | 'error'
+  // System Agent Middleware events
+  | 'system_agent_chat.initialized'
+  | 'system_agent_chat.response'
+  | 'system_agent_chat.routed'
+  | 'system_agent_chat.gate'
+  | 'system_agent_chat.inter_agent'
+  | 'system_agent_chat.proactive_trigger'
+  | 'system_agent_chat.error'
+  | 'scm.arbitration'
+  | 'scm.gate_evaluated'
+  | 'scm.winner_selected'
+  | 'behavior.trigger_fired'
+  | 'behavior.opener_selected'
+  | 'behavior.idiom_injected';
 
 export interface VoyeurEvent {
   kind: VoyeurEventKind | string;
