@@ -62,7 +62,7 @@ export type {
   MemorySource,
   MemoryTier,
   MemoryItem,
-  
+
   // Pattern types
   MemoryFingerprint,
   MemorySignature,
@@ -72,7 +72,7 @@ export type {
   CRDTMetadata,
   MemoryCausality,
   ConvergenceMetadata,
-  
+
   // Memory types (with aliases to avoid class/interface conflicts)
   BaseMemory,
   WorkingMemory as WorkingMemoryData,
@@ -80,14 +80,14 @@ export type {
   SemanticMemory as SemanticMemoryData,
   ProceduralMemory,
   Memory as MemoryData,
-  
+
   // Results and state
   RetrievalResult,
   MemoryState,
-  
+
   // Configuration
   MemoryConfig,
-  
+
   // Events
   MemoryEventType,
   MemoryEvent,
@@ -129,6 +129,28 @@ export {
   type UniversalMemoryConfig,
 } from './UniversalMemoryProvider';
 
+// Long-Term Memory Backends (Pluggable)
+// 
+// Architecture: Beads/Fireproof/Nomic = FIXED, Long-term = PLUGGABLE
+// See: docs/research/AGENTIC_MEMORY_FRAMEWORKS_2026-01-16.md
+export {
+  // Types
+  type LongTermBackendType,
+  type LongTermMemoryEntry,
+  type LongTermSearchResult,
+  type LongTermBackendCapabilities,
+  type LongTermMemoryBackend,
+  type SearchOptions,
+  // Backends
+  ZepLongTermBackend,
+  Mem0LongTermBackend,
+  LettaLongTermBackend,
+  // Registry & Factory
+  longTermBackendRegistry,
+  setupLongTermBackend,
+  detectAvailableBackend,
+} from './backends';
+
 /**
  * Factory to create a memory adapter for an agent
  */
@@ -142,10 +164,10 @@ export function createMemoryAdapter(
 ): InstanceType<typeof AgentMemoryAdapter> {
   const { AgentMemoryAdapter: AdapterClass } = require('./AgentMemoryAdapter');
   const { createEmbeddingProvider } = require('./EmbeddingBridge');
-  
-  const embeddingProvider = options?.embeddingProvider 
+
+  const embeddingProvider = options?.embeddingProvider
     ? createEmbeddingProvider(options.embeddingProvider, options.embeddingOptions)
     : undefined;
-  
+
   return new AdapterClass(agentId, options?.memoryConfig, embeddingProvider);
 }
