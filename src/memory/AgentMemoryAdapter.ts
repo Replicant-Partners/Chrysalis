@@ -34,24 +34,6 @@ interface EmbeddingProvider {
   embedBatch(texts: string[]): Promise<number[][]>;
 }
 
-class MockEmbeddingProvider implements EmbeddingProvider {
-  private dimensions: number;
-  constructor(dimensions: number = 768) {
-    this.dimensions = dimensions;
-  }
-  async embed(text: string): Promise<number[]> {
-    const hash = createHash('sha256').update(text).digest();
-    const embedding: number[] = [];
-    for (let i = 0; i < this.dimensions; i++) {
-      embedding.push((hash[i % hash.length] / 255) * 2 - 1);
-    }
-    return embedding;
-  }
-  async embedBatch(texts: string[]): Promise<number[][]> {
-    return Promise.all(texts.map(t => this.embed(t)));
-  }
-}
-
 function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) return 0;
   let dotProduct = 0;
@@ -93,7 +75,10 @@ export class AgentMemoryAdapter {
       lastSync: Date.now(),
       totalMemories: 0
     };
-    this.embeddingProvider = embeddingProvider || new MockEmbeddingProvider();
+    if (!embeddingProvider) {
+      throw new Error('EmbeddingProvider is required - no mock fallback');
+    }
+    this.embeddingProvider = embeddingProvider;
   }
 
   private incrementClock(): LogicalTime {

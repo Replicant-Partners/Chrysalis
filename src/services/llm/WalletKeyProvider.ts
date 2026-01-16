@@ -8,12 +8,12 @@
  * @module services/llm/WalletKeyProvider
  */
 
-import { 
-  KeyProvider, 
-  LLMProviderId, 
-  KeyLookupResult, 
+import {
+  KeyProvider,
+  LLMProviderId,
+  KeyLookupResult,
   ProviderKeyStatus,
-  KeySource 
+  KeySource
 } from './KeyProvider';
 import { ApiKeyWallet, ApiKeyProvider } from '../../security/ApiKeyWallet';
 
@@ -24,7 +24,6 @@ const PROVIDER_MAP: Record<LLMProviderId, ApiKeyProvider> = {
   openai: 'openai',
   anthropic: 'anthropic',
   ollama: 'ollama',
-  mock: 'custom',
 };
 
 /**
@@ -162,7 +161,7 @@ export class WalletKeyProvider implements KeyProvider {
     // Get key from wallet
     const walletProvider = this.llmToWalletProvider(provider);
     const key = this.wallet.getKeyForProvider(walletProvider);
-    
+
     // Cache the result
     this.keyCache.set(provider, key ?? null);
 
@@ -185,7 +184,7 @@ export class WalletKeyProvider implements KeyProvider {
    * Get status of all configured providers
    */
   async getProviderStatus(): Promise<ProviderKeyStatus[]> {
-    const providers: LLMProviderId[] = ['openai', 'anthropic', 'ollama', 'mock'];
+    const providers: LLMProviderId[] = ['openai', 'anthropic', 'ollama'];
     const results: ProviderKeyStatus[] = [];
 
     for (const provider of providers) {

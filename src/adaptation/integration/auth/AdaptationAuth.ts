@@ -79,37 +79,20 @@ export class JWTAuthenticationStrategy implements AuthenticationStrategy {
         this.audience = audience;
     }
 
-    async authenticate(credentials: AuthenticationCredentials): Promise<AuthenticationResult> {
-        // In production, this would:
-        // 1. Validate user credentials
-        // 2. Generate JWT token
-        // 3. Sign token with secret key
-        // 4. Return token with expiration
-
-        // For now, return structure
-        return {
-            success: true,
-            token: 'jwt_token_placeholder',
-            expires_at: new Date(Date.now() + 3600000).toISOString(), // 1 hour
-            user_id: 'user_id_placeholder',
-            permissions: ['adaptation:read', 'adaptation:write'],
-        };
+    async authenticate(_credentials: AuthenticationCredentials): Promise<AuthenticationResult> {
+        throw new Error(
+            'NotImplementedError: JWT authentication not implemented. ' +
+            'Production implementation must: 1) Validate user credentials, ' +
+            '2) Generate JWT token, 3) Sign token with secret key, 4) Return token with expiration.'
+        );
     }
 
-    async validate(token: string): Promise<ValidationResult> {
-        // In production, this would:
-        // 1. Verify token signature
-        // 2. Check expiration
-        // 3. Validate issuer and audience
-        // 4. Extract user information
-
-        // For now, return structure
-        return {
-            valid: true,
-            user_id: 'user_id_placeholder',
-            permissions: ['adaptation:read', 'adaptation:write'],
-            expires_at: new Date(Date.now() + 3600000).toISOString(),
-        };
+    async validate(_token: string): Promise<ValidationResult> {
+        throw new Error(
+            'NotImplementedError: JWT token validation not implemented. ' +
+            'Production implementation must: 1) Verify token signature, ' +
+            '2) Check expiration, 3) Validate issuer and audience, 4) Extract user information.'
+        );
     }
 }
 
@@ -193,8 +176,10 @@ export class AdaptationAuthenticationManager {
     private defaultStrategy: string = 'jwt';
 
     constructor() {
-        // Initialize default strategies
-        // In production, load from configuration
+        throw new Error(
+            'NotImplementedError: AdaptationAuthenticationManager not implemented. ' +
+            'Production implementation must load authentication strategies from configuration.'
+        );
     }
 
     /**

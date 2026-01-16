@@ -388,7 +388,16 @@ export class EvolutionaryPatternRegistry {
 
     if (!fromParts || !toParts) return false;
 
-    return toParts.major > fromParts.major;
+    // Major version change is always breaking
+    if (toParts.major > fromParts.major) return true;
+
+    // For pre-1.0 packages (0.x), minor version changes are considered breaking
+    // per semantic versioning convention
+    if (fromParts.major === 0 && toParts.major === 0 && toParts.minor > fromParts.minor) {
+      return true;
+    }
+
+    return false;
   }
 
   private isSemverMinorChange(from: string, to: string): boolean {

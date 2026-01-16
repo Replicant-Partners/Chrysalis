@@ -28,6 +28,7 @@ import { ApiKeyStore } from '../auth/ApiKeyStore';
 import { RateLimiter } from '../auth/RateLimiter';
 import { CapabilityResponse, BuildRequest } from './types';
 import { AgentEvent } from '../../sync/events/types';
+import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 
 export type CapabilityGatewayConfig = {
   port: number;
@@ -177,25 +178,12 @@ export class CapabilityGatewayService {
     sendJson(res, 201, response);
   }
 
-  private handleListCapabilities(res: http.ServerResponse, keyId: string): void {
-    // List capabilities for the authenticated key
-    // For now, return empty list (would query capability registry)
-    const capabilities: any[] = [];
-
-    const response = createSuccessResponse(capabilities);
-    sendJson(res, 200, response);
+  private handleListCapabilities(_res: http.ServerResponse, _keyId: string): void {
+    throw new NotImplementedError('handleListCapabilities: capability registry query not implemented');
   }
 
-  private handleGetCapability(res: http.ServerResponse, capabilityId: string, keyId: string): void {
-    // Get capability by ID
-    // For now, return not found
-    const error: APIError = {
-      code: ErrorCode.RESOURCE_NOT_FOUND,
-      message: `Capability '${capabilityId}' not found`,
-      category: ErrorCategory.NOT_FOUND_ERROR,
-      timestamp: new Date().toISOString(),
-    };
-    return sendError(res, 404, error);
+  private handleGetCapability(_res: http.ServerResponse, capabilityId: string, _keyId: string): void {
+    throw new NotImplementedError(`handleGetCapability: capability lookup for '${capabilityId}' not implemented`);
   }
 
   private getBearerToken(req: http.IncomingMessage): string | null {

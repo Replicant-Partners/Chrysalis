@@ -2,10 +2,10 @@
 
 **Uniform Semantic Agent Transformation System**
 
-[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](package.json)
-[![Build](https://img.shields.io/badge/build-partial-yellow.svg)](docs/STATUS.md)
+[![Build](https://img.shields.io/badge/build-passing-green.svg)](docs/STATUS.md)
 
 ---
 
@@ -34,15 +34,15 @@ flowchart LR
 
 ## Current Status
 
-> ✅ **Active Development**: Core TypeScript build passing. See [Project Status](docs/STATUS.md) for details.
+> ✅ **Active Development**: TypeScript, Python, and UI builds all passing.
 
-| Component | Status |
-|-----------|--------|
-| TypeScript Core | ✅ **Build passing** |
-| Python Memory System | ✅ **30/30 tests passing** |
-| Core Functionality | ✅ Implemented |
+| Component | Build | Tests |
+|-----------|-------|-------|
+| TypeScript Core | ✅ Passing | ⚠️ Partial |
+| Python Memory System | ✅ Passing | ✅ Passing |
+| UI (React/Vite) | ✅ Passing | ❌ 0% |
 
-**For authoritative status**: See [docs/STATUS.md](docs/STATUS.md)
+**For detailed status**: See [`docs/STATUS.md`](docs/STATUS.md)
 
 ---
 
@@ -64,18 +64,24 @@ cd Chrysalis
 # Install TypeScript dependencies
 npm install
 
-# Build (see status note above)
+# Build core
 npm run build
+
+# (Optional) Build UI
+cd ui && npm install && npm run build
 ```
 
 ### Verify Installation
 
 ```bash
-# Check build status
-npm run build 2>&1 | tail -5
+# TypeScript build
+npm run build
 
-# Run tests (requires successful build)
-npm run test:unit
+# Python tests
+cd memory_system && python3 -m pytest tests/ -v
+
+# UI build
+cd ui && npm run build
 ```
 
 ---
@@ -92,19 +98,23 @@ npm run test:unit
 | **Experience Sync** | Streaming, lumped, and check-in protocols | [`ExperienceSyncManager.ts`](src/sync/ExperienceSyncManager.ts) |
 | **Observability** | Voyeur event bus + SSE viewer + Prometheus metrics | [`src/observability/`](src/observability/) |
 | **Circuit Breaker** | Fault tolerance for external service calls | [`CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
+| **Fireproof Layer** | Local-first CRDT document store | [`memory_system/fireproof/`](memory_system/fireproof/) |
+| **10 UI Canvases** | Settings, Board, Scrapbook, Research, Wiki, Terminal, Browser, Scenarios, Curation, Media | [`ui/src/components/`](ui/src/components/) |
 
 ### In Progress 🔄
 
-| Feature | Description | Blocking Issue |
-|---------|-------------|----------------|
-| Voice Integration | TTS/STT providers | Build errors in voice module |
-| MCP Client Integration | PatternResolver → MCP servers | Implementation incomplete |
+| Feature | Blocking Issue |
+|---------|----------------|
+| OpenTelemetry Integration | Missing npm dependencies |
+| Terminal WebSocket | Backend not connected |
+| Wiki Authentication | MediaWiki auth not implemented |
 
 ### Planned 📋
 
 - True gossip protocol (epidemic spreading)
-- CRDT state management
-- Vector database persistence
+- Full CRDT state management
+- Vector database persistence (LanceDB)
+- VoyeurBus UI client
 
 ---
 
@@ -112,28 +122,24 @@ npm run test:unit
 
 ```
 Chrysalis/
-├── src/                      # TypeScript source
+├── src/                      # TypeScript core
 │   ├── core/                 # Agent schema, patterns
 │   ├── fabric/               # Pattern resolution
 │   ├── memory/               # Memory adapters, embeddings
 │   ├── experience/           # Merging algorithms
 │   ├── sync/                 # Experience synchronization
 │   ├── observability/        # Voyeur, metrics
-│   ├── adapters/             # Framework adapters
 │   └── services/             # Microservices
 ├── memory_system/            # Python semantic services
-│   ├── semantic/             # Intent detection, triples
-│   ├── graph/                # Knowledge graphs
-│   ├── converters/           # Document processing
+│   ├── fireproof/            # CRDT document store
 │   ├── embedding/            # Vector embeddings
-│   └── analysis/             # Shannon entropy
-├── ui/                       # React frontend
+│   ├── graph/                # Knowledge graphs
+│   └── hooks/                # Zep integration
+├── ui/                       # React frontend (10 canvases)
 ├── docs/                     # Documentation
-│   ├── STATUS.md             # Current status (authoritative)
-│   ├── INDEX.md              # Documentation index
-│   └── ...
-├── examples/                 # Usage examples
-└── tests/                    # Test suites
+│   ├── STATUS.md             # Implementation status
+│   └── INDEX.md              # Navigation hub
+└── go-services/              # Go crypto server
 ```
 
 ---
@@ -142,17 +148,10 @@ Chrysalis/
 
 | Document | Purpose |
 |----------|---------|
-| **[Documentation Index](docs/INDEX.md)** | Navigation hub for all docs |
-| **[Project Status](docs/STATUS.md)** | Current build state and known issues |
-| **[Architecture](ARCHITECTURE.md)** | System design, components, data flow |
-| **[Memory System](memory_system/README.md)** | Python package documentation |
-
-### Quick Links
-
-- [Quick Start Guide](docs/guides/QUICK_START.md)
-- [Configuration Guide](docs/CONFIGURATION.md)
-- [Troubleshooting](docs/guides/TROUBLESHOOTING.md)
-- [API Reference](docs/api/API_REFERENCE_INDEX.md)
+| [`docs/STATUS.md`](docs/STATUS.md) | **Implementation status** (single source of truth) |
+| [`docs/INDEX.md`](docs/INDEX.md) | Navigation hub |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | System design |
+| [`memory_system/README.md`](memory_system/README.md) | Python package |
 
 ---
 
@@ -162,21 +161,17 @@ Chrysalis/
 
 | Variable | Purpose | Required |
 |----------|---------|----------|
-| `VOYAGE_API_KEY` | Voyage AI embeddings | For production |
-| `OPENAI_API_KEY` | OpenAI embeddings (fallback) | For production |
-| `ANTHROPIC_API_KEY` | Claude semantic decomposition | For LLM analysis |
-| `VECTOR_INDEX_TYPE` | Index backend (`hnsw`, `lance`, `brute`) | No |
-| `METRICS_PROMETHEUS` | Enable Prometheus metrics | No |
+| `VOYAGE_API_KEY` | Voyage AI embeddings | Production |
+| `OPENAI_API_KEY` | OpenAI embeddings (fallback) | Production |
+| `ANTHROPIC_API_KEY` | Claude semantic decomposition | LLM analysis |
+| `FIREPROOF_ENABLED` | Enable Fireproof layer | No |
 
 ### npm Scripts
 
 ```bash
 npm run build           # Compile TypeScript
 npm run test:unit       # Run unit tests
-npm run test:mcp        # Run MCP server tests
 npm run dev             # Development mode
-npm run service:ledger  # Start ledger service
-npm run service:gateway # Start capability gateway
 ```
 
 ---
@@ -185,38 +180,41 @@ npm run service:gateway # Start capability gateway
 
 ```mermaid
 flowchart TB
-    subgraph Core["Core Layer"]
+    subgraph Core[TypeScript Core]
         USA[UniformSemanticAgent]
         PR[PatternResolver]
     end
 
-    subgraph Memory["Memory Layer"]
+    subgraph Memory[Memory Layer]
         MM[MemoryMerger]
         VIF[VectorIndex]
         EB[EmbeddingBridge]
     end
 
-    subgraph Sync["Sync Layer"]
+    subgraph Sync[Sync Layer]
         ESM[ExperienceSyncManager]
         ET[ExperienceTransport]
     end
 
-    subgraph Obs["Observability"]
-        VB[VoyeurBus]
-        MET[Metrics]
+    subgraph Python[Python memory_system]
+        FP[Fireproof]
+        EMB[Embedding]
+    end
+
+    subgraph UI[React UI]
+        CVS[10 Canvas Types]
     end
 
     USA --> PR
     USA --> MM
     MM --> VIF
     MM --> EB
-    MM --> VB
     ESM --> MM
-    ESM --> ET
-    VB --> MET
+    EB -.-> Python
+    UI -.-> Core
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for complete system design.
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for complete system design.
 
 ---
 
@@ -224,37 +222,32 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for complete system design.
 
 Chrysalis applies **10 universal patterns** validated against production systems:
 
-| Pattern | Application | Evidence |
-|---------|-------------|----------|
-| Hash | Agent fingerprinting | Git, Bitcoin, IPFS |
-| Signatures | Authentication | TLS, Ethereum, Signal |
-| Gossip | Experience propagation | Cassandra, Ethereum 2.0 |
-| DAG | Evolution tracking | Git, IPFS, Hedera |
-| CRDT | Conflict-free merge | Automerge, Riak |
-
-See [docs/research/](docs/research/) for deep research and mathematical foundations.
+| Pattern | Application |
+|---------|-------------|
+| Hash | Agent fingerprinting (SHA-384) |
+| Signatures | Authentication (Ed25519) |
+| Gossip | Experience propagation |
+| DAG | Evolution tracking |
+| CRDT | Conflict-free merge |
 
 ---
 
 ## Contributing
 
-We welcome contributions! Please see our development workflow:
-
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make changes with tests
 4. Run `npm run build && npm run test:unit`
-5. Commit (`git commit -m 'Add amazing feature'`)
-6. Push (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+5. Commit and push
+6. Open a Pull Request
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
 
 ---
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT License — see [`LICENSE`](LICENSE) for details.
 
 ---
 
@@ -264,5 +257,5 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-**Version**: 3.1.1
-**Last Updated**: January 13, 2026
+**Version**: 3.1.1  
+**Last Updated**: January 15, 2026

@@ -6,6 +6,7 @@
  */
 
 import { AgentCoordinator, AgentTask, TaskResult, ChangeProposal, ImpactAnalysis } from '../AgentCoordinator';
+import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 
 /**
  * Refactoring pattern
@@ -52,8 +53,9 @@ export class RefactoringAgent {
      * Initialize known refactoring patterns
      */
     private initializeKnownPatterns(): void {
-        // In production, this would be learned from experience
-        // For now, initialize with common patterns
+        throw new NotImplementedError(
+            'initializeKnownPatterns: Pattern learning from experience not implemented - requires ML-based pattern extraction'
+        );
 
         const patterns: RefactoringPattern[] = [
             {
@@ -107,11 +109,9 @@ export class RefactoringAgent {
      * Identify refactoring opportunities
      */
     async identifyRefactorings(targetPath: string): Promise<TaskResult> {
-        // In production, this would:
-        // 1. Parse code AST
-        // 2. Detect code smells
-        // 3. Match against known refactoring patterns
-        // 4. Generate refactoring proposals
+        throw new NotImplementedError(
+            'identifyRefactorings: Refactoring identification not implemented - requires AST parsing, code smell detection, and pattern matching'
+        );
 
         const patterns = await this.detectPatterns(targetPath);
         const proposals = await this.generateRefactoringProposals(patterns, targetPath);
@@ -135,15 +135,9 @@ export class RefactoringAgent {
      * Detect refactoring patterns in code
      */
     private async detectPatterns(targetPath: string): Promise<RefactoringPattern[]> {
-        // In production: use AST analysis, code smell detection
-        // For now: return structure for pattern detection
-
-        const detected: RefactoringPattern[] = [];
-
-        // Example: detect extract method opportunities
-        // (would use actual code analysis in production)
-
-        return detected;
+        throw new NotImplementedError(
+            'detectPatterns: Pattern detection not implemented - requires AST analysis and code smell detection'
+        );
     }
 
     /**
@@ -185,14 +179,9 @@ export class RefactoringAgent {
      * Analyze impact of refactoring
      */
     private analyzeRefactoringImpact(pattern: RefactoringPattern): ImpactAnalysis {
-        const isHighRisk = pattern.pattern_type === 'extract_class' || pattern.pattern_type === 'move';
-
-        return {
-            files_affected: pattern.target_files.length > 0 ? pattern.target_files : ['unknown'],
-            breaking_changes: isHighRisk,
-            test_coverage: 0, // Would be calculated from actual metrics
-            estimated_risk: isHighRisk ? 'medium' : 'low',
-        };
+        throw new NotImplementedError(
+            'analyzeRefactoringImpact: Impact analysis not implemented - requires actual test coverage metrics and dependency analysis'
+        );
     }
 
     /**

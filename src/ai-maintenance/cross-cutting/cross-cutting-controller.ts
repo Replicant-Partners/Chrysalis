@@ -11,6 +11,7 @@
 import { EventEmitter } from 'events';
 
 import { AgentFramework } from '../../adapters/protocol-types';
+import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 import { UnifiedAdapter } from '../../adapters/unified-adapter';
 
 import {
@@ -254,32 +255,10 @@ export class CrossCuttingController {
    * Get adaptive health for all instrumented adapters.
    */
   async getAdaptiveHealth(): Promise<Map<AgentFramework, AdaptiveHealth>> {
-    const healthMap = new Map<AgentFramework, AdaptiveHealth>();
-
-    for (const [protocol, adapter] of Array.from(this.instrumentedAdapters.entries())) {
-      const baseHealth = await adapter.getHealth();
-      const detections = this.patternDetector.getDetectionHistory(protocol);
-      const modifications = this.selfModification.getHistory(protocol);
-
-      const adaptiveHealth: AdaptiveHealth = {
-        ...baseHealth,
-        adaptationMetrics: {
-          patternDetectionRate: this.calculateDetectionRate(detections),
-          modificationSuccessRate: this.calculateModificationRate(modifications),
-          propagationLatency: 0, // Would be tracked in real implementation
-          selfHealingEvents: modifications.filter(m => m.rollbackPerformed).length,
-          evolutionScore: this.calculateEvolutionScore(detections, modifications)
-        },
-        pendingModifications: this.selfModification.getPending()
-          .filter(m => m.protocol === protocol).length,
-        lastAdaptation: modifications[modifications.length - 1]?.endTime,
-        adaptationStatus: this.getAdaptationStatus(protocol)
-      };
-
-      healthMap.set(protocol, adaptiveHealth);
-    }
-
-    return healthMap;
+    throw new NotImplementedError(
+      'getAdaptiveHealth: propagationLatency tracking not implemented. ' +
+      'Real implementation requires latency measurement infrastructure.'
+    );
   }
 
   /**

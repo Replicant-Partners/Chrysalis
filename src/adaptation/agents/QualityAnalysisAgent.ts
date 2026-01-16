@@ -8,6 +8,17 @@
 import { AgentCoordinator, AgentTask, TaskResult, ChangeProposal, ImpactAnalysis } from '../AgentCoordinator';
 
 /**
+ * Error thrown when a method requires integration with external quality tools
+ * but has not been implemented yet.
+ */
+export class NotImplementedError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'NotImplementedError';
+    }
+}
+
+/**
  * Quality metrics
  */
 export interface QualityMetrics {
@@ -68,16 +79,11 @@ export class QualityAnalysisAgent {
 
     /**
      * Analyze code quality
+     *
+     * @throws NotImplementedError - Propagated from collectMetrics when quality
+     *   tool integration is not available
      */
     async analyzeQuality(targetPath: string): Promise<TaskResult> {
-        // In production, this would integrate with quality tools:
-        // - flake8, pylint, mypy (Python)
-        // - ESLint, Prettier, TypeScript (TypeScript)
-        // - Code complexity analysis
-        // - Test coverage tools
-        // - Security scanners
-
-        // Simulated analysis (replace with actual tool integration)
         const metrics = await this.collectMetrics(targetPath);
         const issues = await this.identifyIssues(targetPath, metrics);
         const proposals = await this.generateProposals(issues, metrics);
@@ -101,19 +107,16 @@ export class QualityAnalysisAgent {
 
     /**
      * Collect quality metrics
+     *
+     * @throws NotImplementedError - Requires integration with quality tools
+     *   (flake8, pylint, ESLint, coverage tools, etc.)
      */
     private async collectMetrics(targetPath: string): Promise<QualityMetrics> {
-        // In production: integrate with quality tools
-        // For now: return structure for metrics collection
-
-        return {
-            complexity: 0,
-            maintainability_index: 0,
-            test_coverage: 0,
-            code_duplication: 0,
-            technical_debt: 0,
-            documentation_coverage: 0,
-        };
+        throw new NotImplementedError(
+            `collectMetrics not implemented: requires integration with quality tools ` +
+            `(flake8, pylint, mypy, ESLint, TypeScript, coverage tools, security scanners) ` +
+            `for path: ${targetPath}`
+        );
     }
 
     /**

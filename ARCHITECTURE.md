@@ -1,7 +1,7 @@
 # Chrysalis Architecture Specification
 
-**Version**: 3.2.0
-**Last Updated**: January 9, 2026
+**Version**: 3.1.1
+**Last Updated**: January 15, 2026
 **Status**: Current
 
 ---
@@ -45,7 +45,7 @@ The system applies **10 universal patterns** from distributed systems research[^
 9. **Time** - Causal ordering (Lamport/Vector clocks)
 10. **CRDT** - Conflict-free state merge
 
-[^1]: Patterns validated against production systems: Cassandra (gossip), Ethereum (DAG), Git (hash), TLS (signatures). See [`docs/research/universal-patterns/PATTERNS_ANCHORED.md`](docs/research/universal-patterns/PATTERNS_ANCHORED.md).
+[^1]: Patterns validated against production systems: Cassandra (gossip), Ethereum (DAG), Git (hash), TLS (signatures). See [`docs/research/universal-patterns/PATTERNS_ANCHORED.md`](https://github.com/chrysalis-ai/agents/blob/main/docs/research/universal-patterns/PATTERNS_ANCHORED.md).
 
 ---
 
@@ -91,7 +91,7 @@ flowchart TB
 
 ### Adaptive Resolution
 
-The [`AdaptivePatternResolver`](src/fabric/PatternResolver.ts:300) selects implementations based on deployment context:
+The [`AdaptivePatternResolver`](https://github.com/chrysalis-ai/agents/blob/main/src/fabric/PatternResolver.ts#L300) selects implementations based on deployment context:
 
 | Context | Resolution | Latency |
 |---------|------------|---------|
@@ -118,6 +118,12 @@ flowchart LR
         VIF[VectorIndexFactory]
         EB[EmbeddingBridge]
         MS[MemorySanitizer]
+    end
+
+    subgraph Fireproof["Fireproof Layer"]
+        FP[FireproofDocument]
+        CRDT[CRDT Sync]
+        LF[Local-First Storage]
     end
 
     subgraph Sync["Sync Layer"]
@@ -148,6 +154,10 @@ flowchart LR
     MM --> MS
     MM --> VB
 
+    MM --> FP
+    FP --> CRDT
+    CRDT --> LF
+
     ESM --> SS
     ESM --> LS
     ESM --> CS
@@ -167,14 +177,15 @@ flowchart LR
 
 | Component | Responsibility | Source |
 |-----------|---------------|--------|
-| **UniformSemanticAgentV2** | Agent schema, validation, type definitions | [`src/core/UniformSemanticAgentV2.ts`](src/core/UniformSemanticAgentV2.ts) |
-| **PatternResolver** | Adaptive pattern implementation selection | [`src/fabric/PatternResolver.ts`](src/fabric/PatternResolver.ts) |
-| **CircuitBreaker** | Fault tolerance for external service calls | [`src/utils/CircuitBreaker.ts`](src/utils/CircuitBreaker.ts) |
-| **MemoryMerger** | Memory deduplication and similarity-based merging | [`src/experience/MemoryMerger.ts`](src/experience/MemoryMerger.ts) |
-| **VectorIndexFactory** | Backend selection (HNSW/LanceDB/brute) | [`src/memory/VectorIndexFactory.ts`](src/memory/VectorIndexFactory.ts) |
-| **EmbeddingBridge** | Embedding provider abstraction | [`src/memory/EmbeddingBridge.ts`](src/memory/EmbeddingBridge.ts) |
-| **ExperienceSyncManager** | Sync protocol coordination | [`src/sync/ExperienceSyncManager.ts`](src/sync/ExperienceSyncManager.ts) |
-| **VoyeurBus** | Observability event bus | [`src/observability/VoyeurEvents.ts`](src/observability/VoyeurEvents.ts) |
+| **UniformSemanticAgentV2** | Agent schema, validation, type definitions | [`src/core/UniformSemanticAgentV2.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/core/UniformSemanticAgentV2.ts) |
+| **PatternResolver** | Adaptive pattern implementation selection | [`src/fabric/PatternResolver.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/fabric/PatternResolver.ts) |
+| **CircuitBreaker** | Fault tolerance for external service calls | [`src/utils/CircuitBreaker.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/utils/CircuitBreaker.ts) |
+| **MemoryMerger** | Memory deduplication and similarity-based merging | [`src/experience/MemoryMerger.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/experience/MemoryMerger.ts) |
+| **VectorIndexFactory** | Backend selection (HNSW/LanceDB/brute) | [`src/memory/VectorIndexFactory.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/memory/VectorIndexFactory.ts) |
+| **EmbeddingBridge** | Embedding provider abstraction | [`src/memory/EmbeddingBridge.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/memory/EmbeddingBridge.ts) |
+| **FireproofDocument** | Local-first CRDT document store | [`src/fireproof/`](https://github.com/chrysalis-ai/agents/blob/main/src/fireproof/) |
+| **ExperienceSyncManager** | Sync protocol coordination | [`src/sync/ExperienceSyncManager.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/sync/ExperienceSyncManager.ts) |
+| **VoyeurBus** | Observability event bus | [`src/observability/VoyeurEvents.ts`](https://github.com/chrysalis-ai/agents/blob/main/src/observability/VoyeurEvents.ts) |
 
 ---
 
@@ -552,11 +563,11 @@ flowchart TB
 
 | Threat | Defense | Implementation |
 |--------|---------|----------------|
-| Agent impersonation | Cryptographic fingerprint | [`generateAgentFingerprint()`](src/core/patterns/Hashing.ts) |
-| Malicious instances | Byzantine threshold (2/3) | [`hasSupermajority()`](src/core/patterns/ByzantineResistance.ts) |
-| Memory poisoning | Sanitizer + rate limits | [`MemorySanitizer`](src/experience/MemorySanitizer.ts) |
-| Service unavailability | Circuit breaker | [`CircuitBreaker`](src/utils/CircuitBreaker.ts) |
-| Timing attacks | Logical clocks | [`LamportClock`](src/core/patterns/LogicalTime.ts) |
+| Agent impersonation | Cryptographic fingerprint | [`generateAgentFingerprint()`](https://github.com/chrysalis-ai/agents/blob/main/src/core/patterns/Hashing.ts) |
+| Malicious instances | Byzantine threshold (2/3) | [`hasSupermajority()`](https://github.com/chrysalis-ai/agents/blob/main/src/core/patterns/ByzantineResistance.ts) |
+| Memory poisoning | Sanitizer + rate limits | [`MemorySanitizer`](https://github.com/chrysalis-ai/agents/blob/main/src/experience/MemorySanitizer.ts) |
+| Service unavailability | Circuit breaker | [`CircuitBreaker`](https://github.com/chrysalis-ai/agents/blob/main/src/utils/CircuitBreaker.ts) |
+| Timing attacks | Logical clocks | [`LamportClock`](https://github.com/chrysalis-ai/agents/blob/main/src/core/patterns/LogicalTime.ts) |
 
 ### Trust Tiers
 
@@ -657,7 +668,7 @@ Agent:
 
 ### Internal Documentation
 
-- [Implementation Status](docs/current/STATUS.md)
+- [Implementation Status](docs/STATUS.md)
 - [Universal Patterns Research](docs/research/universal-patterns/PATTERNS_ANCHORED.md)
 - [Security Analysis](docs/research/deep-research/SECURITY_ATTACKS.md)
 - [Memory System](memory_system/README.md)

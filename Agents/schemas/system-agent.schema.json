@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://chrysalis.ai/schemas/system-agent.schema.json",
+  "title": "Chrysalis System Agent",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "name", "role", "description", "personaSource", "version", "lastUpdated"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "fullName": { "type": "string" },
+    "role": { "type": "string" },
+    "description": { "type": "string" },
+    "personaSource": { "type": "string" },
+    "evaluationDimensions": { "type": "object" },
+    "outputSchema": { "type": "object" },
+    "modelConfig": { "type": "object" },
+    "defaultTools": { "type": "array", "items": { "type": "string" } },
+    "memoryConfig": { "type": "object" },
+    "telemetryConfig": { "type": "object" },
+    "interactionStates": { "type": "object" },
+    "escalationRules": { "type": "object" },
+    "dependencies": { "type": "array", "items": { "type": "string" } },
+    "collaborators": { "type": "object" },
+    "promptSetId": { "type": "string" },
+    "version": { "type": "string" },
+    "lastUpdated": { "type": "string", "format": "date-time" },
+    "behavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "jobs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "job_id": { "type": "string" },
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "schedule": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "enum": ["cron", "interval", "event"] },
+                  "value": { "type": "string" },
+                  "timezone": { "type": "string" },
+                  "start_delay_seconds": { "type": "number" },
+                  "filters": { "type": "object" }
+                },
+                "required": ["type", "value"],
+                "additionalProperties": true
+              },
+              "enabled": { "type": "boolean" },
+              "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+              "timeout_seconds": { "type": "number" },
+              "retry": { "type": "object" },
+              "data_sources": { "type": "array", "items": { "type": "string" } },
+              "outputs": { "type": "array", "items": { "type": "string" } },
+              "rights_required": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "conversation_triggers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "trigger_id": { "type": "string" },
+              "name": { "type": "string" },
+              "condition": { "type": "object" },
+              "cooldown_seconds": { "type": "number" },
+              "enabled": { "type": "boolean" },
+              "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+              "context_required": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "openers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "opener_id": { "type": "string" },
+              "trigger_id": { "type": "string" },
+              "variations": { "type": "array" },
+              "follow_up_prompt": { "type": "string" },
+              "tone": { "type": "string" }
+            }
+          }
+        },
+        "idioms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "idiom_id": { "type": "string" },
+              "category": { "type": "string" },
+              "phrases": { "type": "array" },
+              "frequency": { "type": "string" },
+              "seasonal": { "type": "object" },
+              "triggers": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "scm_policy": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "initiative": { "type": "object" },
+        "turn_taking": { "type": "object" },
+        "coaching": { "type": "object" },
+        "creativity": { "type": "object" },
+        "coordination": { "type": "object" },
+        "repair": { "type": "object" }
+      }
+    }
+  }
+}

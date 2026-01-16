@@ -693,45 +693,8 @@ export class A2AUnifiedAdapter extends BaseUnifiedAdapter {
     // Cache the task
     this.tasksCache.set(taskId, a2aTask);
     
-    // Simulate task execution (in real implementation, this would call the A2A server)
-    setTimeout(() => this.simulateTaskProgress(taskId), 100);
-    
-    return this.toUniversalMessage(a2aTask, 'task-response', { trace });
-  }
-  
-  /**
-   * Simulate task progress for testing.
-   */
-  private simulateTaskProgress(taskId: string): void {
-    const task = this.tasksCache.get(taskId);
-    if (!task) return;
-    
-    // Update to working state
-    task.status = {
-      state: 'working',
-      timestamp: new Date().toISOString()
-    };
-    
-    this.emit('task-status-changed', { taskId, state: 'working' });
-    
-    // Simulate completion after a delay
-    setTimeout(() => {
-      task.status = {
-        state: 'completed',
-        message: {
-          role: 'agent',
-          parts: [{ type: 'text', text: `Task ${taskId} completed successfully` }]
-        },
-        timestamp: new Date().toISOString()
-      };
-      
-      task.history?.push({
-        role: 'agent',
-        parts: [{ type: 'text', text: `Task ${taskId} completed successfully` }]
-      });
-      
-      this.emit('task-status-changed', { taskId, state: 'completed' });
-    }, 500);
+    // Task execution requires A2A server connection - not implemented
+    throw new Error('NotImplementedError: A2A task execution requires server connection. Configure A2A server endpoint.');
   }
   
   /**

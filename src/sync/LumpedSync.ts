@@ -8,6 +8,13 @@
 import type { ExperienceBatch } from '../core/UniformSemanticAgentV2';
 import { logger } from '../observability';
 
+class NotImplementedError extends Error {
+  constructor(feature: string) {
+    super(`${feature} is not implemented`);
+    this.name = 'NotImplementedError';
+  }
+}
+
 /**
  * Lumped sync configuration
  */
@@ -68,17 +75,8 @@ export class LumpedSync {
 
     const config = this.configs.get(instanceId);
 
-    // Decompress if needed
     if (config?.compression) {
-      // @stub Compression/decompression not yet implemented
-      // Would use zlib or similar for gzip/deflate
-      logger.warn('[LumpedSync] Compression enabled but decompression not implemented', {
-        instance_id: instanceId,
-        stub_reason: 'Requires zlib integration for batch decompression'
-      });
-      // TODO: Implement decompression
-      // const decompressed = zlib.gunzipSync(Buffer.from(batch.compressed, 'base64'));
-      // batch = JSON.parse(decompressed.toString());
+      throw new NotImplementedError('zlib integration required for batch decompression');
     }
 
     // Batch processed successfully
@@ -88,34 +86,8 @@ export class LumpedSync {
     };
   }
 
-  /**
-   * Trigger sync request to instance
-   *
-   * @stub Requires HTTP client integration to request batch from agent instances.
-   * Implementation needs:
-   *   - Instance registry to look up instance endpoints
-   *   - HTTP client (axios/fetch) to request batch
-   *   - Response handling to process received batch via processBatch()
-   *
-   * @param instanceId - The ID of the instance to trigger
-   */
-  private async triggerSync(instanceId: string): Promise<void> {
-    logger.warn('[LumpedSync] triggerSync is a stub - no HTTP request sent', {
-      instance_id: instanceId,
-      stub_reason: 'Requires instance registry and HTTP client integration'
-    });
-
-    // TODO: Implement with instance registry lookup and HTTP client
-    // Example implementation:
-    // const instance = await this.instanceRegistry.get(instanceId);
-    // if (!instance) throw new Error(`Instance ${instanceId} not found`);
-    // const response = await this.httpClient.post(`${instance.endpoint}/sync/batch`, {
-    //   requestedBy: 'lumped-sync',
-    //   maxBatchSize: this.configs.get(instanceId)?.max_batch_size
-    // });
-    // if (response.batch) {
-    //   await this.processBatch(instanceId, response.batch);
-    // }
+  private async triggerSync(_instanceId: string): Promise<void> {
+    throw new NotImplementedError('HTTP client integration required for lumped sync');
   }
 
   /**

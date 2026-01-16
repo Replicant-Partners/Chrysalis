@@ -215,23 +215,8 @@ export class ApiKeyWallet {
       throw new Error('Invalid password');
     }
     
-    // Derive master key from password
-    this.masterKey = generateKey(); // In production, derive from password
-    
-    // Decrypt settings
-    try {
-      const settingsJson = await decryptWithPasswordToString(
-        this.storage.settings,
-        password
-      );
-      this.settings = JSON.parse(settingsJson);
-    } catch {
-      this.settings = { ...DEFAULT_SETTINGS };
-    }
-    
-    this.state = 'unlocked';
-    this.resetAutoLockTimer();
-    this.emit('unlocked', {});
+    // Key derivation from password is not implemented
+    throw new Error('NotImplementedError: Secure key derivation from password is required but not implemented');
   }
   
   /**
@@ -554,9 +539,8 @@ export class ApiKeyWallet {
   private async saveSettings(): Promise<void> {
     if (!this.storage) return;
     
-    // We need the password to re-encrypt, so we'll skip for now
-    // In production, we'd need to keep the password or use a different approach
-    this.storage.updatedAt = Date.now();
+    // Secure settings persistence requires password-based re-encryption
+    throw new Error('NotImplementedError: Settings persistence requires secure password handling which is not implemented');
   }
   
   // ============================================================================

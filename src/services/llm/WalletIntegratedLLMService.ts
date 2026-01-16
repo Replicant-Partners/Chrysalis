@@ -160,7 +160,7 @@ export class WalletIntegratedLLMService extends LLMHydrationService {
     const provider = preferredProvider ?? this.getDefaultProvider();
     const apiKey = await this.resolveApiKey(provider);
     
-    if (!apiKey && provider !== 'ollama' && provider !== 'mock') {
+    if (!apiKey && provider !== 'ollama') {
       throw new Error(
         `No API key available for ${provider}. ` +
         'Configure a key provider with the required key, or set the environment variable.'
@@ -183,7 +183,7 @@ export class WalletIntegratedLLMService extends LLMHydrationService {
     const provider = this.getDefaultProvider();
     const apiKey = await this.resolveApiKey(provider);
     
-    if (!apiKey && provider !== 'ollama' && provider !== 'mock') {
+    if (!apiKey && provider !== 'ollama') {
       throw new Error(
         `No API key available for ${provider}. ` +
         'Configure a key provider with the required key, or set the environment variable.'
@@ -269,7 +269,6 @@ export class WalletIntegratedLLMService extends LLMHydrationService {
   }>> {
     const statuses = await this.keyProvider.getProviderStatus();
     return statuses
-      .filter(s => s.provider !== 'mock')
       .map(s => ({
         provider: s.provider as ProviderId,
         hasKey: s.hasKey,

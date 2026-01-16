@@ -1,5 +1,5 @@
 ---
-description: Analyzes and documents data flow patterns between system components including protocols, semantic preservation, and extension handling
+description: Error: Failed to generate frontmatter for data-flow-patterns
 ---
 
 # === USER INSTRUCTIONS ===
@@ -52,20 +52,15 @@ The system implements unique semantic-based protocol translation rather than tra
 $END$
 
  If you're using this file in context, clearly say in italics in one small line that "Context added by Giga data-flow-patterns" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
-# === END USER INSTRUCTIONS ===
 
-# data-flow-patterns
-
+description: Analyzes and documents data flow patterns between system components including protocols, semantic preservation, and extension handling
 ## Core Data Flow Components
-
 ### 1. Protocol Translation Pipeline
 Path: `src/adapters/protocol-capabilities.ts`
 - Protocol feature compatibility matrix across 17+ agent frameworks
 - Capability scoring and translation fidelity calculations
 - Protocol family mapping system for compatibility management
 - Feature overlap detection and translation path generation
-Importance Score: 90
-
 ### 2. Memory System Flow Architecture 
 Path: `memory_system/fusion.py`
 - Three-tier memory flow orchestration:
@@ -73,8 +68,6 @@ Path: `memory_system/fusion.py`
   - Hybrid: FireproofService for local cache
   - Long-term: Remote Zep for persistence
 - Automatic data promotion between tiers based on importance scoring
-Importance Score: 85
-
 ### 3. Semantic Preservation System
 Path: `src/adapters/a2a-unified-adapter.ts`
 - Cross-protocol semantic mapping with confidence scoring
@@ -82,7 +75,6 @@ Path: `src/adapters/a2a-unified-adapter.ts`
 - Fallback chains for semantic translation
 - Schema alignment validation
 Importance Score: 85
-
 ### 4. Extension Field Handler
 Path: `src/adapters/protocol-messages.ts`
 - Dynamic extension field registration
@@ -90,7 +82,6 @@ Path: `src/adapters/protocol-messages.ts`
 - Extension compatibility verification
 - Field deprecation management
 Importance Score: 75
-
 ### 5. Knowledge Flow Pipeline
 Path: `projects/KnowledgeBuilder/src/pipeline/router.py`
 - Multi-source knowledge orchestration 
@@ -98,7 +89,6 @@ Path: `projects/KnowledgeBuilder/src/pipeline/router.py`
 - Cost-aware API resource allocation
 - Semantic deduplication system
 Importance Score: 80
-
 ### 6. Agent Communication Patterns
 Path: `src/agents/system/ConflictResolver.ts`
 - Weighted social choice aggregation for agent communication
@@ -106,9 +96,97 @@ Path: `src/agents/system/ConflictResolver.ts`
 - Resolution strategy selection based on conflict type
 - Protocol-specific channel management
 Importance Score: 85
-
 The system implements sophisticated data flows between components with strong emphasis on semantic preservation, protocol translation, and tiered memory management. Key focus areas include maintaining data fidelity across protocol boundaries and intelligent handling of extension fields.
+
+---
+description: Specifies data flow patterns between components for analyzing and managing communication paths, protocol translations, and semantic preservation.
+---
+
+
+
+# data-flow-patterns
+
+Protocol Translation Pipeline:
+- Multi-stage semantic conversion between agent protocols
+- Preserves meaning across protocol boundaries using semantic mapping principles
+- Translation path selection based on capability matching and semantic fidelity
+- Fallback strategies for unsupported protocol features
+
+Memory Flow Patterns:
+1. Three-Tier Memory Architecture:
+- Working Memory: Append-only beads for short-term context
+- Episodic Memory: Experience storage with Byzantine fault tolerance 
+- Semantic Memory: Knowledge consolidation with convergent aggregation
+
+2. Synchronization Flows:
+- CRDT-based conflict resolution for distributed memory
+- Gossip protocol for O(log N) memory propagation
+- Anti-entropy repair mechanism for missing memories
+
+Data Translation Points:
+- Protocol Message Translation (src/adapters/protocol-messages.ts)
+- Schema Migration Pipeline (src/adapters/protocol-registry.ts)
+- Memory Fusion Service (memory_system/fusion.py)
+- Cross-Protocol Bridge (src/adapters/universal/index.ts)
+
+Key Flow Patterns:
+1. Protocol Translation:
+- Semantic category mapping for cross-protocol compatibility 
+- Extension field preservation during translation
+- Capability negotiation and feature matching
+- Protocol versioning and migration paths
+
+2. Memory Synchronization:
+- Byzantine-resistant validation requiring >2/3 consensus
+- CRDT-based merging for distributed consistency
+- Gossip-based propagation with configurable fanout
+- Anti-entropy repair for missing data
+
+3. Knowledge Integration:
+- Multi-tier retrieval combining local and remote stores
+- Fireproof durable cache integration
+- Vector search synchronization
+- Knowledge graph consistency maintenance
+
+Importance Score: 90/100
 
 $END$
 
  If you're using this file in context, clearly say in italics in one small line that "Context added by Giga data-flow-patterns" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
+
+description: Documents data flow patterns between components, including protocol translation, semantic preservation, and extension handling
+The system implements a multi-tier data flow architecture focused on protocol translation and semantic preservation:
+## Protocol Translation Layer
+- Universal Protocol Registry manages bidirectional mappings between agent frameworks
+- Semantic equivalence definitions preserve meaning during translation
+- Field transformation rules handle protocol-specific requirements
+- Extension field management system for non-standard protocol features
+- LLM-based translation prompts with semantic category mapping
+## Semantic Preservation Flow
+Key files: src/adapters/universal/registry-v2.ts, src/adapters/universal/prompts-v2.ts
+- Tools ↔ Capabilities ↔ Functions mapping system 
+- Protocol version negotiation with compatibility scoring
+- Automatic fallback strategies for incompatible versions
+- Feature detection and capability matrix maintenance
+- Protocol capability detection and matching logic
+## Pattern Detection System
+Key file: src/adapters/adaptation/pattern-sensor-manager.ts
+- Evolutionary pattern detection in protocol translations
+- Protocol health metrics tracking and analysis
+- Automatic adaptation triggers based on quality thresholds
+- Protocol behavior adjustment based on performance data
+- Conversion quality metrics with historical trending
+## Extension Field Management
+- Custom field preservation during translations
+- Protocol-specific metadata handling rules
+- Extension namespace management
+- Field compatibility verification system
+- Default value generation for missing fields
+The system's core data flow revolves around maintaining semantic equivalence during protocol translation while preserving protocol-specific extensions and metadata. Pattern detection enables automatic adaptation of translation strategies based on observed behavior.
+# === END USER INSTRUCTIONS ===
+
+# data-flow-patterns
+
+Error: Failed to generate specification for this section.
+
+Comprehensive documentation of data flows between components, including protocol translation paths, semantic preservation mechanisms, and extension field handling

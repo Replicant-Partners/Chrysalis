@@ -41,7 +41,7 @@ export interface EmbeddingModelInfo {
   dimensions: number;
   
   /** Human-readable model family */
-  family: 'sentence-transformers' | 'openai' | 'cohere' | 'custom' | 'mock';
+  family: 'sentence-transformers' | 'openai' | 'cohere' | 'custom';
   
   /** Hash of model weights (for exact version tracking) */
   weightsHash?: string;
@@ -107,15 +107,6 @@ export const MODEL_REGISTRY: Record<string, EmbeddingModelInfo> = {
     maxSequenceLength: 384,
     releaseDate: '2022-06-15'
   },
-  'mock': {
-    modelId: 'mock',
-    version: { major: 0, minor: 0, patch: 1 },
-    dimensions: 384,
-    family: 'mock',
-    normalized: true,
-    pooling: 'mean',
-    maxSequenceLength: 10000
-  },
   'text-embedding-3-small': {
     modelId: 'text-embedding-3-small',
     version: { major: 3, minor: 0, patch: 0 },
@@ -152,7 +143,6 @@ export const COMPATIBILITY_MATRIX: Record<string, string[]> = {
   // Same model is always compatible with itself
   'Xenova/all-MiniLM-L6-v2': ['Xenova/all-MiniLM-L6-v2'],
   'Xenova/all-mpnet-base-v2': ['Xenova/all-mpnet-base-v2'],
-  'mock': ['mock'],
   'text-embedding-3-small': ['text-embedding-3-small'],
   'text-embedding-3-large': ['text-embedding-3-large']
 };
@@ -385,7 +375,7 @@ export class EmbeddingVersionManager {
       return recommendations;
     }
     
-    const hasOldMock = stale.some(e => e.modelInfo.family === 'mock');
+    const hasOldMock = stale.some(e => (e.modelInfo.family as string) === 'mock');
     if (hasOldMock) {
       recommendations.push(
         'CRITICAL: Some embeddings were created with mock model. ' +

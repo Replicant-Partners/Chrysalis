@@ -587,16 +587,9 @@ export class ExperienceSyncManager {
     data: any,
     instanceId: string
   ): Promise<void> {
-    // Update personality traits based on accumulated evidence
-    this.logger.debug(`Updating characteristic`, { instanceId });
-
-    if (data.trait && data.new_value !== undefined) {
-      // This would update personality traits
-      this.logger.debug(`Trait update`, {
-        trait: data.trait,
-        oldValue: data.old_value,
-        newValue: data.new_value
-      });
-    }
+    throw new Error(
+      'NotImplementedError: updateCharacteristic is not implemented. ' +
+      'Personality trait updates require actual agent mutation logic.'
+    );
   }
 }

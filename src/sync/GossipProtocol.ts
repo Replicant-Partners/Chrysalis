@@ -18,6 +18,7 @@
 
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
+import { NotImplementedError } from './adapters/CrdtSyncAdapter';
 import { randomBytes } from 'crypto';
 import type { ExperienceEvent, ExperienceBatch } from '../core/UniformSemanticAgentV2';
 import { logger } from '../observability';
@@ -607,7 +608,7 @@ export class GossipProtocol extends EventEmitter {
         }
         return success;
       }
-      return true; // Simulate success if no callback
+      throw new NotImplementedError('GossipProtocol.sendMessage: no sendCallback configured');
     } catch (error) {
       this.markPeerFailed(peer.peerId);
       this.log.error('Failed to send message', error as Error, { peerId: peer.peerId });

@@ -8,6 +8,13 @@
 import type { MergeResult } from './ExperienceSyncManager';
 import { logger } from '../observability';
 
+class NotImplementedError extends Error {
+  constructor(feature: string) {
+    super(`${feature} is not implemented`);
+    this.name = 'NotImplementedError';
+  }
+}
+
 /**
  * Check-in sync configuration
  */
@@ -108,31 +115,8 @@ export class CheckInSync {
     return result;
   }
 
-  /**
-   * Trigger check-in request to instance
-   *
-   * @stub Requires HTTP client integration to send requests to agent instances.
-   * Implementation needs:
-   *   - Instance registry to look up instance endpoints
-   *   - HTTP client (axios/fetch) to send check-in request
-   *   - Authentication/signing for inter-service communication
-   *
-   * @param instanceId - The ID of the instance to trigger
-   */
-  private async triggerCheckIn(instanceId: string): Promise<void> {
-    logger.warn('[CheckInSync] triggerCheckIn is a stub - no HTTP request sent', {
-      instance_id: instanceId,
-      stub_reason: 'Requires instance registry and HTTP client integration'
-    });
-
-    // TODO: Implement with instance registry lookup and HTTP client
-    // Example implementation:
-    // const instance = await this.instanceRegistry.get(instanceId);
-    // if (!instance) throw new Error(`Instance ${instanceId} not found`);
-    // await this.httpClient.post(`${instance.endpoint}/check-in`, {
-    //   requestedBy: 'check-in-sync',
-    //   timestamp: new Date().toISOString()
-    // });
+  private async triggerCheckIn(_instanceId: string): Promise<void> {
+    throw new NotImplementedError('HTTP client integration required for check-in sync');
   }
 
   /**

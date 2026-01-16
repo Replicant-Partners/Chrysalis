@@ -1,17 +1,25 @@
 import { AgentCanvasManager } from './agent-canvas-manager';
 
+class NotImplementedError extends Error {
+  constructor(method: string) {
+    super(`${method} is not implemented in placeholder AgentLifecycleManager`);
+    this.name = 'NotImplementedError';
+  }
+}
+
 /**
  * Placeholder lifecycle manager for lean mode.
+ * All methods throw NotImplementedError.
  */
 export class AgentLifecycleManager {
   constructor(private canvas: AgentCanvasManager) {}
 
-  wakeAgent(agentId: string): void {
-    this.canvas.setAgentState(agentId, 'awake');
+  wakeAgent(_agentId: string): void {
+    throw new NotImplementedError('wakeAgent');
   }
 
-  sleepAgent(agentId: string): void {
-    this.canvas.setAgentState(agentId, 'dormant');
+  sleepAgent(_agentId: string): void {
+    throw new NotImplementedError('sleepAgent');
   }
 }
 

@@ -15,7 +15,8 @@ import { QualityToolOrchestrator, QualityOrchestrationResult } from '../tools/Qu
 import { QualityResultAggregator } from '../tools/QualityResultAggregator';
 import { QualityIssue, QualityToolResult } from '../tools/QualityToolInterface';
 import { QualityPatternRecognizer } from '../patterns/QualityPatternRecognizer';
-import { PatternMatchResult, PatternLearningContext } from '../patterns/QualityPattern';
+import { PatternMatchResult } from '../patterns/QualityPattern';
+import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 
 /**
  * Quality Pattern Integration Result
@@ -78,18 +79,9 @@ export class QualityPatternIntegration {
         // Learn patterns if enabled
         let learnedPatterns: string[] = [];
         if (options?.enable_learning !== false) {
-            const learningContext: PatternLearningContext = {
-                issues: allIssues,
-                fixes_applied: [], // Would be populated if auto-fix was run
-                outcomes: [], // Would be populated from adaptation outcomes
-                metadata: {
-                    source: 'quality_check',
-                    target_path: targetPath,
-                },
-            };
-
-            const learned = await this.recognizer.learnPatterns(learningContext);
-            learnedPatterns = learned.map((p) => p.pattern_id);
+            throw new NotImplementedError(
+                'Pattern learning requires integration with auto-fix and adaptation outcome systems'
+            );
         }
 
         // Generate suggestions from patterns

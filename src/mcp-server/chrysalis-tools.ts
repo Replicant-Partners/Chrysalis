@@ -480,49 +480,42 @@ export function registerChrysalisCapabilities(
 
 function createMemoryQueryHandler() {
   return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
-    // Stub: Requires integration with actual memory system (memory_system module)
     throw new NotImplementedError('memory-query');
   };
 }
 
 function createMemoryStoreHandler() {
   return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
-    // Stub: Requires integration with actual memory system (memory_system module)
     throw new NotImplementedError('memory-store');
   };
 }
 
 function createAgentInvokeHandler() {
   return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
-    // Stub: Requires integration with agent registry (src/agents module)
     throw new NotImplementedError('agent-invoke');
   };
 }
 
 function createAgentListHandler() {
   return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
-    // Stub: Requires integration with agent registry (src/agents module)
     throw new NotImplementedError('agent-list');
   };
 }
 
 function createSemanticAnalyzerHandler() {
   return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
-    // Stub: Requires integration with semantic decomposer (memory_system/semantic module)
     throw new NotImplementedError('semantic-analyze');
   };
 }
 
 function createPatternDetectorHandler() {
   return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
-    // Stub: Requires integration with ai-maintenance evolutionary patterns
     throw new NotImplementedError('pattern-detect');
   };
 }
 
 function createAdapterStatusHandler() {
   return async (_name: string, _args: Record<string, unknown>): Promise<CallToolResult> => {
-    // Stub: Requires integration with adapter registry (src/adapters module)
     throw new NotImplementedError('adapter-status');
   };
 }
@@ -533,28 +526,24 @@ function createAdapterStatusHandler() {
 
 function createMemoryStoreResourceHandler() {
   return async (_uri: string): Promise<ResourceContent[]> => {
-    // Stub: Requires integration with actual memory system
     throw new NotImplementedError('memory-store-resource');
   };
 }
 
 function createAgentRegistryHandler() {
   return async (_uri: string): Promise<ResourceContent[]> => {
-    // Stub: Requires integration with agent registry
     throw new NotImplementedError('agent-registry-resource');
   };
 }
 
 function createPatternsResourceHandler() {
   return async (_uri: string): Promise<ResourceContent[]> => {
-    // Stub: Requires integration with evolutionary patterns module
     throw new NotImplementedError('patterns-resource');
   };
 }
 
 function createAdaptersResourceHandler() {
   return async (_uri: string): Promise<ResourceContent[]> => {
-    // Stub: Requires integration with adapter registry
     throw new NotImplementedError('adapters-resource');
   };
 }

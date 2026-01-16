@@ -62,28 +62,28 @@ export interface ToolDefinition {
 export interface CompletionRequest {
   /** Conversation messages */
   messages: Message[];
-  
+
   /** Model to use (optional, uses default if not specified) */
   model?: string;
-  
+
   /** Temperature for generation (0-2) */
   temperature?: number;
-  
+
   /** Maximum tokens to generate */
   maxTokens?: number;
-  
+
   /** Stop sequences */
   stop?: string[];
-  
+
   /** Tools available for function calling */
   tools?: ToolDefinition[];
-  
+
   /** Tool choice preference */
   toolChoice?: 'auto' | 'none' | { type: 'function'; function: { name: string } };
-  
+
   /** Agent ID for cost tracking */
   agentId: string;
-  
+
   /** Optional metadata for tracking */
   metadata?: Record<string, unknown>;
 }
@@ -103,25 +103,25 @@ export interface TokenUsage {
 export interface CompletionResponse {
   /** Generated content */
   content: string;
-  
+
   /** Model used */
   model: string;
-  
+
   /** Finish reason */
   finishReason: 'stop' | 'length' | 'tool_calls' | 'content_filter' | null;
-  
+
   /** Tool calls if any */
   toolCalls?: ToolCall[];
-  
+
   /** Token usage */
   usage: TokenUsage;
-  
+
   /** Estimated cost in USD */
   estimatedCost: number;
-  
+
   /** Provider used */
   provider: string;
-  
+
   /** Response ID for tracking */
   id: string;
 }
@@ -132,16 +132,16 @@ export interface CompletionResponse {
 export interface CompletionChunk {
   /** Chunk content */
   content: string;
-  
+
   /** Is this the final chunk? */
   done: boolean;
-  
+
   /** Finish reason (only on final chunk) */
   finishReason?: CompletionResponse['finishReason'];
-  
+
   /** Token usage (only on final chunk) */
   usage?: TokenUsage;
-  
+
   /** Tool calls delta */
   toolCallsDelta?: Partial<ToolCall>[];
 }
@@ -153,7 +153,7 @@ export interface CompletionChunk {
 /**
  * Provider identifier
  */
-export type ProviderId = 'openai' | 'anthropic' | 'ollama' | 'mock';
+export type ProviderId = 'openai' | 'anthropic' | 'ollama';
 
 /**
  * Provider configuration
@@ -161,25 +161,25 @@ export type ProviderId = 'openai' | 'anthropic' | 'ollama' | 'mock';
 export interface ProviderConfig {
   /** Provider identifier */
   id: ProviderId;
-  
+
   /** API key (not needed for Ollama/local) */
   apiKey?: string;
-  
+
   /** Base URL override */
   baseUrl?: string;
-  
+
   /** Default model for this provider */
   defaultModel: string;
-  
+
   /** Available models */
   models: string[];
-  
+
   /** Whether provider is enabled */
   enabled: boolean;
-  
+
   /** Priority (lower = higher priority) */
   priority: number;
-  
+
   /** Rate limit per minute */
   rateLimit?: number;
 }
@@ -202,16 +202,16 @@ export interface ProviderStatus {
 export interface LLMProvider {
   /** Provider identifier */
   readonly id: ProviderId;
-  
+
   /** Check if provider is available */
   isAvailable(): Promise<boolean>;
-  
+
   /** Get available models */
   getModels(): string[];
-  
+
   /** Complete a request */
   complete(request: CompletionRequest): Promise<CompletionResponse>;
-  
+
   /** Stream a completion */
   stream(request: CompletionRequest): AsyncIterable<CompletionChunk>;
 }
@@ -315,31 +315,31 @@ export const DEFAULT_LLM_CONFIG: LLMServiceConfig = {
 export interface ConversationContext {
   /** Conversation ID */
   id: string;
-  
+
   /** Agent ID */
   agentId: string;
-  
+
   /** System prompt */
   systemPrompt?: string;
-  
+
   /** Message history */
   messages: Message[];
-  
+
   /** Maximum history size */
   maxHistorySize: number;
-  
+
   /** Created timestamp */
   createdAt: Date;
-  
+
   /** Last updated timestamp */
   updatedAt: Date;
-  
+
   /** Conversation ID for tracking */
   conversationId?: string;
-  
+
   /** History alias */
   history?: Message[];
-  
+
   /** Tools available */
   tools?: ToolDefinition[];
 }
@@ -350,21 +350,21 @@ export interface ConversationContext {
 export interface AgentLLMClient {
   /** Agent ID */
   readonly agentId: string;
-  
+
   /** Send a message and get a response */
   chat(content: string, options?: Partial<CompletionRequest>): Promise<CompletionResponse>;
-  
+
   /** Stream a response */
   streamChat(content: string, options?: Partial<CompletionRequest>): AsyncIterable<CompletionChunk>;
-  
+
   /** Get conversation context */
   getContext(): ConversationContext;
-  
+
   /** Clear conversation history */
   clearHistory(): void;
-  
+
   /** Set system prompt */
   setSystemPrompt(prompt: string): void;
-  
+
   /** Send a message and get a response (alias for chat) */
 }

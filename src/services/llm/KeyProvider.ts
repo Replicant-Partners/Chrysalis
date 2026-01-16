@@ -14,7 +14,7 @@
 /**
  * Provider identifier for LLM services
  */
-export type LLMProviderId = 'openai' | 'anthropic' | 'ollama' | 'mock';
+export type LLMProviderId = 'openai' | 'anthropic' | 'ollama';
 
 /**
  * Key source indicates where an API key was retrieved from
@@ -114,7 +114,6 @@ export class EnvKeyProvider implements KeyProvider {
     openai: 'OPENAI_API_KEY',
     anthropic: 'ANTHROPIC_API_KEY',
     ollama: 'OLLAMA_API_KEY',
-    mock: '',
   };
 
   /**
@@ -130,7 +129,7 @@ export class EnvKeyProvider implements KeyProvider {
 
   async getKey(provider: LLMProviderId): Promise<KeyLookupResult> {
     const envVar = this.envVarMap[provider];
-    
+
     if (!envVar) {
       return { key: null, source: 'none', found: false };
     }
@@ -149,7 +148,7 @@ export class EnvKeyProvider implements KeyProvider {
   }
 
   async getProviderStatus(): Promise<ProviderKeyStatus[]> {
-    const providers: LLMProviderId[] = ['openai', 'anthropic', 'ollama', 'mock'];
+    const providers: LLMProviderId[] = ['openai', 'anthropic', 'ollama'];
     const results: ProviderKeyStatus[] = [];
 
     for (const provider of providers) {
@@ -186,7 +185,7 @@ export class CompositeKeyProvider implements KeyProvider {
    */
   constructor(providers: KeyProvider[]) {
     this.providers = providers;
-    
+
     // Subscribe to key changes from all providers
     for (const provider of providers) {
       if (provider.onKeyChange) {
@@ -215,7 +214,7 @@ export class CompositeKeyProvider implements KeyProvider {
   }
 
   async getProviderStatus(): Promise<ProviderKeyStatus[]> {
-    const providers: LLMProviderId[] = ['openai', 'anthropic', 'ollama', 'mock'];
+    const providers: LLMProviderId[] = ['openai', 'anthropic', 'ollama'];
     const results: ProviderKeyStatus[] = [];
 
     for (const provider of providers) {

@@ -12,6 +12,7 @@
 import { EventEmitter } from 'events';
 import { BridgeOrchestrator, TranslationResult, TranslationRequest } from './orchestrator';
 import { NativeAgent, CanonicalAgent, AgentFramework, BaseAdapter } from '../adapters/base-adapter';
+import { NotImplementedError } from '../mcp-server/chrysalis-tools';
 
 // ============================================================================
 // Event Types for Bridge Operations
@@ -230,20 +231,12 @@ export class AdapterDiscoveryService {
 
   /**
    * Perform health checks on all adapters
+   * @throws {NotImplementedError} Actual health probes (ping, connection tests) not yet implemented
    */
   private performHealthChecks(): void {
-    const now = new Date().toISOString();
-    
-    for (const [framework, info] of this.adapters) {
-      // For now, consider adapters healthy if they're still registered
-      const isRegistered = this.orchestrator.hasAdapter(framework);
-      
-      this.adapters.set(framework, {
-        ...info,
-        healthStatus: isRegistered ? 'healthy' : 'unhealthy',
-        lastHealthCheck: now,
-      });
-    }
+    throw new NotImplementedError(
+      'performHealthChecks requires actual health probes (ping, connection tests, etc.) - registration check is not a real health check'
+    );
   }
 
   /**
@@ -543,12 +536,12 @@ export class IntegratedBridgeService {
 
   /**
    * Setup automatic event logging
+   * @throws {NotImplementedError} Actual event logging (LedgerService integration) not yet implemented
    */
   private setupEventLogging(): void {
-    this.events.subscribe<BridgeEventPayload>('*', (_event) => {
-      // Log could be integrated with Chrysalis LedgerService
-      // For now, just track in memory
-    });
+    throw new NotImplementedError(
+      'setupEventLogging requires LedgerService integration - in-memory tracking with no-op callback is not real logging'
+    );
   }
 
   /**

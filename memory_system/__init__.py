@@ -117,6 +117,9 @@ from .core import (
     MemoryEntry,
 )
 
+# Durable jobs/events (pilot)
+from .job_store import JobStore, EventStore, JobRecord, JobEvent
+
 # Beads (short-term/context)
 from .beads import BeadsService
 

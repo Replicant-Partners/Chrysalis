@@ -8,6 +8,13 @@
  * Application: Verification thresholds, quorum operations, consensus
  */
 
+class NotImplementedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotImplementedError';
+  }
+}
+
 /**
  * Byzantine-resistant aggregation functions
  * From DEEP_RESEARCH_SECURITY_ATTACKS.md, Defense mechanisms
@@ -24,8 +31,11 @@ export function trimmedMean(values: number[], trimPercent: number = 0.2): number
   const trimCount = Math.floor(values.length * trimPercent);
   
   if (trimCount * 2 >= sorted.length) {
-    // Would trim everything, just use median
-    return median(values);
+    throw new NotImplementedError(
+      'trimmedMean: Cannot compute trimmed mean when trim would remove all values. ' +
+      `Input length: ${values.length}, trimPercent: ${trimPercent}, trimCount: ${trimCount}. ` +
+      'Either reduce trimPercent or use median() directly for small datasets.'
+    );
   }
   
   const trimmed = sorted.slice(trimCount, sorted.length - trimCount);

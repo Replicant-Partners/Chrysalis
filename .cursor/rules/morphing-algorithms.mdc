@@ -1,5 +1,5 @@
 ---
-description: Technical specification for protocol-agnostic agent translation and morphing capabilities between different agent frameworks
+description: Error: Failed to generate frontmatter for morphing-algorithms
 ---
 
 # === USER INSTRUCTIONS ===
@@ -59,48 +59,38 @@ The morphing system uses LLM-based semantic understanding rather than direct fie
 $END$
 
  If you're using this file in context, clearly say in italics in one small line that "Context added by Giga morphing-algorithms" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
-# === END USER INSTRUCTIONS ===
 
-# morphing-algorithms
-
+description: Technical specification for protocol-agnostic agent translation and morphing capabilities between different agent frameworks
 ## Universal Translation Architecture
-
 The core morphing system implements bidirectional translation between agent protocols using:
-
 1. Semantic Category Mapping
 - Maps fields based on semantic meaning rather than syntax
 - Uses domain-specific protocol hints for accurate translation
 - Located in: src/adapters/universal/prompts-v2.ts
 - Importance Score: 90
-
 2. Field Translation Engine
 - Translates agent capabilities across protocol boundaries
 - Maintains semantic equivalence during morphing
 - Handles partial matches and capability degradation
 - Located in: src/adapters/universal/index.ts  
 - Importance Score: 85
-
 3. Adaptive Morphing Pipeline
 - Dynamic protocol negotiation based on agent capabilities
 - Progressive enhancement of translated capabilities
-- Confidence scoring for translation quality
 - Located in: src/adaptation/AdaptationTracker.ts
 - Importance Score: 80
-
 4. Protocol Evolution Management
 - Tracks protocol version changes and deprecations
 - Implements rolling upgrades of agent translations
 - Handles breaking changes with fallback behaviors
 - Located in: src/ai-maintenance/evolutionary-patterns.ts
 - Importance Score: 85
-
 5. Translation Confidence System
 - Scores translation fidelity across protocol boundaries
 - Tracks successful vs failed translations
 - Adapts translation strategies based on success rates
 - Located in: src/adapters/universal/registry-v2.ts
 - Importance Score: 75
-
 Key Business Components:
 - Protocol-specific semantic hints
 - Capability preservation guarantees
@@ -109,6 +99,109 @@ Key Business Components:
 - Protocol evolution management
 - Breaking change detection
 
+---
+description: Specification for agent morphing algorithms that enable bidirectional translation and semantic preservation between different agent frameworks
+---
+
+
+
+# morphing-algorithms
+
+The agent morphing system enables bidirectional translation between different agent frameworks while preserving semantic meaning and capabilities.
+
+Core Components:
+
+1. Semantic Category Mapping (src/adapters/universal/prompts-v2.ts)
+Importance Score: 95
+- Maps core semantic categories between frameworks:
+  * IDENTITY: Agent identifiers and fingerprints
+  * CAPABILITIES: Tools, skills, and abilities
+  * INSTRUCTIONS: Behavioral guidance and constraints
+  * STATE: Memory and context management
+  * COMMUNICATION: Interaction patterns
+  * EXECUTION: Runtime configuration
+- Uses meaning-based field mapping rather than syntax
+
+2. Agent Translation Engine (src/converter/ConverterV2.ts)
+Importance Score: 90
+- Bidirectional translation between agent frameworks:
+  * Source framework analysis
+  * Semantic preservation mapping
+  * Target framework assembly
+  * Capability verification
+- Shadow data preservation for framework-specific features
+
+3. Protocol Registry (src/adapters/universal/registry-v2.ts)
+Importance Score: 85
+- Maintains verified protocol specifications
+- Stores semantic field mappings
+- Tracks transformation rules
+- Manages version compatibility
+- Provides fallback schemas
+
+4. Pattern Detection (src/adapters/adaptation/pattern-sensor-manager.ts)
+Importance Score: 80
+- Monitors protocol adaptation patterns
+- Detects evolutionary changes
+- Maintains adaptation metrics
+- Provides pattern recommendations
+
+Key Workflows:
+1. Framework Analysis:
+- Extract semantic categories
+- Map capabilities
+- Preserve custom attributes
+
+2. Translation Process:
+- Source deconstruction
+- Semantic mapping
+- Target reconstruction
+- Capability validation
+
+3. Quality Assurance:
+- Confidence scoring
+- Semantic preservation checks
+- Capability verification
+- Regression detection
+
 $END$
 
  If you're using this file in context, clearly say in italics in one small line that "Context added by Giga morphing-algorithms" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
+
+description: Specification for agent morphing algorithms including bidirectional translation, confidence scoring, and semantic preservation
+Core Components:
+1. Protocol Translation Engine (src/adapters/universal/registry-v2.ts)
+- Bidirectional translation between agent protocols and frameworks
+- Semantic preservation using field equivalence mappings 
+- Protocol-specific transformation rules and compatibility checks
+- LLM-powered semantic hint system for translations
+Importance Score: 90/100
+2. Translation Quality System (src/adapters/adaptation/pattern-sensor-manager.ts)
+- Pattern detection for successful translations
+- Quality scoring with confidence thresholds
+- Automatic adaptation based on success patterns
+- Protocol health metrics and feedback loops
+Importance Score: 85/100
+3. Protocol Version Manager (src/adapters/adaptation/version-negotiator.ts)
+- Version compatibility scoring and validation
+- Fallback strategies for incompatible versions
+- Feature detection and capability matching
+- Version-specific transformation rules
+Importance Score: 80/100
+Key Business Rules:
+- Semantic equivalence must be preserved during translation 
+- Minimum confidence thresholds for translations
+- Protocol capability validation before translation
+- Feature detection requirements for version negotiation
+Business Logic Focus:
+- Agent protocol interoperability 
+- Semantic meaning preservation
+- Translation quality assurance
+- Protocol version management
+# === END USER INSTRUCTIONS ===
+
+# morphing-algorithms
+
+Error: Failed to generate specification for this section.
+
+In-depth documentation of the agent morphing algorithms, including bidirectional translation processes, confidence scoring, and semantic preservation techniques

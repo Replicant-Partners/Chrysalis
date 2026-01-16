@@ -218,6 +218,37 @@ class SkillReplaceRequest(BaseModel):
         extra = "forbid"
 
 
+class JobRecord(BaseModel):
+    """Placeholder schema for durable job records."""
+    job_id: str = Field(..., min_length=1, description="Job identifier")
+    job_type: str = Field(..., min_length=1, description="Job type")
+    subject_type: Optional[str] = Field(default=None, description="Subject type (photo, session, etc.)")
+    subject_id: Optional[str] = Field(default=None, description="Subject identifier")
+    status: str = Field(default="queued", description="Job status")
+    attempts: int = Field(default=0, ge=0, description="Attempt count")
+    max_attempts: int = Field(default=3, ge=1, description="Max attempts")
+    idempotency_key: Optional[str] = Field(default=None, description="Idempotency key")
+    created_at: Optional[str] = Field(default=None, description="Creation timestamp")
+    updated_at: Optional[str] = Field(default=None, description="Update timestamp")
+
+    class Config:
+        extra = "allow"
+
+
+class JobEvent(BaseModel):
+    """Placeholder schema for durable job events."""
+    event_id: str = Field(..., min_length=1, description="Event identifier")
+    job_id: str = Field(..., min_length=1, description="Job identifier")
+    timestamp: str = Field(..., min_length=1, description="Event timestamp")
+    type: str = Field(..., min_length=1, description="Event type")
+    level: str = Field(default="info", description="Event level")
+    message: Optional[str] = Field(default=None, description="Human readable message")
+    data: Optional[Dict[str, Any]] = Field(default=None, description="Event payload")
+
+    class Config:
+        extra = "allow"
+
+
 def validate_with_pydantic(model_class: Type[BaseModel], data: Dict[str, Any]) -> BaseModel:
     """
     Validate request data using Pydantic model.

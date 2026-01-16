@@ -150,21 +150,8 @@ export class KnowledgeIntegrator {
   /**
    * Check if two knowledge items are similar
    */
-  private isSimilar(content1: string, content2: string): boolean {
-    // Simplified similarity check
-    // In production, would use embedding similarity
-    
-    const normalized1 = content1.toLowerCase().trim();
-    const normalized2 = content2.toLowerCase().trim();
-    
-    if (normalized1 === normalized2) return true;
-    
-    // Check if one contains the other
-    if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
-      return true;
-    }
-    
-    return false;
+  private isSimilar(_content1: string, _content2: string): boolean {
+    throw new Error('NotImplementedError: isSimilar requires embedding similarity implementation');
   }
   
   /**

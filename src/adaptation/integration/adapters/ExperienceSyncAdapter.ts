@@ -15,6 +15,7 @@
 import { ExperienceSyncManager, SyncStatus, MergeResult } from '../../../sync/ExperienceSyncManager';
 import { LearningLoop, ExperienceEntry } from '../../LearningLoop';
 import { AdaptationTracker } from '../../AdaptationTracker';
+import { NotImplementedError } from './MemorySystemAdapter';
 
 /**
  * Experience Sync Adapter Configuration
@@ -66,26 +67,7 @@ export class ExperienceSyncAdapter {
 
         this.isCollecting = true;
 
-        // TODO: Wire up event subscriptions when ExperienceSyncManager emits events
-        // The handlers (handleExperienceEvent, handleMergeResult) are implemented
-        // but need the event source to be connected.
-        //
-        // Required changes to ExperienceSyncManager:
-        //   1. Extend EventEmitter or use a pub/sub system
-        //   2. Emit 'experience_synced' after successful sync
-        //   3. Emit 'merge_completed' after memory merge
-        //
-        // Then uncomment:
-        // this.experienceSyncManager.on('experience_synced', (event) => {
-        //     this.handleExperienceEvent(event);
-        // });
-        // this.experienceSyncManager.on('merge_completed', (result) => {
-        //     this.handleMergeResult(result);
-        // });
-
-        console.warn('[ExperienceSyncAdapter] startCollecting is a stub - event subscriptions not wired', {
-            stub_reason: 'ExperienceSyncManager does not emit events yet'
-        });
+        throw new NotImplementedError('startCollecting: event subscriptions require ExperienceSyncManager to emit events');
     }
 
     /**
@@ -94,7 +76,7 @@ export class ExperienceSyncAdapter {
     stopCollecting(): void {
         this.isCollecting = false;
 
-        // In production: Unsubscribe from events
+        throw new NotImplementedError('stopCollecting: event unsubscription requires ExperienceSyncManager integration');
     }
 
     /**
@@ -182,44 +164,27 @@ export class ExperienceSyncAdapter {
     /**
      * Manually collect experiences from sync status
      *
-     * @stub Requires ExperienceSyncManager.getSyncStatuses() to be accessible
-     * and return meaningful data. Currently a no-op.
+     * @throws {NotImplementedError} ExperienceSyncManager sync status query not implemented
      */
     async collectFromSyncStatus(): Promise<void> {
-        console.warn('[ExperienceSyncAdapter] collectFromSyncStatus is a stub', {
-            stub_reason: 'ExperienceSyncManager sync status query not implemented'
-        });
-
-        // TODO: Implement when ExperienceSyncManager exposes sync statuses
-        // const statuses = await this.experienceSyncManager.getSyncStatuses();
-        // for (const status of statuses) {
-        //     if (status.last_sync) {
-        //         await this.collectExperiencesSince(status.instance_id, status.last_sync);
-        //     }
-        // }
+        throw new NotImplementedError('collectFromSyncStatus: ExperienceSyncManager sync status query not implemented');
     }
 
     /**
      * Collect experiences since timestamp
      *
-     * @stub Internal method for incremental experience collection
+     * @throws {NotImplementedError} Experience query by timestamp not implemented
      */
-    private async collectExperiencesSince(instanceId: string, since: string): Promise<void> {
-        console.warn('[ExperienceSyncAdapter] collectExperiencesSince is a stub', {
-            instanceId,
-            since,
-            stub_reason: 'Experience query by timestamp not implemented'
-        });
-        // TODO: Query ExperienceSyncManager for experiences after timestamp
+    private async collectExperiencesSince(_instanceId: string, _since: string): Promise<void> {
+        throw new NotImplementedError('collectExperiencesSince: experience query by timestamp not implemented');
     }
 
     /**
      * Get sync statuses
      *
-     * @stub Returns empty array - requires ExperienceSyncManager integration
+     * @throws {NotImplementedError} ExperienceSyncManager integration required
      */
     async getSyncStatuses(): Promise<SyncStatus[]> {
-        console.warn('[ExperienceSyncAdapter] getSyncStatuses returns empty - stub implementation');
-        return [];
+        throw new NotImplementedError('getSyncStatuses');
     }
 }

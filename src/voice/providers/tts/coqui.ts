@@ -14,6 +14,7 @@ import {
   VoiceProfile,
 } from '../../types';
 import { BaseTTSProvider } from './base';
+import { NotImplementedError } from '../../../mcp-server/chrysalis-tools';
 
 /**
  * Coqui TTS model types
@@ -340,19 +341,10 @@ export class CoquiTTSProvider extends BaseTTSProvider {
       )
     );
     
-    // Return profile with base64 sample as ID
-    // In production, would save to disk and return path
-    const cloneId = `clone_${Date.now()}`;
-    return {
-      id: cloneId,
-      name,
-      voiceId: cloneId,
-      isCloned: true,
-      characteristics: ['cloned', 'coqui', 'en'],
-      provider: 'coqui',
-      // Store sample reference (would be path in production)
-      // sampleData: base64,
-    };
+    // Voice cloning requires disk persistence for the audio sample
+    throw new NotImplementedError(
+      'Voice cloning requires disk persistence implementation to save audio samples'
+    );
   }
   
   /**

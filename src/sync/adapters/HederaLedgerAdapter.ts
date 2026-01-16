@@ -1,9 +1,19 @@
 /**
- * Hedera Ledger Adapter (stub)
+ * Hedera Ledger Adapter
  *
  * Intended for Hedera subnet/mainnet integration without forcing the dependency.
- * Provides interface + placeholder implementation for secure commits and queries.
+ * Provides interface for secure commits and queries.
+ *
+ * NOTE: Methods throw NotImplementedError until Hedera SDK is integrated.
+ * Do not catch and ignore these errors - they indicate required integration work.
  */
+
+export class NotImplementedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotImplementedError';
+  }
+}
 
 import {
   validateExtendedId,
@@ -45,10 +55,10 @@ export interface LedgerAdapter {
 }
 
 /**
- * Placeholder Hedera adapter. Replace with Hedera SDK client calls.
+ * Hedera adapter for ledger operations.
  *
- * NOTE: This is a stub implementation. The endpoint and network are validated
- * and stored for future use when the real Hedera SDK integration is implemented.
+ * All mutation methods throw NotImplementedError until Hedera SDK is integrated.
+ * Configuration is validated at construction time.
  */
 export class HederaLedgerAdapter implements LedgerAdapter {
   // Stored for future implementation (will be used for Hedera SDK client)
@@ -80,8 +90,7 @@ export class HederaLedgerAdapter implements LedgerAdapter {
     if (req.payloadUri) {
       validateHttpUrl(req.payloadUri, 'Payload URI');
     }
-    // TODO: integrate Hedera SDK for submitTransaction
-    return { txId: `stub-${Date.now()}`, hash: req.hash };
+    throw new NotImplementedError('Hedera SDK integration required for ledger commits');
   }
 
   async query(ref: { txId?: string; hash?: string }): Promise<LedgerQueryResponse> {
@@ -94,14 +103,12 @@ export class HederaLedgerAdapter implements LedgerAdapter {
     if (ref.hash) {
       validateHexString(ref.hash, 'Hash', MAX_HASH_LENGTH);
     }
-    // TODO: integrate Hedera SDK for queryTransaction/record
-    return { txId: ref.txId || '', status: 'pending', hash: ref.hash };
+    throw new NotImplementedError('Hedera SDK integration required for ledger queries');
   }
 
   async keyRotate(req: LedgerKeyRotateRequest): Promise<LedgerCommitResponse> {
     validateExtendedId(req.agentId, 'Agent ID', MAX_ID_LENGTH);
     validateHexString(req.newPublicKey, 'Public key', MAX_PUBLIC_KEY_LENGTH);
-    // TODO: integrate Hedera SDK for key update transaction
-    return { txId: `keyrotate-${Date.now()}`, hash: req.newPublicKey };
+    throw new NotImplementedError('Hedera SDK integration required for key rotation');
   }
 }

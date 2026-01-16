@@ -689,34 +689,9 @@ export class ANPUnifiedAdapter extends BaseUnifiedAdapter {
     
     this.tasks.set(taskId, anpTask);
     
-    // Simulate task progress
-    setTimeout(() => this.simulateTaskProgress(taskId), 100);
-    
-    return this.toUniversalMessage(
-      { id: this.generateId(), type: 'task-response', from: '', to: '', timestamp: '', payload: { task: anpTask } },
-      'task-response',
-      { trace }
-    );
+    // Task execution requires ANP server connection - not implemented
+    throw new Error('NotImplementedError: ANP task execution requires server connection. Configure ANP server endpoint.');
   }
-  
-  private simulateTaskProgress(taskId: string): void {
-    const task = this.tasks.get(taskId);
-    if (!task) return;
-    
-    task.status = 'running';
-    task.progress = 50;
-    
-    this.emit('task-status-changed', { taskId, status: 'running' });
-    
-    setTimeout(() => {
-      task.status = 'completed';
-      task.progress = 100;
-      task.output = [{ type: 'text', data: `Task ${taskId} completed` }];
-      
-      this.emit('task-status-changed', { taskId, status: 'completed' });
-    }, 500);
-  }
-  
   private async getTaskStatus(
     params: UniversalPayload,
     trace: TraceContext

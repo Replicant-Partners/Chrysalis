@@ -20,13 +20,11 @@ export function startVoyeurWebServer(bus: VoyeurBus, opts?: {
   const port = opts?.port ?? 8787;
   const streamPath = opts?.path ?? '/voyeur-stream';
 
-  // CORS: Default to localhost for development security
-  // In production, explicitly pass allowed origins
-  const allowedOrigins = new Set(opts?.allowedOrigins ?? [
-    'http://localhost:3000',
-    'http://localhost:8080',
-    'http://127.0.0.1:3000',
-  ]);
+  // CORS: Require explicit allowed origins configuration
+  if (!opts?.allowedOrigins || opts.allowedOrigins.length === 0) {
+    throw new Error('Security: allowedOrigins must be explicitly configured. No default CORS origins are permitted.');
+  }
+  const allowedOrigins = new Set(opts.allowedOrigins);
 
   const clients: Set<ServerResponse> = new Set();
 

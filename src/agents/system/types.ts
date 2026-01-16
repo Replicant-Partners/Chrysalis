@@ -153,6 +153,20 @@ export interface PersonaConfig {
     minConfidence: number;
     fallbackBehavior: string;
   }>;
+  behavior?: {
+    jobs?: Array<Record<string, unknown>>;
+    conversation_triggers?: Array<Record<string, unknown>>;
+    openers?: Array<Record<string, unknown>>;
+    idioms?: Array<Record<string, unknown>>;
+  };
+  scm_policy?: {
+    initiative?: Record<string, unknown>;
+    turn_taking?: Record<string, unknown>;
+    coaching?: Record<string, unknown>;
+    creativity?: Record<string, unknown>;
+    coordination?: Record<string, unknown>;
+    repair?: Record<string, unknown>;
+  };
   promptSetId: string;
   version: string;
   lastUpdated: string;
@@ -521,3 +535,288 @@ export const AGGREGATION_WEIGHTS: Record<SystemAgentPersonaId, number> = {
   phil: 0.20,
   david: 0.25,
 };
+
+// =============================================================================
+// SCM Policy Types (Shared Conversational Middleware)
+// =============================================================================
+
+/**
+ * Initiative triggers for proactive agent behavior
+ */
+export type InitiativeTrigger =
+  | 'direct_mention'
+  | 'question_to_me'
+  | 'confusion'
+  | 'stuck'
+  | 'low_morale'
+  | 'risk'
+  | 'idea_request';
+
+/**
+ * Initiative policy controls when an agent speaks proactively
+ */
+export interface InitiativePolicy {
+  mode: 'only_when_asked' | 'can_interject' | 'proactive';
+  triggers: InitiativeTrigger[];
+  cooldown_ms: number;
+  max_msgs_per_10min: number;
+}
+
+/**
+ * Turn-taking policy controls conversation flow
+ */
+export interface TurnTakingPolicy {
+  interrupt_ok: boolean;
+  max_questions_per_reply: number;
+  max_lines: number;
+  allow_repetition_for_empathy: boolean;
+}
+
+/**
+ * Repair signals for detecting misunderstanding
+ */
+export type RepairSignal =
+  | 'confusion'
+  | 'contradiction'
+  | 'repeated_failure'
+  | 'explicit_request';
+
+/**
+ * Repair policy controls how agents handle misunderstanding
+ */
+export interface RepairPolicy {
+  enabled: boolean;
+  signals: RepairSignal[];
+  strategy: 'clarify' | 'reflect_then_clarify' | 'summarize_then_ask';
+}
+
+/**
+ * Coaching style options
+ */
+export type CoachingStyle = 'socratic' | 'directive' | 'motivational_interviewing' | 'mixed';
+
+/**
+ * Coaching policy controls how agents provide guidance
+ */
+export interface CoachingPolicy {
+  style: CoachingStyle;
+  ask_permission_before_advice: boolean;
+  autonomy_language: 'high' | 'medium' | 'low';
+  boundaries: string[];
+}
+
+/**
+ * Creativity techniques available
+ */
+export type CreativityTechnique =
+  | 'SCAMPER'
+  | 'SixHats'
+  | 'analogies'
+  | 'constraints'
+  | 'random_word'
+  | 'bad_ideas_first'
+  | 'perspective_rotation'
+  | 'morphological_analysis';
+
+/**
+ * Creativity policy controls divergent/convergent thinking
+ */
+export interface CreativityPolicy {
+  mode: 'divergent' | 'convergent' | 'oscillate';
+  techniques: CreativityTechnique[];
+  n_ideas_default: number;
+  anti_takeover: boolean;
+  risk_tolerance: 'safe' | 'medium' | 'wild';
+}
+
+/**
+ * Coordination tags for multi-agent diversity
+ */
+export type CoordinationTag =
+  | 'planning'
+  | 'ops'
+  | 'creative'
+  | 'coach'
+  | 'critic'
+  | 'builder';
+
+/**
+ * Coordination policy controls multi-agent arbitration
+ */
+export interface CoordinationPolicy {
+  priority: number;
+  complement_tags: CoordinationTag[];
+  yield_to: string[];
+  speak_probability?: number;
+}
+
+/**
+ * Complete SCM Policy combining all sub-policies
+ *
+ * @see Pattern 12: SHARED CONVERSATION MIDDLEWARE
+ */
+export interface SCMPolicy {
+  initiative: InitiativePolicy;
+  turn_taking: TurnTakingPolicy;
+  repair: RepairPolicy;
+  coaching: CoachingPolicy;
+  creativity: CreativityPolicy;
+  coordination: CoordinationPolicy;
+}
+
+/**
+ * Default SCM policy for agents without explicit configuration
+ */
+export const DEFAULT_SCM_POLICY: SCMPolicy = {
+  initiative: {
+    mode: 'can_interject',
+    triggers: ['direct_mention', 'confusion'],
+    cooldown_ms: 5000,
+    max_msgs_per_10min: 10,
+  },
+  turn_taking: {
+    interrupt_ok: false,
+    max_questions_per_reply: 1,
+    max_lines: 10,
+    allow_repetition_for_empathy: true,
+  },
+  repair: {
+    enabled: true,
+    signals: ['confusion', 'explicit_request'],
+    strategy: 'clarify',
+  },
+  coaching: {
+    style: 'socratic',
+    ask_permission_before_advice: true,
+    autonomy_language: 'high',
+    boundaries: ['no_diagnosis', 'no_shame'],
+  },
+  creativity: {
+    mode: 'oscillate',
+    techniques: ['analogies', 'constraints'],
+    n_ideas_default: 3,
+    anti_takeover: true,
+    risk_tolerance: 'safe',
+  },
+  coordination: {
+    priority: 0.5,
+    complement_tags: [],
+    yield_to: [],
+  },
+};
+
+// =============================================================================
+// Behavior Configuration Types
+// =============================================================================
+
+/**
+ * Job schedule configuration
+ */
+export interface JobSchedule {
+  type: 'cron' | 'interval' | 'event';
+  value: string;
+  timezone?: string;
+  start_delay_seconds?: number;
+  filters?: Record<string, unknown>;
+}
+
+/**
+ * Job definition for agent behavior
+ */
+export interface JobDefinition {
+  job_id: string;
+  name: string;
+  description?: string;
+  schedule: JobSchedule;
+  enabled: boolean;
+  priority: 'high' | 'medium' | 'low';
+  timeout_seconds: number;
+  retry?: {
+    max_attempts: number;
+    backoff_seconds: number;
+  };
+  data_sources?: string[];
+  outputs?: string[];
+  rights_required?: string[];
+}
+
+/**
+ * Trigger condition types
+ */
+export type TriggerConditionType = 'time_since_last' | 'event' | 'metric' | 'user_state';
+
+/**
+ * Conversation trigger definition
+ */
+export interface ConversationTrigger {
+  trigger_id: string;
+  name: string;
+  condition: {
+    type: TriggerConditionType;
+    parameters: Record<string, unknown>;
+  };
+  cooldown_seconds: number;
+  enabled: boolean;
+  priority: 'high' | 'medium' | 'low';
+  context_required?: string[];
+}
+
+/**
+ * Opener variation with conditions
+ */
+export interface OpenerVariation {
+  text: string;
+  weight: number;
+  conditions?: {
+    time_of_day?: 'morning' | 'afternoon' | 'evening';
+    user_mood?: 'happy' | 'neutral' | 'tired';
+    [key: string]: unknown;
+  };
+}
+
+/**
+ * Opener definition linked to triggers
+ */
+export interface OpenerDefinition {
+  opener_id: string;
+  trigger_id: string;
+  variations: OpenerVariation[];
+  follow_up_prompt?: string;
+  tone: string;
+}
+
+/**
+ * Idiom phrase with context
+ */
+export interface IdiomPhrase {
+  text: string;
+  weight: number;
+  context: string[];
+}
+
+/**
+ * Idiom definition for character personality
+ */
+export interface IdiomDefinition {
+  idiom_id: string;
+  category: 'catchphrase' | 'metaphor' | 'reference' | 'complaint' | 'exclamation';
+  phrases: IdiomPhrase[];
+  frequency: 'high' | 'medium' | 'low';
+  seasonal?: {
+    months?: number[];
+    events?: string[];
+  };
+  triggers: string[];
+}
+
+/**
+ * Complete behavior configuration
+ *
+ * @see Pattern 13: AGENT BEHAVIOR CONFIG
+ */
+export interface BehaviorConfig {
+  jobs: JobDefinition[];
+  conversation_triggers: ConversationTrigger[];
+  openers: OpenerDefinition[];
+  idioms: IdiomDefinition[];
+}

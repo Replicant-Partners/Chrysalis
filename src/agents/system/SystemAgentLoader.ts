@@ -18,6 +18,9 @@ import {
   PERSONA_ICONS,
   PERSONA_DISPLAY_NAMES,
 } from './types';
+import type { SCMRoutingContext, SCMRoutingResult } from './SCMRouting';
+import { routeWithSCM } from './SCMRouting';
+import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 
 // =============================================================================
 // Configuration Paths
@@ -61,6 +64,9 @@ export interface SystemAgentLoaderConfig {
 
   /** Logger function */
   logger?: (message: string, level: 'info' | 'warn' | 'error') => void;
+
+  /** Optional SCM routing context overrides */
+  scmRouting?: SCMRoutingContext;
 }
 
 const DEFAULT_LOADER_CONFIG: Required<SystemAgentLoaderConfig> = {
@@ -68,6 +74,7 @@ const DEFAULT_LOADER_CONFIG: Required<SystemAgentLoaderConfig> = {
   validateOnLoad: true,
   enableCache: true,
   logger: (msg, level) => console[level](`[SystemAgentLoader] ${msg}`),
+  scmRouting: undefined as unknown as SCMRoutingContext,
 };
 
 // =============================================================================
@@ -203,16 +210,8 @@ export class SystemAgentLoader {
       interactionState: 'responsive',
       dependencies: personaConfig.dependencies,
       icon: PERSONA_ICONS[personaConfig.id],
-      // Placeholder evaluate function - will be wired to actual LLM later
-      evaluate: async (prompt: string, options: { temperature: number; maxTokens: number; timeout: number }) => {
-        // This is a stub - actual implementation will use modelConfig routing
-        return {
-          scorecard: {},
-          riskScore: 0.5,
-          confidence: 0.5,
-          recommendations: ['Evaluation stub - not yet implemented'],
-          requiresHumanReview: true,
-        };
+      evaluate: async (_prompt: string, _options: { temperature: number; maxTokens: number; timeout: number }) => {
+        throw new NotImplementedError('LLM evaluation not configured');
       },
     };
   }
@@ -362,6 +361,14 @@ export class SystemAgentLoader {
     }
 
     return ordered;
+  }
+
+  /**
+   * Route system agents through SCM gating and arbitration.
+   */
+  routeWithSCM(context?: SCMRoutingContext): SCMRoutingResult {
+    const agents = this.getBindingsArray();
+    return routeWithSCM(agents, context ?? this.config.scmRouting);
   }
 
   /**

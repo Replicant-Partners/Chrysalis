@@ -28,9 +28,7 @@ export {
   BaseProvider,
   OpenAIProvider,
   AnthropicProvider,
-  OllamaProvider,
-  MockProvider,
-  type MockResponseConfig
+  OllamaProvider
 } from './providers';
 
 // Types
@@ -40,23 +38,23 @@ export type {
   Message,
   ToolCall,
   ToolDefinition,
-  
+
   // Request/Response types
   CompletionRequest,
   CompletionResponse,
   CompletionChunk,
-  
+
   // Provider types
   ProviderId,
   ProviderConfig,
   ProviderStatus,
   LLMProvider,
-  
+
   // Service configuration
   LLMServiceConfig,
   CostTrackingConfig,
   RateLimitConfig,
-  
+
   // Agent types
   ConversationContext,
   AgentLLMClient as IAgentLLMClient

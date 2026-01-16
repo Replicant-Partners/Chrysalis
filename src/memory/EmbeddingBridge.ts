@@ -145,40 +145,6 @@ export class OllamaEmbeddingProvider implements EmbeddingProvider {
 }
 
 /**
- * Mock embedding provider for testing
- */
-export class MockEmbeddingProvider implements EmbeddingProvider {
-  readonly dimensions: number;
-  readonly provider = 'mock';
-  
-  constructor(dimensions: number = 768) {
-    this.dimensions = dimensions;
-  }
-  
-  async embed(text: string): Promise<number[]> {
-    // Generate deterministic pseudo-embedding based on text
-    const embedding: number[] = [];
-    let seed = 0;
-    for (const char of text) {
-      seed = ((seed * 31) + char.charCodeAt(0)) % 2147483647;
-    }
-    
-    for (let i = 0; i < this.dimensions; i++) {
-      seed = ((seed * 1103515245) + 12345) % 2147483647;
-      embedding.push((seed / 2147483647) * 2 - 1);
-    }
-    
-    // Normalize
-    const norm = Math.sqrt(embedding.reduce((sum, x) => sum + x * x, 0));
-    return embedding.map(x => x / norm);
-  }
-  
-  async embedBatch(texts: string[]): Promise<number[][]> {
-    return Promise.all(texts.map(t => this.embed(t)));
-  }
-}
-
-/**
  * Python bridge embedding provider
  * Calls the Python memory_system embedding service via subprocess or HTTP
  */
@@ -186,7 +152,7 @@ export class PythonEmbeddingBridge implements EmbeddingProvider {
   readonly dimensions: number;
   readonly provider = 'python-bridge';
   private serverUrl?: string;
-  private fallback: EmbeddingProvider;
+  private fallback?: EmbeddingProvider;
   
   constructor(options?: {
     serverUrl?: string;
@@ -195,11 +161,14 @@ export class PythonEmbeddingBridge implements EmbeddingProvider {
   }) {
     this.serverUrl = options?.serverUrl;
     this.dimensions = options?.dimensions ?? 768;
-    this.fallback = options?.fallbackProvider ?? new MockEmbeddingProvider(this.dimensions);
+    this.fallback = options?.fallbackProvider;
   }
   
   async embed(text: string): Promise<number[]> {
     if (!this.serverUrl) {
+      if (!this.fallback) {
+        throw new Error('No embedding server configured and no fallback provider');
+      }
       return this.fallback.embed(text);
     }
     
@@ -211,6 +180,9 @@ export class PythonEmbeddingBridge implements EmbeddingProvider {
       );
       return response.data.embedding;
     } catch {
+      if (!this.fallback) {
+        throw new Error('No embedding server configured and no fallback provider');
+      }
       console.warn('Python embedding bridge unavailable, using fallback');
       return this.fallback.embed(text);
     }
@@ -218,6 +190,9 @@ export class PythonEmbeddingBridge implements EmbeddingProvider {
   
   async embedBatch(texts: string[]): Promise<number[][]> {
     if (!this.serverUrl) {
+      if (!this.fallback) {
+        throw new Error('No embedding server configured and no fallback provider');
+      }
       return this.fallback.embedBatch(texts);
     }
     
@@ -229,6 +204,9 @@ export class PythonEmbeddingBridge implements EmbeddingProvider {
       );
       return response.data.embeddings;
     } catch {
+      if (!this.fallback) {
+        throw new Error('No embedding server configured and no fallback provider');
+      }
       console.warn('Python embedding bridge unavailable, using fallback');
       return this.fallback.embedBatch(texts);
     }
@@ -239,7 +217,7 @@ export class PythonEmbeddingBridge implements EmbeddingProvider {
  * Factory to create embedding provider based on configuration
  */
 export function createEmbeddingProvider(
-  providerType: 'openai' | 'ollama' | 'mock' | 'python-bridge',
+  providerType: 'openai' | 'ollama' | 'python-bridge',
   options?: Record<string, unknown>
 ): EmbeddingProvider {
   switch (providerType) {
@@ -263,8 +241,7 @@ export function createEmbeddingProvider(
         dimensions?: number;
       });
       
-    case 'mock':
     default:
-      return new MockEmbeddingProvider((options?.dimensions as number) ?? 768);
+      throw new Error(`Unknown embedding provider type: ${providerType}`);
   }
 }

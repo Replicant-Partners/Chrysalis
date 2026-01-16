@@ -549,22 +549,8 @@ export class MCPUnifiedAdapter extends BaseUnifiedAdapter {
       this.log(`Tool not found in cache: ${toolName}`);
     }
     
-    // Simulate tool execution (in real implementation, this would call the MCP server)
-    const result: MCPToolResult = {
-      content: [{
-        type: 'text',
-        text: `Tool ${toolName} executed with parameters: ${JSON.stringify(parameters)}`
-      }]
-    };
-    
-    return createMessage('tool-result', 'mcp', {
-      tool: {
-        toolName,
-        toolProtocol: 'mcp',
-        parameters,
-        result: result.content
-      }
-    }, { trace });
+    // Tool execution requires MCP server connection - not implemented
+    throw new Error('NotImplementedError: MCP tool execution requires server connection. Configure MCP server endpoint and use @modelcontextprotocol/sdk.');
   }
   
   // ============================================================================

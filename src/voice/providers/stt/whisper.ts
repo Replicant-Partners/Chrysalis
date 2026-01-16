@@ -15,6 +15,7 @@ import {
   TranscriptSegment,
 } from '../../types';
 import { BaseSTTProvider } from './base';
+import { NotImplementedError } from '../../../mcp-server/chrysalis-tools';
 
 /**
  * Whisper API response format
@@ -135,9 +136,7 @@ export class WhisperAPIProvider extends BaseSTTProvider {
   }
   
   async *getStreamingTranscript(): AsyncGenerator<PartialTranscript> {
-    // Whisper API doesn't support streaming, so we yield nothing
-    // This is implemented as a placeholder for potential future support
-    throw new Error('Whisper API does not support streaming transcription. Use transcribe() instead.');
+    throw new NotImplementedError('Whisper API streaming transcription - use transcribe() instead');
   }
   
   protected doDispose(): void {

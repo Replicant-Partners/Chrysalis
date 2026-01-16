@@ -38,11 +38,23 @@ class SimpleSignatures {
   }
 }
 
-// Placeholder Byzantine checker; extend with real detection as needed.
-// Uses generic type to support both old GossipMessage and new TypedGossipMessage
+class NotImplementedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotImplementedError';
+  }
+}
+
+/**
+ * Byzantine fault detector - throws until real implementation added.
+ * Uses generic type to support both old GossipMessage and new TypedGossipMessage
+ */
 class ByzantineChecker<T extends { signature: string } = GossipMessage> {
   detectFaults(_messages?: T[], _keyFn?: (msg: T) => string): boolean {
-    return false;
+    throw new NotImplementedError(
+      'ByzantineChecker.detectFaults: Byzantine fault detection not implemented. ' +
+      'Real implementation requires voting/quorum-based detection algorithm.'
+    );
   }
 }
 
@@ -307,14 +319,8 @@ export class GossipProtocol {
     // In a real implementation, this would send messages over the network
     console.log(`Gossiping ${messages.length} messages to node ${node.id}`);
     
-    // For simulation purposes, we'll directly call the receive method
-    // In real implementation, this would be an actual network call
-    for (const message of messages) {
-      // Simulate network delay
-      setTimeout(() => {
-        this.receiveGossip(message);
-      }, Math.random() * 100);
-    }
+    // Real implementation requires actual network transport
+    throw new NotImplementedError('Gossip.gossipToNode: network transport not implemented');
   }
 
   /**

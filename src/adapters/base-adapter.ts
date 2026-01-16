@@ -73,56 +73,9 @@ export class AdapterRegistry {
  */
 export const adapterRegistry = new AdapterRegistry();
 
-/**
- * Convenience helper to create a stub adapter for a protocol.
- * This is only intended to satisfy optional code paths; real adapters should
- * be provided by protocol-specific plug-ins.
- */
-export function createStubAdapter(framework: AgentFramework): BaseAdapter {
-  return {
-    framework,
-    async toCanonical(agent: NativeAgent): Promise<CanonicalAgent> {
-      return {
-        uri: uri(`agent:${framework}:${agent.data?.['id'] || 'unknown'}`) as CanonicalAgent['uri'],
-        quads: [],
-        sourceFramework: framework as any,
-        extensions: [],
-        metadata: {
-          translationTimeMs: 0,
-          mappedFields: [],
-          unmappedFields: [],
-          lostFields: [],
-          warnings: [],
-          fidelityScore: 1,
-          translatedAt: new Date().toISOString() as any
-        }
-      };
-    },
-    async fromCanonical(canonical: CanonicalAgent): Promise<NativeAgent> {
-      return {
-        data: { uri: canonical.uri, sourceFramework: canonical.sourceFramework },
-        framework: framework as any,
-        version: '1.0.0'
-      };
-    },
-    validateNative(): ValidationResult {
-      return { valid: true, errors: [], warnings: [] };
-    },
-    validateCanonical(): ValidationResult {
-      return { valid: true, errors: [], warnings: [] };
-    },
-    async roundTrip(agent: NativeAgent): Promise<RoundTripResult> {
-      const start = Date.now();
-      await this.toCanonical(agent);
-      return {
-        success: true,
-        fidelityScore: 1,
-        durationMs: Date.now() - start,
-        warnings: []
-      };
-    }
-  };
-}
+// NOTE: createStubAdapter has been removed. Stub adapters silently returned
+// fake data, which violates the "no silent failures" principle. Use real
+// adapters or throw NotImplementedError if functionality is not available.
 
 /**
  * Bridge unified adapter registry into the legacy one if needed.

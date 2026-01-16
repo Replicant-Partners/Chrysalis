@@ -14,6 +14,10 @@ export type VoyeurEventKind =
   | 'match.none'
   | 'merge.applied'
   | 'merge.deferred'
+  | 'job.state'
+  | 'job.progress'
+  | 'job.output'
+  | 'job.error'
   | 'error';
 
 export interface VoyeurEvent {

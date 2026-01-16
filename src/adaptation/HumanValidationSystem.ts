@@ -223,14 +223,11 @@ export class HumanValidationSystem {
         }
 
         for (const channel of this.config.notification_channels) {
-            // Log notification attempt for each channel
-            // TODO: Replace with actual channel integrations (Slack webhook, email, GitHub API)
-            console.info(`[HumanValidationSystem] Notifying channel "${channel}" of validation request:`, {
-                request_id: request.request_id,
-                change_type: request.change_type,
-                priority: request.priority,
-                requires_immediate_review: request.requires_immediate_review
-            });
+            // Channel integrations not yet implemented
+            throw new Error(
+                `NotImplementedError: Channel integration for "${channel}" is not implemented. ` +
+                `Requires actual Slack webhook, email, or GitHub API integration.`
+            );
         }
     }
 

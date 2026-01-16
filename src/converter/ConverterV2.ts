@@ -15,6 +15,16 @@ import { ExperienceSyncManager, type MergeResult } from '../sync/ExperienceSyncM
 import * as crypto from 'crypto';
 
 /**
+ * Error thrown when a feature is not yet implemented
+ */
+class NotImplementedError extends Error {
+  constructor(feature: string) {
+    super(`${feature} is not implemented`);
+    this.name = 'NotImplementedError';
+  }
+}
+
+/**
  * Enhanced conversion options
  */
 export interface ConversionOptionsV2 {
@@ -215,8 +225,7 @@ export class ConverterV2 {
     // Decrypt shadow to get original
     const [salt, authTag] = restorationKey.split(':');
     
-    // For now, simplified restoration
-    const restored: UniformSemanticAgentV2 = universal as UniformSemanticAgentV2;
+    throw new NotImplementedError('Shadow decryption and agent restoration');
     
     // Merge experiences if requested
     if (mergeExperience) {
@@ -224,16 +233,9 @@ export class ConverterV2 {
       
       const instance = this.instanceManager.getInstance(instanceId);
       if (instance) {
-        // Would extract and merge experiences here
-        console.log(`  ✓ Merged ${instance.statistics.memories_contributed} memories`);
-        console.log(`  ✓ Merged ${instance.statistics.skills_learned} skills`);
-        console.log(`  ✓ Merged ${instance.statistics.knowledge_acquired} knowledge items`);
+        throw new NotImplementedError('Experience extraction and merging');
       }
     }
-    
-    console.log(`\n✓ Restoration complete!`);
-    
-    return restored;
   }
   
   /**
@@ -250,24 +252,7 @@ export class ConverterV2 {
       throw new Error(`Instance ${instanceId} not found`);
     }
     
-    // Trigger sync based on protocol
-    // For now, simulate
-    const result: MergeResult = {
-      merged_at: new Date().toISOString(),
-      memories_added: 5,
-      memories_updated: 2,
-      memories_deduplicated: 1,
-      skills_added: 2,
-      skills_updated: 3,
-      skills_removed: 0,
-      knowledge_added: 4,
-      knowledge_verified: 2,
-      conflicts: {
-        total: 1,
-        resolved: 1,
-        queued: 0
-      }
-    };
+    throw new NotImplementedError('Experience sync protocol');
     
     // Update instance statistics
     await this.instanceManager.updateStatistics(instanceId, {

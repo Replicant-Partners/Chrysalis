@@ -158,14 +158,8 @@ export class ValidationStageExecutor {
     // 2. Run the test suite (npm test, vitest, etc.)
     // 3. Parse and return the results
 
-    // For now, return a placeholder indicating no tests were actually run
-    return [{
-      suiteName: 'validation-pending',
-      passed: 0,
-      failed: 0,
-      skipped: 0,
-      durationMs: 0,
-    }];
+    // Test execution not implemented
+    throw new Error('NotImplementedError: Test execution is not yet implemented');
   }
 
   /**

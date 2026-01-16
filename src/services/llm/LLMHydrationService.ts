@@ -22,8 +22,7 @@ import {
 import {
   OpenAIProvider,
   AnthropicProvider,
-  OllamaProvider,
-  MockProvider
+  OllamaProvider
 } from './providers';
 import { CostController, calculateCost } from '../../utils/CostControl';
 import { RateLimiter } from '../auth/RateLimiter';
@@ -65,7 +64,7 @@ export class LLMHydrationService {
   private config: LLMServiceConfig;
   private costController: CostController;
   private rateLimiter: RateLimiter;
-  
+
   private stats: ServiceStats = {
     totalRequests: 0,
     totalTokens: 0,
@@ -74,7 +73,7 @@ export class LLMHydrationService {
     tokensByProvider: {} as Record<ProviderId, number>,
     errorsByProvider: {} as Record<ProviderId, number>
   };
-  
+
   constructor(config?: Partial<LLMServiceConfig>) {
     this.config = { ...DEFAULT_LLM_CONFIG, ...config };
 
@@ -96,7 +95,7 @@ export class LLMHydrationService {
     // Register default providers
     this.registerDefaultProviders();
   }
-  
+
   /**
    * Register default providers based on configuration
    */
@@ -115,13 +114,10 @@ export class LLMHydrationService {
         case 'ollama':
           this.registerProvider(new OllamaProvider(providerConfig));
           break;
-        case 'mock':
-          this.registerProvider(new MockProvider(providerConfig));
-          break;
       }
     }
   }
-  
+
   /**
    * Register a provider with the service
    */
@@ -151,14 +147,14 @@ export class LLMHydrationService {
     // Check availability
     this.checkProviderAvailability(provider.id);
   }
-  
+
   /**
    * Unregister a provider
    */
   unregisterProvider(providerId: ProviderId): void {
     this.providers.delete(providerId);
   }
-  
+
   /**
    * Check provider availability
    */
@@ -184,7 +180,7 @@ export class LLMHydrationService {
       return false;
     }
   }
-  
+
   /**
    * Get available providers sorted by priority
    */
@@ -220,14 +216,14 @@ export class LLMHydrationService {
       .sort((a, b) => a.priority - b.priority)
       .map(p => p.provider);
   }
-  
+
   /**
    * Get a specific provider
    */
   getProvider(providerId: ProviderId): LLMProvider | undefined {
     return this.providers.get(providerId)?.provider;
   }
-  
+
   /**
    * Complete a request with automatic provider selection and failover
    */
@@ -305,11 +301,11 @@ export class LLMHydrationService {
         continue;
       }
     }
-    
+
     // All providers failed
     throw lastError ?? new Error('All providers failed');
   }
-  
+
   /**
    * Stream a completion with automatic provider selection
    */
@@ -322,57 +318,57 @@ export class LLMHydrationService {
     if (!rateLimitResult.ok) {
       throw new Error(`Rate limit exceeded. Retry after ${rateLimitResult.retryAfterMs}ms.`);
     }
-    
+
     // Get providers to try
     let providers: LLMProvider[] = [];
-    
+
     if (preferredProvider) {
       const preferred = this.getProvider(preferredProvider);
       if (preferred) {
         providers = [preferred];
       }
     }
-    
+
     if (providers.length === 0) {
       providers = await this.getAvailableProviders();
     }
-    
+
     if (providers.length === 0) {
       throw new Error('No LLM providers available');
     }
-    
+
     // For streaming, we only try the first provider
     // Failover during streaming is complex and risky
     const provider = providers[0];
     const registration = this.providers.get(provider.id);
-    
+
     if (!registration) {
       throw new Error(`Provider ${provider.id} not registered`);
     }
-    
+
     let totalContent = '';
     let finalUsage: CompletionResponse['usage'] | undefined;
-    
+
     try {
       for await (const chunk of provider.stream(request)) {
         totalContent += chunk.content;
-        
+
         if (chunk.usage) {
           finalUsage = chunk.usage;
         }
-        
+
         yield chunk;
       }
-      
+
       // Update stats after stream completes
       if (finalUsage) {
         this.stats.totalRequests++;
         this.stats.totalTokens += finalUsage.totalTokens;
-        this.stats.requestsByProvider[provider.id] = 
+        this.stats.requestsByProvider[provider.id] =
           (this.stats.requestsByProvider[provider.id] ?? 0) + 1;
-        this.stats.tokensByProvider[provider.id] = 
+        this.stats.tokensByProvider[provider.id] =
           (this.stats.tokensByProvider[provider.id] ?? 0) + finalUsage.totalTokens;
-        
+
         const cost = calculateCost(
           finalUsage.promptTokens,
           finalUsage.completionTokens,
@@ -387,7 +383,7 @@ export class LLMHydrationService {
           finalUsage.completionTokens
         );
       }
-      
+
       // Success - status already updated
     } catch (error) {
       this.stats.errorsByProvider[provider.id] =
@@ -395,7 +391,7 @@ export class LLMHydrationService {
       throw error;
     }
   }
-  
+
   /**
    * Estimate input tokens for a request
    */
@@ -407,7 +403,7 @@ export class LLMHydrationService {
     // Rough estimate: ~4 characters per token
     return Math.ceil(text.length / 4);
   }
-  
+
   /**
    * Update statistics after a successful request
    */
@@ -415,20 +411,20 @@ export class LLMHydrationService {
     this.stats.totalRequests++;
     this.stats.totalTokens += response.usage.totalTokens;
     this.stats.totalCost += response.estimatedCost ?? 0;
-    
-    this.stats.requestsByProvider[providerId] = 
+
+    this.stats.requestsByProvider[providerId] =
       (this.stats.requestsByProvider[providerId] ?? 0) + 1;
-    this.stats.tokensByProvider[providerId] = 
+    this.stats.tokensByProvider[providerId] =
       (this.stats.tokensByProvider[providerId] ?? 0) + response.usage.totalTokens;
   }
-  
+
   /**
    * Get service statistics
    */
   getStats(): ServiceStats {
     return { ...this.stats };
   }
-  
+
   /**
    * Get cost summary
    */
@@ -446,7 +442,7 @@ export class LLMHydrationService {
       budgetUsedPercent: status.dailyLimit > 0 ? (status.dailySpend / status.dailyLimit) * 100 : 0
     };
   }
-  
+
   /**
    * Get provider statuses
    */
@@ -460,7 +456,7 @@ export class LLMHydrationService {
     }
     return statuses as Record<ProviderId, ProviderStatus>;
   }
-  
+
   /**
    * Reset a provider's circuit breaker
    */
@@ -470,36 +466,18 @@ export class LLMHydrationService {
       registration.circuitBreaker.reset();
     }
   }
-  
+
   /**
    * Check health of all providers
    */
   async healthCheck(): Promise<Record<ProviderId, boolean>> {
     const results: Record<string, boolean> = {};
-    
+
     for (const [id] of this.providers) {
       results[id] = await this.checkProviderAvailability(id);
     }
-    
+
     return results as Record<ProviderId, boolean>;
-  }
-  
-  /**
-   * Create a mock service for testing
-   */
-  static createMock(defaultResponse?: string): LLMHydrationService {
-    const service = new LLMHydrationService({
-      providers: [],
-      fallbackEnabled: false
-    });
-
-    const mockProvider = new MockProvider();
-    if (defaultResponse) {
-      mockProvider.setDefaultResponse({ content: defaultResponse });
-    }
-
-    service.registerProvider(mockProvider);
-    return service;
   }
 }
 

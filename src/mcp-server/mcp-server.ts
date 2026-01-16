@@ -9,6 +9,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { NotImplementedError } from './chrysalis-tools';
 import {
   // JSON-RPC types
   JsonRpcId,
@@ -885,18 +886,15 @@ class SSETransport implements MCPTransport {
   }
   
   async start(): Promise<void> {
-    // SSE implementation would use http module
-    // This is a placeholder for the actual implementation
-    console.log(`SSE server starting on ${this.config.host}:${this.config.port}`);
+    throw new NotImplementedError('SSEServerTransport.start: SSE server implementation');
   }
   
   async stop(): Promise<void> {
     // Stop the HTTP server
   }
   
-  async send(message: string): Promise<void> {
-    // Send via SSE
-    // This would write to the SSE response stream
+  async send(_message: string): Promise<void> {
+    throw new NotImplementedError('SSE streaming');
   }
   
   onMessage(handler: (message: string) => void): void {

@@ -18,6 +18,7 @@ import {
 } from '../tools/QualityToolInterface';
 import { QualityToolOrchestrator } from '../tools/QualityToolOrchestrator';
 import { QualityResultAggregator } from '../tools/QualityResultAggregator';
+import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 
 /**
  * Auto Fix Result
@@ -135,26 +136,9 @@ export class AutoFixer {
             }
         }
 
-        // Estimate files fixed (based on fixable issues before fix)
-        const filesFixed = results.reduce((count, result) => {
-            // For now, estimate: if success and had issues, assume files were fixed
-            if (result.success && result.metrics.fixable_issues > 0) {
-                return count + result.metrics.files_with_issues;
-            }
-            return count;
-        }, 0);
-
-        return {
-            success: opts.continue_on_error ? toolsSucceeded > 0 : toolsFailed === 0,
-            tools_executed: toolsToRun.length,
-            tools_succeeded: toolsSucceeded,
-            tools_failed: toolsFailed,
-            files_fixed: filesFixed,
-            total_execution_time_ms: Date.now() - startTime,
-            results,
-            errors,
-            timestamp: new Date().toISOString(),
-        };
+        throw new NotImplementedError(
+            'Accurate file fix counting requires post-fix verification implementation'
+        );
     }
 
     /**

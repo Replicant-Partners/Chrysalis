@@ -43,7 +43,6 @@ export {
 export {
   WebSocketService,
   createWebSocketService,
-  MockWebSocketServer,
   WS_DEFAULT_CONFIG,
 } from './WebSocketService';
 
@@ -58,6 +57,79 @@ export {
   createConflictResolver,
 } from './ConflictResolver';
 
+// SCM Components (Pattern 12: SHARED CONVERSATION MIDDLEWARE)
+export {
+  SharedConversationMiddleware,
+  createSCM,
+  createSCMContext,
+} from './SharedConversationMiddleware';
+export type {
+  SCMIntentType,
+  SCMGateResult,
+  SCMContext,
+  SCMPlanResult,
+  SCMStyleResult,
+} from './SharedConversationMiddleware';
+
+export {
+  AgentArbiter,
+  createArbiter,
+  createCandidate,
+} from './AgentArbiter';
+export type {
+  ArbiterCandidate,
+  CandidateRanking,
+  ArbiterResult,
+  ArbiterConfig,
+  ArbiterMetrics,
+} from './AgentArbiter';
+
+export { routeWithSCM } from './SCMRouting';
+
+// Behavior Components (Pattern 13: AGENT BEHAVIOR CONFIG)
+export {
+  TriggerEvaluator,
+  createTriggerEvaluator,
+  createSystemContext,
+} from './TriggerEvaluator';
+export type {
+  SystemContext,
+  TriggerResult,
+  CooldownState,
+} from './TriggerEvaluator';
+
+export {
+  OpenerSelector,
+  createOpenerSelector,
+  createSelectionContext,
+  getTimeOfDay,
+} from './OpenerSelector';
+export type {
+  SelectionContext,
+  OpenerSelection,
+} from './OpenerSelector';
+
+export {
+  IdiomRegistry,
+  createIdiomRegistry,
+  createIdiomContext,
+} from './IdiomRegistry';
+export type {
+  IdiomContext,
+  IdiomSelection,
+  IdiomUsageStats,
+} from './IdiomRegistry';
+
+export {
+  BehaviorLoader,
+  createBehaviorLoader,
+  loadBehaviorsFromConfigs,
+} from './BehaviorLoader';
+export type {
+  BehaviorEvaluation,
+  BehaviorLoaderConfig,
+} from './BehaviorLoader';
+
 // Types from EvaluationCoordinator (backwards compatibility)
 export type {
   PersonaOutput,
@@ -68,3 +140,77 @@ export type {
 
 // Types from extracted modules
 export type { DetectedConflict, ConflictResolutionResult } from './ConflictResolver';
+
+// SCM Policy and Behavior Config Types
+export type {
+  SCMPolicy,
+  InitiativePolicy,
+  TurnTakingPolicy,
+  RepairPolicy,
+  CoachingPolicy,
+  CreativityPolicy,
+  CoordinationPolicy,
+  BehaviorConfig,
+  JobDefinition,
+  JobSchedule,
+  ConversationTrigger,
+  OpenerDefinition,
+  OpenerVariation,
+  IdiomDefinition,
+  IdiomPhrase,
+  InitiativeTrigger,
+  RepairSignal,
+  CoordinationTag,
+  CoachingStyle,
+  CreativityTechnique,
+  TriggerConditionType,
+} from './types';
+
+export { DEFAULT_SCM_POLICY } from './types';
+
+// SCM Routing (enhanced)
+export {
+  SCMRouter,
+  createSCMRouter,
+  createRoutingContext,
+} from './SCMRouting';
+export type {
+  SCMRoutingContext,
+  SCMRoutingResult,
+  SCMRouterConfig,
+} from './SCMRouting';
+
+// Shared Utilities
+export {
+  weightedRandomSelect,
+  UsageTracker,
+  SlidingWindowTracker,
+  TTLCache,
+  getTimeOfDay as getTimeOfDayUtil,
+  getCurrentMonth,
+  formatDuration,
+  PRIORITY_VALUES,
+  comparePriority,
+  generateId,
+  deepMerge,
+} from './utils';
+export type {
+  Clearable,
+  MetricsProvider,
+  Configurable,
+  CooldownState as CooldownStateUtil,
+  PriorityLevel,
+} from './utils';
+
+// Full Integration Service
+export {
+  SystemAgentChatService,
+  createSystemAgentChatService,
+  createMockChatService,
+} from './SystemAgentChatService';
+export type {
+  SystemAgentChatServiceConfig,
+  ChatMessage,
+  AgentResponse,
+  ChatRoutingResult,
+} from './SystemAgentChatService';

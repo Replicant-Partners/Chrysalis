@@ -235,12 +235,6 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
     inputCostPer1K: 0,
     outputCostPer1K: 0,
     contextLimit: 4096
-  },
-  'mock': {
-    modelId: 'mock',
-    inputCostPer1K: 0,
-    outputCostPer1K: 0,
-    contextLimit: 100000
   }
 };
 

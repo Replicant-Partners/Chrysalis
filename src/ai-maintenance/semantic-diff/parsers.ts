@@ -10,6 +10,7 @@ import type {
   FileContentChange,
   SemanticDiffConfig,
 } from './types';
+import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 
 /**
  * Parse APIs from file content
@@ -188,14 +189,10 @@ export function parseTypeScriptFields(body: string): SchemaField[] {
 }
 
 /**
- * Create file changes from paths (placeholder implementation)
+ * Create file changes from paths
  */
-export function createFileChangesFromPaths(paths: string[]): FileContentChange[] {
-  return paths.map((path) => ({
-    path,
-    before: undefined,
-    after: undefined,
-  }));
+export function createFileChangesFromPaths(_paths: string[]): FileContentChange[] {
+  throw new NotImplementedError('createFileChangesFromPaths: file content loading not implemented');
 }
 
 /**

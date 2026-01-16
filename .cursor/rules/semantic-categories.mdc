@@ -1,5 +1,5 @@
 ---
-description: Documents the semantic category system for translating fields between agent protocols based on their meaning rather than syntax
+description: Error: Failed to generate frontmatter for semantic-categories
 ---
 
 # === USER INSTRUCTIONS ===
@@ -52,45 +52,120 @@ The semantic category system enables protocol-agnostic agent translation through
 $END$
 
  If you're using this file in context, clearly say in italics in one small line that "Context added by Giga semantic-categories" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
-# === END USER INSTRUCTIONS ===
 
-# semantic-categories
-
+description: Documents the semantic category system for translating fields between agent protocols based on their meaning rather than syntax
 ## Core Category System
-
 The semantic category system maps fields across protocols based on their underlying meaning rather than field names, with three key components:
-
 1. Category Definitions
 - Identity Categories: agent_id, name, description, version
 - Capability Categories: skills, tools, permissions, limitations
 - Interaction Categories: input_format, output_format, constraints
 - Memory Categories: context, history, knowledge_base
 - Control Categories: goals, directives, policies
-
 2. Mapping Rules
 - Field-to-Category Assignment: Each field gets assigned primary and secondary categories
 - Cross-Protocol Translation: Fields map between protocols if they share categories
 - Fallback Chain: Multiple category matches handled in priority order
 - Context Preservation: Category context must be maintained during translation
-
 3. Translation Algorithms 
 - Category Detection: ML model identifies semantic category of unknown fields
 - Confidence Scoring: Calculates match confidence between fields
 - Context Validation: Verifies category context is preserved
 - Fallback Selection: Chooses best alternative when exact match unavailable
-
 Implementation Location:
 `src/adapters/universal/prompts-v2.ts`
 - Contains semantic category definitions and mapping rules
 - Implements category-based field translation
-
 `memory_system/semantic/decomposer.py`
 - Handles semantic parsing and category detection
 - Manages translation confidence scoring
-
 Importance Score: 95
 The semantic category system is critical for enabling protocol-agnostic agent communication while preserving meaning.
+
+---
+description: Defines core semantic categories for agent capabilities and field translation rules between different agent protocols
+---
+
+
+
+# semantic-categories
+
+Core Semantic Categories System:
+
+1. Category Definition Framework
+Path: src/adapters/universal/prompts-v2.ts
+- Six foundational semantic categories:
+  * IDENTITY: Agent core identifiers and self-knowledge
+  * CAPABILITIES: Tools, skills, and action abilities
+  * INSTRUCTIONS: Behavioral guidance and constraints
+  * STATE: Memory and contextual awareness
+  * COMMUNICATION: Interaction styles and patterns
+  * EXECUTION: Runtime configuration and settings
+
+2. Field Translation Logic
+Path: src/adapters/universal/index.ts
+- Meaning-based field mapping between protocols
+- Maps semantically equivalent fields regardless of naming:
+  * tool → capability
+  * skill → ability
+  * memory → context
+  * profile → identity
+- Preserves semantic meaning during protocol translation
+
+3. Semantic Mapping Rules
+- Bidirectional field translation based on semantic categories
+- Category-specific validation rules
+- Context preservation during translation
+- Semantic equivalence checking
+
+The system enables protocol-agnostic translation by mapping fields based on their semantic meaning rather than syntax, allowing interoperability between different agent frameworks while preserving semantic intent.
 
 $END$
 
  If you're using this file in context, clearly say in italics in one small line that "Context added by Giga semantic-categories" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.
+
+description: Specifies semantic categorization system for agent capabilities and knowledge domains
+Semantic Category System:
+1. Category Definition Engine
+File: src/adapters/universal/semantic/categories.ts
+- Implements hierarchical capability categorization with:
+  - Core capabilities (reasoning, memory, knowledge)
+  - Domain capabilities (coding, writing, analysis)
+  - Tool capabilities (web search, code generation, math)
+- Maps semantic relationships between categories
+- Enforces category inheritance rules and constraints
+- Validates category compatibility across frameworks
+2. Category Resolution System
+File: src/adapters/universal/prompts-v2.ts
+- Resolves semantic equivalence between different protocol categories
+- Maps framework-specific capabilities to universal categories
+- Handles bidirectional category translation
+- Maintains category confidence scoring
+- Implements category drift detection
+3. Semantic Mapping Rules
+File: src/adapters/universal/registry-v2.ts
+- Category inheritance validation
+- Cross-framework capability mapping
+- Semantic hint generation for translations
+- Category relationship tracking
+- Framework-specific category extensions
+4. Category Validation Engine
+File: src/adapters/adaptation/pattern-sensor-manager.ts
+- Validates category assignments across protocols
+- Detects category pattern evolution
+- Tracks category usage metrics
+- Manages category deprecation cycles
+- Implements category health scoring
+Core Business Rules:
+- Categories must maintain semantic meaning across translations
+- Category relationships follow strict inheritance rules
+- Framework extensions must map to universal categories
+- Category confidence requires minimum threshold
+- Categories support versioning and deprecation
+# === END USER INSTRUCTIONS ===
+
+# semantic-categories
+
+Error: Failed to generate specification for this section.
+
+Detailed documentation of the semantic category system, including category definitions, mapping rules, and meaning-based field translation algorithms

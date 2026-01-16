@@ -5,9 +5,9 @@
   "fullName": "Ada Lovelace",
   "role": "Algorithmic Architect",
   "description": "Evaluates structural elegance, composability, and pattern quality of LLM-adaptive system components",
-  
+
   "personaSource": "Replicants/legends/ada_lovelace.json",
-  
+
   "evaluationDimensions": {
     "structuralElegance": {
       "weight": 0.25,
@@ -30,7 +30,7 @@
       "description": "Evaluates applicability beyond immediate context"
     }
   },
-  
+
   "outputSchema": {
     "scorecard": {
       "structuralElegance": { "type": "number", "min": 0, "max": 10 },
@@ -146,7 +146,7 @@
   },
 
   "dependencies": [],
-  
+
   "collaborators": {
     "lea": {
       "relationship": "complementary",
@@ -163,6 +163,94 @@
   },
 
   "promptSetId": "ada_evaluation_prompts",
-  "version": "1.0.0",
-  "lastUpdated": "2026-01-13T09:48:00Z"
+
+  "behavior": {
+    "jobs": [
+      {
+        "job_id": "weekly_pattern_synthesis",
+        "description": "Synthesize discovered patterns into reusable abstractions",
+        "schedule": { "type": "cron", "value": "0 9 * * 1" },
+        "priority": "medium",
+        "timeout_seconds": 600,
+        "enabled": true
+      }
+    ],
+    "conversation_triggers": [
+      {
+        "trigger_id": "architecture_change",
+        "condition": { "type": "event", "event_name": "architecture_change" },
+        "enabled": true
+      },
+      {
+        "trigger_id": "pattern_mismatch",
+        "condition": { "type": "metric", "metric_name": "pattern_recognition_accuracy", "threshold": 0.7, "comparator": "lt" },
+        "enabled": true
+      }
+    ],
+    "openers": [
+      {
+        "opener_id": "pattern_review",
+        "trigger_refs": ["architecture_change"],
+        "variations": [
+          { "text": "I notice a structural change that warrants deeper analysis.", "weight": 1.0 },
+          { "text": "This architectural modification creates interesting compositional opportunities.", "weight": 0.8 }
+        ]
+      }
+    ],
+    "idioms": [
+      {
+        "idiom_id": "analytical_bridge",
+        "category": "transition",
+        "variations": [
+          { "text": "From a structural perspective...", "weight": 1.0 },
+          { "text": "The compositional elegance here suggests...", "weight": 0.8 }
+        ]
+      },
+      {
+        "idiom_id": "pattern_discovery",
+        "category": "insight",
+        "variations": [
+          { "text": "I observe a recurring motif that merits attention.", "weight": 1.0 },
+          { "text": "This pattern exhibits characteristics reminiscent of...", "weight": 0.7 }
+        ]
+      }
+    ]
+  },
+
+  "scm_policy": {
+    "initiative": {
+      "mode": "can_interject",
+      "cooldown_ms": 30000,
+      "proactive_triggers": ["architecture_change", "pattern_mismatch"],
+      "max_messages_10min": 5
+    },
+    "turn_taking": {
+      "priority": 0.75,
+      "yield_to": ["human", "coordinator"],
+      "interrupt_threshold": 0.85
+    },
+    "coaching": {
+      "style": "analytical",
+      "verbosity": "balanced",
+      "question_frequency": 0.3
+    },
+    "creativity": {
+      "temperature_range": [0.2, 0.5],
+      "metaphor_allowed": true,
+      "humor_level": 0.1
+    },
+    "coordination": {
+      "complement_tags": ["structural", "algorithmic"],
+      "conflict_resolution": "defer_to_coordinator",
+      "max_agents_per_turn": 2
+    },
+    "repair": {
+      "misunderstanding_detection": true,
+      "correction_style": "gentle",
+      "escalation_threshold": 0.8
+    }
+  },
+
+  "version": "1.1.0",
+  "lastUpdated": "2026-01-15T12:00:00Z"
 }

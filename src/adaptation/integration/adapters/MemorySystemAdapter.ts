@@ -11,15 +11,13 @@
  * References:
  * - Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). Design Patterns: Elements of Reusable Object-Oriented Software. Addison-Wesley. p. 139.
  *
- * @stub ENTIRE CLASS IS A STUB
- * This adapter requires integration with the Python Memory System (memory_system/).
+ * @throws {NotImplementedError} All methods throw until Python Memory System integration is implemented.
  * Implementation options:
  *   1. Pyodide - Run Python in WebAssembly (browser/Node.js)
  *   2. child_process - Spawn Python subprocess with JSON IPC
  *   3. HTTP API - Memory System as standalone service
  *   4. Native bindings - PyO3 or similar for direct Python calls
  *
- * All methods currently return empty results or no-op.
  * @see memory_system/fusion.py for the Python implementation to integrate with
  */
 
@@ -27,6 +25,21 @@ import { ChangeProposal } from '../../AgentCoordinator';
 import { AdaptationEvent, AdaptationOutcome } from '../../AdaptationTracker';
 import { LearningPattern } from '../../LearningLoop';
 import { KataCycle } from '../../EvidenceBasedAdaptation';
+
+/**
+ * Error thrown when a method is not yet implemented.
+ * Used to fail loudly instead of silently returning empty results.
+ */
+export class NotImplementedError extends Error {
+    constructor(methodName: string) {
+        super(
+            `MemorySystemAdapter.${methodName}() is not implemented. ` +
+            `Python Memory System integration required. ` +
+            `See memory_system/fusion.py for the Python implementation to integrate with.`
+        );
+        this.name = 'NotImplementedError';
+    }
+}
 
 /**
  * Memory System Interface
@@ -91,109 +104,94 @@ export interface IMemorySystem {
  *
  * Adapts Chrysalis Memory System to Adaptation System interface.
  *
- * @stub All methods are stubs - see class JSDoc for integration requirements
+ * @throws {NotImplementedError} All methods throw until Python Memory System integration is implemented.
  */
 export class MemorySystemAdapter implements IMemorySystem {
     private memorySystemUrl?: string;
-    private memorySystemInstance?: unknown; // In production: Python interop instance
-    private readonly STUB_WARNING = '[MemorySystemAdapter] Method is a stub - Python Memory System integration required';
+    private memorySystemInstance?: unknown;
 
     constructor(config?: { memorySystemUrl?: string; memorySystemInstance?: unknown }) {
         this.memorySystemUrl = config?.memorySystemUrl;
         this.memorySystemInstance = config?.memorySystemInstance;
-
-        if (!this.memorySystemInstance && !this.memorySystemUrl) {
-            console.warn('[MemorySystemAdapter] No memory system configured - all operations will be no-ops');
-        }
     }
 
     /**
      * Store adaptation event in memory system
-     * @stub Requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async storeAdaptationEvent(event: AdaptationEvent): Promise<void> {
-        console.warn(this.STUB_WARNING, { method: 'storeAdaptationEvent', event_type: event.event_type });
-        // TODO: Implement Python interop call to memory_system/fusion.py
+    async storeAdaptationEvent(_event: AdaptationEvent): Promise<void> {
+        throw new NotImplementedError('storeAdaptationEvent');
     }
 
     /**
      * Store adaptation outcome in memory system
-     * @stub Requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async storeAdaptationOutcome(outcome: AdaptationOutcome): Promise<void> {
-        console.warn(this.STUB_WARNING, { method: 'storeAdaptationOutcome', proposal_id: outcome.change_proposal_id });
-        // TODO: Implement Python interop call
+    async storeAdaptationOutcome(_outcome: AdaptationOutcome): Promise<void> {
+        throw new NotImplementedError('storeAdaptationOutcome');
     }
 
     /**
      * Store change proposal in memory system
-     * @stub Requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async storeChangeProposal(proposal: ChangeProposal): Promise<void> {
-        console.warn(this.STUB_WARNING, { method: 'storeChangeProposal', task_id: proposal.task_id });
-        // TODO: Implement Python interop call
+    async storeChangeProposal(_proposal: ChangeProposal): Promise<void> {
+        throw new NotImplementedError('storeChangeProposal');
     }
 
     /**
      * Store learning pattern in memory system
-     * @stub Requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async storeLearningPattern(pattern: LearningPattern): Promise<void> {
-        console.warn(this.STUB_WARNING, { method: 'storeLearningPattern', pattern_id: pattern.pattern_id });
-        // TODO: Implement Python interop call
+    async storeLearningPattern(_pattern: LearningPattern): Promise<void> {
+        throw new NotImplementedError('storeLearningPattern');
     }
 
     /**
      * Store Kata cycle in memory system
-     * @stub Requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async storeKataCycle(cycle: KataCycle): Promise<void> {
-        console.warn(this.STUB_WARNING, { method: 'storeKataCycle', cycle_id: cycle.cycle_id });
-        // TODO: Implement Python interop call
+    async storeKataCycle(_cycle: KataCycle): Promise<void> {
+        throw new NotImplementedError('storeKataCycle');
     }
 
     /**
      * Retrieve adaptation events from memory system
-     * @stub Returns empty array - requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async getAdaptationEvents(proposalId?: string, limit: number = 100): Promise<AdaptationEvent[]> {
-        console.warn(this.STUB_WARNING, { method: 'getAdaptationEvents', proposalId, limit });
-        return [];
+    async getAdaptationEvents(_proposalId?: string, _limit: number = 100): Promise<AdaptationEvent[]> {
+        throw new NotImplementedError('getAdaptationEvents');
     }
 
     /**
      * Retrieve adaptation outcomes from memory system
-     * @stub Returns empty array - requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async getAdaptationOutcomes(proposalId?: string, limit: number = 100): Promise<AdaptationOutcome[]> {
-        console.warn(this.STUB_WARNING, { method: 'getAdaptationOutcomes', proposalId, limit });
-        return [];
+    async getAdaptationOutcomes(_proposalId?: string, _limit: number = 100): Promise<AdaptationOutcome[]> {
+        throw new NotImplementedError('getAdaptationOutcomes');
     }
 
     /**
      * Retrieve change proposals from memory system
-     * @stub Returns empty array - requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async getChangeProposals(taskId?: string, limit: number = 100): Promise<ChangeProposal[]> {
-        console.warn(this.STUB_WARNING, { method: 'getChangeProposals', taskId, limit });
-        return [];
+    async getChangeProposals(_taskId?: string, _limit: number = 100): Promise<ChangeProposal[]> {
+        throw new NotImplementedError('getChangeProposals');
     }
 
     /**
      * Retrieve learning patterns from memory system
-     * @stub Returns empty array - requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async getLearningPatterns(context?: Record<string, unknown>, limit: number = 100): Promise<LearningPattern[]> {
-        console.warn(this.STUB_WARNING, { method: 'getLearningPatterns', hasContext: !!context, limit });
-        return [];
+    async getLearningPatterns(_context?: Record<string, unknown>, _limit: number = 100): Promise<LearningPattern[]> {
+        throw new NotImplementedError('getLearningPatterns');
     }
 
     /**
      * Retrieve Kata cycles from memory system
-     * @stub Returns empty array - requires Python Memory System integration
+     * @throws {NotImplementedError} Python Memory System integration required
      */
-    async getKataCycles(cycleId?: string, activeOnly: boolean = false): Promise<KataCycle[]> {
-        console.warn(this.STUB_WARNING, { method: 'getKataCycles', cycleId, activeOnly });
-        return [];
+    async getKataCycles(_cycleId?: string, _activeOnly: boolean = false): Promise<KataCycle[]> {
+        throw new NotImplementedError('getKataCycles');
     }
 }

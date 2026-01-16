@@ -24,11 +24,11 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
-import { Resource } from '@opentelemetry/resources';
-import { 
+import { resourceFromAttributes, Resource } from '@opentelemetry/resources';
+import {
   SEMRESATTRS_SERVICE_NAME,
   SEMRESATTRS_SERVICE_VERSION,
-  SEMRESATTRS_DEPLOYMENT_ENVIRONMENT 
+  SEMRESATTRS_DEPLOYMENT_ENVIRONMENT
 } from '@opentelemetry/semantic-conventions';
 import {
   trace as otelTrace,
@@ -65,22 +65,22 @@ export interface ChrysalisMetrics {
   morphOperations: Counter;
   morphDuration: Histogram;
   morphErrors: Counter;
-  
+
   // Memory operations
   memoryOperations: Counter;
   memoryStoreSize: UpDownCounter;
   memoryRetrievalDuration: Histogram;
-  
+
   // LLM operations
   llmRequests: Counter;
   llmTokensUsed: Counter;
   llmLatency: Histogram;
   llmErrors: Counter;
-  
+
   // Agent lifecycle
   activeAgents: UpDownCounter;
   agentSpawnDuration: Histogram;
-  
+
   // General
   httpRequestDuration: Histogram;
   httpRequestsTotal: Counter;
@@ -111,15 +111,15 @@ export async function initTelemetry(config?: Partial<TelemetryConfig>): Promise<
   }
 
   const appConfig = getConfig();
-  
+
   const telemetryConfig: TelemetryConfig = {
     serviceName: config?.serviceName ?? process.env.OTEL_SERVICE_NAME ?? 'chrysalis-unknown',
     serviceVersion: config?.serviceVersion ?? '0.0.0',
     environment: config?.environment ?? appConfig.environment.nodeEnv,
-    otlpEndpoint: config?.otlpEndpoint ?? 
-      process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 
+    otlpEndpoint: config?.otlpEndpoint ??
+      process.env.OTEL_EXPORTER_OTLP_ENDPOINT ??
       appConfig.observability.otlpEndpoint,
-    metricsPort: config?.metricsPort ?? 
+    metricsPort: config?.metricsPort ??
       parseInt(process.env.CHRYSALIS_METRICS_PORT ?? '9090', 10),
     enableAutoInstrumentation: config?.enableAutoInstrumentation ?? true,
     enableConsoleExporter: config?.enableConsoleExporter ?? appConfig.environment.debug,
@@ -132,7 +132,7 @@ export async function initTelemetry(config?: Partial<TelemetryConfig>): Promise<
     return;
   }
 
-  const resource = new Resource({
+  const resource = resourceFromAttributes({
     [SEMRESATTRS_SERVICE_NAME]: telemetryConfig.serviceName,
     [SEMRESATTRS_SERVICE_VERSION]: telemetryConfig.serviceVersion,
     [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: telemetryConfig.environment,
@@ -146,7 +146,7 @@ export async function initTelemetry(config?: Partial<TelemetryConfig>): Promise<
 
   // Configure metric exporters
   const metricExporters = [];
-  
+
   // OTLP exporter for Jaeger/Grafana
   if (telemetryConfig.otlpEndpoint) {
     metricExporters.push(
@@ -187,14 +187,14 @@ export async function initTelemetry(config?: Partial<TelemetryConfig>): Promise<
     sdk.start();
     console.log(`[Observability] SDK started for ${telemetryConfig.serviceName}`);
     console.log(`[Observability] Prometheus metrics at http://localhost:${telemetryConfig.metricsPort}/metrics`);
-    
+
     // Initialize tracer and meter
     tracer = otelTrace.getTracer(telemetryConfig.serviceName, telemetryConfig.serviceVersion);
     meter = otelMetrics.getMeter(telemetryConfig.serviceName, telemetryConfig.serviceVersion);
-    
+
     // Initialize Chrysalis-specific metrics
     chrysalisMetrics = createChrysalisMetrics(meter);
-    
+
     initialized = true;
   } catch (error) {
     console.error('[Observability] Failed to start SDK:', error);
@@ -337,7 +337,7 @@ export async function withSpan<T>(
   }
 ): Promise<T> {
   const span = startSpan(name, options);
-  
+
   try {
     const result = await context.with(
       otelTrace.setSpan(context.active(), span),
@@ -477,15 +477,15 @@ export const logger = Object.assign(
     debug(message: string, context?: LogContext): void {
       logMessage('debug', message, context);
     },
-    
+
     info(message: string, context?: LogContext): void {
       logMessage('info', message, context);
     },
-    
+
     warn(message: string, context?: LogContext): void {
       logMessage('warn', message, context);
     },
-    
+
     error(message: string, error?: Error, context?: LogContext): void {
       const errorContext = error ? {
         ...context,
@@ -513,7 +513,7 @@ function logMessage(level: LogLevel, message: string, context?: LogContext): voi
   };
 
   const output = JSON.stringify(logEntry);
-  
+
   switch (level) {
     case 'debug':
       console.debug(output);
@@ -541,7 +541,7 @@ export function observabilityMiddleware() {
   return async (req: any, res: any, next: any) => {
     const metrics = getMetrics();
     const startTime = performance.now();
-    
+
     // Start request span
     const span = startSpan(`HTTP ${req.method} ${req.path}`, {
       kind: SpanKind.SERVER,
@@ -555,11 +555,11 @@ export function observabilityMiddleware() {
 
     // Inject span into request for downstream use
     req.span = span;
-    
+
     // Capture response
     res.on('finish', () => {
       const duration = performance.now() - startTime;
-      
+
       span.setAttribute('http.status_code', res.statusCode);
       span.setStatus({
         code: res.statusCode < 400 ? SpanStatusCode.OK : SpanStatusCode.ERROR,

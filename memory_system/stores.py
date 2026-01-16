@@ -464,3 +464,13 @@ class FAISSVectorStore(VectorStore):
             
             self.id_to_index = data['id_to_index']
             self.next_index = data['next_index']
+
+
+# Durable job/event stores (pilot)
+try:
+    from .job_store import JobStore, EventStore, JobRecord, JobEvent
+except Exception:  # pragma: no cover - optional import to avoid runtime issues
+    JobStore = None  # type: ignore
+    EventStore = None  # type: ignore
+    JobRecord = None  # type: ignore
+    JobEvent = None  # type: ignore

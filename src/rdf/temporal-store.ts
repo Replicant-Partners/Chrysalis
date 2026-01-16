@@ -10,6 +10,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { NotImplementedError } from '../mcp-server/chrysalis-tools';
 
 // ============================================================================
 // Type Definitions
@@ -834,14 +835,10 @@ export class TemporalRDFStore extends EventEmitter {
   }
 
   /**
-   * Compact the store (placeholder for future optimization)
+   * Compact the store
    */
   async compact(): Promise<void> {
-    // In a real implementation, this would:
-    // 1. Remove superseded versions beyond retention period
-    // 2. Merge small graphs
-    // 3. Rebuild indexes
-    this.emit('compacted');
+    throw new NotImplementedError('TemporalStore.compact: store compaction optimization not implemented');
   }
 
   // ==========================================================================

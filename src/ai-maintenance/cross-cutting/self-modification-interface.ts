@@ -11,6 +11,7 @@
 
 import { EventEmitter } from 'events';
 import { AgentFramework } from '../../adapters/protocol-types';
+import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 import {
   ModificationLevel,
   ProposalType,
@@ -227,12 +228,11 @@ export class SelfModificationInterface {
     change: ModificationChange,
     protocol: AgentFramework
   ): Promise<void> {
-    // Emit change application event for external handling
-    this.emitter.emit('apply-change', { change, protocol });
-
-    // In a real implementation, this would modify the adapter
-    // For now, we just log and emit events
-    console.log(`Applying change to ${protocol}: ${change.operation} ${change.target}`);
+    throw new NotImplementedError(
+      `applyChange: Self-modification not implemented. ` +
+      `Cannot apply ${change.operation} to ${change.target} on ${protocol}. ` +
+      `Real implementation requires adapter modification infrastructure.`
+    );
   }
 
   /**

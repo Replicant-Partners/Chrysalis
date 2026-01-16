@@ -466,13 +466,10 @@ export class ElizaOSBridge extends BaseBridge {
    * Stream responses (delegated to LLM service)
    */
   async *stream(
-    message: AgentMessage,
-    context?: AgentContext
+    _message: AgentMessage,
+    _context?: AgentContext
   ): AsyncIterable<AgentResponse> {
-    // ElizaOS uses standard LLM streaming
-    // For now, we just yield the full response
-    const response = await this.send(message, context);
-    yield response;
+    throw new Error('NotImplementedError: True streaming is not implemented for ElizaOS bridge');
   }
   
   // ============================================================================

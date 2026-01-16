@@ -10,6 +10,7 @@ import { EventEmitter } from 'events';
 import { AgentFramework } from '../protocol-types';
 import { VersionCompatibility } from '../protocol-registry';
 import { ProtocolFeature } from '../protocol-capabilities';
+import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
 
 /**
  * Version negotiation strategy.
@@ -171,48 +172,17 @@ export class VersionNegotiator extends EventEmitter {
   /**
    * Get available versions for a protocol.
    *
-   * @stub Returns hardcoded version lists. In production, should query:
+   * @throws {NotImplementedError} Dynamic version discovery not implemented.
+   *   Should query:
    *   - Protocol registry (src/adapters/universal/registry-v2.ts)
    *   - Upstream protocol spec endpoints
    *   - Local version cache with TTL
-   *
-   * The hardcoded defaults are reasonable fallbacks but may become stale.
-   * Last verified: 2026-01-14
    */
   private async getAvailableVersions(protocol: AgentFramework): Promise<string[]> {
-    // TODO: Query PROTOCOL_REGISTRY_V2 for version information
-    // TODO: Add upstream version discovery with caching
-    // TODO: Emit warning when using fallback defaults
-
-    // Hardcoded defaults - VERIFY PERIODICALLY
-    // These are fallback values when dynamic version discovery is unavailable
-    const FALLBACK_VERSIONS: Record<AgentFramework, string[]> = {
-      mcp: ['2024.11', '2024.12', '2025.01'],
-      a2a: ['1.0.0', '1.1.0'],
-      anp: ['0.1.0', '0.2.0'],
-      langchain: ['0.1.0', '0.2.0', '0.3.0'],
-      openai: ['1.0.0', '1.1.0', '1.2.0'],
-      autogen: ['0.2.0', '0.3.0'],
-      crewai: ['0.1.0', '0.2.0', '0.3.0'],
-      'semantic-kernel': ['1.0.0', '1.1.0'],
-      'openai-agents': ['1.0.0'],
-      autogpt: ['0.5.0'],
-      agntcy: ['0.1.0'],
-      acp: ['0.1.0'],
-      fipa: ['1.0.0'],
-      jade: ['4.5.0', '4.6.0'],
-      ros2: ['humble', 'iron', 'jazzy'],
-      usa: ['2.0.0', '2.1.0'],
-      lmos: ['1.0.0'],
-    };
-
-    const versions = FALLBACK_VERSIONS[protocol];
-    if (!versions) {
-      console.warn(`[VersionNegotiator] No version info for protocol '${protocol}', using default '1.0.0'`);
-      return ['1.0.0'];
-    }
-
-    return versions;
+    throw new NotImplementedError(
+      `getAvailableVersions: Dynamic version discovery not implemented for protocol '${protocol}'. ` +
+        'Requires integration with PROTOCOL_REGISTRY_V2 and upstream version endpoints.'
+    );
   }
 
   /**
@@ -299,24 +269,19 @@ export class VersionNegotiator extends EventEmitter {
   /**
    * Check feature support for a version.
    *
-   * @stub Returns empty array (assumes all features supported).
-   * In production, should check against a capability matrix that maps
-   * protocol versions to supported features.
-   *
-   * @returns Array of UNSUPPORTED features (empty = all supported)
+   * @throws {NotImplementedError} Feature support checking not implemented.
+   *   Should check against a capability matrix that maps protocol versions
+   *   to supported features.
    */
   private async checkFeatureSupport(
     protocol: AgentFramework,
     version: string,
     features: ProtocolFeature[]
   ): Promise<ProtocolFeature[]> {
-    // TODO: Build capability matrix from protocol specs
-    // TODO: Check each feature against version support
-    // For now, assume all features are supported (optimistic)
-    if (features.length > 0) {
-      console.warn(`[VersionNegotiator] Feature support check is a stub - assuming all ${features.length} features supported for ${protocol}@${version}`);
-    }
-    return [];
+    throw new NotImplementedError(
+      `checkFeatureSupport: Feature support checking not implemented for ${protocol}@${version}. ` +
+        'Requires capability matrix built from protocol specs.'
+    );
   }
 
   /**

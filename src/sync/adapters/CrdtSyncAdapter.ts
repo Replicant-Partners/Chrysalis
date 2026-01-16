@@ -1,12 +1,21 @@
 /**
- * CRDT Sync Adapter (stub)
+ * CRDT Sync Adapter
  *
- * Intended for SyncedStore/Yjs integration without forcing the dependency.
- * Provides interface + placeholder implementation to wire into ExperienceSyncManager
- * for public/shared collaboration channels.
+ * Interface for SyncedStore/Yjs integration without forcing the dependency.
+ * Provides interface for ExperienceSyncManager public/shared collaboration channels.
+ *
+ * NOTE: SyncedStoreCrdtAdapter is NOT implemented. All methods throw NotImplementedError.
+ * Real implementation requires SyncedStore/Yjs WebSocket provider integration.
  */
 
 import { validateId, validateWebSocketUrl, MAX_ID_LENGTH } from './validation';
+
+export class NotImplementedError extends Error {
+  constructor(operation: string) {
+    super(`${operation} is not implemented`);
+    this.name = 'NotImplementedError';
+  }
+}
 
 export interface CrdtJoinOptions {
   channelId: string;
@@ -34,21 +43,19 @@ export interface CrdtSyncAdapter {
 }
 
 /**
- * Placeholder SyncedStore/Yjs adapter.
- * Replace stubs with real SyncedStore wiring (WebSocket provider + syncedStore docs).
+ * Unimplemented SyncedStore/Yjs adapter.
  *
- * NOTE: This is a stub implementation. The serverUrl is validated and stored
- * for future use when the real Yjs/SyncedStore integration is implemented.
+ * This adapter is NOT functional. All sync operations throw NotImplementedError.
+ * Implementation requires SyncedStore/Yjs with WebSocket provider integration.
+ *
+ * @throws {NotImplementedError} All sync methods throw - no silent failures
  */
 export class SyncedStoreCrdtAdapter implements CrdtSyncAdapter {
-  // Stored for future implementation (will be used for WebSocket connection)
   private readonly _serverUrl: string;
-  private _connected = false;
 
   constructor(serverUrl: string) {
     validateWebSocketUrl(serverUrl, 'Server URL');
     this._serverUrl = serverUrl;
-    // Note: URL is validated and stored for future WebSocket connection
   }
 
   async join(opts: CrdtJoinOptions): Promise<void> {
@@ -56,30 +63,23 @@ export class SyncedStoreCrdtAdapter implements CrdtSyncAdapter {
     if (opts.role && !['viewer', 'editor'].includes(opts.role)) {
       throw new Error('Invalid role. Expected "viewer" or "editor"');
     }
-    // TODO: initialize WebSocket provider to this._serverUrl + syncedStore doc for channel
-    this._connected = true;
-    return;
+    throw new NotImplementedError('CRDT sync requires SyncedStore/Yjs integration');
   }
 
   async update(change: CrdtUpdate): Promise<void> {
-    if (!this._connected) throw new Error('CRDT adapter not joined');
     validateId(change.docId, 'Document ID', MAX_ID_LENGTH);
-    // TODO: apply Yjs update to doc
-    return;
+    throw new NotImplementedError('CRDT sync requires SyncedStore/Yjs integration');
   }
 
   async snapshot(docId: string): Promise<CrdtSnapshot> {
-    if (!this._connected) throw new Error('CRDT adapter not joined');
     validateId(docId, 'Document ID', MAX_ID_LENGTH);
-    // TODO: compute hash of doc state; return snapshot
-    return { docId, hash: '', snapshot: {}, version: 0 };
+    throw new NotImplementedError('CRDT sync requires SyncedStore/Yjs integration');
   }
 
   async close(): Promise<void> {
-    this._connected = false;
+    return;
   }
 
-  /** Get the configured server URL (for debugging/testing) */
   get serverUrl(): string {
     return this._serverUrl;
   }

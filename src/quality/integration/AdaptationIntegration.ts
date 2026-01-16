@@ -13,6 +13,7 @@
 
 import { LearningLoop } from '../../adaptation/LearningLoop';
 import { AdaptationTracker, AdaptationOutcome } from '../../adaptation/AdaptationTracker';
+import { NotImplementedError } from '../../adaptation/agents/QualityAnalysisAgent';
 import { QualityPatternRecognizer } from '../patterns/QualityPatternRecognizer';
 import { PatternLearningContext } from '../patterns/QualityPattern';
 import { QualityIssue } from '../tools/QualityToolInterface';
@@ -196,8 +197,7 @@ export class AdaptationIntegration implements IQualityEventObserver {
 
         // Track in adaptation tracker (if method exists)
         // Note: AdaptationTracker may use different method signature
-        // This is a placeholder for integration
-        console.log('Tracking quality improvement:', outcome.change_proposal_id);
+        throw new NotImplementedError('AdaptationTracker integration - tracking quality improvement');
     }
 
     /**

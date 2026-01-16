@@ -18,6 +18,7 @@ import { CapabilityGatewayService } from '../../../services/capability-gateway/C
 import { AdaptationIntegrationFacade } from '../AdaptationIntegrationFacade';
 import { ChangeProposal } from '../../AgentCoordinator';
 import { AdaptationEvent } from '../../AdaptationTracker';
+import { NotImplementedError } from '../adapters/MemorySystemAdapter';
 
 /**
  * Adaptation Service Integration Configuration
@@ -58,14 +59,7 @@ export class AdaptationServiceIntegration {
      * Register adaptation capabilities with Capability Gateway
      */
     private registerCapabilities(): void {
-        // In production: Register adaptation capabilities
-        // For now: Placeholder implementation
-
-        // Example capabilities to register:
-        // - quality_analysis: Analyze code quality
-        // - refactoring: Identify refactoring opportunities
-        // - kata_cycle: Start Toyota Kata improvement cycle
-        // - validation: Submit change for validation
+        throw new NotImplementedError('Register adaptation capabilities not implemented');
     }
 
     /**
@@ -76,22 +70,7 @@ export class AdaptationServiceIntegration {
             return;
         }
 
-        // In production: Commit event to ledger
-        // For now: Placeholder implementation
-
-        // Example ledger commit:
-        // await this.ledgerService.commit({
-        //     agentId: 'adaptation_system',
-        //     instanceId: 'adaptation_instance',
-        //     event: {
-        //         type: 'adaptation_event',
-        //         event_id: event.event_id,
-        //         event_type: event.event_type,
-        //         change_proposal_id: event.change_proposal_id,
-        //         timestamp: event.timestamp,
-        //         metadata: event.metadata,
-        //     },
-        // });
+        throw new NotImplementedError('Commit event to ledger not implemented');
     }
 
     /**
@@ -102,8 +81,7 @@ export class AdaptationServiceIntegration {
             return;
         }
 
-        // In production: Commit proposal to ledger
-        // Placeholder implementation
+        throw new NotImplementedError('Ledger commit for change proposals not implemented');
     }
 
     /**

@@ -51,7 +51,6 @@ export {
   createEmbeddingProvider,
   OpenAIEmbeddingProvider,
   OllamaEmbeddingProvider,
-  MockEmbeddingProvider,
   PythonEmbeddingBridge,
   type EmbeddingProvider
 } from './EmbeddingBridge';
@@ -104,7 +103,7 @@ export { DEFAULT_MEMORY_CONFIG } from './types';
 export function createMemoryAdapter(
   agentId: string,
   options?: {
-    embeddingProvider?: 'openai' | 'ollama' | 'mock' | 'python-bridge';
+    embeddingProvider?: 'openai' | 'ollama' | 'python-bridge';
     embeddingOptions?: Record<string, unknown>;
     memoryConfig?: Partial<import('./types').MemoryConfig>;
   }

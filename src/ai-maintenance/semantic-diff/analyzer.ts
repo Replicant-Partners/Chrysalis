@@ -501,16 +501,72 @@ export class SemanticDiffAnalyzer {
 
   private calculateImpactLevel(
     breakingChanges: BreakingChange[],
-    _change: RepositoryChange
+    change: RepositoryChange
   ): ImpactLevel {
-    if (breakingChanges.length === 0) return 'none';
+    // First check semver-based impact from version change
+    const semverImpact = this.calculateSemverImpact(change);
+
+    // Then check file-based breaking changes
+    if (breakingChanges.length === 0 && semverImpact === 'none') return 'none';
 
     const criticalCount = breakingChanges.filter((bc) => bc.severity === 'critical').length;
     const highCount = breakingChanges.filter((bc) => bc.severity === 'high').length;
 
-    if (criticalCount > 2 || highCount > 5) return 'critical';
-    if (criticalCount > 0 || highCount > 2) return 'significant';
-    if (highCount > 0) return 'moderate';
+    // Combine breaking change severity with semver impact
+    if (criticalCount > 2 || highCount > 5 || semverImpact === 'critical') return 'critical';
+    if (criticalCount > 0 || highCount > 2 || semverImpact === 'significant') return 'significant';
+    if (highCount > 0 || semverImpact === 'moderate') return 'moderate';
+    if (breakingChanges.length > 0 || semverImpact === 'minimal') return 'minimal';
+    return 'none';
+  }
+
+  /**
+   * Calculate impact level based purely on semantic versioning rules.
+   * Major version bumps and 0.x → 0.y changes are considered breaking.
+   */
+  private calculateSemverImpact(change: RepositoryChange): ImpactLevel {
+    if (!change.previousVersion || !change.currentVersion) {
+      return 'none';
+    }
+
+    const from = change.previousVersion;
+    const to = change.currentVersion;
+
+    // Parse version parts - handle both v-prefixed and non-prefixed versions
+    const fromMatch = from.match(/^v?(\d+)\.(\d+)\.(\d+)/);
+    const toMatch = to.match(/^v?(\d+)\.(\d+)\.(\d+)/);
+
+    if (!fromMatch || !toMatch) {
+      // Handle non-semver versions (e.g., "2024.11" → "2025.01")
+      // These are typically significant as they're date-based releases
+      const fromYear = parseInt(from.split('.')[0]);
+      const toYear = parseInt(to.split('.')[0]);
+      if (!isNaN(fromYear) && !isNaN(toYear) && toYear > fromYear) {
+        return 'significant';
+      }
+      return 'none';
+    }
+
+    const [, fromMajor, fromMinor] = fromMatch.map(Number);
+    const [, toMajor, toMinor] = toMatch.map(Number);
+
+    // Major version change is always breaking
+    if (toMajor > fromMajor) {
+      return 'significant';
+    }
+
+    // For pre-1.0 packages (0.x), minor version changes are considered breaking
+    // per semantic versioning convention
+    if (fromMajor === 0 && toMajor === 0 && toMinor > fromMinor) {
+      return 'significant';
+    }
+
+    // Minor version change in stable releases (1.x+) is typically additive
+    if (toMinor > fromMinor) {
+      return 'moderate';
+    }
+
+    // Patch version only
     return 'minimal';
   }
 

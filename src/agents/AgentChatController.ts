@@ -411,26 +411,21 @@ export class AgentChatController {
         ]);
         return { content: resp.content, requestId: resp.requestId, durationMs: resp.durationMs };
       } catch (err) {
-        console.warn('Gateway chat failed, falling back to terminal/mock:', err);
+        console.warn('Gateway chat failed, trying terminal client:', err);
       }
     }
 
     // If we have a terminal client, use it
     if (this.terminalClient) {
-      try {
-        const response = await this.terminalClient.chat(userQuery, {
-          systemPrompt: this.buildSystemPrompt(context),
-          includeMemoryContext: true,
-        });
-        return response.content;
-      } catch (error) {
-        console.error('Terminal client error:', error);
-        // Fall through to mock response
-      }
+      const response = await this.terminalClient.chat(userQuery, {
+        systemPrompt: this.buildSystemPrompt(context),
+        includeMemoryContext: true,
+      });
+      return response.content;
     }
     
-    // Mock response for development
-    return this.generateMockResponse(userQuery, context);
+    // No LLM client configured - fail honestly
+    throw new Error('LLM service unavailable - no fallback configured');
   }
   
   /**
@@ -448,23 +443,6 @@ Guidelines:
 - Learn from the conversation and remember important details
 - Be helpful and conversational
 - If you recall something relevant, mention it naturally`;
-  }
-  
-  /**
-   * Generate mock response for development/testing
-   */
-  private generateMockResponse(userQuery: string, context: string): string {
-    // Check if there's relevant context to reference
-    const hasContext = context.includes('=== Relevant');
-    
-    const responses = [
-      `I understand you're asking about "${userQuery.slice(0, 50)}...". Based on what I know, let me help you with that.`,
-      `That's an interesting question. ${hasContext ? 'From our previous conversations, I recall some relevant information. ' : ''}Let me think about this.`,
-      `I'd be happy to help with that. ${hasContext ? 'I remember we discussed something related before. ' : ''}Here's what I think...`,
-      `Great question! ${hasContext ? 'Drawing on my memory, ' : ''}I can provide some insights on this topic.`,
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)];
   }
   
   // ===========================================================================

@@ -15,6 +15,7 @@ import { BaseTTSProvider } from './base';
 import { ElevenLabsTTSProvider } from './elevenlabs';
 import { CoquiTTSProvider, isCoquiAvailable } from './coqui';
 import { BrowserTTSProvider, isBrowserTTSAvailable } from './browser';
+import { NotImplementedError } from '../../../mcp-server/chrysalis-tools';
 
 // Re-export all providers
 export { BaseTTSProvider } from './base';
@@ -58,8 +59,7 @@ export async function createTTSProvider(
       provider = new BrowserTTSProvider();
       break;
     case 'openai':
-      // Would need separate implementation
-      throw new Error('OpenAI TTS provider not yet implemented');
+      throw new NotImplementedError('OpenAI TTS provider');
     default:
       throw new Error(`Unknown TTS provider type: ${type}`);
   }
