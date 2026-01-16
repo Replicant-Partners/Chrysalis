@@ -21,7 +21,7 @@ pub fn add(a: i32, b: i32) -> i32 {
 }
 
 // Module structure:
-// - core: UniformSemanticAgentV2 parsing and validation
+// - core: SemanticAgent parsing and validation
 // - security: API Key Wallet and Cost Control
 // - adapters: Protocol adapter invocation
 // - sync: Experience sync operations

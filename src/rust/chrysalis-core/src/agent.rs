@@ -1,6 +1,8 @@
-//! Core agent types
+//! Semantic Agent types
 //!
-//! This module defines the `UniformSemanticAgentV2` type and related structures.
+//! Core agent representation operating in semantic/meaning space.
+//! Supports multiple implementation types, experience synchronization,
+//! and protocol capabilities.
 
 use serde::{Deserialize, Serialize};
 
@@ -16,22 +18,25 @@ pub enum AgentImplementationType {
     Orchestrated,
 }
 
-/// Uniform Semantic Agent V2
+/// Semantic Agent V2
 ///
-/// The canonical agent representation in Chrysalis, supporting:
-/// - Multiple implementation types
-/// - Experience synchronization
-/// - Instance tracking
-/// - Protocol capabilities
+/// The canonical agent representation in Chrysalis.
+/// Agents operate agentically in semantic/meaning space.
+///
+/// Key capabilities:
+/// - Multiple implementation types (MCP, Multi-Agent, Orchestrated)
+/// - Experience synchronization across instances
+/// - Instance tracking and lifecycle management
+/// - Multi-protocol support (MCP, A2A, Agent Protocol)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UniformSemanticAgentV2 {
+pub struct SemanticAgent {
     pub schema_version: String,
-    // TODO: Add all fields from TypeScript UniformSemanticAgentV2
-    // See: /home/mdz-axolotl/Documents/GitClones/Chrysalis/src/core/UniformSemanticAgentV2.ts
+    // TODO: Add all fields from TypeScript
+    // Reference: src/core/UniformSemanticAgentV2.ts
 }
 
-impl UniformSemanticAgentV2 {
-    /// Create a new agent with default values
+impl SemanticAgent {
+    /// Create a new semantic agent
     pub fn new() -> Self {
         Self {
             schema_version: SCHEMA_VERSION.to_string(),
@@ -55,7 +60,7 @@ impl UniformSemanticAgentV2 {
     }
 }
 
-impl Default for UniformSemanticAgentV2 {
+impl Default for SemanticAgent {
     fn default() -> Self {
         Self::new()
     }
@@ -74,21 +79,31 @@ pub enum ValidationError {
     InvalidValue { field: String, value: String },
 }
 
+// Legacy type alias for backward compatibility
+pub type UniformSemanticAgentV2 = SemanticAgent;
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_new_agent() {
-        let agent = UniformSemanticAgentV2::new();
+        let agent = SemanticAgent::new();
         assert_eq!(agent.schema_version, SCHEMA_VERSION);
     }
 
     #[test]
     fn test_json_roundtrip() {
-        let agent = UniformSemanticAgentV2::new();
+        let agent = SemanticAgent::new();
         let json = agent.to_json().unwrap();
-        let parsed = UniformSemanticAgentV2::from_json(&json).unwrap();
+        let parsed = SemanticAgent::from_json(&json).unwrap();
         assert_eq!(agent.schema_version, parsed.schema_version);
+    }
+
+    #[test]
+    fn test_legacy_alias() {
+        // Verify UniformSemanticAgentV2 alias still works
+        let agent: UniformSemanticAgentV2 = SemanticAgent::new();
+        assert_eq!(agent.schema_version, SCHEMA_VERSION);
     }
 }

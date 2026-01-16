@@ -1,6 +1,6 @@
-//! Agent validation logic
+//! Semantic agent validation logic
 
-use super::agent::UniformSemanticAgentV2;
+use super::agent::SemanticAgent;
 
 /// Validation result
 #[derive(Debug)]
@@ -35,13 +35,14 @@ impl Default for ValidationReport {
     }
 }
 
-/// Validate agent schema
-pub fn validate_agent(_agent: &UniformSemanticAgentV2) -> ValidationReport {
+/// Validate semantic agent schema
+pub fn validate_agent(_agent: &SemanticAgent) -> ValidationReport {
     let report = ValidationReport::new();
 
-    // TODO: Implement validation rules
+    // TODO: Implement validation rules from TypeScript validateUniformSemanticAgentV2()
     // - Schema version check
-    // - Required field validation
+    // - Required field validation (identity, instances, experience_sync, protocols)
+    // - Protocol validation (at least one enabled)
     // - Type constraints
     // - Cross-field validation
 
