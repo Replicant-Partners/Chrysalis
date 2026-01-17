@@ -3,6 +3,7 @@
  * HTTP utilities for Chrysalis services (TypeScript).
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.BODY_INVALID_JSON_FLAG = exports.BODY_TOO_LARGE_FLAG = void 0;
 exports.readJsonBody = readJsonBody;
 exports.sendJson = sendJson;
 exports.sendError = sendError;
@@ -10,19 +11,35 @@ exports.sendText = sendText;
 exports.notFound = notFound;
 exports.methodNotAllowed = methodNotAllowed;
 exports.badRequest = badRequest;
+exports.payloadTooLarge = payloadTooLarge;
 exports.serverError = serverError;
 exports.createHttpsServer = createHttpsServer;
 const models_1 = require("./models");
-async function readJsonBody(req) {
+exports.BODY_TOO_LARGE_FLAG = '_bodyTooLarge';
+exports.BODY_INVALID_JSON_FLAG = '_bodyInvalidJson';
+async function readJsonBody(req, maxBytes = 1000000) {
     const chunks = [];
+    let size = 0;
     for await (const chunk of req) {
-        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        size += buf.length;
+        if (size > maxBytes) {
+            req[exports.BODY_TOO_LARGE_FLAG] = true;
+            return null;
+        }
+        chunks.push(buf);
     }
     const raw = Buffer.concat(chunks).toString('utf8');
     if (!raw) {
         return null;
     }
-    return JSON.parse(raw);
+    try {
+        return JSON.parse(raw);
+    }
+    catch (_a) {
+        req[exports.BODY_INVALID_JSON_FLAG] = true;
+        return null;
+    }
 }
 function sendJson(res, status, obj) {
     let response;
@@ -90,6 +107,15 @@ function badRequest(res, message, code) {
         timestamp: new Date().toISOString(),
     };
     sendError(res, 400, error);
+}
+function payloadTooLarge(res, message = 'Request body too large') {
+    const error = {
+        code: models_1.ErrorCode.INVALID_RANGE,
+        message,
+        category: models_1.ErrorCategory.VALIDATION_ERROR,
+        timestamp: new Date().toISOString(),
+    };
+    sendError(res, 413, error);
 }
 function serverError(res, message, requestId) {
     const error = {

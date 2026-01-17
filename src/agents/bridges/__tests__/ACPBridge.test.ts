@@ -16,18 +16,18 @@ import {
   createACPBridge,
   ACPAgentType,
 } from '../ACPBridge';
-import { GatewayLLMClient } from '../../../services/gateway/GatewayLLMClient';
+import { GatewayLLMClient, GatewayLLMResponse } from '../../../services/gateway/GatewayLLMClient';
 import { AgentMessage } from '../types';
 
 // Mock the GatewayLLMClient
 jest.mock('../../../services/gateway/GatewayLLMClient', () => ({
   GatewayLLMClient: jest.fn().mockImplementation(() => ({
-    chat: jest.fn().mockResolvedValue({
+    chat: (jest.fn<() => Promise<GatewayLLMResponse>>().mockResolvedValue({
       content: 'Mock LLM response',
       model: 'gpt-4',
       provider: 'openai',
       requestId: 'test-123',
-    }),
+    })) as jest.Mock,
     stream: jest.fn(),
   })),
 }));

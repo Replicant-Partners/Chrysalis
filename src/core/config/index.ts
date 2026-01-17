@@ -261,14 +261,14 @@ function loadFromFile(filePath: string): Partial<ChrysalisConfig> {
  * Deep merge configuration objects
  */
 function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>): T {
-  const result = { ...target };
+  const result: Record<string, any> = { ...target };
   
   for (const key in source) {
     if (source[key] !== undefined) {
       if (typeof source[key] === 'object' && !Array.isArray(source[key]) && source[key] !== null) {
         result[key] = deepMerge(
-          result[key] || ({} as Record<string, unknown>), 
-          source[key] as Record<string, unknown>
+          (result[key] as Record<string, any>) || {}, 
+          source[key] as Record<string, any>
         );
       } else {
         result[key] = source[key];
@@ -276,7 +276,7 @@ function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>)
     }
   }
   
-  return result;
+  return result as T;
 }
 
 /**

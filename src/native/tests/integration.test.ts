@@ -36,6 +36,7 @@ import {
   SyncCoordinatorClient,
   MedianAggregator,
 } from '../bindings/consensus';
+import { createHash } from 'crypto';
 
 import {
   DatalogFlowEngine,
@@ -64,7 +65,11 @@ try {
   const hashModule = require('../../core/patterns/Hashing');
   originalHashToHex = hashModule.hashToHex;
 } catch {
-  // Original modules not available
+  // Original modules not available - use Node crypto as fallback
+  originalHashToHex = (input: string, algorithm: string) => {
+    const algo = (algorithm || 'SHA-384').replace('-', '').toLowerCase();
+    return createHash(algo).update(input).digest('hex');
+  };
 }
 
 // ============================================================================

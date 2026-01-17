@@ -13,6 +13,8 @@
 import { AgentMemoryAdapter } from '../memory/AgentMemoryAdapter';
 import { SemanticMemory, ProceduralMemory } from '../memory/types';
 
+const MAX_EMBEDDING_JSON_BYTES = 10 * 1024 * 1024; // 10MB guard
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -197,6 +199,10 @@ export class LegendEmbeddingLoader {
    * Load embeddings from JSON string
    */
   async loadFromJSON(json: string, options?: LoadingOptions): Promise<LoadingResult> {
+    const sizeBytes = Buffer.byteLength(json, 'utf8');
+    if (sizeBytes > MAX_EMBEDDING_JSON_BYTES) {
+      throw new Error(`Embedding file too large (${(sizeBytes / 1024 / 1024).toFixed(2)}MB); refusing to load`);
+    }
     const data = JSON.parse(json) as LegendEmbeddingFile;
     return this.loadFromParsedFile(data, options);
   }

@@ -20,7 +20,6 @@
  */
 
 import { NodeSDK } from '@opentelemetry/sdk-node';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
@@ -173,11 +172,17 @@ export async function initTelemetry(config?: Partial<TelemetryConfig>): Promise<
   };
 
   if (telemetryConfig.enableAutoInstrumentation) {
-    sdkConfig.instrumentations = [
-      getNodeAutoInstrumentations({
-        '@opentelemetry/instrumentation-fs': { enabled: false },
-      }),
-    ];
+    try {
+      // Lazy-load to avoid hard dependency during tests
+      const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
+      sdkConfig.instrumentations = [
+        getNodeAutoInstrumentations({
+          '@opentelemetry/instrumentation-fs': { enabled: false },
+        }),
+      ];
+    } catch (err) {
+      console.warn('[Observability] Auto-instrumentations not available, skipping...', err);
+    }
   }
 
   // Initialize SDK

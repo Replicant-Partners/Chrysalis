@@ -1,0 +1,355 @@
+openapi: 3.0.3
+info:
+  title: Chrysalis System Agents API
+  version: v1
+  description: |
+    Internal-only API for system agent chat and orchestration.
+    This service is intended for private-network use only.
+  x-internal: true
+servers:
+  - url: http://localhost:3200
+paths:
+  /api/v1/system-agents/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/v1/system-agents/chat:
+    post:
+      summary: Send a user message through the SCM pipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Agent responses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          description: Invalid request
+  /api/v1/system-agents/agents:
+    get:
+      summary: List system agents
+      responses:
+        '200':
+          description: Agents list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListResponse'
+  /api/v1/system-agents/agents/{agentId}:
+    get:
+      summary: Get agent details
+      parameters:
+        - in: path
+          name: agentId
+          required: true
+          schema:
+            $ref: '#/components/schemas/AgentId'
+      responses:
+        '200':
+          description: Agent detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDetailResponse'
+        '404':
+          description: Agent not found
+  /api/v1/system-agents/inter-agent:
+    post:
+      summary: Send an inter-agent message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterAgentRequest'
+      responses:
+        '200':
+          description: Inter-agent response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterAgentResponse'
+        '400':
+          description: Invalid request
+  /api/v1/system-agents/proactive:
+    post:
+      summary: Run proactive trigger checks
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProactiveCheckRequest'
+      responses:
+        '200':
+          description: Trigger results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProactiveCheckResponse'
+  /api/v1/system-agents/history:
+    get:
+      summary: Get conversation history
+      parameters:
+        - in: query
+          name: threadId
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Conversation history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryResponse'
+  /api/v1/system-agents/metrics:
+    get:
+      summary: Get SCM metrics
+      responses:
+        '200':
+          description: Metrics snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+components:
+  schemas:
+    AgentId:
+      type: string
+      enum: [ada, lea, phil, david]
+    ChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        threadId:
+          type: string
+        targetAgent:
+          $ref: '#/components/schemas/AgentId'
+        metadata:
+          type: object
+          additionalProperties: true
+    ChatResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/ChatResponseData'
+    ChatResponseData:
+      type: object
+      properties:
+        threadId:
+          type: string
+        responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentResponse'
+        totalLatencyMs:
+          type: number
+        respondingAgents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentId'
+    AgentResponse:
+      type: object
+      properties:
+        agentId:
+          $ref: '#/components/schemas/AgentId'
+        content:
+          type: string
+        intentType:
+          type: string
+        confidence:
+          type: number
+        latencyMs:
+          type: number
+    AgentListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            agents:
+              type: array
+              items:
+                $ref: '#/components/schemas/AgentListItem'
+            count:
+              type: integer
+    AgentListItem:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/AgentId'
+        name:
+          type: string
+        role:
+          type: string
+        description:
+          type: string
+        isActive:
+          type: boolean
+    AgentDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/AgentId'
+            name:
+              type: string
+            role:
+              type: string
+            description:
+              type: string
+            evaluationDimensions:
+              type: object
+              additionalProperties: true
+            modelConfig:
+              type: object
+              additionalProperties: true
+            scmPolicy:
+              type: object
+              additionalProperties: true
+            behavior:
+              type: object
+              additionalProperties: true
+    InterAgentRequest:
+      type: object
+      required: [fromAgent, toAgent, message]
+      properties:
+        fromAgent:
+          $ref: '#/components/schemas/AgentId'
+        toAgent:
+          $ref: '#/components/schemas/AgentId'
+        message:
+          type: string
+        threadId:
+          type: string
+    InterAgentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            fromAgent:
+              $ref: '#/components/schemas/AgentId'
+            toAgent:
+              $ref: '#/components/schemas/AgentId'
+            response:
+              type: string
+    ProactiveCheckRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        context:
+          type: object
+          additionalProperties: true
+    ProactiveCheckResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            hasTriggeredAgents:
+              type: boolean
+            triggeredAgents:
+              type: array
+              items:
+                type: object
+                properties:
+                  agentId:
+                    $ref: '#/components/schemas/AgentId'
+                  opener:
+                    type: string
+                  triggerId:
+                    type: string
+            count:
+              type: integer
+    HistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            threadId:
+              type: string
+            messages:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            count:
+              type: integer
+            totalInThread:
+              type: integer
+    MetricsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            scm:
+              type: object
+              properties:
+                totalArbitrations:
+                  type: integer
+                agentsSelected:
+                  type: integer
+                pileOnPrevented:
+                  type: integer
+                diversityBonusApplied:
+                  type: integer
+                lastArbitrationMs:
+                  type: number
+            timestamp:
+              type: string
+    HealthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+            components:
+              type: object
+              additionalProperties: true
+            timestamp:
+              type: string

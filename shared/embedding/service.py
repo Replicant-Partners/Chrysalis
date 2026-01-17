@@ -243,9 +243,9 @@ class EmbeddingService:
             EmbeddingError: If all providers fail
             EmbeddingDimensionMismatchError: If dimensions don't match (strict mode only)
         """
-        # Build log context
+        # Build log context (lightweight hash on truncated text)
         log_context = self._build_log_context(text)
-        logger.info("Generating embedding", extra=log_context)
+        logger.debug("Generating embedding", extra=log_context)
 
         start_time = time.perf_counter()
         last_error: Optional[Exception] = None
@@ -393,12 +393,14 @@ class EmbeddingService:
         provider_name = self._primary_provider.get_provider_name() if self._primary_provider else "unknown"
         model_name = self._primary_provider.get_model_name() if self._primary_provider else "unknown"
 
+        truncated = text[:1000]  # avoid hashing megabyte-scale inputs
+
         return {
             "provider": provider_name,
             "model": model_name,
             "dimensions": self.dimensions,
             "text_length": len(text),
-            "text_hash": hashlib.sha256(text.encode()).hexdigest()[:8],  # Privacy-safe
+            "text_hash": hashlib.sha256(truncated.encode()).hexdigest()[:8],  # Privacy-safe
         }
 
     def _classify_error(self, exc: Exception) -> type[EmbeddingProviderError]:

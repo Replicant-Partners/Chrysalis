@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "composite": false,
+    "allowJs": true,
+    "skipLibCheck": true
+  },
+  "files": [".placeholder.ts"]
+}

@@ -14,7 +14,16 @@
  * - Provide unified API for behavior evaluation
  */
 
-import type { PersonaConfig, BehaviorConfig, SCMPolicy, DEFAULT_SCM_POLICY } from './types';
+import type {
+  PersonaConfig,
+  BehaviorConfig,
+  SCMPolicy,
+  DEFAULT_SCM_POLICY,
+  JobDefinition,
+  ConversationTrigger,
+  OpenerDefinition,
+  IdiomDefinition,
+} from './types';
 import { TriggerEvaluator, createSystemContext, type SystemContext, type TriggerResult } from './TriggerEvaluator';
 import { OpenerSelector, createSelectionContext, type SelectionContext, type OpenerSelection } from './OpenerSelector';
 import { IdiomRegistry, createIdiomContext, type IdiomContext, type IdiomSelection } from './IdiomRegistry';
@@ -73,12 +82,12 @@ export class BehaviorLoader {
     // Load behavior section
     if (persona.behavior) {
       const behavior: BehaviorConfig = {
-        jobs: Array.isArray(persona.behavior.jobs) ? persona.behavior.jobs : [],
+        jobs: Array.isArray(persona.behavior.jobs) ? persona.behavior.jobs as unknown as JobDefinition[] : [],
         conversation_triggers: Array.isArray(persona.behavior.conversation_triggers) 
-          ? persona.behavior.conversation_triggers 
+          ? persona.behavior.conversation_triggers as unknown as ConversationTrigger[] 
           : [],
-        openers: Array.isArray(persona.behavior.openers) ? persona.behavior.openers : [],
-        idioms: Array.isArray(persona.behavior.idioms) ? persona.behavior.idioms : [],
+        openers: Array.isArray(persona.behavior.openers) ? persona.behavior.openers as unknown as OpenerDefinition[] : [],
+        idioms: Array.isArray(persona.behavior.idioms) ? persona.behavior.idioms as unknown as IdiomDefinition[] : [],
       };
       this.configs.set(agentId, behavior);
 
@@ -306,7 +315,7 @@ export class BehaviorLoader {
    * Log observability event
    */
   private emitEvent(event: { kind: string; timestamp: string; [key: string]: unknown }): void {
-    this.log.debug('event', { event });
+    this.log.debug('event', { event: JSON.stringify(event) });
   }
 
   /**

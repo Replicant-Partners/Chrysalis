@@ -127,6 +127,7 @@ class TelemetryWriter:
         self._path = path
         self._buffered = buffered
         self._buffer: list[str] = []
+        self._buffer_bytes: int = 0
         self._lock = threading.Lock()
         self._file: Optional[Any] = None
         self._span_stack: list[TelemetrySpan] = []
@@ -179,11 +180,13 @@ class TelemetryWriter:
         """
         payload_dict = self._event_dict(event)
         line = json.dumps(payload_dict, separators=(",", ":")) + "\n"
+        line_bytes = len(line.encode("utf-8"))
 
         with self._lock:
             if self._buffered:
                 self._buffer.append(line)
-                if len(self._buffer) >= 100:
+                self._buffer_bytes += line_bytes
+                if len(self._buffer) >= 100 or self._buffer_bytes >= 64 * 1024:
                     self._flush_buffer()
             elif self._file:
                 self._file.write(line)
@@ -202,6 +205,7 @@ class TelemetryWriter:
             self._file.writelines(self._buffer)
             self._file.flush()
             self._buffer.clear()
+            self._buffer_bytes = 0
 
     def flush(self) -> None:
         """Force flush any buffered events."""

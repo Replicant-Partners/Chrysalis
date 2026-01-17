@@ -57,7 +57,7 @@ func (mp *MultiProvider) Complete(req CompletionRequest) (CompletionResponse, er
 
 	var lastErr error
 	attemptCount := 0
-	for _, provider := range mp.providers {
+	for idx, provider := range mp.providers {
 		// Check circuit breaker state
 		if provider.State() == CircuitOpen {
 			continue
@@ -86,7 +86,7 @@ func (mp *MultiProvider) Complete(req CompletionRequest) (CompletionResponse, er
 		}
 
 		mp.mu.Lock()
-		mp.lastUsed = i
+		mp.lastUsed = idx
 		mp.mu.Unlock()
 
 		return resp, nil

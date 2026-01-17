@@ -46,7 +46,12 @@ exports.hasRole = hasRole;
 exports.hasPermission = hasPermission;
 const jwt = __importStar(require("jsonwebtoken"));
 const models_1 = require("./models");
-const JWT_SECRET = process.env.JWT_SECRET || process.env.CHRYSALIS_JWT_SECRET || 'dev-secret-change-in-production';
+const ENVIRONMENT = process.env.CHRYSALIS_ENV || process.env.NODE_ENV || 'development';
+const CONFIGURED_SECRET = process.env.JWT_SECRET || process.env.CHRYSALIS_JWT_SECRET;
+if (!CONFIGURED_SECRET && ENVIRONMENT === 'production') {
+    throw new Error('JWT_SECRET is required in production');
+}
+const JWT_SECRET = CONFIGURED_SECRET || 'dev-secret-change-in-production';
 const JWT_EXPIRATION_HOURS = parseInt(process.env.JWT_EXPIRATION_HOURS || '24', 10);
 // API Key store (in-memory, replace with database in production)
 const API_KEYS = new Map();

@@ -22,6 +22,7 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Literal
 import uuid
+import hashlib
 
 
 # =============================================================================
@@ -150,6 +151,45 @@ class JobEvent:
 # =============================================================================
 
 EventListener = Callable[[JobEvent], None]
+
+
+def _shrink(value: Any, *, max_len: int = 4000, max_items: int = 50, depth: int = 0) -> Any:
+    """
+    Best-effort shrinker to keep job events bounded.
+
+    - Truncates long strings
+    - Summarizes large numeric sequences with length/checksum
+    - Samples oversized containers
+    """
+    if depth > 3:
+        return "<truncated-depth>"
+
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+
+    if isinstance(value, str):
+        return value if len(value) <= max_len else value[:max_len] + "…"
+
+    if isinstance(value, (list, tuple)):
+        total = len(value)
+        limited = value[:max_items]
+        if all(isinstance(x, (int, float)) for x in limited) and total > 10:
+            checksum = hashlib.sha256(",".join(f"{v:.6f}" for v in limited).encode()).hexdigest()[:12]
+            return {"type": "vector", "length": total, "checksum": checksum}
+        sample = [_shrink(x, max_len=max_len, max_items=max_items, depth=depth + 1) for x in limited]
+        if total > max_items:
+            return {"type": "list", "length": total, "sample": sample}
+        return sample
+
+    if isinstance(value, dict):
+        items = list(value.items())[:max_items]
+        return {k: _shrink(v, max_len=max_len, max_items=max_items, depth=depth + 1) for k, v in items}
+
+    try:
+        text = str(value)
+        return text if len(text) <= max_len else text[:max_len] + "…"
+    except Exception:
+        return "<unserializable>"
 
 
 # =============================================================================
@@ -434,7 +474,7 @@ class EventStore:
             type=event_type,
             level=level,
             message=message,
-            data=data if data else None,
+            data=_shrink(data) if data else None,
             percent=percent,
             phase=phase,
         )

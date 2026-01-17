@@ -5,16 +5,31 @@
 import http from 'http';
 import { APIResponse, APIError, ErrorCode, ErrorCategory } from './models';
 
-export async function readJsonBody(req: http.IncomingMessage): Promise<any> {
+export const BODY_TOO_LARGE_FLAG = '_bodyTooLarge';
+export const BODY_INVALID_JSON_FLAG = '_bodyInvalidJson';
+
+export async function readJsonBody(req: http.IncomingMessage, maxBytes: number = 1_000_000): Promise<any> {
   const chunks: Buffer[] = [];
+  let size = 0;
   for await (const chunk of req) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    size += buf.length;
+    if (size > maxBytes) {
+      (req as any)[BODY_TOO_LARGE_FLAG] = true;
+      return null;
+    }
+    chunks.push(buf);
   }
   const raw = Buffer.concat(chunks).toString('utf8');
   if (!raw) {
     return null;
   }
-  return JSON.parse(raw);
+  try {
+    return JSON.parse(raw);
+  } catch {
+    (req as any)[BODY_INVALID_JSON_FLAG] = true;
+    return null;
+  }
 }
 
 export function sendJson<T>(
@@ -96,6 +111,16 @@ export function badRequest(res: http.ServerResponse, message: string, code?: Err
     timestamp: new Date().toISOString(),
   };
   sendError(res, 400, error);
+}
+
+export function payloadTooLarge(res: http.ServerResponse, message: string = 'Request body too large'): void {
+  const error: APIError = {
+    code: ErrorCode.INVALID_RANGE,
+    message,
+    category: ErrorCategory.VALIDATION_ERROR,
+    timestamp: new Date().toISOString(),
+  };
+  sendError(res, 413, error);
 }
 
 export function serverError(res: http.ServerResponse, message: string, requestId?: string): void {

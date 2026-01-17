@@ -52,7 +52,11 @@ class AuthContext:
 
 
 # Configuration
-JWT_SECRET = os.getenv("JWT_SECRET", os.getenv("CHRYSALIS_JWT_SECRET", "dev-secret-change-in-production"))
+ENVIRONMENT = os.getenv("CHRYSALIS_ENV") or os.getenv("NODE_ENV") or "development"
+CONFIGURED_SECRET = os.getenv("JWT_SECRET") or os.getenv("CHRYSALIS_JWT_SECRET")
+if not CONFIGURED_SECRET and ENVIRONMENT == "production":
+    raise RuntimeError("JWT_SECRET is required in production")
+JWT_SECRET = CONFIGURED_SECRET or "dev-secret-change-in-production"
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 

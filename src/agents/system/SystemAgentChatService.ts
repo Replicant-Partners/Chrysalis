@@ -718,42 +718,6 @@ Respond in JSON format with: scorecard, riskScore, confidence, recommendations, 
 
     return parts.join('') || 'I\'ve analyzed your request. Let me know if you need more details.';
   }
-  private formatAgentResponse(
-    evaluation: {
-      scorecard: Record<string, number | string[]>;
-      riskScore: number;
-      confidence: number;
-      recommendations: string[];
-      requiresHumanReview: boolean;
-    },
-    intentType?: SCMIntentType
-  ): string {
-    // Format based on intent type
-    if (intentType === 'clarify') {
-      return `I'd like to clarify something: ${evaluation.recommendations[0] || 'Could you provide more details?'}`;
-    }
-
-    if (intentType === 'coach') {
-      return `Here's a suggestion: ${evaluation.recommendations[0] || 'Let me help you think through this.'}\n\nConfidence: ${(evaluation.confidence * 100).toFixed(0)}%`;
-    }
-
-    // Default response format
-    const parts: string[] = [];
-
-    if (evaluation.recommendations.length > 0) {
-      parts.push(evaluation.recommendations[0]);
-    }
-
-    if (evaluation.riskScore > 0.5) {
-      parts.push(`\n\n⚠️ Note: Risk score is ${(evaluation.riskScore * 100).toFixed(0)}%`);
-    }
-
-    if (evaluation.requiresHumanReview) {
-      parts.push('\n\n👤 This may benefit from human review.');
-    }
-
-    return parts.join('') || 'I\'ve analyzed your request. Let me know if you need more details.';
-  }
 
   // ===========================================================================
   // Proactive Triggers

@@ -82,34 +82,43 @@ class ResourceLLM:
     Component 2: Resource LLM
 
     Language model endpoint configuration for task execution.
+    Made OPTIONAL for initial submission, REQUIRED for execution.
+    Milton Semantic Router will populate this if not provided.
+
+    @see docs/specs/MILTON_SEMANTIC_ROUTER_SPECIFICATION.md
     """
-    provider: str              # e.g., "openai", "anthropic", "local"
-    model: str                 # e.g., "gpt-4o", "claude-3-opus"
-    endpoint: str | None = None  # Custom endpoint URL if not default
-    api_key_env: str | None = None  # Environment variable for API key
+    provider: str | None = None    # Optional at submission, e.g., "openai", "anthropic", "ollama"
+    model: str | None = None       # Optional at submission, e.g., "gpt-4o", "claude-3-opus"
+    endpoint: str | None = None    # Custom endpoint URL if not default
+    api_key_env: str | None = None # Environment variable for API key
     temperature: float = 0.7
     max_tokens: int = 4096
     timeout_seconds: int = 120
+    assigned_by: str | None = None # 'user' | 'milton' | 'fallback' - tracks who assigned LLM
 
     def __post_init__(self) -> None:
-        if not self.provider:
-            raise ValueError("ResourceLLM requires a provider")
-        if not self.model:
-            raise ValueError("ResourceLLM requires a model")
-        if not 0.0 <= self.temperature <= 2.0:
+        # Only validate temperature if provider is specified (execution phase)
+        if self.provider and not 0.0 <= self.temperature <= 2.0:
             raise ValueError("Temperature must be between 0.0 and 2.0")
 
+    def is_populated(self) -> bool:
+        """Check if LLM is fully specified for execution."""
+        return bool(self.provider and self.model)
+
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> ResourceLLM:
-        """Parse ResourceLLM from dictionary."""
+    def from_dict(cls, data: Mapping[str, Any] | None) -> ResourceLLM:
+        """Parse ResourceLLM from dictionary, allowing empty/None input."""
+        if not data:
+            return cls()  # Return unpopulated instance for Milton preprocessing
         return cls(
-            provider=data.get('provider', ''),
-            model=data.get('model', ''),
+            provider=data.get('provider'),
+            model=data.get('model'),
             endpoint=data.get('endpoint'),
             api_key_env=data.get('api_key_env'),
             temperature=float(data.get('temperature', 0.7)),
             max_tokens=int(data.get('max_tokens', 4096)),
-            timeout_seconds=int(data.get('timeout_seconds', 120))
+            timeout_seconds=int(data.get('timeout_seconds', 120)),
+            assigned_by=data.get('assigned_by')
         )
 
 
@@ -326,32 +335,29 @@ class TaskSchema:
             return cls.from_json(f.read())
 
 
-def validate_task_schema(schema: TaskSchema) -> tuple[bool, list[str]]:
+def validate_task_submission(schema: TaskSchema) -> tuple[bool, list[str]]:
     """
-    Validate a TaskSchema for structural and semantic correctness.
+    Phase 1 validation: For task submission.
+    LLM field is OPTIONAL - Milton will populate if not provided.
 
-    Returns (is_valid, errors) tuple.
+    @see docs/specs/MILTON_SEMANTIC_ROUTER_SPECIFICATION.md
     """
     errors: list[str] = []
 
-    # Validate goal
+    # Validate goal (required)
     if not schema.goal.description:
         errors.append("Goal description is empty")
     if not schema.goal.target_conditions:
         errors.append("Goal has no target conditions")
 
-    # Validate resource_llm
-    if not schema.resource_llm.provider:
-        errors.append("ResourceLLM provider is required")
-    if not schema.resource_llm.model:
-        errors.append("ResourceLLM model is required")
+    # Validate prompts (required)
+    if not schema.prompts:
+        errors.append("At least one prompt is required")
 
-    # Validate prompts are referenced in flow diagram
-    mermaid = schema.flow_diagram.mermaid.lower()
-    for prompt in schema.prompts:
-        prompt_ref = f"p{prompt.index}"
-        if prompt_ref not in mermaid:
-            errors.append(f"Prompt {prompt.index} not referenced in flow diagram")
+    # LLM validation: NOT required at submission (Milton will populate)
+    # Only validate temperature range if LLM is provided
+    if schema.resource_llm.provider and not 0.0 <= schema.resource_llm.temperature <= 2.0:
+        errors.append("Temperature must be between 0.0 and 2.0")
 
     # Validate registry entries have unique names
     names = [e.name for e in schema.resource_registry.entries]
@@ -359,3 +365,42 @@ def validate_task_schema(schema: TaskSchema) -> tuple[bool, list[str]]:
         errors.append("Registry entries have duplicate names")
 
     return (len(errors) == 0, errors)
+
+
+def validate_task_execution(schema: TaskSchema) -> tuple[bool, list[str]]:
+    """
+    Phase 2 validation: Before execution.
+    LLM field is REQUIRED - must be populated by user or Milton.
+
+    @see docs/specs/MILTON_SEMANTIC_ROUTER_SPECIFICATION.md
+    """
+    # Run submission validation first
+    is_valid, errors = validate_task_submission(schema)
+
+    # LLM validation: NOW required for execution
+    if not schema.resource_llm.is_populated():
+        if not schema.resource_llm.provider:
+            errors.append("ResourceLLM provider is required for execution")
+        if not schema.resource_llm.model:
+            errors.append("ResourceLLM model is required for execution")
+
+    # Validate prompts are referenced in flow diagram (if flow diagram exists)
+    if schema.flow_diagram:
+        mermaid = schema.flow_diagram.mermaid.lower()
+        for prompt in schema.prompts:
+            prompt_ref = f"p{prompt.index}"
+            if prompt_ref not in mermaid:
+                errors.append(f"Prompt {prompt.index} not referenced in flow diagram")
+
+    return (len(errors) == 0, errors)
+
+
+def validate_task_schema(schema: TaskSchema) -> tuple[bool, list[str]]:
+    """
+    Legacy validation function - uses Phase 2 (execution) validation for backward compatibility.
+
+    Returns (is_valid, errors) tuple.
+
+    @deprecated Use validate_task_submission or validate_task_execution instead.
+    """
+    return validate_task_execution(schema)

@@ -23,6 +23,9 @@ import {
   methodNotAllowed,
   badRequest,
   serverError,
+  payloadTooLarge,
+  BODY_TOO_LARGE_FLAG,
+  BODY_INVALID_JSON_FLAG,
 } from '../../../shared/api-core/src/http';
 
 import {
@@ -234,6 +237,14 @@ export class SystemAgentAPIController {
 
     const body = await readJsonBody(req);
     if (!body) {
+      if ((req as any)[BODY_TOO_LARGE_FLAG]) {
+        payloadTooLarge(res);
+        return;
+      }
+      if ((req as any)[BODY_INVALID_JSON_FLAG]) {
+        badRequest(res, 'Invalid JSON payload');
+        return;
+      }
       badRequest(res, 'Request body is required');
       return;
     }
@@ -359,6 +370,14 @@ export class SystemAgentAPIController {
 
     const body = await readJsonBody(req);
     if (!body) {
+      if ((req as any)[BODY_TOO_LARGE_FLAG]) {
+        payloadTooLarge(res);
+        return;
+      }
+      if ((req as any)[BODY_INVALID_JSON_FLAG]) {
+        badRequest(res, 'Invalid JSON payload');
+        return;
+      }
       badRequest(res, 'Request body is required');
       return;
     }
@@ -398,6 +417,14 @@ export class SystemAgentAPIController {
     }
 
     const body = await readJsonBody(req);
+    if (!body && (req as any)[BODY_TOO_LARGE_FLAG]) {
+      payloadTooLarge(res);
+      return;
+    }
+    if (!body && (req as any)[BODY_INVALID_JSON_FLAG]) {
+      badRequest(res, 'Invalid JSON payload');
+      return;
+    }
     const proactiveRequest = (body || {}) as ProactiveCheckRequest;
 
     const triggers = await this.service.checkProactiveTriggers(
