@@ -16,19 +16,26 @@
     "types": ["node", "jest"]
   },
   "include": [
-    "src/**/*",
+    "src/adapters/**/*",
+    "src/agents/**/*",
+    "src/api/**/*",
+    "src/bridge/**/*",
+    "src/config/**/*",
+    "src/core/AdapterRegistry.ts",
+    "src/core/config/**/*",
+    "src/core/errors.ts",
+    "src/core/index.ts",
+    "src/services/**/*",
+    "src/types/**/*",
+    "src/utils/**/*",
     "shared/**/*",
-    "mcp-servers/**/*",
-    "tests/**/*"
+    "mcp-servers/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "ui",
-    "src/components",
-    "src/learning",
     "src/agents/AgentChatController.ts",
-    "src/integrations/agentbuilder",
-    "src/security/ApiKeyRegistry.ts"
+    "src/bridge/orchestrator.ts",
+    "src/bridge/orchestrator"
   ]
 }
