@@ -216,13 +216,15 @@ module BeliefState = struct
     let beliefs = StringMap.merge (fun _id b1 b2 ->
       match b1, b2 with
       | Some bl1, Some bl2 ->
-        (* Merge evidence, take highest conviction with timestamp tiebreaker *)
+        (* Use max for evidence counts to avoid double-counting in CRDT merge.
+           Sum would violate idempotency: merge(A, A) != A.
+           Max is correct for G-Counter semantics where each node tracks its own count. *)
         let combined = {
           id = bl1.id;
           content = if bl1.last_updated >= bl2.last_updated then bl1.content else bl2.content;
           conviction = max bl1.conviction bl2.conviction;
-          evidence_for = bl1.evidence_for + bl2.evidence_for;
-          evidence_against = bl1.evidence_against + bl2.evidence_against;
+          evidence_for = max bl1.evidence_for bl2.evidence_for;
+          evidence_against = max bl1.evidence_against bl2.evidence_against;
           last_updated = max bl1.last_updated bl2.last_updated;
           source = if bl1.last_updated >= bl2.last_updated then bl1.source else bl2.source;
         } in

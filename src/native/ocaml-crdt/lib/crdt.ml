@@ -328,9 +328,15 @@ module ORSet = struct
   (** Create an empty OR-Set *)
   let empty : 'a t = { elements = []; tombstones = [] }
 
-  (** Generate a unique tag *)
+  (** Generate a unique tag using cryptographic randomness *)
   let generate_tag () : string =
-    Printf.sprintf "%d-%d" (Random.int 1000000) (int_of_float (Unix.time ()))
+    (* Use /dev/urandom for cryptographically secure random bytes *)
+    let ic = open_in_bin "/dev/urandom" in
+    let bytes = Bytes.create 16 in
+    really_input ic bytes 0 16;
+    close_in ic;
+    (* Convert to hex string for a 128-bit unique identifier *)
+    Bytes.fold_left (fun acc b -> acc ^ Printf.sprintf "%02x" (Char.code b)) "" bytes
 
   (** Add an element with a new unique tag *)
   let add (v : 'a) (or_set : 'a t) : 'a t =

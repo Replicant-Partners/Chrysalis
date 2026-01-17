@@ -4,6 +4,7 @@
 
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
+use base64ct::Encoding;
 use zeroize::{Zeroize, ZeroizeOnDrop};
 use super::crypto::*;
 
@@ -114,11 +115,17 @@ impl ApiKeyWallet {
             return Err(WalletError::AlreadyInitialized);
         }
 
-        let master_key = generate_key();
         let password_hash = hash_sha256(password);
         let settings_json = serde_json::to_vec(&self.settings)
             .map_err(|e| WalletError::SerializationError(e.to_string()))?;
         let encrypted_settings = encrypt_with_password(&settings_json, password)?;
+
+        // Derive master key from password using the same salt as settings encryption
+        // This ensures unlock() can derive the same key
+        let salt_bytes = base64ct::Base64::decode_vec(
+            encrypted_settings.salt.as_ref().ok_or(WalletError::CryptoError(CryptoError::MissingSalt))?
+        ).map_err(|_| WalletError::CryptoError(CryptoError::InvalidEncoding))?;
+        let master_key = derive_key_from_password(password, &salt_bytes)?;
 
         self.storage = Some(WalletStorage {
             version: 1,
@@ -148,7 +155,15 @@ impl ApiKeyWallet {
         self.settings = serde_json::from_slice(&settings_json)
             .map_err(|e| WalletError::SerializationError(e.to_string()))?;
 
-        self.master_key = Some(generate_key());
+        // Derive the master key from password deterministically
+        // This ensures the same key is derived on each unlock
+        let salt = storage.settings.salt.as_ref()
+            .ok_or(WalletError::CryptoError(CryptoError::MissingSalt))?;
+        let salt_bytes = base64ct::Base64::decode_vec(salt)
+            .map_err(|_| WalletError::CryptoError(CryptoError::InvalidEncoding))?;
+        let master_key = derive_key_from_password(password, &salt_bytes)?;
+
+        self.master_key = Some(master_key);
         self.state = WalletState::Unlocked;
         self.last_access = Some(Instant::now());
 
@@ -156,7 +171,10 @@ impl ApiKeyWallet {
     }
 
     pub fn lock(&mut self) {
-        self.master_key.zeroize();
+        // Explicitly zeroize the inner key before dropping
+        if let Some(ref mut key) = self.master_key {
+            key.zeroize();
+        }
         self.master_key = None;
         self.key_cache.clear();
         self.state = WalletState::Locked;

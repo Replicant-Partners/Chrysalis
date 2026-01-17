@@ -56,19 +56,22 @@ func (mp *MultiProvider) Complete(req CompletionRequest) (CompletionResponse, er
 	mp.mu.Unlock()
 
 	var lastErr error
-	for i, provider := range mp.providers {
+	attemptCount := 0
+	for _, provider := range mp.providers {
 		// Check circuit breaker state
 		if provider.State() == CircuitOpen {
 			continue
 		}
 
+		attemptCount++
 		resp, err := provider.Complete(req)
 		if err != nil {
 			lastErr = err
 			log.Printf("provider %s failed: %v", provider.ID(), err)
 
-			// Record failover
-			if i > 0 {
+			// Record failover when we have to try another provider
+			// (any attempt after the first is a failover)
+			if attemptCount > 1 {
 				mp.mu.Lock()
 				mp.failovers++
 				mp.mu.Unlock()
@@ -98,19 +101,23 @@ func (mp *MultiProvider) Stream(ctx context.Context, req CompletionRequest, emit
 	mp.mu.Unlock()
 
 	var lastErr error
+	attemptCount := 0
+	lastUsedIdx := 0
 	for i, provider := range mp.providers {
 		// Check circuit breaker state
 		if provider.State() == CircuitOpen {
 			continue
 		}
 
+		attemptCount++
 		err := provider.Stream(ctx, req, emit)
 		if err != nil {
 			lastErr = err
 			log.Printf("provider %s stream failed: %v", provider.ID(), err)
 
-			// Record failover
-			if i > 0 {
+			// Record failover when we have to try another provider
+			// (any attempt after the first is a failover)
+			if attemptCount > 1 {
 				mp.mu.Lock()
 				mp.failovers++
 				mp.mu.Unlock()
@@ -118,8 +125,9 @@ func (mp *MultiProvider) Stream(ctx context.Context, req CompletionRequest, emit
 			continue
 		}
 
+		lastUsedIdx = i
 		mp.mu.Lock()
-		mp.lastUsed = i
+		mp.lastUsed = lastUsedIdx
 		mp.mu.Unlock()
 
 		return nil
