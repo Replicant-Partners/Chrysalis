@@ -1,0 +1,2606 @@
+Path,Size_Bytes,Last_Modified,First_Line,Has_Date_2026,Has_Date_2025,Has_TODO,Has_Status,Has_Diagram,Word_Count
+./ARCHITECTURE.md,20043,2026-01-16,# Chrysalis Architecture Specification ,2,0
+0,0
+0,1,5,2111
+./SHARE_WITH_TEAM.md,5170,2026-01-15,# 🚀 Nuevo Sistema de Debate de Inversiones - Buffett vs Graham ,2,0
+0,1,7,0
+0,651
+./README_INVESTMENT_AGENTS.md,7504,2026-01-14,# Investment Advisor Agents - Warren Buffett & Benjamin Graham ,0
+0,0
+0,0
+0,14,0
+0,965
+./OLLAMA_INTEGRATION_SUMMARY.md,8749,2026-01-16,# Ollama Integration Summary - Testing Phase ,1,0
+0,0
+0,9,0
+0,1142
+./DOCUMENTATION_REVIEW_HANDOFF.md,14784,2026-01-16,# Chrysalis Documentation Review - Project Handoff ,17,0
+0,1,69,5,1894
+./FINAL_HANDOFF.md,1823,2026-01-16,# Final Handoff - Comprehensive Work Package ,1,0
+0,0
+0,9,0
+0,263
+./SESSION_COMPLETE.md,7168,2026-01-16,# Session Complete - January 16  2026 ,7,0
+0,0
+0,24,1,933
+./FRONTEND_STATUS_AND_GAPS.md,14576,2026-01-16,# Frontend Status and Logical Gaps Analysis ,1,0
+0,0
+0,58,0
+0,2247
+./WORK_COMPLETE_SUMMARY.md,6970,2026-01-16,# Work Complete - Awaiting GitHub Push ,6,0
+0,0
+0,35,0
+0,912
+./go-services/README.md,5185,2026-01-16,# Chrysalis Go Services (LLM Gateway) ,0
+0,1,0
+0,8,0
+0,630
+./usa_implementation/README.md,322,2026-01-05,# usa_implementation (✅ current) ,0
+0,0
+0,0
+0,1,0
+0,41
+./README.md,9906,2026-01-16,# Chrysalis ,1,0
+0,0
+0,6,0
+0,1138
+./DEBATE_SYSTEM_OVERVIEW_EN.md,10489,2026-01-15,# 🦋 Chrysalis Investment Debate System ,4,0
+0,0
+0,11,0
+0,1262
+./plans/persona-layer-and-linkage.md,6039,2026-01-13,# Persona Layer and Linkage Plan (Horizontal 2 → Connection) ,0
+0,0
+0,0
+0,0
+0,0
+0,698
+./plans/CHRYSALIS_DEVELOPMENT_STREAMLINING_PLAN.md,30717,2026-01-13,# Chrysalis Development Streamlining Plan ,33,0
+0,0
+0,7,0
+0,4649
+./plans/system-agents-layer-completion.md,17236,2026-01-13,# System Agents Layer Completion Report (Horizontal 2) ,1,0
+0,0
+0,5,1,1368
+./plans/REFACTORING_AND_CONSOLIDATION_PLAN.md,6234,2026-01-16,# Refactoring and Consolidation Implementation Plan ,2,0
+0,0
+0,0
+0,0
+0,816
+./plans/phase-1a-enhanced-type-system-spec.md,23625,2026-01-13,# Phase 1A: Enhanced Type System and Protocol Abstraction Layer ,2,4,0
+0,7,0
+0,2563
+./plans/CHRYSALIS_COMPREHENSIVE_PATTERN_ANALYSIS.md,43553,2026-01-15,# Chrysalis Comprehensive Design Pattern Analysis Report ,2,0
+0,0
+0,7,7,4935
+./plans/NEXT_STEPS_2026-01-15.md,6649,2026-01-15,# Chrysalis Next Steps Plan ,4,0
+0,0
+0,4,1,834
+./plans/NEXT_STEPS_2026-01-16.md,9569,2026-01-16,# Chrysalis Next Steps Plan ,14,0
+0,0
+0,17,0
+0,1141
+./plans/README.md,3611,2026-01-15,# Active Plans ,8,0
+0,0
+0,0
+0,0
+0,368
+./plans/ERROR_CONSOLIDATION_PLAN.md,9854,2026-01-13,# Error Class Consolidation Plan ,1,0
+0,0
+0,0
+0,1,1147
+./plans/CHRYSALIS_PATTERN_REPORT.md,12546,2026-01-15,# Chrysalis Constituency Pattern Analysis (Rebuilt) ,1,0
+0,0
+0,9,1,1228
+./plans/P2_CODE_QUALITY_REFACTORING_PLAN.md,9952,2026-01-13,# P2 Code Quality Refactoring Plan ,2,0
+0,0
+0,8,0
+0,1180
+./plans/adaptive-llm-layer-prompts-and-connectors.md,4916,2026-01-13,# Adaptive LLM Layer: Prompt Templates and Connector Spec (Horizontal 1) ,0
+0,0
+0,0
+0,0
+0,0
+0,414
+./plans/ai-led-adaptive-maintenance-system-spec.md,18444,2026-01-13,# AI-Led Adaptive Maintenance System - Architecture Specification ,0
+0,0
+0,0
+0,0
+0,0
+0,1606
+./plans/chrysalis-integration-platform-implementation-plan.md,47568,2026-01-13,# Chrysalis Integration Platform - Technical Implementation Plan ,2,0
+0,0
+0,2,0
+0,5199
+./plans/SYSTEM_AGENT_MIDDLEWARE_ARCHITECTURE.md,16834,2026-01-15,# System Agent Middleware Architecture ,2,5,0
+0,0
+0,5,1960
+./plans/SYSTEM_AGENT_MIDDLEWARE_TASK_PLAN.md,10166,2026-01-15,# System Agent Middleware Implementation Task Plan ,1,0
+0,0
+0,24,0
+0,1414
+./plans/agentic-frameworks-network-protocols-research.md,49058,2026-01-13,# Comprehensive State-of-the-Art Research Analysis: Agentic Frameworks and Netwo,11,15,0
+0,2,0
+0,6026
+./src/prompts/STUB_CLEANUP_GUIDE.md,9125,2026-01-14,# Stub Cleanup & Hidden Code Smell Detection Guide ,1,0
+0,6,5,0
+0,1227
+./src/universal_adapter/README.md,28686,2026-01-16,# Universal Adapter ,0
+0,0
+0,0
+0,0
+0,13,3034
+./src/adapters/universal/README.md,12027,2026-01-16,# Universal LLM-Powered Adapter ,0
+0,0
+0,0
+0,2,0
+0,1228
+./src/observability/README.md,7480,2026-01-16,# Observability Infrastructure ,0
+0,0
+0,0
+0,2,0
+0,792
+./src/README.md,299,2026-01-05,# src (✅ current) ,0
+0,0
+0,0
+0,1,0
+0,44
+./src/rust/PHASE_1_PROGRESS.md,4328,2026-01-16,# Phase 1 Progress - Core Types Migration ,2,0
+0,0
+0,21,0
+0,594
+./src/rust/PHASE_1_KICKOFF.md,12547,2026-01-16,# Phase 1 Kickoff - Core Types Migration ,1,0
+0,0
+0,2,0
+0,1500
+./src/rust/README.md,7029,2026-01-16,# Chrysalis Rust Workspace ,2,0
+0,0
+0,1,0
+0,928
+./src/native/README.md,5941,2026-01-16,# Chrysalis Native Modules ,0
+0,0
+0,0
+0,0
+0,0
+0,774
+./src/native/datalog-flow/README.md,3485,2026-01-16,# Chrysalis Flow Graph Execution - Datalog Specification ,0
+0,0
+0,0
+0,0
+0,0
+0,422
+./src/sync/events/README.md,588,2026-01-05,# uSA Event Contracts (Chrysalis) ,0
+0,0
+0,0
+0,0
+0,0
+0,83
+./src/demo/milestone1/README.md,1428,2026-01-05,# Milestone #1 Demo: Two Replicants + Chrysalis Node (Dual Sync Plan) ,0
+0,0
+0,0
+0,0
+0,0
+0,187
+./src/services/ledger/README.md,374,2026-01-05,# LedgerService (Private Plane) ,0
+0,0
+0,0
+0,0
+0,0
+0,56
+./src/services/capability-gateway/README.md,865,2026-01-05,# CapabilityGateway ,0
+0,0
+0,0
+0,0
+0,0
+0,111
+./src/services/projection/README.md,619,2026-01-05,# ProjectionService (Public Plane) ,0
+0,0
+0,0
+0,0
+0,0
+0,83
+./AGENT.md,6863,2026-01-13,# Complex Learning Agent Reference ,0
+0,0
+0,0
+0,1,4,944
+./CONTRIBUTING.md,1628,2026-01-05,# Contributing to Chrysalis ,0
+0,0
+0,0
+0,0
+0,1,239
+./docs/developer-guide/getting-started.md,9562,2026-01-13,# Getting Started with Chrysalis ,0
+0,2,0
+0,0
+0,0
+0,1141
+./docs/developer-guide/migration-guide.md,10702,2026-01-13,# Migration Guide ,0
+0,1,0
+0,0
+0,0
+0,1173
+./docs/CANVAS_DEVELOPMENT_PROTOCOL.md,10342,2026-01-15,# Canvas Architecture Development Protocol ,1,0
+0,0
+0,11,8,1374
+./docs/RESULT_TYPE_PATTERN.md,15244,2026-01-13,# Result Type Pattern Documentation ,1,0
+0,0
+0,0
+0,0
+0,1841
+./docs/technology-assessments/README.md,1854,2026-01-13,# Technology Assessments ,3,0
+0,0
+0,1,0
+0,220
+./docs/technology-assessments/canvas-visual-programming-assessment.md,21519,2026-01-13,# Canvas & Visual Programming Technology Assessment ,2,0
+0,0
+0,93,0
+0,2718
+./docs/technology-assessments/react-flow-integration-guide.md,13305,2026-01-13,# React Flow Integration Guide for Chrysalis ,0
+0,0
+0,0
+0,5,0
+0,1341
+./docs/STANDARDS.md,1007,2026-01-05,# Documentation Standards ,0
+0,0
+0,0
+0,4,1,141
+./docs/testing/code-quality-standards.md,8164,2026-01-13,# Code Quality Standards ,0
+0,1,0
+0,0
+0,0
+0,1060
+./docs/testing/testing-strategy.md,11822,2026-01-13,# Testing Strategy ,0
+0,1,0
+0,0
+0,0
+0,1305
+./docs/a2a-client/code-review-findings.md,12076,2026-01-13,# A2A Client Code Review Findings Report ,1,0
+0,0
+0,43,1,1633
+./docs/prompts/CODE_REVIEW_CHECKLIST_GENERATOR.md,15410,2026-01-09,# AI Code Review Checklist Generator ,1,0
+0,0
+0,1,0
+0,2194
+./docs/SECURITY_HARDENING_GUIDE.md,15609,2026-01-13,# Security Hardening Guide - Chrysalis Integration Platform ,1,0
+0,0
+0,5,0
+0,1919
+./docs/CONFIGURATION.md,14193,2026-01-09,# Chrysalis Configuration Guide ,2,0
+0,16,0
+0,0
+0,1323
+./docs/CHRYSALIS_MULTI_AGENT_OFFSITE_REPORT.md,35177,2026-01-13,# Chrysalis Multi-Agent Collaborative Offsite Review ,11,0
+0,0
+0,4,4,4198
+./docs/frontend-wallet-encryption-implementation.md,11511,2026-01-13,# Wallet Encryption Implementation - Task 2.1 ,1,0
+0,0
+0,8,0
+0,1483
+./docs/DEPLOYMENT_GUIDE.md,15861,2026-01-13,# Deployment Guide - Chrysalis Integration Platform ,2,0
+0,0
+0,1,0
+0,1755
+./docs/quality/CODE_REVIEW_CHECKLIST.md,15816,2026-01-13,# Code Review Checklist ,0
+0,0
+0,0
+0,13,0
+0,2228
+./docs/quality/CODE_REVIEW_ELEGANCE_ANALYSIS.md,11860,2026-01-13,# Code Review: Elegance Analysis ,0
+0,1,0
+0,37,0
+0,1384
+./docs/quality/CODE_REVIEW_REFACTORING_OPPORTUNITIES.md,15183,2026-01-13,# Code Review: Refactoring Opportunities ,0
+0,1,0
+0,3,0
+0,1566
+./docs/quality/IMPROVEMENT_PLAN.md,31950,2026-01-13,# Quality System Improvement Plan ,3,0
+0,0
+0,8,1,3428
+./docs/quality/FOCUS_AREA_2_ASSESSMENT.md,7422,2026-01-13,# Focus Area 2: Self-Adapting Code Quality - Assessment ,0
+0,1,0
+0,2,0
+0,919
+./docs/quality/DESIGN_PATTERN_CODE_REVIEW.md,25477,2026-01-13,# Design Pattern Code Review - Quality System ,3,0
+0,0
+0,14,0
+0,2655
+./docs/quality/QUALITY_SYSTEM_IMPLEMENTATION.md,11424,2026-01-13,# Quality System Implementation Reference ,0
+0,1,0
+0,0
+0,0
+0,1159
+./docs/quality/README.md,4245,2026-01-13,# Quality System Documentation ,0
+0,1,0
+0,2,5,443
+./docs/quality/CODE_REVIEW_DESIGN_PATTERNS.md,23466,2026-01-13,# Code Review: Design Pattern Analysis ,0
+0,1,0
+0,90,0
+0,2795
+./docs/quality/VERIFICATION_REPORT.md,26192,2026-01-13,# Quality Tool Integration - Verification Report ,0
+0,1,0
+0,179,0
+0,2960
+./docs/quality/QUALITY_SYSTEM_ARCHITECTURE.md,16390,2026-01-13,# Quality System Architecture ,0
+0,1,0
+0,3,3,1616
+./docs/quality/QUALITY_SYSTEM_DATA_FLOW.md,3519,2026-01-13,# Quality System Data Flow ,0
+0,1,0
+0,0
+0,4,415
+./docs/quality/QUALITY_SYSTEM_INTEGRATION.md,5263,2026-01-13,# Quality System Integration Guide ,0
+0,1,0
+0,0
+0,2,473
+./docs/BRIDGE_IMPLEMENTATION.md,17405,2026-01-13,# Chrysalis Universal Agent Bridge ,2,0
+0,0
+0,0
+0,0
+0,1556
+./docs/architecture/memory-system.md,9927,2026-01-09,# Memory System Architecture ,0
+0,0
+0,0
+0,1,1,1030
+./docs/architecture/sticky-agent-interactions-and-prompt-architecture.md,23385,2026-01-13,# Sticky Agent Interactions & Prompt Architecture ,1,0
+0,0
+0,1,0
+0,2935
+./docs/architecture/UI_UX_STRATEGY_2026.md,6033,2026-01-16,# Chrysalis UI/UX Strategy: The Unified Interface ,1,0
+0,0
+0,0
+0,0
+0,788
+./docs/architecture/UNIVERSAL_ADAPTER_REFACTOR_REPORT_2026-01-16.md,11739,2026-01-16,# Chrysalis Universal Adapter Refactor Report (2026-01-16) ,1,0
+0,0
+0,0
+0,4,1472
+./docs/architecture/UNIVERSAL_ADAPTER_APPLICATION_NOTES.md,2679,2026-01-16,# Universal Adapter Application Notes ,1,0
+0,0
+0,0
+0,2,342
+./docs/architecture/UNIVERSAL_ADAPTER_DESIGN.md,28930,2026-01-13,# Universal LLM-Powered Adapter Architecture ,1,0
+0,0
+0,15,1,2313
+./docs/architecture/IMPLEMENTATION_PROGRESS_REPORT.md,4818,2026-01-13,# High Priority Implementation - Progress Report ,1,0
+0,0
+0,29,0
+0,573
+./docs/architecture/sticky-agent-interactions-completion.md,509,2026-01-13,Human: "Yesterday after we deployed the auth service update" ,0
+0,0
+0,0
+0,0
+0,0
+0,81
+./docs/architecture/UNIVERSAL_AGENT_BRIDGE_IMPLEMENTATION_PLAN.md,75813,2026-01-13,# Chrysalis Universal Agent Bridge: Implementation Plan ,2,0
+0,0
+0,11,0
+0,6485
+./docs/architecture/UNIVERSAL_AGENT_BRIDGE_IMPLEMENTATION_PLAN_PART2.md,73267,2026-01-13,# Chrysalis Universal Agent Bridge: Implementation Plan (Part 2) ,0
+0,0
+0,0
+0,1,0
+0,6386
+./docs/architecture/UNIFIED_API_IMPLEMENTATION_STATUS.md,8458,2026-01-13,# Unified API Implementation Status ,2,0
+0,0
+0,49,0
+0,1087
+./docs/architecture/voice-integration.md,19321,2026-01-16,# Voice Mode Integration Specification ,0
+0,0
+0,0
+0,2,2,2153
+./docs/architecture/UNIFIED_API_GAP_ANALYSIS.md,11225,2026-01-13,# Unified API Implementation - Gap Analysis ,2,0
+0,0
+0,40,0
+0,1582
+./docs/architecture/RATE_LIMITING_CODE_REVIEW.md,9435,2026-01-13,# Rate Limiting Implementation - Code Review & Improvements ,1,0
+0,0
+0,13,0
+0,1153
+./docs/architecture/self-maintaining-software-through-agent-collectives.md,40698,2026-01-13,# Self-Maintaining Software Through Adaptive Agent Collectives ,3,0
+0,0
+0,8,0
+0,4851
+./docs/architecture/CONSOLIDATION_REPORT_2026-01-16.md,4226,2026-01-16,# Code Consolidation & Integration Report ,1,0
+0,0
+0,0
+0,1,506
+./docs/architecture/overview.md,13004,2026-01-09,# Chrysalis Architecture Overview ,0
+0,0
+0,0
+0,3,0
+0,1105
+./docs/architecture/ai-lead-adaptation.md,12028,2026-01-13,# AI Lead Adaptation System ,0
+0,1,0
+0,0
+0,0
+0,1230
+./docs/architecture/experience-sync.md,9969,2026-01-09,# Experience Synchronization ,0
+0,0
+0,0
+0,1,3,955
+./docs/architecture/UNIVERSAL_AGENT_BRIDGE_IMPLEMENTATION_PLAN_PART3.md,29672,2026-01-13,# Chrysalis Universal Agent Bridge: Implementation Plan (Part 3) ,1,0
+0,0
+0,2,0
+0,3008
+./docs/architecture/LLM_COMPLEXITY_ADAPTATION_PATTERN.md,64913,2026-01-13,# System Agent LLM Complexity Adaptation Pattern ,1,0
+0,0
+0,25,0
+0,6443
+./docs/architecture/agent-transformation.md,10582,2026-01-13,# Agent Transformation System ,0
+0,1,0
+0,7,0
+0,1141
+./docs/architecture/FINAL_CODE_REVIEW_SUMMARY.md,9828,2026-01-13,# Final Code Review Summary - Completeness & Correctness ,1,0
+0,0
+0,45,0
+0,1270
+./docs/architecture/universal-patterns.md,11204,2026-01-09,# Universal Patterns ,0
+0,0
+0,0
+0,1,0
+0,1245
+./docs/architecture/BACKEND_INTERFACE_REVIEW.md,45593,2026-01-13,# Chrysalis Backend Architecture & Interface Review ,7,0
+0,0
+0,61,1,5880
+./docs/architecture/HIGH_PRIORITY_IMPLEMENTATION_PLAN.md,9039,2026-01-13,# High & Medium Priority Implementation Plan ,1,0
+0,0
+0,52,0
+0,1197
+./docs/architecture/UNIVERSAL_ADAPTER_REVIEW.md,10398,2026-01-13,# Universal Adapter Architecture Review ,2,1,0
+0,11,0
+0,1325
+./docs/architecture/CODE_REVIEW_SUMMARY.md,3858,2026-01-13,# Code Review Summary - Rate Limiting Implementation ,1,0
+0,0
+0,25,0
+0,520
+./docs/architecture/c4-model.md,15400,2026-01-13,# C4 Model Architecture Documentation ,0
+0,1,0
+0,0
+0,2,1348
+./docs/architecture/CODE_IMPROVEMENTS_AND_REFACTORING.md,12363,2026-01-13,# Code Review: Improvements & Refactoring Opportunities ,1,0
+0,0
+0,16,0
+0,1421
+./docs/architecture/CODE_QUALITY_REVIEW_2026.md,4656,2026-01-13,# Code Quality Review - API Standardization Work ,1,0
+0,0
+0,13,0
+0,602
+./docs/architecture/C4_ARCHITECTURE_DIAGRAMS.md,26099,2026-01-13,# Chrysalis C4 Architecture Diagrams ,6,0
+0,0
+0,12,27,2402
+./docs/API.md,15159,2026-01-09,# Chrysalis API Documentation ,5,0
+0,0
+0,0
+0,0
+0,1553
+./docs/research/AGENTIC_ARCHITECTURE_ANALYSIS.md,50589,2026-01-13,# LLM-Enabled System Agent Architectures: Analysis of Self-Maintaining Software ,4,0
+0,0
+0,10,0
+0,6201
+./docs/research/LETTA_CODE_ANALYSIS_2026-01-16.md,11407,2026-01-16,# Letta Code Analysis for Chrysalis ,1,0
+0,1,14,0
+0,1432
+./docs/research/OPEN_INTERPRETER_CHRYSALIS_SYNTHESIS_2026-01-16.md,22156,2026-01-15,# Open Interpreter + Chrysalis Synthesis ,1,0
+0,0
+0,6,1,1939
+./docs/research/RESEARCH_SUMMARY.md,11306,2026-01-05,# Anchored Research Summary ,0
+0,2,0
+0,8,0
+0,1414
+./docs/research/COMPARISON.md,14675,2026-01-05,# Research Comparison: Original vs Anchored ,0
+0,0
+0,0
+0,4,0
+0,1821
+./docs/research/AGENT_SPECIFICATION_STRATEGIC_ANALYSIS.md,28015,2026-01-13,# Agent Specification Strategy: Technical Analysis and Recommendation ,3,2,0
+0,14,0
+0,2761
+./docs/research/MULTI_AGENT_CLI_SYNTHESIS_2026-01-16.md,3055,2026-01-15,# Multi-Agent CLI/Chat Interface Synthesis Report ,1,0
+0,0
+0,1,0
+0,420
+./docs/research/CREATIVE_RESEARCH.md,12883,2026-01-05,# Creative Research Phase: COMPLETE 🎉 ,0
+0,4,0
+0,25,0
+0,1710
+./docs/research/ACP_PROTOCOL_MULTI_AGENT_SYNTHESIS.md,14535,2026-01-15,# ACP Protocol and Multi-Agent System Synthesis ,1,0
+0,0
+0,6,0
+0,1335
+./docs/research/OPENHANDS_AGENTPIPE_INTEGRATION_ARCHITECTURE.md,14162,2026-01-15,# OpenHands + AgentPipe Integration Architecture ,1,0
+0,0
+0,0
+0,0
+0,1483
+./docs/research/AGENTIC_MEMORY_FRAMEWORKS_2026-01-16.md,19040,2026-01-16,# Agentic Memory Frameworks Research ,2,0
+0,0
+0,34,0
+0,2093
+./docs/research/MULTI_AGENT_CLI_CHAT_STUDY_2026-01-16.md,12439,2026-01-15,# Multi-Agent AI/LLM Chat & CLI Interaction Patterns Study ,1,0
+0,0
+0,26,0
+0,1630
+./docs/research/CHRYSALIS_STRATEGIC_FEEDBACK_2026-01-16.md,13341,2026-01-15,# Chrysalis Strategic Feedback Based on Multi-Agent Research ,1,0
+0,0
+0,6,0
+0,1513
+./docs/research/ai-lead-adaptation-patterns.md,12223,2026-01-13,# AI Lead Adaptation Patterns - Research ,0
+0,1,0
+0,0
+0,0
+0,1350
+./docs/research/universal-patterns/PATTERNS.md,28194,2026-01-05,# Layer 1: Universal Patterns to Replicate in Code ,0
+0,1,0
+0,18,0
+0,3334
+./docs/research/universal-patterns/CRYPTO_COMPLETE.md,11380,2026-01-05,# Layer 1: Cryptographic Primitives MCP Server - COMPLETE ,0
+0,1,0
+0,7,0
+0,1553
+./docs/research/universal-patterns/PATTERNS_ANCHORED.md,42569,2026-01-05,# Layer 1: Universal Patterns - Anchored Analysis ,0
+0,1,0
+0,0
+0,0
+0,5278
+./docs/research/deep-research/SYNTHESIS.md,29763,2026-01-05,# Deep Research: Synthesis & Future Horizons ,0
+0,4,0
+0,15,0
+0,3908
+./docs/research/deep-research/GOSSIP_PROTOCOLS.md,22654,2026-01-05,# Deep Research: Gossip Protocols - The Next Layer ,0
+0,1,0
+0,15,0
+0,3075
+./docs/research/deep-research/MATHEMATICAL_FOUNDATIONS.md,24617,2026-01-05,# Deep Research: Mathematical Foundations of Consensus ,0
+0,1,0
+0,6,0
+0,3366
+./docs/research/deep-research/SECURITY_ATTACKS.md,20934,2026-01-05,# Deep Research: Security & Attack Vectors in Distributed Consensus ,0
+0,1,0
+0,2,0
+0,2784
+./docs/research/agent-spec/AgentSpecResearch.md,47996,2026-01-05,# Agent Specification Convergence Research Report ,3,17,1,70,0
+0,5052
+./docs/research/agent-spec/MemoryResearch.md,34176,2026-01-05,# Agent Memory Architecture Research ,3,4,0
+0,14,0
+0,3544
+./docs/research/agent-spec/agent-spec-evolution.md,2681,2026-01-05,# Agent Specification Evolution – Reflection ,0
+0,0
+0,0
+0,0
+0,0
+0,344
+./docs/research/OPEN_INTERPRETER_ANALYSIS_2026-01-16.md,14932,2026-01-15,# Open Interpreter Analysis for Chrysalis ,1,0
+0,0
+0,15,0
+0,1557
+./docs/JSONCanvas_COMMONS.md,1314,2026-01-13,# ARCHIVED: JSONCanvas Commons Contract ,1,0
+0,0
+0,0
+0,0
+0,167
+./docs/guides/ollama-setup.md,11267,2026-01-16,# Ollama Setup Guide for Testing Phase ,0
+0,0
+0,0
+0,5,0
+0,1512
+./docs/guides/QUICK_START_OLLAMA.md,1661,2026-01-16,# Quick Start: Ada with Ollama ,0
+0,0
+0,0
+0,0
+0,0
+0,245
+./docs/guides/ADAPTER_TESTING_GUIDE.md,6286,2026-01-16,# Universal Adapter Testing Guide ,0
+0,0
+0,0
+0,4,0
+0,902
+./docs/guides/WIDGET_DEVELOPER_GUIDE.md,12560,2026-01-15,# Widget Developer Guide ,0
+0,0
+0,0
+0,6,0
+0,1610
+./docs/guides/TASK_FRAMEWORK_GUIDE.md,10623,2026-01-16,# Universal Adapter Task Framework Guide ,5,0
+0,0
+0,3,0
+0,1284
+./docs/guides/WIDGET_PUBLISHING_GUIDE.md,10974,2026-01-15,# Widget Publishing Guide ,0
+0,0
+0,0
+0,0
+0,0
+0,1293
+./docs/guides/QUICK_START.md,11735,2026-01-13,# Chrysalis Quick Start Guide ,16,0
+0,0
+0,9,0
+0,1352
+./docs/guides/README.md,4262,2026-01-15,# Chrysalis Development Guides ,0
+0,0
+0,0
+0,0
+0,0
+0,375
+./docs/guides/MCP_SERVER_GUIDE.md,17652,2026-01-14,# MCP Server Guide ,1,0
+0,0
+0,1,0
+0,2507
+./docs/guides/MCP_DECISION_GUIDE.md,8841,2026-01-14,# MCP Decision Guide for AI Agents ,0
+0,0
+0,0
+0,4,0
+0,1303
+./docs/guides/TROUBLESHOOTING.md,17002,2026-01-09,# Chrysalis Troubleshooting Guide ,2,1,0
+0,0
+0,0
+0,1961
+./docs/guides/CANVAS_TYPE_EXTENSION_GUIDE.md,12889,2026-01-15,# Canvas Type Extension Guide ,0
+0,0
+0,1,0
+0,0
+0,1588
+./docs/archive/FIREPROOF_CODE_REVIEW_2026-01-13.md,14135,2026-01-13,# Fireproof Integration Code Review Report ,1,0
+0,0
+0,26,0
+0,1542
+./docs/archive/FIREPROOF_CODE_REVIEW_FINDINGS.md,15429,2026-01-13,# Fireproof Integration Code Review Findings ,1,0
+0,0
+0,0
+0,0
+0,1793
+./docs/archive/DOCUMENTATION_OVERHAUL_REPORT_2026-01-13.md,4862,2026-01-13,# Documentation Overhaul Report ,2,0
+0,0
+0,12,0
+0,646
+./docs/archive/UI_DEVELOPMENT_PROGRESS_REPORT_archived.md,12988,2026-01-14,# Chrysalis Terminal UI - Development Progress Report ,6,0
+0,0
+0,14,0
+0,1914
+./docs/archive/remediation/CODE_REVIEW_REMEDIATION_IMPLEMENTATION.md,17705,2026-01-11,# Code Quality Remediation Implementation ,1,0
+0,0
+0,0
+0,0
+0,2044
+./docs/archive/remediation/CODE_REVIEW_REMEDIATION_PLAN.md,27061,2026-01-09,# Code Review Remediation Plan ,2,0
+0,0
+0,0
+0,0
+0,3137
+./docs/archive/remediation/CODE_REVIEW_REMEDIATION_STATUS.md,29867,2026-01-11,# Code Review Remediation Status ,8,0
+0,0
+0,84,0
+0,3546
+./docs/archive/AGENT_FIREPROOF_INTEGRATION_PLAN_2026-01-13.md,8433,2026-01-13,# Agent-Fireproof Memory Integration Plan ,1,0
+0,0
+0,7,1,932
+./docs/archive/DEPLOYMENT_SUCCESS.md,7459,2026-01-14,# ✅ Investment Agents Successfully Deployed with Chrysalis ,0
+0,0
+0,0
+0,15,0
+0,980
+./docs/archive/frontend-voyeur-integration-example.md,2955,2026-01-13,# VoyeurPane Integration Example ,0
+0,0
+0,0
+0,0
+0,0
+0,314
+./docs/archive/UI_IMPLEMENTATION_STATUS_2026-01-15_archived.md,16129,2026-01-14,# Chrysalis Terminal UI - Implementation Status ,2,0
+0,0
+0,44,0
+0,2253
+./docs/archive/phases/PHASE_3_FINAL_SUMMARY.md,8623,2026-01-13,# Phase 3: Testing & Polish - Final Summary ,2,0
+0,0
+0,57,0
+0,1168
+./docs/archive/phases/PHASE_0_CODE_REVIEW.md,29506,2026-01-10,# Phase 0 Code Review and Verification Audit ,1,0
+0,11,132,5,3826
+./docs/archive/phases/PHASE_3_COMPLETION_REPORT.md,11765,2026-01-11,# Phase 3: Testing & Polish - Completion Report ,2,0
+0,0
+0,32,0
+0,1457
+./docs/archive/phases/PHASE_3_COVERAGE_EXPANSION.md,6535,2026-01-13,# Phase 3: Test Coverage Expansion ,2,0
+0,0
+0,23,0
+0,930
+./docs/archive/phases/PHASE_3_FINAL_STATUS.md,3524,2026-01-13,# Phase 3: Testing & Polish - Final Status ,2,0
+0,0
+0,15,0
+0,500
+./docs/archive/phases/PHASE_3_SUMMARY.md,8448,2026-01-11,# Phase 3: Testing & Polish - Summary ,2,0
+0,0
+0,39,0
+0,1118
+./docs/archive/phases/phase-3-testing-setup-complete.md,11421,2026-01-11,# Phase 3: Testing & Polish - Setup Complete ,2,0
+0,0
+0,31,0
+0,1425
+./docs/archive/phases/PHASE_3_FINAL_COMPLETION.md,5432,2026-01-13,# Phase 3: Testing & Polish - Final Completion ,2,0
+0,0
+0,32,0
+0,774
+./docs/archive/quickstarts/QUICKSTART_TS_LEGACY.md,6293,2026-01-13,# Chrysalis Quickstart Guide (ARCHIVED) ,1,0
+0,0
+0,1,0
+0,618
+./docs/archive/FIREPROOF_CODE_REVIEW_FINAL_2026-01-13.md,14510,2026-01-13,# Fireproof Integration Code Review - Final Report ,2,0
+0,1,24,0
+0,1406
+./docs/archive/Superficial-Pattern-Report.md,22,2026-01-15,*deleted placeholder* ,0
+0,0
+0,0
+0,0
+0,0
+0,2
+./docs/archive/REFACTORING_LESSONS_2026-01-14.md,9805,2026-01-14,# Refactoring Lessons & Project Management Reflections ,1,0
+0,0
+0,0
+0,0
+0,1394
+./docs/archive/CODE_REVIEW_REMEDIATION_PLAN_2026-01-11.md,14869,2026-01-13,# Code Review Remediation Plan ,3,0
+0,0
+0,3,0
+0,1852
+./docs/archive/README.md,10712,2026-01-15,# Documentation Archive ,57,0
+0,0
+0,1,0
+0,1037
+./docs/archive/misc/MIGRATION_LOG.md,8088,2026-01-13,# Documentation Migration Log ,39,0
+0,0
+0,4,0
+0,909
+./docs/archive/DOCUMENTATION_REVIEW_COMPLETION_2026-01-16_previous.md,8181,2026-01-15,# Documentation Review Completion Report ,16,0
+0,0
+0,36,4,1027
+./docs/archive/reports/EXCELLENCE_ANALYSIS.md,30239,2026-01-09,# Chrysalis Excellence Analysis ,1,0
+0,0
+0,8,2,2951
+./docs/archive/reports/CODE_SMELL_ANALYSIS.md,4829,2026-01-11,# Code Smell Analysis Report ,1,0
+0,3,4,0
+0,592
+./docs/archive/reports/ARCHITECTURAL_CONSISTENCY_ANALYSIS.md,62510,2026-01-10,# Chrysalis Architectural Consistency Analysis ,2,0
+0,0
+0,50,0
+0,5362
+./docs/archive/reports/DEVELOPMENT_PLAN_2026-01-11.md,13183,2026-01-11,# Chrysalis Development Plan ,2,0
+0,0
+0,11,0
+0,1645
+./docs/archive/reports/DOCUMENTATION_OVERHAUL_SUMMARY.md,7782,2026-01-13,# Documentation Overhaul Completion Summary ,9,0
+0,0
+0,10,4,1024
+./docs/archive/reports/CODE_REVIEW_REPORT_2026-01-14.md,7679,2026-01-13,# Chrysalis Code Review Report ,1,0
+0,2,7,0
+0,961
+./docs/archive/reports/IMPROVEMENT_IMPLEMENTATION_GUIDE.md,6425,2026-01-11,# Chrysalis Improvement Implementation Guide ,5,0
+0,6,2,0
+0,834
+./docs/archive/reports/DOCUMENTATION_EXCELLENCE_ROADMAP.md,19225,2026-01-13,# Documentation Excellence Roadmap ,20,0
+0,0
+0,3,1,2946
+./docs/archive/reports/DOCUMENTATION_VALIDATION.md,24100,2026-01-13,# Documentation Validation Automation ,3,0
+0,2,16,18,2439
+./docs/archive/reports/CODE_QUALITY_AUDIT_P2_2026-01-11.md,8920,2026-01-11,# P2 Code Quality Audit Report ,4,0
+0,0
+0,3,0
+0,1101
+./docs/archive/reports/COMPREHENSIVE_CODE_REVIEW_2026-01-11.md,29108,2026-01-11,# Comprehensive Code Review Report - Chrysalis Integration Platform ,2,0
+0,0
+0,75,0
+0,3576
+./docs/archive/reports/DESIGN_PATTERN_ANALYSIS.md,44535,2026-01-11,# Comprehensive Design Pattern Analysis and Evolution Plan ,1,0
+0,0
+0,23,0
+0,4409
+./docs/archive/reports/DOCUMENTATION_ASSESSMENT_2026-01-11.md,18208,2026-01-10,# Chrysalis Documentation Assessment & Implementation Plan ,5,0
+0,0
+0,3,11,2229
+./docs/archive/reports/DESIGN_PATTERN_REMEDIATION_SPECIFICATION.md,43815,2026-01-13,# Design Pattern Remediation Specification ,2,0
+0,0
+0,1,5,4616
+./docs/archive/reports/IMPROVEMENT_IMPLEMENTATION_REPORT.md,11959,2026-01-11,# Chrysalis Improvement Implementation Report ,1,0
+0,0
+0,8,4,1345
+./docs/archive/reports/API_AUDIT_REPORT_2026-01-11.md,16477,2026-01-10,# API Documentation Audit Report ,3,0
+0,0
+0,46,0
+0,2229
+./docs/archive/UI_MVP_CANVAS_PLAN_archived.md,25205,2026-01-14,# MVP Canvas Implementation Plan - Final Specification ,3,0
+0,0
+0,27,0
+0,3269
+./docs/archive/UI_WORKSPACE_CONSOLIDATION_archived.md,10370,2026-01-14,# Workspace Consolidation Summary ,9,0
+0,0
+0,28,0
+0,1283
+./docs/archive/frontend-development-status.md,5490,2026-01-13,# Chrysalis Frontend Development Status ,1,0
+0,1,17,0
+0,779
+./docs/archive/sessions/DOCUMENTATION_REVIEW_REPORT_2026-01-15.md,7587,2026-01-15,# Documentation Review Report ,10,0
+0,2,16,2,999
+./docs/archive/sessions/IMPLEMENTATION_PROGRESS_2026-01-15.md,9030,2026-01-15,# Implementation Progress Report ,4,0
+0,0
+0,20,0
+0,1208
+./docs/archive/sessions/CANVAS_SESSION_SUMMARY_2026-01-15.md,9291,2026-01-15,# Canvas Architecture Session Summary ,2,0
+0,1,13,0
+0,884
+./docs/archive/sessions/frontend-session-handoff.md,6317,2026-01-11,# Frontend Development Session Handoff ,1,0
+0,0
+0,17,0
+0,837
+./docs/archive/sessions/frontend-execution-strategy.md,84994,2026-01-11,# Chrysalis Frontend Development Execution Strategy ,6,0
+0,2,94,1,11412
+./docs/archive/sessions/frontend-development-verified-report.md,38845,2026-01-11,# Chrysalis Frontend Development Report - Evidence-Based Assessment ,2,0
+0,1,73,2,4513
+./docs/archive/sessions/DOCUMENTATION_REVIEW_PLAN_2026-01-15.md,9096,2026-01-15,# Chrysalis Documentation Review Plan ,4,0
+0,0
+0,0
+0,8,1115
+./docs/archive/sessions/frontend-development-progress.md,6987,2026-01-11,# Frontend Development Progress ,2,0
+0,0
+0,24,0
+0,854
+./docs/archive/sessions/USER_TESTING_READINESS_PLAN_2026-01-15.md,6384,2026-01-15,# Chrysalis User Testing Readiness Plan ,2,0
+0,0
+0,13,0
+0,967
+./docs/archive/sessions/task-2-completion-summary.md,10499,2026-01-11,# Task 2 Completion Summary ,2,0
+0,0
+0,78,0
+0,1333
+./docs/archive/sessions/frontend-development-status.md,8261,2026-01-11,# Frontend Development Status ,2,0
+0,0
+0,19,0
+0,1129
+./docs/archive/sessions/next-session-prompt.md,5270,2026-01-11,# Next Session Handoff Prompt ,0
+0,0
+0,0
+0,7,0
+0,676
+./docs/archive/sessions/FINAL_SESSION_SUMMARY_2026-01-15.md,10384,2026-01-15,# Final Session Summary - User Testing Readiness Complete ,3,0
+0,0
+0,35,0
+0,1404
+./docs/archive/sessions/SESSION_SUMMARY_2026-01-15.md,6600,2026-01-15,# Session Summary - User Testing Readiness Implementation ,5,0
+0,3,14,0
+0,845
+./docs/archive/FIREPROOF_CODE_REVIEW_REPORT.md,7802,2026-01-13,# Fireproof Integration Code Review Report ,1,0
+0,0
+0,15,0
+0,921
+./docs/archive/UI_CURRENT_STATUS_2026-01-15_archived.md,12422,2026-01-14,# Chrysalis Terminal UI - Current Status ,4,0
+0,0
+0,55,0
+0,1777
+./docs/archive/FRONTEND_THREE_FRAME_FIVE_CANVAS_SPEC_GARYVISION_archived.md,10959,2026-01-16,# GaryVision Front-End Enhancements Specification ,1,0
+0,0
+0,0
+0,0
+0,1373
+./docs/archive/COMPREHENSIVE_IMPROVEMENT_WORKPLAN_2026-01-11.md,33999,2026-01-13,# Comprehensive Improvement Work Plan ,5,0
+0,0
+0,1,0
+0,4115
+./docs/archive/AGENTIC_ARCHITECTURE_REFLECTIONS_2026-01-14.md,17970,2026-01-13,# Chrysalis Project: Agentic Architecture Reflections ,3,0
+0,0
+0,0
+0,0
+0,2136
+./docs/archive/frontend-voyeur-implementation.md,15845,2026-01-13,# VoyeurBus Client Implementation - Task 2.2 ,1,0
+0,0
+0,2,0
+0,1908
+./docs/migrations/code-quality-improvements.md,8008,2026-01-13,# Code Quality Improvements - Post Migration Review ,1,0
+0,0
+0,20,0
+0,1045
+./docs/migrations/final-migration-summary.md,6687,2026-01-13,# React Flow Canvas Migration - Final Summary ,1,0
+0,0
+0,42,0
+0,954
+./docs/migrations/react-flow-migration-completion-summary.md,4551,2026-01-13,# React Flow Canvas Migration - Completion Summary ,1,0
+0,0
+0,17,0
+0,607
+./docs/migrations/jsoncanvas-to-react-flow.md,5632,2026-01-13,# JSONCanvas to React Flow Migration ,1,0
+0,0
+0,18,1,733
+./docs/VERIFICATION_CHECKLIST_2026-01-16.md,11757,2026-01-16,# Documentation Verification Checklist ,5,0
+0,0
+0,9,12,1613
+./docs/accessibility-testing-guide.md,8512,2026-01-13,# Accessibility Testing Guide ,2,0
+0,0
+0,16,0
+0,1114
+./docs/DEVELOPER_ONBOARDING.md,21604,2026-01-13,# Chrysalis Developer Onboarding Guide ,3,0
+0,0
+0,7,5,2536
+./docs/PRE_RELEASE_TODO.md,5310,2026-01-14,# Pre-Release TODO ,1,0
+0,1,1,0
+0,728
+./docs/TYPE_SAFETY_IMPROVEMENTS.md,4878,2026-01-16,# Type Safety Improvements Summary ,0
+0,0
+0,0
+0,4,0
+0,571
+./docs/patterns/SEMANTIC_MEDIATION_PATTERN.md,9700,2026-01-13,# Semantic Mediation via LLM Delegation ,1,1,0
+0,11,0
+0,1140
+./docs/builder-ecosystem-modernization-plan.md,5410,2026-01-13,## Builder Ecosystem Modernization Plan ,0
+0,0
+0,0
+0,0
+0,0
+0,638
+./docs/PHASE_1_IMPLEMENTATION_GUIDE.md,11176,2026-01-16,# Phase 1 Implementation Guide - Core Types Migration ,0
+0,0
+0,0
+0,0
+0,0
+0,1359
+./docs/AGENTIC_ARCHITECTURE_ANALYSIS_2026.md,25643,2026-01-13,# LLM-Enabled System Agent Architectures: Analysis and Design Principles ,10,5,0
+0,0
+0,0
+0,2410
+./docs/SEMANTIC_AGENT_RENAME.md,5338,2026-01-16,# Semantic Agent Rename - Implementation Guide ,3,0
+0,0
+0,5,0
+0,727
+./docs/DATA_MODELS.md,20304,2026-01-09,# Chrysalis Data Models ,12,0
+0,0
+0,0
+0,14,1812
+./docs/FUTURE_OPTIMIZATIONS.md,16180,2026-01-09,# Future Optimizations for Chrysalis ,1,0
+0,0
+0,0
+0,0
+0,1708
+./docs/README.md,2100,2026-01-13,# Chrysalis Documentation ,1,0
+0,0
+0,0
+0,0
+0,226
+./docs/features/SEMANTIC_MERGE.md,16234,2026-01-09,# Semantic Merge Feature ,7,0
+0,0
+0,12,2,1831
+./docs/features/inline-permission-system.md,10849,2026-01-16,# Inline Permission System ,0
+0,0
+0,0
+0,3,1,1140
+./docs/API_ENDPOINT_TEMPLATE.md,11177,2026-01-13,# API Endpoint Documentation Template ,7,0
+0,0
+0,0
+0,0
+0,1492
+./docs/semantic-scavenger.md,18829,2026-01-06,# Semantic Scavenger Report ,1,0
+0,0
+0,0
+0,0
+0,1622
+./docs/FIREPROOF_INTEGRATION_PROPOSAL.md,31566,2026-01-13,# Fireproof Integration Proposal for Chrysalis Memory System ,10,0
+0,0
+0,13,1,3483
+./docs/specs/BRIDGE_REFACTORING_SPECIFICATION.md,23630,2026-01-13,# Chrysalis Universal Agent Bridge - Refactoring Specification ,2,0
+0,0
+0,2,0
+0,2822
+./docs/specs/BITEMPORAL_IMPLEMENTATION_PLAN.md,62892,2026-01-13,# Chrysalis Bi-Temporal Store Implementation Plan ,2,0
+0,7,8,0
+0,6751
+./docs/specs/CODE_QUALITY_REVIEW.md,27007,2026-01-13,# Chrysalis Universal Agent Bridge - Code Quality Review ,2,0
+0,0
+0,6,0
+0,3023
+./docs/specs/INK_CHAT_IMPLEMENTATION_PLAN.md,33867,2026-01-16,# Ink Chat TUI Implementation Plan ,1,0
+0,0
+0,2,1,3511
+./docs/specs/INK_VS_XTERMJS_ANALYSIS.md,34624,2026-01-16,# Ink vs xterm.js: Terminal Component Analysis for Chrysalis ,1,0
+0,0
+0,9,0
+0,3171
+./docs/specs/UNIVERSAL_ADAPTER_TASK_SPECIFICATION.md,28752,2026-01-16,# Universal Adapter Task Specification ,3,8,0
+0,0
+0,0
+0,2414
+./docs/specs/TERMINAL_LIBRARY_SCORING_ANALYSIS.md,20901,2026-01-16,# Terminal Library Scoring Analysis for Chrysalis ,2,1,0
+0,29,0
+0,2959
+./docs/specs/TUI_CHAT_INTERFACE_RECOMMENDATION.md,17445,2026-01-16,# Chrysalis Multi-Agent Interface Specification ,5,2,0
+0,7,1,1886
+./docs/specs/BITEMPORAL_STORE_SPECIFICATION.md,27341,2026-01-13,# Bi-Temporal RDF Store Specification ,1,0
+0,0
+0,9,0
+0,3262
+./docs/micro-vm-canvas-specification.md,26583,2026-01-13,# Micro-VM Canvas Specification ,2,0
+0,0
+0,4,0
+0,2715
+./docs/DOCUMENTATION_GAP_ANALYSIS_2026-01-16.md,15511,2026-01-16,# Documentation Gap Analysis and Alignment Report ,5,0
+0,0
+0,46,13,1885
+./docs/getting-started/quickstart.md,6843,2026-01-09,# Quickstart Guide ,2,0
+0,0
+0,0
+0,0
+0,760
+./docs/current/ACTION_EMOJI_LANGUAGE.md,2450,2026-01-05,# Action Emoji Language (Draft) ,0
+0,0
+0,0
+0,0
+0,0
+0,326
+./docs/current/SANITIZATION_POLICY.md,1445,2026-01-05,# Sanitization & Trust Tiers ,0
+0,0
+0,0
+0,0
+0,0
+0,201
+./docs/current/SYSTEM_SUMMARY.md,23568,2026-01-05,# Uniform Semantic Agent Morphing System - Complete Summary ,0
+0,1,0
+0,39,2,2346
+./docs/current/memory/ARCHITECTURE.md,23375,2026-01-05,# Chrysalis Memory Architecture v1.0 ,1,0
+0,0
+0,14,0
+0,2632
+./docs/current/memory/UPDATE_SUMMARY.md,19089,2026-01-05,# Chrysalis Memory System - Update Summary ,0
+0,2,0
+0,41,0
+0,2361
+./docs/current/memory/QUICK_SUMMARY.md,10258,2026-01-05,# Agent Memory Architecture - Quick Summary ,3,2,0
+0,13,0
+0,1044
+./docs/current/memory/README.md,15283,2026-01-05,# Agent Memory System ,3,5,0
+0,27,0
+0,1759
+./docs/current/memory/IMPLEMENTATION.md,19132,2026-01-05,# Chrysalis Memory System - Implementation Complete ,0
+0,1,0
+0,37,0
+0,2056
+./docs/current/memory/ARCHITECTURE_ANCHORED.md,22579,2026-01-05,# Agent Memory Architecture: Anchored Research Analysis ,0
+0,2,0
+0,6,0
+0,2866
+./docs/current/VECTOR_INDEX_SETUP.md,5131,2026-01-06,# Vector Index Setup (HNSW/LanceDB/ArangoDB) ,1,0
+0,0
+0,0
+0,0
+0,574
+./docs/current/SYNTHESIS.md,44394,2026-01-05,# Chrysalis: Creative Synthesis with Rigorous Precision ,0
+0,1,0
+0,12,1,5034
+./docs/current/ANALYSIS.md,33142,2026-01-05,# Chrysalis: Rigorous System Analysis ,0
+0,1,0
+0,30,0
+0,4010
+./docs/current/HEDERA_REFERENCE.md,11099,2026-01-05,# Hedera & Distributed Consensus MCP - Quick Reference ,0
+0,2,0
+0,30,0
+0,1512
+./docs/current/MEMORY_MERGE_PLAN.md,4033,2026-01-06,# Memory Merge Plan (v3.1 → v3.2) ,1,0
+0,0
+0,0
+0,0
+0,536
+./docs/current/FOUNDATION_SPEC.md,30394,2026-01-05,# Chrysalis: Uniform Semantic Agent Morphing System - Foundation Specification ,0
+0,1,0
+0,7,1,3203
+./docs/current/UNIVERSAL_AGENT_LEXICON.md,4972,2026-01-05,# Uniform Semantic Agent Lexicon (OODA + Interrogatives + Emoji Mode) ,0
+0,0
+0,0
+0,1,0
+0,675
+./docs/current/TECH_DECISIONS_MEMORY_OBSERVABILITY.md,1297,2026-01-05,# Technical Decisions (Memory  Observability  Interaction) ,0
+0,0
+0,0
+0,0
+0,0
+0,166
+./docs/current/IMPLEMENTATION_GUIDE.md,16625,2026-01-05,# Uniform Semantic Agent Bridge - Implementation Guide ,0
+0,2,1,0
+0,0
+0,1811
+./docs/current/DUAL_SYNC_PLAN.md,3553,2026-01-05,# Dual Sync Plan: Public CRDT (SyncedStore/Yjs) + Private Ledger (Hedera) ,0
+0,0
+0,0
+0,0
+0,0
+0,441
+./docs/current/MCP_SETUP.md,12036,2026-01-05,# Design Patterns MCP Server Setup ,0
+0,2,0
+0,33,0
+0,1704
+./docs/current/COMPLETE_SPEC.md,31296,2026-01-05,# Chrysalis: Complete System Specification v3.0 ,0
+0,1,0
+0,13,0
+0,3255
+./docs/current/SKILLBUILDER_DEEPENING.md,2441,2026-01-05,# SkillBuilder Deepening (GaryVision agent enrichment) ,1,0
+0,0
+0,0
+0,0
+0,219
+./docs/current/UNIFIED_SPEC_V3.1.md,29758,2026-01-05,# Chrysalis: Unified System Specification v3.1 ,0
+0,1,0
+0,78,0
+0,3695
+./docs/current/SYNC_PRIMITIVES.md,1598,2026-01-05,# Sync Primitives  Vocabulary  and Commands ,0
+0,0
+0,0
+0,0
+0,0
+0,223
+./docs/current/DOCUMENTATION_STANDARDS.md,2289,2026-01-05,# Documentation Standards (Chrysalis) ,0
+0,0
+0,0
+0,1,4,327
+./docs/current/HEDERA_STRATEGY.md,32679,2026-01-05,# Hedera Hashgraph & Distributed Consensus MCP Strategy ,0
+0,2,0
+0,80,1,4015
+./docs/current/USA_PROFILE_V0.1.md,1913,2026-01-05,# uSA Profile v0.1 (Authorable) — Profile/Envelope Split ,0
+0,0
+0,0
+0,0
+0,0
+0,233
+./docs/current/STATUS_BADGES.md,7627,2026-01-06,# Chrysalis Documentation Status Badges ,1,0
+0,0
+0,1,0
+0,679
+./docs/PHASE_0_RUST_INFRASTRUCTURE_COMPLETE.md,10563,2026-01-16,# Phase 0: Rust Infrastructure - COMPLETE ✅ ,3,0
+0,0
+0,62,0
+0,1353
+./docs/canvas-architecture.md,9127,2026-01-15,# Chrysalis Canvas Architecture ,0
+0,0
+0,0
+0,0
+0,2,1136
+./docs/integration/INTERFACE_CONTRACTS.md,7007,2026-01-13,# AI Lead Adaptation System - Interface Contracts ,0
+0,1,0
+0,0
+0,0
+0,701
+./docs/integration/SENTRY_SETUP.md,9010,2026-01-15,# Sentry Error Tracking Setup ,2,0
+0,1,7,0
+0,1190
+./docs/integration/DIAGRAMS.md,17002,2026-01-13,# AI Lead Adaptation System - Architecture Diagrams ,0
+0,1,0
+0,0
+0,22,1427
+./docs/integration/TECHNICAL_DOCUMENTATION.md,23995,2026-01-13,# AI Lead Adaptation System - Technical Documentation ,0
+0,1,0
+0,0
+0,0
+0,2055
+./docs/integration/README.md,12435,2026-01-13,# AI Lead Adaptation System - Integration Documentation ,0
+0,2,0
+0,27,20,1452
+./docs/integration/BUSINESS_DOCUMENTATION.md,13478,2026-01-13,# AI Lead Adaptation System - Business Documentation ,0
+0,1,0
+0,0
+0,0
+0,1772
+./docs/integration/IMPLEMENTATION_EVALUATION.md,14439,2026-01-13,# AI Lead Adaptation System - Implementation Evaluation ,0
+0,1,0
+0,35,1,1750
+./docs/integration/INTEGRATION_PLAN.md,3393,2026-01-13,# AI Lead Adaptation System - Integration Plan ,0
+0,1,0
+0,0
+0,0
+0,393
+./docs/integration/ARCHITECTURE_DISCOVERY.md,8990,2026-01-13,# Chrysalis Architecture Discovery for AI Lead Adaptation Integration ,0
+0,1,0
+0,0
+0,0
+0,1107
+./docs/integration/USER_TESTING_SETUP.md,8179,2026-01-15,# User Testing Setup Guide ,3,0
+0,0
+0,10,0
+0,1032
+./docs/api/AUTHENTICATION.md,21759,2026-01-13,# Chrysalis API Authentication Guide ,10,0
+0,0
+0,18,0
+0,2266
+./docs/api/FUTURE_SERVICES_SPECS.md,24457,2026-01-13,# Future Services Specifications - Extensibility Examples ,31,0
+0,0
+0,1,0
+0,2210
+./docs/api/PHASE_2_API_DOCUMENTATION_ROADMAP.md,25448,2026-01-13,# Phase 2 API Documentation Completion Roadmap ,10,0
+0,0
+0,29,3,3342
+./docs/api/SWAGGER_UI_DEPLOYMENT.md,16007,2026-01-13,# Swagger UI Deployment Guide ,3,0
+0,0
+0,0
+0,0
+0,1552
+./docs/api/SHARED_API_CORE.md,38948,2026-01-13,# Chrysalis Shared API Core Documentation ,4,0
+0,0
+0,10,0
+0,3720
+./docs/api/API_REFERENCE_INDEX.md,9058,2026-01-13,# Chrysalis API Reference - Master Index ,5,0
+0,0
+0,4,0
+0,1123
+./docs/api/FOCUS_AREA_4_ASSESSMENT.md,1,2026-01-16, ,0
+0,0
+0,0
+0,0
+0,0
+0,0
+./docs/api/openapi/README.md,13674,2026-01-13,# Chrysalis OpenAPI 3.0 Specifications ,3,0
+0,0
+0,0
+0,0
+0,1357
+./docs/api/INTEGRATION_QUICK_START.md,42008,2026-01-13,# Chrysalis API Integration Quick Start ,4,0
+0,0
+0,0
+0,0
+0,3663
+./docs/api/services/AGENTBUILDER_COMPLETE_SPEC.md,27013,2026-01-13,# AgentBuilder Service - Complete API Specification ,18,0
+0,1,3,0
+0,2654
+./docs/api/services/AGENTBUILDER_API_SUMMARY.md,14033,2026-01-13,# AgentBuilder API - Executive Summary ,4,0
+0,0
+0,27,0
+0,1644
+./docs/api/services/KNOWLEDGEBUILDER_API_SPEC.md,29084,2026-01-13,# KnowledgeBuilder API Specification ,19,0
+0,0
+0,1,0
+0,3053
+./docs/api/services/AGENTBUILDER_COMPLETE_SPEC_PART2.md,26934,2026-01-13,# AgentBuilder Service - Complete API Specification (Part 2) ,0
+0,0
+0,0
+0,6,0
+0,2532
+./docs/api/services/AGENTBUILDER_COMPLETE_SPEC_PART3.md,27470,2026-01-13,# AgentBuilder Service - Complete API Specification (Part 3) ,2,0
+0,0
+0,11,0
+0,2417
+./docs/api/services/SKILLBUILDER_API_SPEC.md,28383,2026-01-13,# SkillBuilder API Specification ,17,0
+0,0
+0,1,0
+0,3107
+./docs/api/openapi-specification.md,10876,2026-01-13,# OpenAPI 3.0 Specification ,0
+0,4,0
+0,0
+0,0
+0,1240
+./docs/SCM_ROUTING_GUIDE.md,0,2026-01-15,,0
+0,0
+0,0
+0,0
+0,0
+0,0
+./docs/MIGRATION_PLAN_SEMANTIC_SERVICES.md,34266,2026-01-06,# Migration Plan: Semantic Services into Chrysalis ,1,0
+0,0
+0,1,0
+0,3482
+./docs/MIGRATION_GUIDE_DEPRECATED_FEATURES.md,6856,2026-01-13,# Migration Guide: Deprecated Feature Removal ,1,0
+0,0
+0,0
+0,0
+0,813
+./docs/deployment/DEPLOYMENT_GUIDE.md,7975,2026-01-15,# Chrysalis Deployment Guide ,2,0
+0,0
+0,0
+0,0
+0,935
+./docs/ai-maintenance/ai-led-adaptation-architecture.md,21907,2026-01-13,# AI-Led Adaptive Maintenance System Architecture ,2,0
+0,0
+0,2,0
+0,1873
+./docs/ai-maintenance/integration-points-reference.md,22401,2026-01-13,# Integration Points and Operational Procedures ,2,0
+0,0
+0,2,0
+0,1987
+./docs/ai-maintenance/evolutionary-patterns-registry.md,14332,2026-01-13,# Known Evolutionary Patterns Registry ,4,1,1,0
+0,0
+0,1407
+./docs/DOCUMENTATION_INVENTORY_2026-01-16.md,9679,2026-01-15,# Chrysalis Documentation Inventory ,19,0
+0,0
+0,2,1,1209
+./docs/ENVIRONMENT_CONFIGURATION.md,3407,2026-01-15,# Environment Configuration ,0
+0,0
+0,0
+0,0
+0,0
+0,425
+./docs/AGENTIC_MEMORY_DESIGN.md,4822,2026-01-13,# Chrysalis Agentic Memory Design (Persona + Skills + Beads + KG/Embeddings with,0
+0,0
+0,0
+0,0
+0,0
+0,622
+./docs/VECTOR_EMBEDDING_BEST_PRACTICES.md,31511,2026-01-06,# Vector Embedding Best Practices  Protocols & Design Criteria ,3,0
+0,1,12,2,3440
+./docs/SESSION_SUMMARY_2026-01-16.md,11737,2026-01-16,# Chrysalis Session Summary - January 16  2026 ,9,0
+0,0
+0,28,0
+0,1559
+./docs/DOCUMENTATION_REVIEW_SUMMARY_2026-01-16.md,13567,2026-01-16,# Chrysalis Documentation Review Summary ,9,0
+0,0
+0,98,13,1726
+./docs/TYPE_SAFETY_SESSION_SUMMARY.md,7488,2026-01-16,# Type Safety Improvements - Session Summary ,1,0
+0,0
+0,21,0
+0,938
+./docs/STATUS.md,12129,2026-01-16,# Chrysalis Implementation Status ,1,0
+0,0
+0,61,0
+0,1712
+./docs/personas/ml-engineer.md,8824,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1146
+./docs/personas/database-architect.md,16548,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,5,1945
+./docs/personas/temporal-python-pro.md,10050,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1236
+./docs/personas/frontend-architect.md,2402,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,301
+./docs/personas/devops-architect.md,2534,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,297
+./docs/personas/ai-engineer.md,8035,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1081
+./docs/personas/system-architect.md,2580,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,1,310
+./docs/personas/backend-architect.md,2346,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,284
+./docs/personas/graphql-architect.md,6784,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,902
+./docs/personas/socratic-mentor.md,12061,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1248
+./docs/personas/mermaid-expert.md,1248,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,13,168
+./docs/personas/README.md,2463,2026-01-13,# Chrysalis Persona Prompts ,1,0
+0,0
+0,0
+0,1,259
+./docs/personas/technical-writer.md,2847,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,343
+./docs/personas/vector-database-engineer.md,1595,2026-01-13,# Vector Database Engineer ,0
+0,0
+0,0
+0,0
+0,0
+0,222
+./docs/personas/requirements-analyst.md,2977,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,346
+./docs/personas/typescript-pro.md,1571,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,209
+./docs/personas/python-pro.md,6726,2026-01-13,--- ,0
+0,2,0
+0,0
+0,0
+0,916
+./docs/personas/prompt-engineer.md,10975,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1487
+./docs/personas/mlops-engineer.md,10446,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1479
+./docs/personas/root-cause-analyst.md,3022,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,360
+./docs/personas/context-manager.md,7853,2026-01-13,--- ,0
+0,1,0
+0,0
+0,0
+0,1006
+./docs/personas/blockchain-developer.md,9265,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1191
+./docs/personas/service-mesh-expert.md,1725,2026-01-13,# Service Mesh Expert ,0
+0,0
+0,0
+0,0
+0,0
+0,223
+./docs/personas/refactoring-expert.md,2947,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,353
+./docs/personas/docs-architect.md,3666,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,3,461
+./docs/personas/deep-research-agent.md,4702,2026-01-13,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,634
+./docs/DOCUMENTATION_INVENTORY.md,6400,2026-01-13,# Chrysalis Documentation Inventory ,10,0
+0,0
+0,43,0
+0,868
+./docs/INDEX.md,6683,2026-01-15,# Chrysalis Documentation Index ,1,0
+0,0
+0,0
+0,1,680
+./docs/adr/ADR-001-service-layer-independence.md,11057,2026-01-13,# ADR-001: Service Layer Independence and Shared Infrastructure ,4,0
+0,0
+0,15,0
+0,1273
+./docs/RUST_MIGRATION_ROADMAP_2026-01-16.md,17636,2026-01-16,# Chrysalis TypeScript to Rust Migration Roadmap ,8,0
+0,0
+0,28,1,2375
+./docs/ARCHITECTURE_AUDIT_2026-01-16.md,9940,2026-01-16,# Architecture Audit - January 16  2026 ,10,0
+0,0
+0,44,0
+0,1336
+./docs/user-guide/USER_GUIDE.md,26862,2026-01-13,# Chrysalis User Guide ,9,0
+0,0
+0,9,0
+0,3217
+./Agents/frontend-architect.md,2402,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,301
+./Agents/devops-architect.md,2534,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,297
+./Agents/system-architect.md,2580,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,1,310
+./Agents/backend-architect.md,2346,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,284
+./Agents/quality-engineer.md,2787,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,349
+./Agents/socratic-mentor.md,12061,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1248
+./Agents/technical-writer.md,2847,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,343
+./Agents/requirements-analyst.md,2977,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,346
+./Agents/security-engineer.md,3064,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,376
+./Agents/wshobson-agents/09_Specialized_Domains/Specialized/arm-cortex-expert.md,11901,2026-01-05,--- ,0
+0,0
+0,0
+0,2,0
+0,1573
+./Agents/wshobson-agents/09_Specialized_Domains/Specialized/context-manager.md,7853,2026-01-05,--- ,0
+0,1,0
+0,0
+0,0
+0,1006
+./Agents/wshobson-agents/09_Specialized_Domains/Specialized/blockchain-developer.md,9265,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1191
+./Agents/wshobson-agents/09_Specialized_Domains/Specialized/legacy-modernizer.md,1222,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,163
+./Agents/wshobson-agents/09_Specialized_Domains/Specialized/payment-integration.md,3119,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,423
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/event-sourcing-architect.md,1625,2026-01-05,# Event Sourcing Architect ,0
+0,0
+0,0
+0,0
+0,0
+0,226
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/frontend-developer.md,6745,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,946
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/backend-architect.md,18151,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,3,2146
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/cloud-architect.md,7381,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,894
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/architect-reviewer.md,7591,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,1,976
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/graphql-architect.md,6784,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,902
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/kubernetes-architect.md,9234,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1092
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/hybrid-cloud-architect.md,9355,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1102
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/monorepo-architect.md,1468,2026-01-05,# Monorepo Architect ,0
+0,0
+0,0
+0,0
+0,0
+0,210
+./Agents/wshobson-agents/01_Architecture_and_System_Design/Core_Architecture/service-mesh-expert.md,1725,2026-01-05,# Service Mesh Expert ,0
+0,0
+0,0
+0,0
+0,0
+0,223
+./Agents/wshobson-agents/01_Architecture_and_System_Design/UI_UX_and_Mobile/mobile-developer.md,8185,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1123
+./Agents/wshobson-agents/01_Architecture_and_System_Design/UI_UX_and_Mobile/ui-ux-designer.md,9019,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1188
+./Agents/wshobson-agents/01_Architecture_and_System_Design/UI_UX_and_Mobile/flutter-expert.md,8989,2026-01-05,--- ,0
+0,2,0
+0,0
+0,0
+0,1189
+./Agents/wshobson-agents/01_Architecture_and_System_Design/UI_UX_and_Mobile/ios-developer.md,8795,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1219
+./Agents/wshobson-agents/01_Architecture_and_System_Design/UI_UX_and_Mobile/ui-visual-validator.md,9405,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1242
+./Agents/wshobson-agents/agents.md,19383,2026-01-05,# Agent Reference ,0
+0,0
+0,0
+0,0
+0,1,1876
+./Agents/wshobson-agents/03_Infrastructure_and_Operations/DevOps_and_Deployment/terraform-specialist.md,8557,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,996
+./Agents/wshobson-agents/03_Infrastructure_and_Operations/DevOps_and_Deployment/dx-optimizer.md,1779,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,259
+./Agents/wshobson-agents/03_Infrastructure_and_Operations/DevOps_and_Deployment/devops-troubleshooter.md,9316,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1104
+./Agents/wshobson-agents/03_Infrastructure_and_Operations/DevOps_and_Deployment/deployment-engineer.md,8858,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1025
+./Agents/wshobson-agents/03_Infrastructure_and_Operations/Database_Management/database-architect.md,16548,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,5,1945
+./Agents/wshobson-agents/03_Infrastructure_and_Operations/Database_Management/database-optimizer.md,9762,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1121
+./Agents/wshobson-agents/03_Infrastructure_and_Operations/Database_Management/database-admin.md,9490,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1119
+./Agents/wshobson-agents/03_Infrastructure_and_Operations/Incident_Response_and_Network/network-engineer.md,9364,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,4,1140
+./Agents/wshobson-agents/03_Infrastructure_and_Operations/Incident_Response_and_Network/incident-responder.md,9904,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,1,1205
+./Agents/wshobson-agents/05_Data_and_AI/Data_Engineering_and_Analytics/data-engineer.md,10711,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1497
+./Agents/wshobson-agents/05_Data_and_AI/Data_Engineering_and_Analytics/data-scientist.md,9920,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1279
+./Agents/wshobson-agents/05_Data_and_AI/Machine_Learning_and_AI/ml-engineer.md,8824,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1146
+./Agents/wshobson-agents/05_Data_and_AI/Machine_Learning_and_AI/ai-engineer.md,8035,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1081
+./Agents/wshobson-agents/05_Data_and_AI/Machine_Learning_and_AI/vector-database-engineer.md,1595,2026-01-05,# Vector Database Engineer ,0
+0,0
+0,0
+0,0
+0,0
+0,222
+./Agents/wshobson-agents/05_Data_and_AI/Machine_Learning_and_AI/prompt-engineer.md,10975,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1487
+./Agents/wshobson-agents/05_Data_and_AI/Machine_Learning_and_AI/mlops-engineer.md,10446,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1479
+./Agents/wshobson-agents/06_Documentation_and_Technical_Writing/Documentation/reference-builder.md,4750,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,609
+./Agents/wshobson-agents/06_Documentation_and_Technical_Writing/Documentation/mermaid-expert.md,1248,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,13,168
+./Agents/wshobson-agents/06_Documentation_and_Technical_Writing/Documentation/c4-component.md,9692,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,14,1133
+./Agents/wshobson-agents/06_Documentation_and_Technical_Writing/Documentation/api-documenter.md,7430,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,951
+./Agents/wshobson-agents/06_Documentation_and_Technical_Writing/Documentation/tutorial-engineer.md,4353,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,1,581
+./Agents/wshobson-agents/06_Documentation_and_Technical_Writing/Documentation/c4-code.md,12542,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,26,1550
+./Agents/wshobson-agents/06_Documentation_and_Technical_Writing/Documentation/c4-context.md,10945,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,16,1409
+./Agents/wshobson-agents/06_Documentation_and_Technical_Writing/Documentation/docs-architect.md,3666,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,3,461
+./Agents/wshobson-agents/06_Documentation_and_Technical_Writing/Documentation/c4-container.md,11233,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,12,1292
+./Agents/wshobson-agents/README.md,10466,2026-01-05,# Agent Files - Organized Collection ,0
+0,0
+0,0
+0,0
+0,1,1303
+./Agents/wshobson-agents/02_Programming_Languages/Enterprise_and_JVM/csharp-pro.md,1687,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,225
+./Agents/wshobson-agents/02_Programming_Languages/Enterprise_and_JVM/scala-pro.md,5087,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,644
+./Agents/wshobson-agents/02_Programming_Languages/Enterprise_and_JVM/java-pro.md,7754,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1061
+./Agents/wshobson-agents/02_Programming_Languages/Web_and_Application/temporal-python-pro.md,10050,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1236
+./Agents/wshobson-agents/02_Programming_Languages/Web_and_Application/ruby-pro.md,1308,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,177
+./Agents/wshobson-agents/02_Programming_Languages/Web_and_Application/javascript-pro.md,1209,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,169
+./Agents/wshobson-agents/02_Programming_Languages/Web_and_Application/typescript-pro.md,1571,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,209
+./Agents/wshobson-agents/02_Programming_Languages/Web_and_Application/python-pro.md,6726,2026-01-05,--- ,0
+0,2,0
+0,0
+0,0
+0,916
+./Agents/wshobson-agents/02_Programming_Languages/Web_and_Application/php-pro.md,2063,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,278
+./Agents/wshobson-agents/02_Programming_Languages/Systems_and_Low_Level/cpp-pro.md,1397,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,201
+./Agents/wshobson-agents/02_Programming_Languages/Systems_and_Low_Level/c-pro.md,1163,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,172
+./Agents/wshobson-agents/02_Programming_Languages/Systems_and_Low_Level/golang-pro.md,6985,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,951
+./Agents/wshobson-agents/02_Programming_Languages/Systems_and_Low_Level/rust-pro.md,7019,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,988
+./Agents/wshobson-agents/02_Programming_Languages/Specialized_Platforms/unity-developer.md,10321,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1383
+./Agents/wshobson-agents/02_Programming_Languages/Specialized_Platforms/minecraft-bukkit-pro.md,4490,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,594
+./Agents/wshobson-agents/02_Programming_Languages/Specialized_Platforms/sql-pro.md,7116,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,950
+./Agents/wshobson-agents/02_Programming_Languages/Specialized_Platforms/haskell-pro.md,1781,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,241
+./Agents/wshobson-agents/02_Programming_Languages/Specialized_Platforms/elixir-pro.md,1472,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,206
+./Agents/wshobson-agents/02_Programming_Languages/Specialized_Platforms/django-pro.md,6494,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,872
+./Agents/wshobson-agents/02_Programming_Languages/Specialized_Platforms/fastapi-pro.md,5943,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,827
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Code_Quality_and_Review/threat-modeling-expert.md,1381,2026-01-05,# Threat Modeling Expert ,0
+0,0
+0,0
+0,0
+0,2,200
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Code_Quality_and_Review/code-reviewer.md,8400,2026-01-05,--- ,0
+0,1,0
+0,0
+0,0
+0,1100
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Code_Quality_and_Review/frontend-security-coder.md,10986,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1301
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Code_Quality_and_Review/backend-security-coder.md,9291,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1129
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Code_Quality_and_Review/security-auditor.md,9366,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1115
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Code_Quality_and_Review/mobile-security-coder.md,12152,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1431
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Testing_and_Debugging/test-automator.md,10623,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1431
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Testing_and_Debugging/error-detective.md,1201,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,172
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Testing_and_Debugging/tdd-orchestrator.md,9824,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1257
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Testing_and_Debugging/debugger.md,781,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,117
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Performance_and_Observability/search-specialist.md,1862,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,261
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Performance_and_Observability/observability-engineer.md,12302,2026-01-05,--- ,0
+0,1,0
+0,0
+0,0
+0,1577
+./Agents/wshobson-agents/04_Quality_Assurance_and_Security/Performance_and_Observability/performance-engineer.md,10239,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,1184
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-keyword-strategist.md,2238,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,293
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-structure-architect.md,2393,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,323
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-content-writer.md,2015,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,279
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-authority-builder.md,2955,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,396
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-snippet-hunter.md,2464,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,343
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-content-planner.md,2028,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,285
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-meta-optimizer.md,2194,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,305
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-content-auditor.md,2017,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,297
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-content-refresher.md,2540,2026-01-05,--- ,0
+0,2,0
+0,0
+0,0
+0,366
+./Agents/wshobson-agents/08_SEO_and_Content_Optimization/SEO_Agents/seo-cannibalization-detector.md,2639,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,362
+./Agents/wshobson-agents/07_Business_and_Operations/Marketing_and_Sales/content-marketer.md,8200,2026-01-05,--- ,0
+0,1,0
+0,0
+0,0
+0,1088
+./Agents/wshobson-agents/07_Business_and_Operations/Marketing_and_Sales/sales-automator.md,937,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,140
+./Agents/wshobson-agents/07_Business_and_Operations/Business_Analysis_and_Finance/quant-analyst.md,1293,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,176
+./Agents/wshobson-agents/07_Business_and_Operations/Business_Analysis_and_Finance/risk-manager.md,1389,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,201
+./Agents/wshobson-agents/07_Business_and_Operations/Business_Analysis_and_Finance/business-analyst.md,7261,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,954
+./Agents/wshobson-agents/07_Business_and_Operations/Support_and_Legal/legal-advisor.md,1920,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,258
+./Agents/wshobson-agents/07_Business_and_Operations/Support_and_Legal/hr-pro.md,7859,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,998
+./Agents/wshobson-agents/07_Business_and_Operations/Support_and_Legal/customer-support.md,8192,2026-01-05,--- ,0
+0,1,0
+0,0
+0,0
+0,1047
+./Agents/root-cause-analyst.md,3022,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,360
+./Agents/system-agents/README.md,8962,2026-01-13,# System Agents Layer (Horizontal 2) ,1,0
+0,0
+0,0
+0,0
+0,1001
+./Agents/Custom-Modes-Roo-Code/researched.md,18494,2026-01-13,# Researched Agents for Improvement ,0
+0,9,0
+0,1,0
+0,1655
+./Agents/Custom-Modes-Roo-Code/README.md,12184,2026-01-13,![Banner](banner.png) ,0
+0,12,0
+0,12,0
+0,1386
+./Agents/Custom-Modes-Roo-Code/CONTRIBUTING.md,6913,2026-01-13,# Contributing to Custom Modes for Roo Code 🤝 ,0
+0,3,0
+0,1,0
+0,925
+./Agents/Custom-Modes-Roo-Code/CLAUDE.md,29430,2026-01-13,# Custom Modes for Roo Code - Claude Code System Reference ,0
+0,15,0
+0,6,1,3456
+./Agents/refactoring-expert.md,2946,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,353
+./Agents/deep-research-agent.md,4702,2026-01-05,--- ,0
+0,0
+0,0
+0,0
+0,0
+0,634
+./projects/README.md,643,2026-01-05,# projects (✅ current) ,0
+0,0
+0,0
+0,1,0
+0,72
+./projects/SkillBuilder/cmd/README.md,240,2026-01-05,# SkillBuilder Go Commands ,0
+0,0
+0,0
+0,0
+0,0
+0,32
+./projects/SkillBuilder/pkg/README.md,219,2026-01-05,# SkillBuilder Go Packages ,0
+0,0
+0,0
+0,0
+0,0
+0,27
+./projects/SkillBuilder/skill_synthesis/README.md,575,2026-01-05,# SkillBuilder Clojure Synthesis Engine ,0
+0,0
+0,0
+0,0
+0,0
+0,76
+./projects/SkillBuilder/README.md,1897,2026-01-13,# SkillBuilder ,0
+0,0
+0,0
+0,0
+0,0
+0,264
+./projects/SkillBuilder/reports/vonnegut/mode-reference.md,350,2026-01-05,# vonnegut Reference ,0
+0,0
+0,0
+0,0
+0,0
+0,50
+./projects/SkillBuilder/reports/vonnegut/citations.md,21514,2026-01-05,# Citations ,126,3,0
+0,0
+0,1,1661
+./projects/SkillBuilder/reports/vonnegut/knowledge-graph.md,618,2026-01-05,```mermaid ,0
+0,0
+0,0
+0,0
+0,0
+0,54
+./projects/SkillBuilder/reports/vonnegut/semantic-map.md,355,2026-01-05,# Semantic Map: vonnegut ,0
+0,0
+0,0
+0,0
+0,0
+0,40
+./projects/SkillBuilder/reports/vonnegut/skills.md,2402,2026-01-05,# Skills for vonnegut ,0
+0,0
+0,0
+0,0
+0,0
+0,316
+./projects/SkillBuilder/reports/vonnegut/synthesis-flow.md,981,2026-01-05,```mermaid ,0
+0,0
+0,0
+0,0
+0,0
+0,88
+./projects/SkillBuilder/reports/vonnegut/generated-mode.md,1522,2026-01-05,# vonnegut ,0
+0,0
+0,0
+0,0
+0,0
+0,211
+./projects/SkillBuilder/reports/testcase_minimal/Senior Software Engineer/citations.md,13,2026-01-05,# Citations ,0
+0,0
+0,0
+0,0
+0,0
+0,2
+./projects/SkillBuilder/reports/testcase_minimal/Senior Software Engineer/semantic-map.md,77,2026-01-05,# Semantic Map ,0
+0,0
+0,0
+0,0
+0,0
+0,11
+./projects/SkillBuilder/reports/testcase_minimal/Senior Software Engineer/skills.md,75,2026-01-05,# Skills ,0
+0,0
+0,0
+0,0
+0,0
+0,11
+./projects/SkillBuilder/reports/testcase_minimal/Senior Software Engineer/generated-mode.md,50,2026-01-05,# Generated Mode ,0
+0,0
+0,0
+0,0
+0,0
+0,8
+./projects/SkillBuilder/reports/test-vonnegut/mode-reference.md,356,2026-01-05,# test-vonnegut Reference ,0
+0,0
+0,0
+0,0
+0,0
+0,50
+./projects/SkillBuilder/reports/test-vonnegut/citations.md,18833,2026-01-05,# Citations ,110,2,0
+0,0
+0,1,1468
+./projects/SkillBuilder/reports/test-vonnegut/knowledge-graph.md,680,2026-01-05,```mermaid ,0
+0,0
+0,0
+0,0
+0,0
+0,57
+./projects/SkillBuilder/reports/test-vonnegut/semantic-map.md,372,2026-01-05,# Semantic Map: test-vonnegut ,0
+0,0
+0,0
+0,0
+0,0
+0,39
+./projects/SkillBuilder/reports/test-vonnegut/skills.md,3002,2026-01-05,# Skills for test-vonnegut ,0
+0,0
+0,0
+0,0
+0,0
+0,401
+./projects/SkillBuilder/reports/test-vonnegut/synthesis-flow.md,986,2026-01-05,```mermaid ,0
+0,0
+0,0
+0,0
+0,0
+0,88
+./projects/SkillBuilder/reports/test-vonnegut/generated-mode.md,1720,2026-01-05,# test-vonnegut ,0
+0,0
+0,0
+0,0
+0,0
+0,247
+./projects/SkillBuilder/reports/hadley-wickham/mode-reference.md,624,2026-01-05,# hadley-wickham Reference ,0
+0,0
+0,0
+0,0
+0,0
+0,80
+./projects/SkillBuilder/reports/hadley-wickham/citations.md,12762,2026-01-05,# Citations ,84,1,0
+0,0
+0,0
+0,1063
+./projects/SkillBuilder/reports/hadley-wickham/semantic-map.md,601,2026-01-05,# Semantic Map: hadley-wickham ,0
+0,0
+0,0
+0,0
+0,0
+0,58
+./projects/SkillBuilder/reports/hadley-wickham/skills.md,4911,2026-01-05,# Skills for hadley-wickham ,0
+0,0
+0,0
+0,0
+0,0
+0,645
+./projects/SkillBuilder/reports/hadley-wickham/generated-mode.md,2983,2026-01-05,# hadley-wickham ,0
+0,0
+0,0
+0,0
+0,0
+0,398
+./projects/SkillBuilder/reports/Data Scientist/mode-reference.md,480,2026-01-05,# Data Scientist Reference ,0
+0,0
+0,0
+0,0
+0,0
+0,61
+./projects/SkillBuilder/reports/Data Scientist/citations.md,24222,2026-01-05,# Citations ,152,3,0
+0,0
+0,0
+0,1932
+./projects/SkillBuilder/reports/Data Scientist/semantic-map.md,478,2026-01-05,# Semantic Map: Data Scientist ,0
+0,0
+0,0
+0,0
+0,0
+0,48
+./projects/SkillBuilder/reports/Data Scientist/skills.md,4141,2026-01-05,# Skills for Data Scientist ,0
+0,0
+0,0
+0,0
+0,0
+0,524
+./projects/SkillBuilder/reports/Data Scientist/generated-mode.md,2321,2026-01-05,# Data Scientist ,0
+0,0
+0,0
+0,0
+0,0
+0,307
+./projects/SkillBuilder/standards-mode.md,9314,2026-01-05,#  Complex Perspective  Analytic Rigor & Collaborative Integrity ,0
+0,0
+0,0
+0,0
+0,1,1275
+./projects/SkillBuilder/plans/semantic-mode-observability-ml-review.md,9444,2026-01-05,# SkillBuilder Observability-Driven ML Enhancement Plan ,0
+0,0
+0,0
+0,0
+0,0
+0,1045
+./projects/SkillBuilder/docs/audit.md,1027,2026-01-05,# Documentation Audit (Current vs Historical) ,0
+0,0
+0,0
+0,0
+0,0
+0,137
+./projects/SkillBuilder/docs/architecture/cli-flow.md,16033,2026-01-05,# CLI Flow Architecture ,0
+0,0
+0,1,1,1,1723
+./projects/SkillBuilder/docs/architecture/data-models.md,2510,2026-01-05,# Data Models and Contracts ,0
+0,1,0
+0,0
+0,1,313
+./projects/SkillBuilder/docs/architecture/overview.md,4207,2026-01-05,# Architecture Overview ,0
+0,1,0
+0,0
+0,3,509
+./projects/SkillBuilder/docs/architecture/README.md,1036,2026-01-05,# SkillBuilder Architecture Specifications ,0
+0,0
+0,0
+0,0
+0,2,121
+./projects/SkillBuilder/docs/architecture/security.md,2192,2026-01-05,# Security and Safety Model ,0
+0,1,0
+0,0
+0,0
+0,273
+./projects/SkillBuilder/docs/architecture/semantic-merge.md,12604,2026-01-05,# Semantic Merge Architecture ,0
+0,0
+0,0
+0,0
+0,0
+0,1694
+./projects/SkillBuilder/docs/architecture/observability.md,2185,2026-01-05,# Observability (Telemetry) ,0
+0,0
+0,0
+0,0
+0,0
+0,231
+./projects/SkillBuilder/docs/guides/operator.md,3105,2026-01-05,# Operator Guide: Creating a Mode ,0
+0,0
+0,0
+0,0
+0,0
+0,445
+./projects/SkillBuilder/docs/guides/README.md,515,2026-01-05,# SkillBuilder Guides ,0
+0,0
+0,0
+0,0
+0,0
+0,65
+./projects/SkillBuilder/docs/guides/agent.md,995,2026-01-05,# Agent Guide: Minimizing Information Loss ,0
+0,0
+0,0
+0,0
+0,0
+0,141
+./projects/SkillBuilder/docs/guides/testing.md,1362,2026-01-05,# Testing  Calibration  and Debugging ,0
+0,0
+0,0
+0,0
+0,0
+0,159
+./projects/SkillBuilder/docs/archive/implementation-gaps-analysis_legacy.md,25041,2026-01-05,# SkillBuilder Implementation Gaps Analysis ,0
+0,1,0
+0,0
+0,0
+0,2520
+./projects/SkillBuilder/docs/archive/Custom-Modes.md,80500,2026-01-05,# 🚧 Archived / Non-Current ,0
+0,2,7,8,4,9062
+./projects/SkillBuilder/docs/archive/README.md,512,2026-01-05,# Archive Index (Non-Current) ,0
+0,0
+0,0
+0,0
+0,0
+0,66
+./projects/SkillBuilder/docs/README.md,1842,2026-01-05,# SkillBuilder Documentation Index ,0
+0,0
+0,0
+0,0
+0,0
+0,217
+./projects/SkillBuilder/docs/status.md,4312,2026-01-05,# Project Status (Single Source of Truth) ,0
+0,1,1,0
+0,0
+0,518
+./projects/SkillBuilder/SemanticMode/PLang Mode/mode-reference.md,276,2026-01-05,# PLang Mode Reference ,0
+0,0
+0,0
+0,0
+0,0
+0,42
+./projects/SkillBuilder/SemanticMode/PLang Mode/citations.md,14000,2026-01-05,# Citations ,81,0
+0,0
+0,0
+0,0
+0,1094
+./projects/SkillBuilder/SemanticMode/PLang Mode/knowledge-graph.md,591,2026-01-05,```mermaid ,0
+0,0
+0,0
+0,0
+0,0
+0,51
+./projects/SkillBuilder/SemanticMode/PLang Mode/semantic-map.md,333,2026-01-05,# Semantic Map: PLang Mode ,0
+0,0
+0,0
+0,0
+0,0
+0,38
+./projects/SkillBuilder/SemanticMode/PLang Mode/skills.md,974,2026-01-05,# Skills for PLang Mode ,0
+0,0
+0,0
+0,0
+0,0
+0,120
+./projects/SkillBuilder/SemanticMode/PLang Mode/synthesis-flow.md,983,2026-01-05,```mermaid ,0
+0,0
+0,0
+0,0
+0,0
+0,89
+./projects/SkillBuilder/SemanticMode/PLang Mode/generated-mode.md,863,2026-01-05,# PLang Mode ,0
+0,0
+0,0
+0,0
+0,0
+0,121
+./projects/KnowledgeBuilder/ARCHITECTURE.md,23916,2026-01-05,# KnowledgeBuilder: System Architecture ,0
+0,2,0
+0,0
+0,2,2597
+./projects/KnowledgeBuilder/TOOL_ASSESSMENT.md,21324,2026-01-05,# KnowledgeBuilder: Tool & Resource Assessment ,0
+0,2,0
+0,20,1,2804
+./projects/KnowledgeBuilder/EMBEDDING_IMPROVEMENTS_PLAN.md,22296,2026-01-13,# Embedding Service Improvements - Implementation Plan ,0
+0,0
+0,0
+0,21,0
+0,2326
+./projects/KnowledgeBuilder/archive/2025-12-code-review/IMPLEMENTATION_PLAN.md,32534,2026-01-05,# KnowledgeBuilder: Implementation Plan ,4,5,0
+0,32,0
+0,3425
+./projects/KnowledgeBuilder/archive/2025-12-code-review/REVIEW_VISUAL_SUMMARY.md,23127,2026-01-05,# KnowledgeBuilder: Code Review Visual Summary ,22,4,0
+0,25,1,2604
+./projects/KnowledgeBuilder/archive/2025-12-code-review/COMPREHENSIVE_CODE_REVIEW.md,129582,2026-01-05,# KnowledgeBuilder: Comprehensive Multi-Perspective Code Review ,1,2,0
+0,14,0
+0,12999
+./projects/KnowledgeBuilder/archive/2025-12-code-review/REVIEW_SUMMARY.md,15389,2026-01-05,# KnowledgeBuilder: Code Review Executive Summary ,0
+0,2,0
+0,18,0
+0,2042
+./projects/KnowledgeBuilder/archive/2025-12-code-review/README.md,5772,2026-01-09,# KnowledgeBuilder Code Review Archive (December 2025) ,2,4,0
+0,0
+0,5,693
+./projects/KnowledgeBuilder/archive/2025-12-code-review/CODE_REVIEW_QUICK_REFERENCE.md,15705,2026-01-05,# KnowledgeBuilder: Code Review Quick Reference ,0
+0,2,0
+0,2,1,1991
+./projects/KnowledgeBuilder/archive/2025-12-code-review/DOCUMENTATION_UPDATE_SUMMARY.md,17782,2026-01-05,# Documentation Update Summary ,0
+0,2,1,29,29,2325
+./projects/KnowledgeBuilder/QUICK_START_GUIDE.md,2756,2026-01-13,# Embedding Service Improvements - Quick Start Guide ,0
+0,0
+0,0
+0,7,0
+0,350
+./projects/KnowledgeBuilder/README.md,11500,2026-01-05,# KnowledgeBuilder ,0
+0,1,0
+0,5,1,1361
+./projects/KnowledgeBuilder/IMPLEMENTATION.md,28949,2026-01-05,# KnowledgeBuilder: Implementation Guide ,0
+0,2,0
+0,0
+0,0
+0,2411
+./projects/KnowledgeBuilder/DATA_SOURCES.md,26983,2026-01-05,# KnowledgeBuilder: Data Source Architecture ,0
+0,2,0
+0,0
+0,1,2469
+./projects/KnowledgeBuilder/IMPLEMENTATION_CHECKLIST.md,9613,2026-01-13,# Embedding Service Improvements - Implementation Checklist ,0
+0,0
+0,0
+0,4,0
+0,1621
+./projects/KnowledgeBuilder/docs/STANDARDS.md,7523,2026-01-05,# KnowledgeBuilder Documentation Standards ,0
+0,2,2,0
+0,16,985
+./projects/KnowledgeBuilder/docs/STATUS_NOTES.md,1078,2026-01-05,# Status Notes (current session) ,0
+0,1,0
+0,0
+0,0
+0,139
+./projects/KnowledgeBuilder/docs/NAVIGATION.md,9399,2026-01-05,# KnowledgeBuilder: Documentation Navigation ,0
+0,2,1,0
+0,9,1055
+./projects/KnowledgeBuilder/IMPROVEMENTS_RECOMMENDATIONS.md,13895,2026-01-13,# Embedding Service Improvements - Recommendations ,0
+0,0
+0,0
+0,0
+0,0
+0,1350
+./Replicants/legends/README.md,4645,2026-01-05,# Legendary Computer Science Replicants ,0
+0,0
+0,0
+0,0
+0,0
+0,534
+./memory_system/README.md,11655,2026-01-13,# Memory System - Semantic Services Package ,1,0
+0,0
+0,4,0
+0,1225
+./PUSH_INSTRUCTIONS.md,4695,2026-01-16,# Push Instructions - GitHub Workflow Scope Issue ,2,0
+0,0
+0,2,0
+0,702
+./usa_adapters/README.md,1970,2026-01-05,# uSA → Runtime Adapter Scaffold ,0
+0,0
+0,0
+0,0
+0,0
+0,241
+./DEBATE_SYSTEM_OVERVIEW.md,11062,2026-01-15,# 🦋 Chrysalis Investment Debate System ,4,0
+0,0
+0,11,0
+0,1342
+./Borrowed_Ideas/CHRY_Borrowed_Ideas_Integration_Analysis.md,7706,2026-01-15,# Chrysalis + Borrowed Ideas: Integration Analysis ,1,0
+0,0
+0,0
+0,0
+0,1025
+./Borrowed_Ideas/JOBS_EVENTS_SCHEMA_PROPOSAL.md,4238,2026-01-15,# Chrysalis: Durable Jobs + Events Schema Proposal (Version 85) ,1,0
+0,0
+0,1,0
+0,539
+./Borrowed_Ideas/borrowed-ideas-analysis.md,21795,2026-01-15,# Borrowed Ideas Technical Analysis for Chrysalis Integration ,1,0
+0,0
+0,0
+0,1,2573
+./Borrowed_Ideas/SYSTEM_AGENT_MIDDLEWARE_DESIGN.md,29946,2026-01-15,# System Agent Middleware Design Specification ,1,0
+0,0
+0,4,2,3108
+./Borrowed_Ideas/Borrowed_Ideas_Action_Plan.md,5305,2026-01-15,# Borrowed Ideas → Chrysalis Action Plan (Merged) ,1,0
+0,0
+0,0
+0,0
+0,647
+./Borrowed_Ideas/AGENT_JOBS_AND_CONVERSATIONS.md,14138,2026-01-15,# Agent Jobs and Proactive Conversations System ,0
+0,0
+0,0
+0,0
+0,0
+0,1549
+./Borrowed_Ideas/Shared-Conversational-Middleware-Research.md,19446,2026-01-15,# Shared Conversational Middleware (SCM) for Multi‑Agent Human Chats ,1,0
+0,0
+0,0
+0,1,2560
+./shared/crdt_schema.md,4381,2026-01-13,# CRDT Schema Specification ,1,0
+0,0
+0,3,0
+0,591

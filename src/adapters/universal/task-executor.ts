@@ -347,7 +347,13 @@ export class UniversalAdapterTaskExecutor {
       task.protocol
     );
     
-    telemetry.warnings.push(...(result.warnings || []));
+    // Convert warnings to strings if they're objects
+    if (result.warnings) {
+      const warningStrings = result.warnings.map(w => 
+        typeof w === 'string' ? w : (w as any).message || String(w)
+      );
+      telemetry.warnings.push(...warningStrings);
+    }
     
     return result;
   }

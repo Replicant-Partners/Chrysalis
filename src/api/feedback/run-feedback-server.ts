@@ -13,6 +13,15 @@ import { logger } from '../../observability';
 
 const PORT = parseInt(process.env.FEEDBACK_API_PORT || '3002');
 
+/**
+ * Extended HTTP request with parsed data
+ */
+interface ParsedRequest extends http.IncomingMessage {
+  body?: Record<string, unknown>;
+  query?: Record<string, string>;
+  params?: Record<string, string>;
+}
+
 async function main() {
   const feedbackApi = createFeedbackApiHandler({
     emailNotifications: {
@@ -22,7 +31,10 @@ async function main() {
     webhookUrl: process.env.FEEDBACK_WEBHOOK_URL
   });
 
-  const server = http.createServer(async (req, res) => {
+  const server = http.createServer(async (req: http.IncomingMessage, res) => {
+    // Cast to ParsedRequest for type safety
+    const parsedReq = req as ParsedRequest;
+    
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
@@ -46,7 +58,7 @@ async function main() {
       req.on('end', () => {
         if (body) {
           try {
-            (req as any).body = JSON.parse(body);
+            parsedReq.body = JSON.parse(body);
           } catch (error) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Invalid JSON' }));
@@ -65,16 +77,16 @@ async function main() {
 
     try {
       if (path === '/api/feedback' && req.method === 'POST') {
-        await feedbackApi.submitFeedback(req, res);
+        await feedbackApi.submitFeedback(parsedReq, res);
       } else if (path === '/api/feedback' && req.method === 'GET') {
-        (req as any).query = Object.fromEntries(url.searchParams);
-        await feedbackApi.listFeedback(req, res);
+        parsedReq.query = Object.fromEntries(url.searchParams);
+        await feedbackApi.listFeedback(parsedReq, res);
       } else if (path.match(/^\/api\/feedback\/[^/]+$/) && req.method === 'GET') {
-        (req as any).params = { id: path.split('/')[3] };
-        await feedbackApi.getFeedback(req, res);
+        parsedReq.params = { id: path.split('/')[3] };
+        await feedbackApi.getFeedback(parsedReq, res);
       } else if (path.match(/^\/api\/feedback\/[^/]+$/) && req.method === 'PATCH') {
-        (req as any).params = { id: path.split('/')[3] };
-        await feedbackApi.updateFeedbackStatus(req, res);
+        parsedReq.params = { id: path.split('/')[3] };
+        await feedbackApi.updateFeedbackStatus(parsedReq, res);
       } else {
         res.writeHead(404);
         res.end(JSON.stringify({ error: 'Not found' }));

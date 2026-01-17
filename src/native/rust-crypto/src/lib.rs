@@ -334,7 +334,7 @@ pub fn batch_verify(
 // HMAC Operations
 // ============================================================================
 
-use hmac::{Hmac, Mac};
+use hmac::Hmac;
 
 type HmacSha256 = Hmac<Sha256>;
 type HmacSha384 = Hmac<Sha384>;
@@ -343,28 +343,25 @@ type HmacSha512 = Hmac<Sha512>;
 /// Compute HMAC-SHA256
 #[wasm_bindgen]
 pub fn hmac_sha256(key: &[u8], data: &[u8]) -> Vec<u8> {
-    use hmac::Mac;
-    let mut mac = HmacSha256::new_from_slice(key).expect("HMAC accepts any key length");
-    mac.update(data);
-    mac.finalize().into_bytes().to_vec()
+    let mut mac = <HmacSha256 as hmac::Mac>::new_from_slice(key).expect("HMAC accepts any key length");
+    hmac::Mac::update(&mut mac, data);
+    hmac::Mac::finalize(mac).into_bytes().to_vec()
 }
 
 /// Compute HMAC-SHA384
 #[wasm_bindgen]
 pub fn hmac_sha384(key: &[u8], data: &[u8]) -> Vec<u8> {
-    use hmac::Mac;
-    let mut mac = HmacSha384::new_from_slice(key).expect("HMAC accepts any key length");
-    mac.update(data);
-    mac.finalize().into_bytes().to_vec()
+    let mut mac = <HmacSha384 as hmac::Mac>::new_from_slice(key).expect("HMAC accepts any key length");
+    hmac::Mac::update(&mut mac, data);
+    hmac::Mac::finalize(mac).into_bytes().to_vec()
 }
 
 /// Compute HMAC-SHA512
 #[wasm_bindgen]
 pub fn hmac_sha512(key: &[u8], data: &[u8]) -> Vec<u8> {
-    use hmac::Mac;
-    let mut mac = HmacSha512::new_from_slice(key).expect("HMAC accepts any key length");
-    mac.update(data);
-    mac.finalize().into_bytes().to_vec()
+    let mut mac = <HmacSha512 as hmac::Mac>::new_from_slice(key).expect("HMAC accepts any key length");
+    hmac::Mac::update(&mut mac, data);
+    hmac::Mac::finalize(mac).into_bytes().to_vec()
 }
 
 // ============================================================================

@@ -205,7 +205,7 @@ export class TerminalPTYServer {
         this.closeSession(message.sessionId);
         break;
       default:
-        this.sendError(ws, message.sessionId, `Unknown message type: ${(message as any).type}`);
+        this.sendError(ws, message.sessionId, `Unknown message type: ${(message as IncomingMessage & { type: string }).type}`);
     }
   }
 

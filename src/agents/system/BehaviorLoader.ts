@@ -73,10 +73,12 @@ export class BehaviorLoader {
     // Load behavior section
     if (persona.behavior) {
       const behavior: BehaviorConfig = {
-        jobs: persona.behavior.jobs as any[] || [],
-        conversation_triggers: persona.behavior.conversation_triggers as any[] || [],
-        openers: persona.behavior.openers as any[] || [],
-        idioms: persona.behavior.idioms as any[] || [],
+        jobs: Array.isArray(persona.behavior.jobs) ? persona.behavior.jobs : [],
+        conversation_triggers: Array.isArray(persona.behavior.conversation_triggers) 
+          ? persona.behavior.conversation_triggers 
+          : [],
+        openers: Array.isArray(persona.behavior.openers) ? persona.behavior.openers : [],
+        idioms: Array.isArray(persona.behavior.idioms) ? persona.behavior.idioms : [],
       };
       this.configs.set(agentId, behavior);
 

@@ -80,6 +80,26 @@ export interface CryptoModule {
   IncrementalHasher: {
     new (algorithm: HashAlgorithm): IncrementalHasherInstance;
   };
+
+  // AES-GCM Encryption (new)
+  aes_gcm_encrypt(plaintext: Uint8Array, key: Uint8Array): Uint8Array;
+  aes_gcm_decrypt(encrypted: Uint8Array, key: Uint8Array): Uint8Array;
+  generate_aes_key(): Uint8Array;
+
+  // Scrypt Key Derivation (new)
+  scrypt_derive_key(
+    password: Uint8Array,
+    salt: Uint8Array,
+    keyLength: number
+  ): Uint8Array;
+
+  // Password-based Encryption (new)
+  encrypt_with_password(plaintext: Uint8Array, password: string): Uint8Array;
+  decrypt_with_password(encrypted: Uint8Array, password: string): Uint8Array;
+
+  // Token Generation (new)
+  generate_token(length: number): string;
+  generate_token_base64(length: number): string;
 }
 
 export interface Ed25519KeyPairInstance {
@@ -375,6 +395,108 @@ function createFallbackCrypto(): CryptoModule {
         return this.h.digest('hex');
       }
     } as unknown as CryptoModule['IncrementalHasher'],
+
+    // AES-GCM Encryption
+    aes_gcm_encrypt(plaintext: Uint8Array, key: Uint8Array): Uint8Array {
+      const nonce = nodeCrypto.randomBytes(12);
+      const cipher = nodeCrypto.createCipheriv(
+        'aes-256-gcm',
+        Buffer.from(key),
+        nonce
+      );
+      const encrypted = Buffer.concat([
+        cipher.update(Buffer.from(plaintext)),
+        cipher.final(),
+      ]);
+      const authTag = cipher.getAuthTag();
+      // Format: nonce (12) + ciphertext + authTag (16)
+      return new Uint8Array(Buffer.concat([nonce, encrypted, authTag]));
+    },
+
+    aes_gcm_decrypt(encrypted: Uint8Array, key: Uint8Array): Uint8Array {
+      const buf = Buffer.from(encrypted);
+      const nonce = buf.slice(0, 12);
+      const authTag = buf.slice(-16);
+      const ciphertext = buf.slice(12, -16);
+
+      const decipher = nodeCrypto.createDecipheriv(
+        'aes-256-gcm',
+        Buffer.from(key),
+        nonce
+      );
+      decipher.setAuthTag(authTag);
+
+      return new Uint8Array(
+        Buffer.concat([decipher.update(ciphertext), decipher.final()])
+      );
+    },
+
+    generate_aes_key(): Uint8Array {
+      return new Uint8Array(nodeCrypto.randomBytes(32));
+    },
+
+    // Scrypt Key Derivation
+    scrypt_derive_key(
+      password: Uint8Array,
+      salt: Uint8Array,
+      keyLength: number
+    ): Uint8Array {
+      const derived = nodeCrypto.scryptSync(
+        Buffer.from(password),
+        Buffer.from(salt),
+        keyLength,
+        { N: 32768, r: 8, p: 1 }
+      );
+      return new Uint8Array(derived);
+    },
+
+    // Password-based Encryption
+    encrypt_with_password(plaintext: Uint8Array, password: string): Uint8Array {
+      const salt = nodeCrypto.randomBytes(32);
+      const key = nodeCrypto.scryptSync(password, salt, 32, {
+        N: 32768,
+        r: 8,
+        p: 1,
+      });
+      const nonce = nodeCrypto.randomBytes(12);
+      const cipher = nodeCrypto.createCipheriv('aes-256-gcm', key, nonce);
+      const encrypted = Buffer.concat([
+        cipher.update(Buffer.from(plaintext)),
+        cipher.final(),
+      ]);
+      const authTag = cipher.getAuthTag();
+      // Format: salt (32) + nonce (12) + ciphertext + authTag (16)
+      return new Uint8Array(Buffer.concat([salt, nonce, encrypted, authTag]));
+    },
+
+    decrypt_with_password(encrypted: Uint8Array, password: string): Uint8Array {
+      const buf = Buffer.from(encrypted);
+      const salt = buf.slice(0, 32);
+      const nonce = buf.slice(32, 44);
+      const authTag = buf.slice(-16);
+      const ciphertext = buf.slice(44, -16);
+
+      const key = nodeCrypto.scryptSync(password, salt, 32, {
+        N: 32768,
+        r: 8,
+        p: 1,
+      });
+      const decipher = nodeCrypto.createDecipheriv('aes-256-gcm', key, nonce);
+      decipher.setAuthTag(authTag);
+
+      return new Uint8Array(
+        Buffer.concat([decipher.update(ciphertext), decipher.final()])
+      );
+    },
+
+    // Token Generation
+    generate_token(length: number): string {
+      return nodeCrypto.randomBytes(length).toString('hex');
+    },
+
+    generate_token_base64(length: number): string {
+      return nodeCrypto.randomBytes(length).toString('base64url');
+    },
   };
 
   return fallback;
@@ -457,6 +579,65 @@ export class ChrysalisCrypto {
 
   constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
     return this.module.constant_time_eq(a, b);
+  }
+
+  // AES-GCM Encryption
+  encrypt(plaintext: string | Uint8Array, key: Uint8Array): Uint8Array {
+    const bytes =
+      typeof plaintext === 'string'
+        ? new TextEncoder().encode(plaintext)
+        : plaintext;
+    return this.module.aes_gcm_encrypt(bytes, key);
+  }
+
+  decrypt(encrypted: Uint8Array, key: Uint8Array): Uint8Array {
+    return this.module.aes_gcm_decrypt(encrypted, key);
+  }
+
+  decryptToString(encrypted: Uint8Array, key: Uint8Array): string {
+    const decrypted = this.module.aes_gcm_decrypt(encrypted, key);
+    return new TextDecoder().decode(decrypted);
+  }
+
+  generateKey(): Uint8Array {
+    return this.module.generate_aes_key();
+  }
+
+  // Password-based Encryption
+  encryptWithPassword(plaintext: string | Uint8Array, password: string): Uint8Array {
+    const bytes =
+      typeof plaintext === 'string'
+        ? new TextEncoder().encode(plaintext)
+        : plaintext;
+    return this.module.encrypt_with_password(bytes, password);
+  }
+
+  decryptWithPassword(encrypted: Uint8Array, password: string): Uint8Array {
+    return this.module.decrypt_with_password(encrypted, password);
+  }
+
+  decryptWithPasswordToString(encrypted: Uint8Array, password: string): string {
+    const decrypted = this.module.decrypt_with_password(encrypted, password);
+    return new TextDecoder().decode(decrypted);
+  }
+
+  // Key Derivation
+  deriveKey(
+    password: string,
+    salt: Uint8Array,
+    keyLength: number = 32
+  ): Uint8Array {
+    const passwordBytes = new TextEncoder().encode(password);
+    return this.module.scrypt_derive_key(passwordBytes, salt, keyLength);
+  }
+
+  // Token Generation
+  generateToken(length: number = 32): string {
+    return this.module.generate_token(length);
+  }
+
+  generateTokenBase64(length: number = 32): string {
+    return this.module.generate_token_base64(length);
   }
 }
 

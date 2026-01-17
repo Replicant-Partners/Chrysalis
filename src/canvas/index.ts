@@ -1,43 +1,39 @@
 /**
  * Canvas System
- *
- * Complete canvas-widget architecture for the five canvas types:
- * - Settings Canvas
- * - Board Canvas
- * - Scrapbook Canvas
- * - Research Canvas
- * - Terminal-Browser Canvas
+ * 
+ * Exports for the Chrysalis canvas system.
+ * 
+ * @module canvas
  */
 
-// Core canvas abstractions
-export * from './core';
+// Core types
+export * from './types';
 
-// Widget system
-export * from './widgets';
+// Widget registry
+export { WidgetRegistry, createWidgetRegistry } from './WidgetRegistry';
+export type {
+  WidgetCreationRequest,
+  WidgetValidationResult,
+  RegistryStats
+} from './WidgetRegistry';
 
-// Canvas-widget binding
-export * from './binding';
+// Base canvas
+export { BaseCanvas } from './BaseCanvas';
+export type { BaseCanvasProps } from './BaseCanvas';
 
-// Layout engine
-export * from './layout';
+// Canvas implementations
+export { TerminalCanvas } from './canvases/TerminalCanvas';
+export type { TerminalCanvasProps, TerminalWidgetType } from './canvases/TerminalCanvas';
 
-// Execution management
-export * from './execution';
+export { BoardCanvas } from './canvases/BoardCanvas';
+export type { BoardCanvasProps, BoardWidgetType } from './canvases/BoardCanvas';
 
-// Terminal integration
-export * from './terminal';
+export { BrowserCanvas } from './canvases/BrowserCanvas';
+export type { BrowserCanvasProps, BrowserWidgetType } from './canvases/BrowserCanvas';
 
-// Browser integration
-export * from './browser';
+export { SettingsCanvas } from './canvases/SettingsCanvas';
+export type { SettingsCanvasProps, SettingsWidgetType } from './canvases/SettingsCanvas';
 
-// Widget publishing
-export * from './publishing';
-
-// Reference widgets
-export * from './reference-widgets';
-
-// React components
-export * from './react';
-
-// Backend services
-export * from './services';
+// Widgets
+export { TerminalSessionWidget } from './widgets/TerminalSessionWidget';
+export type { TerminalSessionPayload } from './widgets/TerminalSessionWidget';

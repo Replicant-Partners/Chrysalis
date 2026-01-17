@@ -3,17 +3,22 @@
 //! Core agent types and schemas for the Chrysalis agent transformation system.
 //!
 //! This crate provides:
-//! - `UniformSemanticAgentV2` - The canonical agent representation
+//! - `SemanticAgent` - Agents operating in semantic/meaning space
 //! - Agent component types (Identity, Personality, Capabilities, etc.)
 //! - Schema validation and versioning
 //! - Builder patterns for agent construction
+//!
+//! Note: `UniformSemanticAgentV2` is aliased to `SemanticAgent` for backward compatibility.
 
 pub mod agent;
+pub mod types;
+pub mod component_types;
 pub mod components;
 pub mod validation;
 
 pub use agent::*;
-pub use components::*;
+pub use types::*;
+pub use component_types::*;
 
 #[cfg(test)]
 mod tests {

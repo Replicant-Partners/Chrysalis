@@ -14,7 +14,11 @@
       "Bash(sudo apt-get update:*)",
       "Bash(sudo apt-get install:*)",
       "Bash(/home/mdz-axolotl/.local/go/bin/go build:*)",
-      "Bash(/home/mdz-axolotl/Documents/GitClones/Chrysalis/src/native/go-consensus/bin/consensus-server:*)"
+      "Bash(/home/mdz-axolotl/Documents/GitClones/Chrysalis/src/native/go-consensus/bin/consensus-server:*)",
+      "Bash(go build:*)",
+      "Bash(cd /home/mdz-axolotl/Documents/GitClones/Chrysalis/src/native/go-consensus && go test:*)",
+      "Bash(opam exec -- dune build:*)",
+      "Bash(opam install:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

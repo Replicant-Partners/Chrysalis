@@ -70,7 +70,9 @@ class HttpsExperienceTransport implements ExperienceTransport {
       return { delivered: true, deliveredLocally: true };
     }
     
-    const fetchFn = (globalThis as any).fetch;
+    const fetchFn = typeof globalThis !== 'undefined' && 'fetch' in globalThis 
+      ? (globalThis as typeof globalThis & { fetch: typeof fetch }).fetch 
+      : undefined;
     if (!fetchFn) {
       throw new Error('Fetch is not available in this runtime; provide a deliveryHook or polyfill.');
     }
@@ -90,7 +92,9 @@ class HttpsExperienceTransport implements ExperienceTransport {
       return { delivered: true, deliveredLocally: true };
     }
     
-    const fetchFn = (globalThis as any).fetch;
+    const fetchFn = typeof globalThis !== 'undefined' && 'fetch' in globalThis 
+      ? (globalThis as typeof globalThis & { fetch: typeof fetch }).fetch 
+      : undefined;
     if (!fetchFn) {
       throw new Error('Fetch is not available in this runtime; provide a deliveryHook or polyfill.');
     }
@@ -110,7 +114,9 @@ class HttpsExperienceTransport implements ExperienceTransport {
       return { delivered: true, deliveredLocally: true };
     }
     
-    const fetchFn = (globalThis as any).fetch;
+    const fetchFn = typeof globalThis !== 'undefined' && 'fetch' in globalThis 
+      ? (globalThis as typeof globalThis & { fetch: typeof fetch }).fetch 
+      : undefined;
     if (!fetchFn) {
       throw new Error('Fetch is not available in this runtime; provide a deliveryHook or polyfill.');
     }
@@ -252,7 +258,9 @@ export function createExperienceTransport(
       }
       const factory: WebSocketFactory = async () => {
         // Rely on caller-provided or global WebSocket implementation
-        const WsImpl = (globalThis as any).WebSocket;
+        const WsImpl = typeof globalThis !== 'undefined' && 'WebSocket' in globalThis
+          ? (globalThis as typeof globalThis & { WebSocket: typeof WebSocket }).WebSocket
+          : undefined;
         if (WsImpl) {
           return new WsImpl(config.websocket!.url, config.websocket!.protocols);
         }

@@ -30,6 +30,7 @@ pub struct UsageStats {
 
 /// Budget tracker
 pub struct BudgetTracker {
+    #[allow(dead_code)]
     limits: BudgetLimits,
     usage: Arc<RwLock<UsageStats>>,
 }

@@ -371,6 +371,24 @@ export {
   quickMorph
 } from './gateway-bridge';
 
+// Task Executor (for structured task execution with telemetry)
+export {
+  UniversalAdapterTaskExecutor,
+  createTaskExecutor,
+  executeTask,
+  executeTaskFromFile,
+  type Task,
+  type TaskType,
+  type TaskResult,
+  type TaskTelemetry,
+  type TranslateTask,
+  type MorphTask,
+  type ValidateTask,
+  type DiscoverTask,
+  type BatchTask,
+  type BatchTaskResult
+} from './task-executor';
+
 // ============================================================================
 // Default Export
 // ============================================================================

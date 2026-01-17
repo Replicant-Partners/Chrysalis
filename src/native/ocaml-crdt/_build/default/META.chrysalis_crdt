@@ -1,0 +1,7 @@
+version = "0.1.0"
+description = ""
+requires = "lwt unix yojson"
+archive(byte) = "chrysalis_crdt.cma"
+archive(native) = "chrysalis_crdt.cmxa"
+plugin(byte) = "chrysalis_crdt.cma"
+plugin(native) = "chrysalis_crdt.cmxs"

@@ -266,9 +266,12 @@ function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>)
   for (const key in source) {
     if (source[key] !== undefined) {
       if (typeof source[key] === 'object' && !Array.isArray(source[key]) && source[key] !== null) {
-        result[key] = deepMerge(result[key] || {} as any, source[key] as any);
+        result[key] = deepMerge(
+          result[key] || ({} as Record<string, unknown>), 
+          source[key] as Record<string, unknown>
+        );
       } else {
-        result[key] = source[key] as any;
+        result[key] = source[key];
       }
     }
   }

@@ -99,6 +99,74 @@ export {
 } from './datalog';
 
 // ============================================================================
+// Rate Limiter (Go)
+// ============================================================================
+
+export {
+  RateLimiterClient,
+  createRateLimitMiddleware,
+  rateLimited,
+  type RateLimiterStats,
+  type RateLimiterConfig,
+  type CheckRequest,
+  type CheckResponse,
+  type ConfigRequest,
+} from './ratelimit';
+
+// ============================================================================
+// Bridge Manager (Go)
+// ============================================================================
+
+export {
+  BridgeClient,
+  MessageBuilder,
+  message,
+  a2aMessage,
+  acpMessage,
+  type AgentType,
+  type Protocol,
+  type AgentInfo,
+  type BridgeMessage,
+  type BridgeStats,
+  type HealthStatus,
+} from './bridge';
+
+// ============================================================================
+// Conflict Resolution (mirrors OCaml)
+// ============================================================================
+
+export {
+  ConflictResolver,
+  detectConflicts,
+  resolveConflicts,
+  resolvePersonaConflicts,
+  hasConflicts,
+  DEFAULT_THRESHOLDS,
+  type Thresholds,
+  type ConflictType,
+  type ResolutionStrategy,
+  type PersonaOutput,
+  type Conflict,
+  type Resolution,
+  type ResolutionResult,
+  type Scorecard,
+} from './conflict-resolver';
+
+// ============================================================================
+// Access Control (Datalog)
+// ============================================================================
+
+export {
+  AccessControlEvaluator,
+  createEvaluatorFromConfig,
+  type Agent,
+  type Resource,
+  type Delegation,
+  type AccessRequest,
+  type AccessResult,
+} from '../datalog-acl/evaluator';
+
+// ============================================================================
 // Convenience Factory
 // ============================================================================
 

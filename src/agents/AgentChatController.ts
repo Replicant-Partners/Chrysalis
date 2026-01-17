@@ -287,9 +287,9 @@ export class AgentChatController {
         recalledMemories: recalledMemories.map(m => m.memoryId),
         memoryIds: [agentMemoryId],
         processingTimeMs: Date.now() - startTime,
-        ...(typeof generated === 'object' ? {
-          gatewayRequestId: (generated as any).requestId,
-          gatewayDurationMs: (generated as any).durationMs,
+        ...(typeof generated === 'object' && generated !== null && 'requestId' in generated ? {
+          gatewayRequestId: (generated as { requestId: string }).requestId,
+          gatewayDurationMs: (generated as { durationMs?: number }).durationMs,
         } : {})
       };
       
@@ -366,11 +366,12 @@ export class AgentChatController {
     if (this.config.includeSemanticMemory) {
       const semantic = await this.memory.searchSemantic(query, this.config.maxSemanticRecall);
       for (let i = 0; i < semantic.memories.length; i++) {
-        const mem = semantic.memories[i] as any;
+        const mem = semantic.memories[i];
         recalled.push({
           memoryId: mem.memoryId,
           type: 'semantic',
-          content: mem.fact || mem.content.slice(0, 100),
+          content: ('fact' in mem ? (mem as { fact: string }).fact : undefined) 
+            || mem.content.slice(0, 100),
           score: semantic.scores[i],
         });
       }
@@ -380,11 +381,13 @@ export class AgentChatController {
     if (this.config.includeSkillMemory) {
       const skills = await this.memory.searchSkills(query, this.config.maxSkillRecall);
       for (let i = 0; i < skills.memories.length; i++) {
-        const skill = skills.memories[i] as any;
+        const skill = skills.memories[i];
+        const skillName = 'skillName' in skill ? (skill as { skillName: string }).skillName : 'Unknown';
+        const skillDesc = 'description' in skill ? (skill as { description: string }).description : '';
         recalled.push({
           memoryId: skill.memoryId,
           type: 'skill',
-          content: `${skill.skillName}: ${skill.description}`,
+          content: `${skillName}: ${skillDesc}`,
           score: skills.scores[i],
         });
       }
@@ -624,8 +627,11 @@ Guidelines:
     
     // Build conversational response
     const insights = results.memories.map(m => {
-      if ('fact' in m) return (m as any).fact;
-      if ('skillName' in m) return `Skill: ${(m as any).skillName} - ${(m as any).description}`;
+      if ('fact' in m) return (m as { fact: string }).fact;
+      if ('skillName' in m) {
+        const skill = m as { skillName: string; description?: string };
+        return `Skill: ${skill.skillName} - ${skill.description || ''}`;
+      }
       return m.content.slice(0, 150);
     });
     

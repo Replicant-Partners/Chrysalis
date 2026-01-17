@@ -12,8 +12,6 @@ use wasm_bindgen::prelude::*;
 /// Initialize WASM module
 #[wasm_bindgen(start)]
 pub fn main() {
-    #[cfg(feature = "console_error_panic_hook")]
-    console_error_panic_hook::set_once();
 }
 
 /// Hello World WASM test function

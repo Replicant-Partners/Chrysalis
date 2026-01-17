@@ -28,6 +28,7 @@ pub struct ApiKeyWallet {
 
 struct KeyCache {
     keys: HashMap<String, String>,
+    #[allow(dead_code)]
     expires_at: std::time::Instant,
 }
 

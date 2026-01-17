@@ -653,8 +653,8 @@ export class BridgeAPIController {
       return;
     }
 
-    const type = url.searchParams.get('type') as any;
-    const primitive = url.searchParams.get('primitive') as any;
+    const type = url.searchParams.get('type') || undefined;
+    const primitive = url.searchParams.get('primitive') || undefined;
     const since = url.searchParams.get('since') || undefined;
     const limit = url.searchParams.get('limit')
       ? parseInt(url.searchParams.get('limit')!, 10)

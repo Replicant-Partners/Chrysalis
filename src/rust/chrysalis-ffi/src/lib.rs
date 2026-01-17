@@ -8,6 +8,8 @@
 
 use napi_derive::napi;
 
+pub mod core;
+
 /// Hello World FFI test function
 #[napi]
 pub fn hello_world() -> String {
