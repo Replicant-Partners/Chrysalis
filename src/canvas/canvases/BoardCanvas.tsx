@@ -11,6 +11,8 @@ import React from 'react';
 import { BaseCanvas, BaseCanvasProps } from '../BaseCanvas';
 import { createWidgetRegistry } from '../WidgetRegistry';
 import type { CanvasPolicy, CanvasLogger } from '../types';
+import { NoteWidget } from '../widgets/NoteWidget';
+import { TaskWidget } from '../widgets/TaskWidget';
 import { createLogger } from '../../shared/logger';
 
 // =============================================================================
@@ -44,8 +46,27 @@ function createBoardRegistry(logger: CanvasLogger) {
     logger
   );
   
-  // Register widgets
-  // TODO: Implement actual widget renderers
+  // Register note widget
+  registry.register({
+    type: 'note',
+    displayName: 'Note',
+    description: 'Sticky note for quick thoughts',
+    icon: 'note',
+    renderer: NoteWidget,
+    defaultSize: { width: 200, height: 150 },
+  });
+  
+  // Register task widget
+  registry.register({
+    type: 'task',
+    displayName: 'Task',
+    description: 'Task with status tracking',
+    icon: 'check-square',
+    renderer: TaskWidget,
+    defaultSize: { width: 250, height: 180 },
+  });
+  
+  // TODO: Register group and link widgets
   
   return registry;
 }

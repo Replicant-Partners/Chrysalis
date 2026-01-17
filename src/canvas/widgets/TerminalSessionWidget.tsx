@@ -50,17 +50,137 @@ export function TerminalSessionWidget(
 ) {
   const { data, nodeId, selected, onUpdate, onDelete } = props;
   const containerRef = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<any>(null);
+  const fitAddonRef = useRef<any>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const [status, setStatus] = useState<'loading' | 'connected' | 'disconnected' | 'error'>('loading');
   const payload = data.payload as TerminalSessionPayload | undefined;
   
   useEffect(() => {
-    // TODO: Initialize xterm.js here
-    // - Create Terminal instance
-    // - Connect to PTY WebSocket
-    // - Handle resize
-    // - Cleanup on unmount
+    if (!containerRef.current || !payload?.sessionId) return;
+    
+    let mounted = true;
+    
+    const initTerminal = async () => {
+      await loadXterm();
+      
+      if (!mounted || !Terminal || !FitAddon) {
+        setStatus('error');
+        return;
+      }
+      
+      // Create terminal instance
+      const terminal = new Terminal({
+        cursorBlink: true,
+        fontSize: 14,
+        fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+        theme: {
+          background: '#000000',
+          foreground: '#ffffff',
+        },
+        cols: payload.cols || 80,
+        rows: payload.rows || 24,
+      });
+      
+      terminalRef.current = terminal;
+      
+      // Add fit addon
+      const fitAddon = new FitAddon();
+      fitAddonRef.current = fitAddon;
+      terminal.loadAddon(fitAddon);
+      
+      // Open terminal in container
+      terminal.open(containerRef.current);
+      fitAddon.fit();
+      
+      // Connect to PTY WebSocket
+      const wsUrl = `ws://localhost:8081`; // TODO: Make configurable
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+      
+      ws.onopen = () => {
+        if (!mounted) return;
+        setStatus('connected');
+        
+        // Create session
+        ws.send(JSON.stringify({
+          type: 'create',
+          sessionId: payload.sessionId,
+          shell: payload.shell || '/bin/bash',
+          cwd: payload.cwd || process.env.HOME || '~',
+          cols: terminal.cols,
+          rows: terminal.rows,
+        }));
+      };
+      
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'data' && message.payload) {
+          terminal.write(message.payload);
+        }
+      };
+      
+      ws.onerror = () => {
+        if (!mounted) return;
+        setStatus('error');
+      };
+      
+      ws.onclose = () => {
+        if (!mounted) return;
+        setStatus('disconnected');
+      };
+      
+      // Send terminal input to PTY
+      terminal.onData((data: string) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'data',
+            sessionId: payload.sessionId,
+            data,
+          }));
+        }
+      });
+      
+      // Handle terminal resize
+      const handleResize = () => {
+        fitAddon.fit();
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'resize',
+            sessionId: payload.sessionId,
+            cols: terminal.cols,
+            rows: terminal.rows,
+          }));
+        }
+      };
+      
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    };
+    
+    initTerminal();
     
     return () => {
-      // Cleanup xterm and WebSocket connection
+      mounted = false;
+      
+      // Cleanup terminal
+      if (terminalRef.current) {
+        terminalRef.current.dispose();
+      }
+      
+      // Close WebSocket
+      if (wsRef.current) {
+        if (payload?.sessionId) {
+          wsRef.current.send(JSON.stringify({
+            type: 'close',
+            sessionId: payload.sessionId,
+          }));
+        }
+        wsRef.current.close();
+      }
     };
   }, [payload?.sessionId]);
   

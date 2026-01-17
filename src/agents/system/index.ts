@@ -32,7 +32,6 @@ export { SystemAgentLoader, getSystemAgentLoader, loadSystemAgents, getSystemAge
 export { MentionParser, getMentionParser, parseMessage, hasMentions, extractPersonaFromMention, resetMentionParser } from './MentionParser';
 export {
   EvaluationCoordinator,
-  CONFLICT_THRESHOLDS,
   ESCALATION_RISK_BOUNDARIES,
 } from './EvaluationCoordinator';
 export {
@@ -55,7 +54,12 @@ export {
 export {
   ConflictResolver,
   createConflictResolver,
-} from './ConflictResolver';
+  CONFLICT_THRESHOLDS,
+  DEFAULT_THRESHOLDS,
+  detectConflicts,
+  resolveConflicts,
+  resolvePersonaConflicts,
+} from '../../native/bindings/conflict-resolver';
 
 // SCM Components (Pattern 12: SHARED CONVERSATION MIDDLEWARE)
 export {
@@ -138,8 +142,8 @@ export type {
   CalibrationStats,
 } from './EvaluationCoordinator';
 
-// Types from extracted modules
-export type { DetectedConflict, ConflictResolutionResult } from './ConflictResolver';
+// Types from extracted modules (native bindings)
+export type { Conflict as DetectedConflict, Resolution as ConflictResolutionResult } from '../../native/bindings/conflict-resolver';
 
 // SCM Policy and Behavior Config Types
 export type {

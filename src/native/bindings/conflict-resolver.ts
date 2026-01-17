@@ -4,6 +4,8 @@
  * This mirrors the OCaml conflict_resolver module, providing
  * Social Choice Theory-based conflict detection and resolution
  * for multi-agent persona evaluation outputs.
+ *
+ * Replaces: src/agents/system/ConflictResolver.ts
  */
 
 // ============================================================================
@@ -19,6 +21,10 @@ export interface Thresholds {
   blindSpotsMinimum: number;
   confidenceReduction: number;
   unanimousConfidence: number;
+  /** Confidence cap when conflicts detected */
+  confidenceCapOnConflict: number;
+  /** High average confidence threshold for metacognitive alerts */
+  highAvgConfidence: number;
 }
 
 export const DEFAULT_THRESHOLDS: Thresholds = {
@@ -30,47 +36,76 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   blindSpotsMinimum: 3,
   confidenceReduction: 0.8,
   unanimousConfidence: 0.85,
+  confidenceCapOnConflict: 0.6,
+  highAvgConfidence: 0.8,
 };
+
+/** Backwards compatibility alias */
+export const CONFLICT_THRESHOLDS = {
+  RISK_DISAGREEMENT: DEFAULT_THRESHOLDS.riskDisagreement,
+  OVERCONFIDENCE_RISK: DEFAULT_THRESHOLDS.overconfidenceRisk,
+  PHIL_CONFIDENCE: DEFAULT_THRESHOLDS.philConfidence,
+  THRESHOLD_BOUNDARY_LOW: DEFAULT_THRESHOLDS.thresholdBoundaryLow,
+  THRESHOLD_BOUNDARY_HIGH: DEFAULT_THRESHOLDS.thresholdBoundaryHigh,
+  BLIND_SPOTS_MINIMUM: DEFAULT_THRESHOLDS.blindSpotsMinimum,
+  CONFIDENCE_REDUCTION_FACTOR: DEFAULT_THRESHOLDS.confidenceReduction,
+  CONFIDENCE_CAP_ON_CONFLICT: DEFAULT_THRESHOLDS.confidenceCapOnConflict,
+  UNANIMOUS_CONFIDENCE: DEFAULT_THRESHOLDS.unanimousConfidence,
+  HIGH_AVG_CONFIDENCE: DEFAULT_THRESHOLDS.highAvgConfidence,
+  BRIER_DRIFT_THRESHOLD: 0.25,
+} as const;
 
 export type ConflictType =
   | 'risk_disagreement'
   | 'confidence_mismatch'
   | 'threshold_boundary'
   | 'blind_spot'
-  | 'unanimous_concern';
+  | 'unanimous_concern'
+  | 'unanimous_warning';
 
 export type ResolutionStrategy =
   | 'weighted_average'
   | 'conservative_merge'
-  | 'human_escalation';
+  | 'human_escalation'
+  | 'defer_to_expert'
+  | 'defer_to_coordinator'
+  | 'conservative_bound';
 
-export interface Scorecard {
-  overconfidenceRisk?: number;
-  blindSpots: string[];
-}
+/** Flexible scorecard - accepts any shape */
+export type Scorecard = Record<string, number | string | string[] | boolean | undefined>;
 
 export interface PersonaOutput {
   personaId: string;
-  riskScore?: number;
+  riskScore: number;
   confidence: number;
-  scorecard?: Scorecard;
+  scorecard: Scorecard;
+  recommendations?: string[];
+  requiresHumanReview?: boolean;
+  timestamp?: Date;
+  latencyMs?: number;
 }
 
 export interface Conflict {
-  conflictType: ConflictType;
+  type: ConflictType;
   personas: string[];
   severity: number;
   description: string;
+  suggestedResolution: ResolutionStrategy;
   data?: Record<string, any>;
 }
 
+/** Backwards compat alias */
+export type DetectedConflict = Conflict;
+
 export interface Resolution {
-  originalConflict: Conflict;
-  strategy: ResolutionStrategy;
-  adjustment: number;
   resolved: boolean;
+  strategy: ResolutionStrategy;
+  confidenceAdjustment: number;
   explanation: string;
 }
+
+/** Backwards compat alias */
+export type ConflictResolutionResult = Resolution;
 
 export interface ResolutionResult {
   totalAdjustment: number;
@@ -91,10 +126,11 @@ const CONFLICT_STRATEGIES: Record<ConflictType, { strategy: ResolutionStrategy; 
   threshold_boundary: { strategy: 'human_escalation', adjustment: -0.2 },
   blind_spot: { strategy: 'human_escalation', adjustment: -0.2 },
   unanimous_concern: { strategy: 'conservative_merge', adjustment: -0.15 },
+  unanimous_warning: { strategy: 'conservative_merge', adjustment: -0.15 },
 };
 
 // ============================================================================
-// Conflict Detection
+// Conflict Detection (from array)
 // ============================================================================
 
 function detectRiskDisagreement(
@@ -105,17 +141,18 @@ function detectRiskDisagreement(
 
   if (withRisk.length < 2) return null;
 
-  const scores = withRisk.map((p) => p.riskScore!);
+  const scores = withRisk.map((p) => p.riskScore);
   const maxScore = Math.max(...scores);
   const minScore = Math.min(...scores);
   const diff = maxScore - minScore;
 
   if (diff > thresholds.riskDisagreement) {
     return {
-      conflictType: 'risk_disagreement',
+      type: 'risk_disagreement',
       personas: withRisk.map((p) => p.personaId),
       severity: Math.min(1.0, diff / 0.5),
-      description: `Risk score disagreement of ${diff.toFixed(2)} between personas (threshold: ${thresholds.riskDisagreement})`,
+      description: `Risk score disagreement of ${(diff * 100).toFixed(0)}% between personas`,
+      suggestedResolution: 'weighted_average',
       data: { maxRisk: maxScore, minRisk: minScore, difference: diff },
     };
   }
@@ -130,7 +167,7 @@ function detectConfidenceMismatch(
   const david = personas.find((p) => p.personaId === 'david');
   const phil = personas.find((p) => p.personaId === 'phil');
 
-  const davidOverconf = david?.scorecard?.overconfidenceRisk;
+  const davidOverconf = david?.scorecard?.overconfidenceRisk as number | undefined;
   const philConf = phil?.confidence;
 
   if (
@@ -140,10 +177,11 @@ function detectConfidenceMismatch(
     philConf > thresholds.philConfidence
   ) {
     return {
-      conflictType: 'confidence_mismatch',
+      type: 'confidence_mismatch',
       personas: ['david', 'phil'],
       severity: Math.min(1.0, (davidOverconf / 10.0) * philConf),
-      description: `David overconfidence risk ${davidOverconf} > ${thresholds.overconfidenceRisk} with Phil confidence ${philConf.toFixed(2)} > ${thresholds.philConfidence}`,
+      description: `David flags overconfidence (${davidOverconf}/10) but Phil is ${(philConf * 100).toFixed(0)}% confident`,
+      suggestedResolution: 'conservative_merge',
       data: { overconfidenceRisk: davidOverconf, philConfidence: philConf },
     };
   }
@@ -157,7 +195,7 @@ function detectThresholdBoundary(
 ): Conflict | null {
   const riskScores = personas
     .filter((p) => p.riskScore !== undefined)
-    .map((p) => p.riskScore!);
+    .map((p) => p.riskScore);
 
   if (riskScores.length === 0) return null;
 
@@ -168,12 +206,13 @@ function detectThresholdBoundary(
     avgRisk <= thresholds.thresholdBoundaryHigh
   ) {
     return {
-      conflictType: 'threshold_boundary',
+      type: 'threshold_boundary',
       personas: personas
         .filter((p) => p.riskScore !== undefined)
         .map((p) => p.personaId),
-      severity: 0.8,
-      description: `Average risk ${avgRisk.toFixed(3)} is near decision boundary [${thresholds.thresholdBoundaryLow}, ${thresholds.thresholdBoundaryHigh}]`,
+      severity: 0.5,
+      description: `Risk score ${(avgRisk * 100).toFixed(0)}% is near decision boundary`,
+      suggestedResolution: 'human_escalation',
       data: {
         averageRisk: avgRisk,
         boundaryLow: thresholds.thresholdBoundaryLow,
@@ -190,14 +229,16 @@ function detectBlindSpots(
   personas: PersonaOutput[]
 ): Conflict | null {
   const david = personas.find((p) => p.personaId === 'david');
-  const blindSpots = david?.scorecard?.blindSpots || [];
+  const blindSpots = (david?.scorecard?.blindSpots as string[]) ||
+                     (david?.scorecard?.blindSpotDetection as string[]) || [];
 
   if (blindSpots.length >= thresholds.blindSpotsMinimum) {
     return {
-      conflictType: 'blind_spot',
+      type: 'blind_spot',
       personas: ['david'],
-      severity: Math.min(1.0, blindSpots.length / 5.0),
-      description: `Detected ${blindSpots.length} blind spots (minimum: ${thresholds.blindSpotsMinimum}): ${blindSpots.join(', ')}`,
+      severity: Math.min(1.0, blindSpots.length / 10.0),
+      description: `David identified ${blindSpots.length} potential blind spots`,
+      suggestedResolution: 'human_escalation',
       data: { blindSpots, count: blindSpots.length },
     };
   }
@@ -209,18 +250,19 @@ function detectUnanimousConcern(
   thresholds: Thresholds,
   personas: PersonaOutput[]
 ): Conflict | null {
-  const confidences = personas.map((p) => p.confidence);
+  const confidences = personas.map((p) => p.confidence).filter(c => c !== undefined);
 
-  if (confidences.length === 0) return null;
+  if (confidences.length < 3) return null;
 
   const avgConfidence = confidences.reduce((a, b) => a + b, 0) / confidences.length;
 
   if (avgConfidence > thresholds.unanimousConfidence) {
     return {
-      conflictType: 'unanimous_concern',
+      type: 'unanimous_concern',
       personas: personas.map((p) => p.personaId),
-      severity: (avgConfidence - thresholds.unanimousConfidence) / 0.15,
-      description: `Average confidence ${avgConfidence.toFixed(2)} exceeds unanimous threshold ${thresholds.unanimousConfidence}`,
+      severity: avgConfidence - thresholds.unanimousConfidence,
+      description: `Suspiciously high agreement (${(avgConfidence * 100).toFixed(0)}% avg confidence) - possible groupthink`,
+      suggestedResolution: 'conservative_merge',
       data: { averageConfidence: avgConfidence, threshold: thresholds.unanimousConfidence },
     };
   }
@@ -233,7 +275,7 @@ function detectUnanimousConcern(
 // ============================================================================
 
 /**
- * Detect all conflicts in persona outputs.
+ * Detect all conflicts in persona outputs (array version).
  */
 export function detectConflicts(
   personas: PersonaOutput[],
@@ -253,40 +295,56 @@ export function detectConflicts(
 }
 
 /**
+ * Detect all conflicts from a Map (for EvaluationCoordinator compatibility).
+ */
+export function detectConflictsFromMap(
+  outputs: Map<string, PersonaOutput>,
+  thresholds: Thresholds = DEFAULT_THRESHOLDS
+): Conflict[] {
+  const personas = Array.from(outputs.values());
+  return detectConflicts(personas, thresholds);
+}
+
+/**
  * Check if any conflicts exist.
  */
 export function hasConflicts(
-  personas: PersonaOutput[],
+  personas: PersonaOutput[] | Map<string, PersonaOutput>,
   thresholds: Thresholds = DEFAULT_THRESHOLDS
 ): boolean {
-  return detectConflicts(personas, thresholds).length > 0;
+  const arr = personas instanceof Map ? Array.from(personas.values()) : personas;
+  return detectConflicts(arr, thresholds).length > 0;
 }
 
 /**
  * Resolve a single conflict.
  */
-export function resolveConflict(conflict: Conflict): Resolution {
-  const { strategy, adjustment } = CONFLICT_STRATEGIES[conflict.conflictType];
+export function resolveConflict(
+  conflict: Conflict,
+  _outputs?: Map<string, PersonaOutput>
+): Resolution {
+  const { strategy, adjustment } = CONFLICT_STRATEGIES[conflict.type];
   const resolved = strategy !== 'human_escalation';
 
   let explanation: string;
   switch (strategy) {
     case 'weighted_average':
-      explanation = `Applied weighted average to resolve ${conflict.description}`;
+      explanation = `Resolved ${conflict.type} by weighted averaging. Confidence reduced.`;
       break;
     case 'conservative_merge':
-      explanation = `Applied conservative merge strategy: ${conflict.description}`;
+      explanation = `Applied conservative merge for ${conflict.type}. Using more cautious estimates.`;
       break;
     case 'human_escalation':
-      explanation = `Escalating to human review: ${conflict.description}`;
+      explanation = `${conflict.type} requires human review. Confidence capped.`;
       break;
+    default:
+      explanation = `Applied ${strategy} for ${conflict.type}.`;
   }
 
   return {
-    originalConflict: conflict,
-    strategy,
-    adjustment,
     resolved,
+    strategy,
+    confidenceAdjustment: adjustment,
     explanation,
   };
 }
@@ -294,31 +352,36 @@ export function resolveConflict(conflict: Conflict): Resolution {
 /**
  * Resolve all conflicts.
  */
-export function resolveConflicts(conflicts: Conflict[]): Resolution[] {
-  return conflicts.map(resolveConflict);
+export function resolveConflicts(
+  conflicts: Conflict[],
+  outputs?: Map<string, PersonaOutput>
+): Resolution[] {
+  return conflicts.map(c => resolveConflict(c, outputs));
 }
 
 /**
- * Aggregate resolutions into final result.
+ * Resolve all conflicts and aggregate results.
  */
-export function aggregateResolutions(resolutions: Resolution[]): ResolutionResult {
-  const totalAdjustment = resolutions.reduce((acc, r) => acc + r.adjustment, 0);
-  const cappedAdjustment = Math.max(-0.4, totalAdjustment);
+export function resolveAllConflicts(
+  conflicts: Conflict[],
+  outputs?: Map<string, PersonaOutput>
+): ResolutionResult {
+  const resolutions = resolveConflicts(conflicts, outputs);
+
+  let totalAdjustment = resolutions.reduce((acc, r) => acc + r.confidenceAdjustment, 0);
+  totalAdjustment = Math.max(-0.4, totalAdjustment);
 
   const requiresHumanReview = resolutions.some(
     (r) => !r.resolved || r.strategy === 'human_escalation'
   );
 
-  const explanations = resolutions.map((r) => r.explanation);
-  const resolvedCount = resolutions.filter((r) => r.resolved).length;
-
   return {
-    totalAdjustment: cappedAdjustment,
+    totalAdjustment,
     requiresHumanReview,
-    explanations,
-    finalConfidenceCap: 1.0 + cappedAdjustment,
+    explanations: resolutions.map((r) => r.explanation),
+    finalConfidenceCap: 1.0 + totalAdjustment,
     conflictsDetected: resolutions.length,
-    conflictsResolved: resolvedCount,
+    conflictsResolved: resolutions.filter((r) => r.resolved).length,
   };
 }
 
@@ -326,12 +389,13 @@ export function aggregateResolutions(resolutions: Resolution[]): ResolutionResul
  * Full pipeline: detect, resolve, and aggregate.
  */
 export function resolvePersonaConflicts(
-  personas: PersonaOutput[],
+  personas: PersonaOutput[] | Map<string, PersonaOutput>,
   thresholds: Thresholds = DEFAULT_THRESHOLDS
 ): ResolutionResult {
-  const conflicts = detectConflicts(personas, thresholds);
-  const resolutions = resolveConflicts(conflicts);
-  return aggregateResolutions(resolutions);
+  const arr = personas instanceof Map ? Array.from(personas.values()) : personas;
+  const map = personas instanceof Map ? personas : new Map(arr.map(p => [p.personaId, p]));
+  const conflicts = detectConflicts(arr, thresholds);
+  return resolveAllConflicts(conflicts, map);
 }
 
 // ============================================================================
@@ -341,20 +405,37 @@ export function resolvePersonaConflicts(
 export class ConflictResolver {
   private thresholds: Thresholds;
 
-  constructor(thresholds: Partial<Thresholds> = {}) {
+  constructor(thresholds?: Partial<Thresholds>) {
     this.thresholds = { ...DEFAULT_THRESHOLDS, ...thresholds };
   }
 
+  /** Detect conflicts from array */
   detect(personas: PersonaOutput[]): Conflict[] {
     return detectConflicts(personas, this.thresholds);
   }
 
-  hasConflicts(personas: PersonaOutput[]): boolean {
+  /** Detect conflicts from Map (EvaluationCoordinator compatibility) */
+  detectConflicts(outputs: Map<string, PersonaOutput>): Conflict[] {
+    return detectConflictsFromMap(outputs, this.thresholds);
+  }
+
+  hasConflicts(personas: PersonaOutput[] | Map<string, PersonaOutput>): boolean {
     return hasConflicts(personas, this.thresholds);
   }
 
-  resolve(personas: PersonaOutput[]): ResolutionResult {
+  resolve(personas: PersonaOutput[] | Map<string, PersonaOutput>): ResolutionResult {
     return resolvePersonaConflicts(personas, this.thresholds);
+  }
+
+  resolveConflict(conflict: Conflict, outputs?: Map<string, PersonaOutput>): Resolution {
+    return resolveConflict(conflict, outputs);
+  }
+
+  resolveAllConflicts(
+    conflicts: Conflict[],
+    outputs?: Map<string, PersonaOutput>
+  ): ResolutionResult {
+    return resolveAllConflicts(conflicts, outputs);
   }
 
   setThresholds(thresholds: Partial<Thresholds>): void {
@@ -364,6 +445,13 @@ export class ConflictResolver {
   getThresholds(): Thresholds {
     return { ...this.thresholds };
   }
+}
+
+/** Factory function for backwards compatibility */
+export function createConflictResolver(
+  thresholds?: Partial<Thresholds>
+): ConflictResolver {
+  return new ConflictResolver(thresholds);
 }
 
 export default ConflictResolver;

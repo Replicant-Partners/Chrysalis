@@ -37,3 +37,9 @@ export type { SettingsCanvasProps, SettingsWidgetType } from './canvases/Setting
 // Widgets
 export { TerminalSessionWidget } from './widgets/TerminalSessionWidget';
 export type { TerminalSessionPayload } from './widgets/TerminalSessionWidget';
+
+export { NoteWidget } from './widgets/NoteWidget';
+export type { NotePayload } from './widgets/NoteWidget';
+
+export { TaskWidget } from './widgets/TaskWidget';
+export type { TaskPayload } from './widgets/TaskWidget';

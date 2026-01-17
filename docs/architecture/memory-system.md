@@ -1,6 +1,6 @@
 # Memory System Architecture
 
-> **TypeScript Source:** [`src/memory/`](../../src/memory/) | [`src/experience/`](../../src/experience/)  
+> **TypeScript Source:** [`src/memory/`](../../memory_system/) | [`src/experience/`](../../src/experience/)  
 > **Python Source:** [`memory_system/`](../../memory_system/)  
 > **Status:** ✅ Implemented (dual-language)
 
@@ -85,7 +85,7 @@ flowchart LR
 
 ### VectorIndex
 
-> **Source:** [`src/memory/VectorIndex.ts`](../../src/memory/VectorIndex.ts)
+> **Source:** [`src/memory/VectorIndex.ts`](../../memory_system/VectorIndex.ts)
 
 Abstract interface for vector similarity search:
 

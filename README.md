@@ -173,7 +173,7 @@ Chrysalis/
 | Document | Purpose |
 |----------|---------|
 | [`docs/STATUS.md`](docs/STATUS.md) | **Implementation status** (single source of truth) |
-| [`docs/INDEX.md`](docs/INDEX.md) | Navigation hub |
+| [`docs/INDEX.md`](docs/README.md) | Navigation hub |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | System design |
 | [`memory_system/README.md`](memory_system/README.md) | Python package |
 

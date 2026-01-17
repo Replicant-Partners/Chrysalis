@@ -1,14 +1,14 @@
 /**
  * Circuit Breaker Pattern Implementation
- * 
+ *
  * Prevents cascading failures when external services are unavailable.
  * Used to wrap MCP client calls and other external dependencies.
- * 
+ *
  * States:
  * - CLOSED: Normal operation, requests pass through
  * - OPEN: Service unavailable, requests fail fast with fallback
  * - HALF_OPEN: Testing if service recovered
- * 
+ *
  * @see IMPLEMENTATION_PLAN.md Phase 0.3
  * @see COMPREHENSIVE_CODE_REVIEW.md HIGH-ARCH-001
  */

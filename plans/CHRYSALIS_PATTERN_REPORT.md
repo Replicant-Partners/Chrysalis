@@ -31,7 +31,7 @@ Covers five constituencies and their interaction patterns in Chrysalis:
 - Needs: chat + memory + learning loop; embeddings; skill learning; document ingestion; gateway/terminal LLM access.
 - Mechanisms: AgentChatController ties AgentBinding to MemoryAdapter + LearningPipeline + GatewayLLMClient/Terminal; indicators for recalled/created memories; legend embedding loading; skill learning via action patterns.
 - Patterns: Facade + Template Method (message flow), Strategy (LLM backend selection), Observer (learning events), Repository/Strategy (memory search tiers), Builder-like prompt construction.
-- Evidence: [`src/agents/AgentChatController.ts:107-643`](src/agents/AgentChatController.ts:107), [`src/memory/AgentMemoryAdapter.ts:51-360`](src/memory/AgentMemoryAdapter.ts:51), [`src/learning/AgentLearningPipeline.ts:99-516`](src/learning/AgentLearningPipeline.ts:99).
+- Evidence: [`src/agents/AgentChatController.ts:107-643`](src/agents/AgentChatController.ts:107), [`src/memory/AgentMemoryAdapter.ts:51-360`](memory_system/AgentMemoryAdapter.ts:51), [`src/learning/AgentLearningPipeline.ts:99-516`](src/learning/AgentLearningPipeline.ts:99).
 
 ### 4) External Agents (bridged)
 - Needs: interop via bridges (Serena, DirectLLM, Eliza, etc.), capability discovery, connection lifecycle, resilience wrappers.
@@ -178,7 +178,7 @@ flowchart TB
 
 ## Anchors (key files)
 - Workspace/chat/canvas: [`src/components/ChrysalisWorkspace/ChrysalisWorkspace.tsx:264-1026`](src/components/ChrysalisWorkspace/ChrysalisWorkspace.tsx:264), [`src/components/ChrysalisWorkspace/ChatPane.tsx:364-560`](src/components/ChrysalisWorkspace/ChatPane.tsx:364), [`src/components/AgentCanvas/AgentCanvas.tsx:170-395`](src/components/AgentCanvas/AgentCanvas.tsx:170)
-- Memory + learning + controller: [`src/memory/AgentMemoryAdapter.ts:51-360`](src/memory/AgentMemoryAdapter.ts:51), [`src/agents/AgentChatController.ts:107-643`](src/agents/AgentChatController.ts:107), [`src/learning/AgentLearningPipeline.ts:99-516`](src/learning/AgentLearningPipeline.ts:99)
+- Memory + learning + controller: [`src/memory/AgentMemoryAdapter.ts:51-360`](memory_system/AgentMemoryAdapter.ts:51), [`src/agents/AgentChatController.ts:107-643`](src/agents/AgentChatController.ts:107), [`src/learning/AgentLearningPipeline.ts:99-516`](src/learning/AgentLearningPipeline.ts:99)
 - Bridges/registry/system/observability: [`src/agents/bridges/BaseBridge.ts:39-392`](src/agents/bridges/BaseBridge.ts:39), [`src/agents/bridges/AgentRegistry.ts:53-388`](src/agents/bridges/AgentRegistry.ts:53), [`src/observability/ObservabilityHub.ts:155-495`](src/observability/ObservabilityHub.ts:155), [`src/utils/CircuitBreaker.ts:71-233`](src/utils/CircuitBreaker.ts:71)
 - **System Agent Middleware (IMPLEMENTED)**: `../Borrowed_Ideas/SYSTEM_AGENT_MIDDLEWARE_DESIGN.md`
   - `src/agents/system/SharedConversationMiddleware.ts` ✅

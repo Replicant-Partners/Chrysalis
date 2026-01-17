@@ -4,13 +4,15 @@
 //!
 //! This crate provides:
 //! - API Key Wallet with AES-256-GCM encryption
-//! - Argon2id key derivation
+//! - Scrypt/Argon2id key derivation
 //! - Cost control and budget management
 //! - Token counting and estimation
 
+pub mod crypto;
 pub mod wallet;
 pub mod cost_control;
 
+pub use crypto::*;
 pub use wallet::*;
 pub use cost_control::*;
 

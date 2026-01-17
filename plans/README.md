@@ -77,7 +77,7 @@ When a plan is completed or superseded:
 
 ## Related Documentation
 
-- **[Documentation Index](../docs/INDEX.md)** - Navigation hub
+- **[Documentation Index](../docs/README.md)** - Navigation hub
 - **[Architecture](../docs/ARCHITECTURE.md)** - System architecture
 - **[Status](../docs/STATUS.md)** - Implementation status
 

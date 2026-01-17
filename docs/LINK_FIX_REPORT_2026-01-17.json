@@ -1,0 +1,212 @@
+{
+  "timestamp": "2026-01-17T01:22:00Z",
+  "total_files_scanned": 491,
+  "links_fixed": 23,
+  "broken_links_remaining": 0,
+  "manual_review_needed": 1298,
+  "fixes": [
+    {
+      "file": "ARCHITECTURE.md",
+      "old": "docs/STATUS.md",
+      "new": "docs/STATUS.md"
+    },
+    {
+      "file": "README.md",
+      "old": "docs/STATUS.md",
+      "new": "docs/STATUS.md"
+    },
+    {
+      "file": "README.md",
+      "old": "docs/STATUS.md",
+      "new": "docs/STATUS.md"
+    },
+    {
+      "file": "README.md",
+      "old": "docs/INDEX.md",
+      "new": "docs/README.md"
+    },
+    {
+      "file": "README.md",
+      "old": "docs/STATUS.md",
+      "new": "docs/STATUS.md"
+    },
+    {
+      "file": "README.md",
+      "old": "docs/STATUS.md",
+      "new": "docs/STATUS.md"
+    },
+    {
+      "file": "plans/NEXT_STEPS_2026-01-15.md",
+      "old": "../docs/STATUS.md",
+      "new": "../docs/STATUS.md"
+    },
+    {
+      "file": "plans/README.md",
+      "old": "../docs/INDEX.md",
+      "new": "../docs/README.md"
+    },
+    {
+      "file": "plans/README.md",
+      "old": "../docs/STATUS.md",
+      "new": "../docs/STATUS.md"
+    },
+    {
+      "file": "plans/CHRYSALIS_PATTERN_REPORT.md",
+      "old": "src/memory/AgentMemoryAdapter.ts:51",
+      "new": "memory_system/AgentMemoryAdapter.ts:51"
+    },
+    {
+      "file": "docs/canvas-architecture.md",
+      "old": "docs/STATUS.md",
+      "new": "docs/STATUS.md"
+    },
+    {
+      "file": "docs/canvas-architecture.md",
+      "old": "docs/STATUS.md",
+      "new": "docs/STATUS.md"
+    },
+    {
+      "file": "memory_system/README.md",
+      "old": "../docs/STATUS.md",
+      "new": "../docs/STATUS.md"
+    },
+    {
+      "file": "docs/architecture/memory-system.md",
+      "old": "../../src/memory/",
+      "new": "../../memory_system/"
+    },
+    {
+      "file": "docs/architecture/memory-system.md",
+      "old": "../../src/memory/VectorIndex.ts",
+      "new": "../../memory_system/VectorIndex.ts"
+    },
+    {
+      "file": "docs/architecture/overview.md",
+      "old": "../../src/memory/VectorIndex.ts",
+      "new": "../../memory_system/VectorIndex.ts"
+    },
+    {
+      "file": "docs/architecture/overview.md",
+      "old": "../../src/fabric/PatternResolver.ts",
+      "new": "../../src/core/patterns/PatternResolver.ts"
+    },
+    {
+      "file": "docs/architecture/universal-patterns.md",
+      "old": "../../src/fabric/PatternResolver.ts",
+      "new": "../../src/core/patterns/PatternResolver.ts"
+    },
+    {
+      "file": "docs/architecture/universal-patterns.md",
+      "old": "../../src/fabric/PatternResolver.ts:300",
+      "new": "../../src/core/patterns/PatternResolver.ts:300"
+    },
+    {
+      "file": "docs/archive/sessions/DOCUMENTATION_REVIEW_PLAN_2026-01-15.md",
+      "old": "../docs/STATUS.md",
+      "new": "../docs/STATUS.md"
+    }
+  ],
+  "broken": [],
+  "manual": [
+    {
+      "file": "ARCHITECTURE.md",
+      "link": "src/core/SemanticAgent.ts",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "link": "src/core/patterns/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "link": "src/adapters/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "link": "memory_system/fireproof/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "link": "src/canvas/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "link": "src/core/patterns/Hashing.ts",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "link": "memory_system/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "ARCHITECTURE.md",
+      "link": "src/canvas/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "src/core/UniformSemanticAgentV2.ts",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "src/adapters/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "src/bridge/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "src/api/bridge/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "src/universal_adapter/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "src/sync/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "src/core/patterns/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "src/canvas/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "src/services/terminal/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "memory_system/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "go-services/",
+      "reason": "References deleted component - consider removing"
+    },
+    {
+      "file": "README.md",
+      "link": "LICENSE",
+      "reason": "References deleted component - consider removing"
+    }
+  ]
+}

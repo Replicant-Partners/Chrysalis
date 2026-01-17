@@ -14,13 +14,13 @@ Chrysalis is built on **10 mathematically-proven universal patterns** from distr
 - **Data structures** (DAG, CRDT)
 - **Convergence** (Fixed-point attractors)
 
-Each pattern can be resolved at multiple scales through the [`AdaptivePatternResolver`](../../src/fabric/PatternResolver.ts).
+Each pattern can be resolved at multiple scales through the [`AdaptivePatternResolver`](../../src/core/patterns/PatternResolver.ts).
 
 ---
 
 ## Pattern Resolution
 
-The [`AdaptivePatternResolver`](../../src/fabric/PatternResolver.ts:300) automatically selects the appropriate implementation based on deployment context:
+The [`AdaptivePatternResolver`](../../src/core/patterns/PatternResolver.ts:300) automatically selects the appropriate implementation based on deployment context:
 
 ```typescript
 // From src/fabric/PatternResolver.ts

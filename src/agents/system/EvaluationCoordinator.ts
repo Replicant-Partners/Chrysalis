@@ -40,11 +40,10 @@ import { ForecastTracker, CalibrationStats, ForecastRecord } from './ForecastTra
 import {
   ConflictResolver,
   CONFLICT_THRESHOLDS,
-  DetectedConflict
-} from './ConflictResolver';
+  type Conflict as DetectedConflict
+} from '../../native/bindings/conflict-resolver';
 
 // Re-export for backwards compatibility
-export { CONFLICT_THRESHOLDS };
 export type { ForecastRecord, CalibrationStats, DetectedConflict };
 
 /**

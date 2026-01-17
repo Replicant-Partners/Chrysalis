@@ -145,7 +145,7 @@ See [Universal Patterns](./universal-patterns.md) for detailed documentation.
 | **MemoryMerger** | [`src/experience/MemoryMerger.ts`](../../src/experience/MemoryMerger.ts) | Dedup and merge memories |
 | **SkillAccumulator** | [`src/experience/SkillAccumulator.ts`](../../src/experience/SkillAccumulator.ts) | Aggregate learned skills |
 | **KnowledgeIntegrator** | [`src/experience/KnowledgeIntegrator.ts`](../../src/experience/KnowledgeIntegrator.ts) | Verify and integrate knowledge |
-| **VectorIndex** | [`src/memory/VectorIndex.ts`](../../src/memory/VectorIndex.ts) | Vector similarity search |
+| **VectorIndex** | [`src/memory/VectorIndex.ts`](../../memory_system/VectorIndex.ts) | Vector similarity search |
 
 ---
 
@@ -245,7 +245,7 @@ Service Calls   →  MCP/gRPC (network services)
 Agent Behavior  →  Experience sync, skill accumulation
 ```
 
-The [`AdaptivePatternResolver`](../../src/fabric/PatternResolver.ts) automatically selects the appropriate resolution level based on deployment context.
+The [`AdaptivePatternResolver`](../../src/core/patterns/PatternResolver.ts) automatically selects the appropriate resolution level based on deployment context.
 
 ---
 

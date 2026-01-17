@@ -1,8 +1,8 @@
 # Chrysalis Architecture Specification
 
-**Version**: 3.1.1
-**Last Updated**: January 16, 2026
-**Status**: Current (Aligned with implementation)
+**Version**: 3.2.0
+**Last Updated**: January 17, 2026
+**Status**: Current (Verified against source code)
 
 ---
 
@@ -138,6 +138,12 @@ flowchart LR
         ET[ExperienceTransport]
     end
 
+    subgraph Observability["Observability Layer"]
+        Logger[CentralizedLogger]
+        Metrics[Metrics]
+        ObsHub[ObservabilityHub]
+    end
+
     subgraph Security["Security Layer"]
         Wallet[API Key Wallet]
         Registry[API Key Registry]
@@ -171,6 +177,10 @@ flowchart LR
     ESM --> CS
     ESM --> ET
 
+    Observability --> Logger
+    Logger --> Metrics
+    Metrics --> ObsHub
+
     Security --> Wallet
     Wallet --> Crypto
 
@@ -194,6 +204,9 @@ flowchart LR
 | **Translation Orchestrator** | Agent morphing with shadow data and caching | [`src/bridge/orchestrator.ts`](src/bridge/orchestrator.ts) |
 | **Bridge REST API** | HTTP API for agent translation | [`src/api/bridge/controller.ts`](src/api/bridge/controller.ts) |
 | **ExperienceSyncManager** | Sync protocol coordination (streaming, lumped, check-in) | [`src/sync/ExperienceSyncManager.ts`](src/sync/ExperienceSyncManager.ts) |
+| **CentralizedLogger** | Structured logging with configurable sinks | [`src/observability/CentralizedLogger.ts`](src/observability/CentralizedLogger.ts) |
+| **Metrics** | Application metrics collection and export | [`src/observability/Metrics.ts`](src/observability/Metrics.ts) |
+| **ObservabilityHub** | Unified logging, tracing, and metrics coordination | [`src/observability/ObservabilityHub.ts`](src/observability/ObservabilityHub.ts) |
 | **API Key Wallet** | Encrypted API key storage with auto-lock | [`src/security/ApiKeyWallet.ts`](src/security/ApiKeyWallet.ts) |
 | **Universal Adapter** | JSON-driven LLM task orchestration | [`src/universal_adapter/core.py`](src/universal_adapter/core.py) |
 | **Fireproof** | Local-first CRDT document store (Python) | [`memory_system/fireproof/`](memory_system/fireproof/) |
@@ -490,6 +503,7 @@ adapter.run_task(
 | `ANTHROPIC_API_KEY` | Claude semantic decomposition | - | For LLM analysis |
 | `VECTOR_INDEX_TYPE` | Index backend | `brute` | No |
 | `VECTOR_INDEX_COLLECTION` | Collection name | `memories` | No |
+| `LOG_LEVEL` | Logging verbosity (debug, info, warn, error) | `info` | No |
 | `METRICS_PROMETHEUS` | Enable Prometheus | `false` | No |
 | `METRICS_PROM_PORT` | Prometheus port | `9464` | No |
 | `METRICS_OTEL` | Enable OpenTelemetry | `false` | No |
@@ -562,7 +576,13 @@ flowchart TB
         L4C[Retry Logic]
     end
 
-    Layer1 --> Layer2 --> Layer3 --> Layer4
+    subgraph Layer5["Layer 5: Observability"]
+        L5A[Structured Logging]
+        L5B[Metrics Collection]
+        L5C[Trace Correlation]
+    end
+
+    Layer1 --> Layer2 --> Layer3 --> Layer4 --> Layer5
 ```
 
 ### Threat Model
@@ -679,15 +699,36 @@ Agent:
 ### Internal Documentation
 
 - [Implementation Status](docs/STATUS.md) - Authoritative implementation status
-- [Documentation Index](docs/INDEX.md) - Navigation hub
+- [Documentation Index](docs/README.md) - Navigation hub with role-based entry points
+- [Glossary](docs/GLOSSARY.md) - Terminology reference addressing common confusions
 - [Universal Patterns Research](docs/research/universal-patterns/PATTERNS_ANCHORED.md) - Pattern foundation
 - [Security Analysis](docs/research/deep-research/SECURITY_ATTACKS.md) - Security research
 - [Memory System](memory_system/README.md) - Python package documentation
 - [Universal Adapter](src/universal_adapter/README.md) - Task orchestration system
-- [Bridge API](src/api/bridge/README.md) - Bridge service documentation
+- [Observability](src/observability/README.md) - Logging, metrics, and tracing
+
+---
+
+## Architectural Evolution Notes
+
+### Removed Components (2026-01-15/16)
+
+The following components were removed from the codebase and are documented here for historical context:
+
+1. **Voyeur Observability System** - Replaced with standard centralized logging ([`CentralizedLogger.ts`](src/observability/CentralizedLogger.ts)), metrics ([`Metrics.ts`](src/observability/Metrics.ts)), and unified observability hub ([`ObservabilityHub.ts`](src/observability/ObservabilityHub.ts))
+   - **Reason**: Entity sovereignty violation - event bus created tight coupling across system boundaries
+   - **Migration**: Standard structured logging with configurable sinks, Prometheus/OpenTelemetry metrics export
+
+2. **TypeScript Memory System** (`src/memory/`) - Memory implementation consolidated in Python
+   - **Reason**: Python offers superior vector database integrations and semantic processing libraries
+   - **Current**: Python memory system at [`memory_system/`](memory_system/) with Fireproof CRDT
+
+3. **Terminal UI (TUI)** (`src/tui/`) - Ink-based terminal interface
+   - **Reason**: Canvas system provides richer interaction model
+   - **Current**: Web-based canvas system at [`src/canvas/`](src/canvas/) with Terminal PTY integration
 
 ---
 
 **Document Owner**: Chrysalis Team
 **Review Cadence**: Monthly or on major releases
-**Last Major Revision**: January 16, 2026 - Aligned with actual implementation, removed references to deleted components
+**Last Major Revision**: January 17, 2026 - Removed Voyeur references, verified against source code, documented architectural evolution
