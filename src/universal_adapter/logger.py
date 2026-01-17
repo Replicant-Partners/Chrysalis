@@ -42,14 +42,28 @@ def _shrink(value: Any, *, max_len: int = 4000, max_items: int = 50, depth: int 
         return value if len(value) <= max_len else value[:max_len] + "…"
 
     if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray, str)):
-        seq = list(value)
-        if all(isinstance(x, (int, float)) for x in seq) and len(seq) > 10:
-            checksum = hashlib.sha256(",".join(f"{v:.6f}" for v in seq).encode()).hexdigest()[:12]
-            return {"type": "vector", "length": len(seq), "checksum": checksum}
-        if len(seq) > max_items:
-            sample = [_shrink(x, max_len=max_len, max_items=max_items, depth=depth + 1) for x in seq[:10]]
-            return {"type": "list", "length": len(seq), "sample": sample}
-        return [_shrink(x, max_len=max_len, max_items=max_items, depth=depth + 1) for x in seq]
+        # Avoid full materialization of gigantic iterables
+        limited = []
+        total = 0
+        for item in value:
+            total += 1
+            if len(limited) < max_items:
+                limited.append(item)
+            else:
+                break
+
+        if all(isinstance(x, (int, float)) for x in limited) and total > 10:
+            checksum = hashlib.sha256(",".join(f"{v:.6f}" for v in limited).encode()).hexdigest()[:12]
+            return {"type": "vector", "length": total, "checksum": checksum}
+
+        sample = [_shrink(x, max_len=max_len, max_items=max_items, depth=depth + 1) for x in limited]
+        if total > max_items:
+            return {"type": "list", "length": total, "sample": sample}
+        return sample
+
+    # Generators/iterators: summarize without materializing
+    if hasattr(value, "__iter__"):
+        return {"type": "iterator", "detail": str(type(value))}
 
     if isinstance(value, Mapping):
         items = list(value.items())
