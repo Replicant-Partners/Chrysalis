@@ -4,9 +4,13 @@
  */
 
 import React from 'react';
+
 import { BaseCanvasWithProvider, BaseCanvasProps } from '../BaseCanvas';
 import { createWidgetRegistry } from '../WidgetRegistry';
-import type { CanvasPolicy } from '../types';
+import { ConfigWidget, ConfigWidgetData } from '../widgets/ConfigWidget';
+import { ConnectionWidget, ConnectionWidgetData } from '../widgets/ConnectionWidget';
+
+import type { CanvasPolicy, WidgetDefinition } from '../types';
 
 const SETTINGS_POLICY: CanvasPolicy = {
   maxNodes: 50,
@@ -15,15 +19,45 @@ const SETTINGS_POLICY: CanvasPolicy = {
   allowedWidgetTypes: ['config', 'connection', 'credential'],
 };
 
+const configWidgetDef: WidgetDefinition<ConfigWidgetData> = {
+  type: 'config',
+  displayName: 'Configuration Setting',
+  renderer: ConfigWidget,
+  capabilities: ['edit', 'read'],
+  defaultData: {
+    key: 'new.setting',
+    value: 'default-value',
+    description: 'Configuration setting description'
+  },
+  category: 'system',
+  icon: '⚙️'
+};
+
+const connectionWidgetDef: WidgetDefinition<ConnectionWidgetData> = {
+  type: 'connection',
+  displayName: 'Service Connection',
+  renderer: ConnectionWidget,
+  capabilities: ['read', 'test'],
+  defaultData: {
+    service: 'New Service',
+    status: 'disconnected',
+    endpoint: 'https://example.com'
+  },
+  category: 'connectivity',
+  icon: '🔌'
+};
+
 export interface SettingsCanvasProps extends Omit<BaseCanvasProps, 'canvasKind' | 'registry' | 'policy'> {
   customPolicy?: Partial<CanvasPolicy>;
 }
 
 export const SettingsCanvas: React.FC<SettingsCanvasProps> = ({ customPolicy, ...props }) => {
-  const registry = React.useMemo(
-    () => createWidgetRegistry('settings', SETTINGS_POLICY.allowedWidgetTypes),
-    []
-  );
+  const registry = React.useMemo(() => {
+    const reg = createWidgetRegistry('settings', SETTINGS_POLICY.allowedWidgetTypes);
+    reg.register(configWidgetDef);
+    reg.register(connectionWidgetDef);
+    return reg;
+  }, []);
 
   const policy = React.useMemo(
     () => ({ ...SETTINGS_POLICY, ...customPolicy }),

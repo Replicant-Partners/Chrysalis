@@ -1,17 +1,17 @@
 {
-  "taskId": "task_1768739154923_pjgwfeaqg",
+  "taskId": "task_1768747067579_d961mrqdd",
   "taskType": "evaluate",
-  "taskName": "Health check (deepseek-r1:1.5b)",
+  "taskName": "Health check (openai/gpt-5-mini)",
   "success": false,
   "error": {
-    "message": "fetch failed",
+    "message": "OpenAI API error: User not found.",
     "code": "TASK_EXECUTION_ERROR",
     "details": {}
   },
   "telemetry": {
-    "startTime": "2026-01-18T12:25:54.923Z",
-    "endTime": "2026-01-18T12:25:54.949Z",
-    "durationMs": 26,
+    "startTime": "2026-01-18T14:37:47.579Z",
+    "endTime": "2026-01-18T14:37:48.003Z",
+    "durationMs": 424,
     "llmCalls": 1,
     "cacheHits": {
       "spec": 0,
@@ -19,13 +19,13 @@
     },
     "errors": [
       {
-        "message": "fetch failed",
-        "timestamp": "2026-01-18T12:25:54.949Z",
+        "message": "OpenAI API error: User not found.",
+        "timestamp": "2026-01-18T14:37:48.003Z",
         "context": "evaluate-task"
       },
       {
-        "message": "fetch failed",
-        "timestamp": "2026-01-18T12:25:54.949Z",
+        "message": "OpenAI API error: User not found.",
+        "timestamp": "2026-01-18T14:37:48.003Z",
         "context": "task-execution"
       }
     ],
@@ -35,7 +35,7 @@
     "mode": "health",
     "promptId": "health_check",
     "rubricId": "kata_v1",
-    "executedAt": "2026-01-18T12:25:54.923Z",
+    "executedAt": "2026-01-18T14:37:47.579Z",
     "version": "1.0.0"
   }
 }

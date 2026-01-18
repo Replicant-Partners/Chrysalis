@@ -10,9 +10,16 @@
 import { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
 import { UniversalAdapter, createUniversalAdapter, type LLMProvider } from './adapter';
 import { DEFAULT_ADA_MODEL } from '../../config/ollama-models';
-import { createLogger } from '../../shared/logger';
+import { logger } from '../../observability';
 
-const log = createLogger('gateway-bridge');
+const log = logger('gateway-bridge');
+
+function resolveGatewayBaseUrl(explicit?: string): string {
+  const envBase = typeof process !== 'undefined'
+    ? (process.env.GATEWAY_BASE_URL || process.env.NEXT_PUBLIC_GATEWAY_BASE_URL || process.env.VITE_GATEWAY_BASE_URL)
+    : undefined;
+  return explicit || envBase || 'http://localhost:8080';
+}
 
 /**
  * Gateway LLM Provider for Universal Adapter
@@ -107,15 +114,17 @@ export function createGatewayAdapter(options?: {
   enableMappingCache?: boolean;
   enableVerification?: boolean;
 }): UniversalAdapter {
+  const gatewayBaseUrl = resolveGatewayBaseUrl(options?.gatewayBaseUrl);
+  const gatewayModel = options?.gatewayModel || DEFAULT_ADA_MODEL;
   const client = new GatewayLLMClient({
-    baseUrl: options?.gatewayBaseUrl || 'http://localhost:8080',
-    model: options?.gatewayModel || DEFAULT_ADA_MODEL
+    baseUrl: gatewayBaseUrl,
+    model: gatewayModel
   });
 
   const provider = new GatewayLLMProvider(
     client,
     options?.agentId || 'universal-adapter',
-    options?.gatewayModel || DEFAULT_ADA_MODEL
+    gatewayModel
   );
 
   return createUniversalAdapter(provider, {
@@ -139,7 +148,7 @@ export function getSharedAdapter(options?: Parameters<typeof createGatewayAdapte
     sharedAdapter = createGatewayAdapter(options);
     log.info('Created shared Universal Adapter instance', {
       model: options?.gatewayModel || DEFAULT_ADA_MODEL,
-      gatewayUrl: options?.gatewayBaseUrl || 'http://localhost:8080'
+      gatewayUrl: resolveGatewayBaseUrl(options?.gatewayBaseUrl)
     });
   }
   return sharedAdapter;

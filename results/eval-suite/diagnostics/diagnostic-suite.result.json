@@ -1,0 +1,117 @@
+{
+  "taskId": "task_1768752259491_kjs9wnxlw",
+  "taskType": "batch",
+  "taskName": "Progressive Diagnostic Suite (deepseek-r1:1.5b)",
+  "success": false,
+  "result": [
+    {
+      "taskId": "task_1768752259491_b00yzj2c7",
+      "taskType": "evaluate",
+      "taskName": "D1: Simple Echo",
+      "success": true,
+      "result": {
+        "response": "OK",
+        "tokensIn": 7,
+        "tokensOut": 6,
+        "latencyMs": 10782,
+        "finishReason": "stop",
+        "model": "deepseek-r1:1.5b",
+        "provider": "ollama"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T16:04:19.491Z",
+        "endTime": "2026-01-18T16:04:30.276Z",
+        "durationMs": 10785,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 13
+      },
+      "metadata": {
+        "test_id": "D1",
+        "complexity": "minimal",
+        "executedAt": "2026-01-18T16:04:19.491Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768752270276_84woj4e7f",
+      "taskType": "evaluate",
+      "taskName": "D2: Simple JSON",
+      "success": false,
+      "error": {
+        "message": "Ollama request timeout after 60000ms",
+        "code": "TASK_EXECUTION_ERROR",
+        "details": {}
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T16:04:30.276Z",
+        "endTime": "2026-01-18T16:05:30.282Z",
+        "durationMs": 60006,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [
+          {
+            "message": "Ollama request timeout after 60000ms",
+            "timestamp": "2026-01-18T16:05:30.282Z",
+            "context": "evaluate-task"
+          },
+          {
+            "message": "Ollama request timeout after 60000ms",
+            "timestamp": "2026-01-18T16:05:30.282Z",
+            "context": "task-execution"
+          }
+        ],
+        "warnings": []
+      },
+      "metadata": {
+        "test_id": "D2",
+        "complexity": "json_basic",
+        "executedAt": "2026-01-18T16:04:30.276Z",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "successful": 1,
+    "failed": 1
+  },
+  "telemetry": {
+    "startTime": "2026-01-18T16:04:19.491Z",
+    "endTime": "2026-01-18T16:05:30.283Z",
+    "durationMs": 70792,
+    "llmCalls": 2,
+    "cacheHits": {
+      "spec": 0,
+      "mapping": 0
+    },
+    "errors": [
+      {
+        "message": "Ollama request timeout after 60000ms",
+        "timestamp": "2026-01-18T16:05:30.282Z",
+        "context": "evaluate-task"
+      },
+      {
+        "message": "Ollama request timeout after 60000ms",
+        "timestamp": "2026-01-18T16:05:30.282Z",
+        "context": "task-execution"
+      }
+    ],
+    "warnings": []
+  },
+  "metadata": {
+    "suite": "diagnostic_progressive_v1",
+    "model": "deepseek-r1:1.5b",
+    "purpose": "Isolate failure point through incremental complexity",
+    "executedAt": "2026-01-18T16:04:19.491Z",
+    "version": "1.0.0"
+  }
+}

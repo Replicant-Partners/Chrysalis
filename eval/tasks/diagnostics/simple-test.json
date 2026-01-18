@@ -1,0 +1,22 @@
+{
+  "type": "evaluate",
+  "name": "Simple diagnostic test",
+  "prompt": "Respond with exactly this JSON object and nothing else:\n{\"status\": \"ok\", \"model\": \"test\"}",
+  "model": {
+    "provider": "ollama",
+    "name": "deepseek-r1:1.5b"
+  },
+  "parameters": {
+    "temperature": 0.0,
+    "maxTokens": 100,
+    "topP": 1.0
+  },
+  "options": {
+    "outputPath": "results/eval-suite/responses/diagnostics/simple-test.md",
+    "includeMetadata": true,
+    "timeoutMs": 30000
+  },
+  "metadata": {
+    "test": "baseline_connectivity"
+  }
+}

@@ -22,7 +22,7 @@ export interface GatewayLLMClientConfig {
 /**
  * Minimal HTTP client for the Go LLM gateway (/v1/chat).
  */
-import { createLogger } from '../../shared/logger';
+import { logger } from '../../observability';
 
 export class GatewayLLMClient {
   private baseUrl: string;
@@ -30,7 +30,7 @@ export class GatewayLLMClient {
   private model?: string;
   private fetchImpl: typeof fetch;
   private streamDefault?: boolean;
-  private log = createLogger('gateway-llm');
+  private log = logger('gateway-llm');
 
   constructor(config: GatewayLLMClientConfig = {}) {
     const envBase = typeof process !== 'undefined' ? (process.env.GATEWAY_BASE_URL || process.env.NEXT_PUBLIC_GATEWAY_BASE_URL || process.env.VITE_GATEWAY_BASE_URL) : undefined;

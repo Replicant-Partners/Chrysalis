@@ -1,43 +1,148 @@
 # Canvas Foundation Implementation
 
+**Last Updated:** 2026-01-18  
+**Status:** Foundation Complete, Canvas Types Complete, Integration Pending
+
 ## Files Created
 
-### Core Infrastructure
-1. **`src/canvas/types.ts`**
-   - CanvasKind type (6 canvas types: settings, agent, scrapbook, research, wiki, terminal-browser)
-   - WidgetNodeData, WidgetDefinition interfaces
-   - CanvasPolicy, CanvasTheme, CanvasDataSource
-   - Event types, lifecycle hooks
+### Core Infrastructure (Foundation Complete)
 
-2. **`src/canvas/WidgetRegistry.ts`**
-   - Per-canvas widget registry with enforcement
+1. **`src/canvas/types.ts`** (543 lines)
+   - CanvasKind type (6 canvas types: settings, agent, scrapbook, research, wiki, terminal-browser)
+   - WidgetNodeData, WidgetProps, WidgetDefinition interfaces
+   - CanvasPolicy, CanvasTheme, AccessibilityConfig
+   - CanvasDataSource interface with tile-based loading
+   - Event types (CanvasEvent, WidgetEvent)
+   - Collaboration types (SessionToken, CollaboratorPresence, Operation)
+   - Lifecycle states (CanvasLifecycleState, WidgetLifecycleState)
+
+2. **`src/canvas/WidgetRegistry.ts`** (322 lines)
+   - WidgetRegistry class with per-canvas enforcement
    - Allowlist/denylist validation
    - Capability checking
    - Schema validation hooks
-   - Creation/update guards
+   - Creation/update guards (validateDefinition, validateData)
+   - Category-based organization
+   - Default widget type configurations per canvas kind
 
-3. **`src/canvas/BaseCanvas.tsx`**
-   - Generic BaseCanvas<TWidget> component
-   - XYFlow integration with virtualization
-   - Rate limiting
-   - Event emission
-   - Lifecycle management
-   - Accessibility support
+3. **`src/canvas/BaseCanvas.tsx`** (470 lines)
+   - Generic BaseCanvas component with ReactFlow
+   - Uses standard `useState` (NOT ReactFlow `useNodesState`/`useEdgesState` per ADR-001)
+   - RateLimiter class for policy enforcement
+   - Policy validation (max nodes/edges, rate limiting, widget type allowlisting)
+   - Event emission system
+   - Selection and viewport management  
+   - DataSource integration hooks with real-time subscription
+   - Accessibility features (keyboard nav placeholders, ARIA labels, reduced motion)
+   - Theme application system
+   - BaseCanvasWithProvider wrapping component
 
-### Implementation Example
-4. **`src/canvas/canvases/TerminalBrowserCanvas.tsx`**
-   - Terminal-Browser canvas configuration
-   - Widget allowlist: ['terminal_session', 'browser_tab']
-   - Policy: max 20 nodes, rate limits
-   - Registry setup with capabilities
+4. **`src/canvas/DataSource.ts`** (474 lines)
+   - MemoryDataSource (in-memory for testing)
+   - LocalStorageDataSource (browser localStorage persistence)
+   - IndexedDBDataSource (for large canvases)
+   - Tile-based loading for virtualization
+   - Real-time subscription system
+   - Factory functions: createMemoryDataSource(), createLocalStorageDataSource(), createIndexedDBDataSource()
 
-5. **`src/canvas/widgets/TerminalSessionWidget.tsx`**
-   - Terminal widget renderer placeholder
-   - xterm.js integration hooks (TODO)
-   - PTY WebSocket connection points
+5. **`src/canvas/demo.tsx`** (109 lines)
+   - Working demo with TextWidget
+   - Registry setup demonstration
+   - Policy configuration example
+   - Initial node placement
 
-6. **`src/canvas/index.ts`**
-   - All canvas exports
+### Infrastructure Layer (Complete)
+
+6. **`src/canvas/interactions/InteractionManager.ts`** (115 lines)
+   - Drag state management
+   - Selection box coordination
+   - Node selection within bounds calculation
+   - Subscription system for interaction state changes
+
+7. **`src/canvas/interactions/KeyboardShortcuts.ts`** (156 lines)
+   - KeyboardShortcutsManager class
+   - Handlers for: delete, select-all, deselect-all, undo, redo, copy, paste, arrow key movement
+   - Enable/disable controls
+   - createDefaultShortcuts factory function
+
+8. **`src/canvas/events/EventBus.ts`**
+   - Centralized event routing
+   - Event filtering and transformation
+   - Event replay for debugging
+   - Event logging for analytics
+
+9. **`src/canvas/events/CanvasHistory.ts`**
+   - Undo/redo stack management
+   - Operation recording
+   - State snapshots
+
+10. **`src/canvas/policy/PolicyEngine.ts`**
+    - Enhanced validation rules beyond basic counts
+    - Capability-based access control
+    - Resource usage monitoring
+
+### Canvas Implementations (All 6 Complete)
+
+11. **`src/canvas/canvases/SettingsCanvas.tsx`**
+    - System configuration interface
+    - Widgets: ConfigWidget, ConnectionWidget
+
+12. **`src/canvas/canvases/AgentCanvas.tsx`**
+    - Agent orchestration interface
+    - Widgets: AgentCardWidget, TeamGroupWidget
+
+13. **`src/canvas/canvases/ScrapbookCanvas.tsx`**
+    - Exploratory knowledge gathering interface
+    - Widgets: NoteWidget, LinkWidget, ArtifactWidget
+
+14. **`src/canvas/canvases/ResearchCanvas.tsx`**
+    - Structured research interface
+    - Widgets: SourceWidget, CitationWidget, SynthesisWidget, HypothesisWidget
+
+15. **`src/canvas/canvases/WikiCanvas.tsx`**
+    - Knowledge base interface
+    - Widgets: WikiPageWidget, WikiSectionWidget, WikiLinkWidget
+
+16. **`src/canvas/canvases/TerminalBrowserCanvas.tsx`**
+    - Collaborative development workspace interface
+    - Widgets: TerminalSessionWidget, BrowserTabWidget, CodeEditorWidget
+
+### Widget Implementations (17 Total)
+
+**Settings Canvas (2):**
+17. **`src/canvas/widgets/ConfigWidget.tsx`** - Key/value configuration editor
+18. **`src/canvas/widgets/ConnectionWidget.tsx`** - Service connection status monitor
+
+**Scrapbook Canvas (3):**
+19. **`src/canvas/widgets/NoteWidget.tsx`** - Text notes with tags
+20. **`src/canvas/widgets/LinkWidget.tsx`** - URL bookmarks
+21. **`src/canvas/widgets/ArtifactWidget.tsx`** - Code/text/image/data artifacts
+
+**Research Canvas (4):**
+22. **`src/canvas/widgets/SourceWidget.tsx`** - Research source citations
+23. **`src/canvas/widgets/CitationWidget.tsx`** - Academic citations with DOI
+24. **`src/canvas/widgets/SynthesisWidget.tsx`** - Research synthesis with confidence levels
+25. **`src/canvas/widgets/HypothesisWidget.tsx`** - Hypothesis tracking
+
+**Wiki Canvas (3):**
+26. **`src/canvas/widgets/WikiPageWidget.tsx`** - Wiki page display
+27. **`src/canvas/widgets/WikiSectionWidget.tsx`** - Hierarchical sections
+28. **`src/canvas/widgets/WikiLinkWidget.tsx`** - Internal/external links
+
+**Agent Canvas (2):**
+29. **`src/canvas/widgets/AgentCardWidget.tsx`** - Agent state display
+30. **`src/canvas/widgets/TeamGroupWidget.tsx`** - Team organization
+
+**Terminal-Browser Canvas (3):**
+31. **`src/canvas/widgets/TerminalSessionWidget.tsx`** - Interactive terminal (xterm.js integration pending)
+32. **`src/canvas/widgets/BrowserTabWidget.tsx`** - Browser tab display
+33. **`src/canvas/widgets/CodeEditorWidget.tsx`** - Code editor
+
+34. **`src/canvas/index.ts`**
+    - All canvas and widget exports
+
+35. **`src/canvas/examples/SettingsCanvasExample.tsx`**
+    - Example usage of SettingsCanvas
 
 ## Architecture
 
@@ -99,63 +204,39 @@ if (!validation.valid) {
 - Keyboard navigation support
 - Configurable reduced motion
 
-## Remaining Work
-
-### For Production
-1. **Widget Implementations**
-   - Complete xterm.js integration in TerminalSessionWidget
-   - Create widgets for other canvases (Browser, Media, etc.)
-
-2. **Data Source**
-   - Implement tile-based loading
-   - Add LRU caching
-   - Persistence layer
-
-3. **Remaining Canvases**
-   - Create 5 more canvas implementations (Agent, Scrapbook, Research, Wiki, Settings)
-   - Define widget allowlists for each
-   - Register widgets
-
-4. **Virtualization**
-   - Viewport culling hook
-   - Tile prefetch logic
-   - Offscreen widget pause/resume
-
-5. **Testing**
-   - Registry guard tests
-   - Policy enforcement tests
-   - Event emission tests
-
-## Usage Example
-
-```typescript
-import { TerminalCanvas } from './canvas';
-
-function App() {
-  const handleEvent = (event: CanvasEvent) => {
-    console.log('Canvas event:', event);
-  };
-  
-  return (
-    <TerminalCanvas
-      onEvent={handleEvent}
-      theme={{ background: '#000' }}
-      a11y={{ enableKeyboardNav: true }}
-    />
-  );
-}
-```
-
 ## Implementation Status
 
-- ✅ Core types defined
-- ✅ WidgetRegistry system complete
-- ✅ BaseCanvas component functional
-- ⚠️ Canvas implementations removed (System A and B deprecated)
-- ⚠️ Widget implementations need xterm.js integration
-- ⚠️ Data source needs tile loading implementation
-- ⚠️ 9 canvases remain to be created
-- ⚠️ Virtualization hooks need implementation
+**Complete:**
+- ✅ Core type system ([`types.ts`](../src/canvas/types.ts))
+- ✅ WidgetRegistry with enforcement ([`WidgetRegistry.ts`](../src/canvas/WidgetRegistry.ts))
+- ✅ BaseCanvas component with ReactFlow ([`BaseCanvas.tsx`](../src/canvas/BaseCanvas.tsx))
+- ✅ DataSource implementations: Memory, LocalStorage, IndexedDB ([`DataSource.ts`](../src/canvas/DataSource.ts))
+- ✅ Interaction management ([`interactions/`](../src/canvas/interactions/))
+- ✅ Event system ([`events/`](../src/canvas/events/))
+- ✅ Policy enforcement ([`policy/`](../src/canvas/policy/))
+- ✅ All 6 canvas type implementations ([`canvases/`](../src/canvas/canvases/))
+- ✅ 17 widget implementations ([`widgets/`](../src/canvas/widgets/))
+
+**Not Yet Implemented:**
+- ⚠️ Real-time collaboration sync (CRDT/Yjs for Terminal-Browser canvas)
+- ⚠️ Session token system for canvas sharing
+- ⚠️ Hypercard UI pattern for Agent Canvas (on/off toggle, expandable chat, PersonaJSON editor)
+- ⚠️ MediaWiki backend integration for Wiki Canvas
+- ⚠️ Actual xterm.js integration in TerminalSessionWidget
+- ⚠️ Sandboxed iframe implementation for BrowserTabWidget
+- ⚠️ Graph database integration for cross-canvas entity resolution
+- ⚠️ Ada system agent integration
+
+**Testing Status:**
+- ✅ Unit tests for DataSource and WidgetRegistry
+- ⚠️ Full widget functionality not tested
+- ⚠️ Canvas integration not tested end-to-end
+- ⚠️ Persistence not verified working
+- ⚠️ Real-world usage not validated
+
+**Design System Integration:**
+- ⚠️ Widgets use hardcoded colors, need migration to design tokens
+- ⚠️ Per [`plans/WIDGET_REDESIGN_PLAN.md`](../plans/WIDGET_REDESIGN_PLAN.md): 16 of 17 widgets need token-based redesign
 
 ## Dependencies Required
 

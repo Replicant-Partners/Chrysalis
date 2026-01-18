@@ -1,8 +1,12 @@
 # Chrysalis Canvas Architecture
 
+**Last Updated:** 2026-01-18  
+**Implementation Status:** Foundation + Canvas Types Complete, Integration Pending
+
 ## Status and scope
 - Canonical canvas types: **Settings, Agent, Scrapbook, Research, Wiki, Terminal-Browser**
-- This document specifies the modular XYFlow-based architecture, widget registries, virtualization, and Ada (system LLM) interaction model for all canvases.
+- This document specifies the modular ReactFlow-based architecture, widget registries, virtualization, and Ada (system LLM) interaction model for all canvases.
+- **Current:** Foundation complete with all 6 canvas types and 17 widgets implemented
 
 ## Goals
 - Single, strongly typed base XYFlow React component with per-canvas widget whitelists enforced via registry.
@@ -17,22 +21,30 @@
 - **Separation of concerns:** BaseCanvas handles canvas mechanics; widget libraries are isolated; Ada consumes state/events but does not bypass guards.
 - **Security-first:** Sandbox iframes, WS origin checks, no `eval`, secret redaction, CSP guidance.
 
-## BaseCanvas (XYFlow) contract
-- Generics: `CanvasKind`, `WidgetType`, `NodeData`, `EdgeData`.
-- Props (illustrative):
+## BaseCanvas (React Flow) implementation
+
+**Actual Implementation:** [`src/canvas/BaseCanvas.tsx`](../src/canvas/BaseCanvas.tsx)
+
+- Generic BaseCanvas component using ReactFlow
+- Uses standard React `useState` for nodes/edges (NOT ReactFlow hooks per ADR-001)
+- Props implemented:
   - `canvasKind: CanvasKind`
-  - `registry: WidgetRegistry<WidgetType>` (creation/update guards)
-  - `dataSource: CanvasDataSource` (tile/segment loader)
-  - `theme: CanvasTheme`
-  - `a11y: A11yConfig`
-  - `logging: CanvasLogger`
-  - `policy: CanvasPolicy` (allow/deny, rate limits)
-  - `onLifecycle: { onInit; onBeforePersist; onDestroy }`
-- Behavior:
-  - Renders XYFlow with controlled nodes/edges and memoized node/edge renderers.
-  - Enforces whitelist on widget creation, mutation, and import; rejects disallowed types with user-safe errors and audit log.
-  - Wraps children in ErrorBoundary; emits structured events (canvas_open, widget_add, widget_blocked, viewport_change, data_load_start/stop, error).
-  - Theming via CSS variables; focus/keyboard support; ARIA labels on controls.
+  - `registry: WidgetRegistry` (creation/update guards)
+  - `policy: CanvasPolicy` (node/edge limits, rate limiting, widget allowlist)
+  - `dataSource?: CanvasDataSource` (tile-based loading interface)
+  - `theme?: CanvasTheme`
+  - `accessibility?: AccessibilityConfig`
+  - `onEvent?: (event: CanvasEvent) => void`
+  - `onReady?: (instance: ReactFlowInstance) => void`
+
+- Behavior implemented:
+  - Renders ReactFlow with policy-validated nodes/edges
+  - RateLimiter class enforces action rate limits
+  - Widget type allowlist enforcement
+  - Event emission system (canvas:loaded, node:created, edge:created, policy:violated, rate:limit:exceeded)
+  - Selection tracking
+  - Accessibility: ARIA labels, keyboard nav placeholders, reduced motion support
+  - ReactFlowProvider wrapper (BaseCanvasWithProvider)
 
 ### Widget registry
 - Per-canvas registry maps `WidgetType` → { renderer, schema, capability requirements }.
@@ -59,12 +71,49 @@ interface CanvasPolicy {
 }
 ```
 
+## Canvas implementations
+
+**All 6 canvas types implemented in [`src/canvas/canvases/`](../src/canvas/canvases/):**
+
+### Settings Canvas - [`SettingsCanvas.tsx`](../src/canvas/canvases/SettingsCanvas.tsx)
+**Widgets:** ConfigWidget, ConnectionWidget
+**Purpose:** System configuration interface  
+**Status:** Basic structure complete, needs integration with backend storage
+
+### Agent Canvas - [`AgentCanvas.tsx`](../src/canvas/canvases/AgentCanvas.tsx)
+**Widgets:** AgentCardWidget, TeamGroupWidget
+**Purpose:** Agent orchestration interface (human-in-the-loop for agent control)
+**Status:** Basic structure complete, needs Hypercard pattern (on/off toggle, expandable chat, PersonaJSON editor, memory stack display)
+
+### Scrapbook Canvas - [`ScrapbookCanvas.tsx`](../src/canvas/canvases/ScrapbookCanvas.tsx)
+**Widgets:** NoteWidget, LinkWidget, ArtifactWidget
+**Purpose:** Exploratory knowledge gathering interface
+**Status:** Basic structure complete, needs drag-drop integration and design token migration
+
+### Research Canvas - [`ResearchCanvas.tsx`](../src/canvas/canvases/ResearchCanvas.tsx)
+**Widgets:** SourceWidget, CitationWidget, SynthesisWidget, HypothesisWidget
+**Purpose:** Structured research interface with domain frameworks
+**Status:** Basic structure complete, needs synthesis workflows and citation management
+
+### Wiki Canvas - [`WikiCanvas.tsx`](../src/canvas/canvases/WikiCanvas.tsx)
+**Widgets:** WikiPageWidget, WikiSectionWidget, WikiLinkWidget
+**Purpose:** Knowledge base interface
+**Status:** Basic structure complete, needs MediaWiki backend integration
+
+### Terminal-Browser Canvas - [`TerminalBrowserCanvas.tsx`](../src/canvas/canvases/TerminalBrowserCanvas.tsx)
+**Widgets:** TerminalSessionWidget, BrowserTabWidget, CodeEditorWidget
+**Purpose:** Collaborative development workspace (study group model)
+**Status:** Basic structure complete, needs xterm.js integration, sandboxed iframes, real-time CRDT collaboration
+
 ## Virtualization and infinite scroll
-- XYFlow `onlyRenderVisibleElements` + custom viewport culling hook.
-- Tile-based loading (2D grid); prefetch neighbor tiles on pan/zoom; debounce viewport changes; throttle edge routing recompute.
-- LRU eviction for offscreen tiles; skeleton placeholders while loading.
-- Resource caps per canvas: max in-memory nodes, max concurrent loads, backpressure signals to data source.
-- Offscreen pause for heavy widgets (terminal sessions); resume on re-entry.
+
+**Planned (not yet fully implemented):**
+- XYFlow `onlyRenderVisibleElements` enabled in BaseCanvas
+- DataSource interface supports tile-based loading
+- Custom viewport culling hook - pending
+- Tile prefetch logic - pending
+- LRU eviction - pending
+- Offscreen widget pause/resume - pending
 
 ```mermaid
 flowchart LR
@@ -76,26 +125,12 @@ flowchart LR
   Renderer --> Offscreen[Pause/teardown offscreen]
 ```
 
-## Canvas implementations
-
-### Terminal-Browser canvas (whitelist: TerminalSession, BrowserTab)
-- Widgets: `terminal_session` only; creation guarded by registry and policy.
-- Lifecycle: mount xterm; connect to PTY WS (origin-checked); debounce resize; dispose on unmount; cap scrollback; limit concurrent sessions.
-- Virtualization: keep shell node rendered; lazily attach xterm when near/in viewport; pause WS flow when offscreen; resumable sessions.
-- Security: rate-limit writes; sanitize output; optional addons: fit, webgl (optional), weblinks, serialize.
-
-### Agent canvas (whitelist: AgentCard, AgentConnection)
-- Widgets: agent cards with state indicators; connections between agents for workflow visualization.
-- Lifecycle: manage internal agents - store, revise, maintain, run teams; accumulate agent capabilities and knowledge.
-- Features: infinite scroll for large agent teams; canvas per project team expected use pattern.
-- Integration: connects to memory stack, wiki, and skill registry for agent competitive advantage.
-
-### Combined Terminal-Browser functionality
+## Combined Terminal-Browser functionality
 - Widgets: sandboxed iframe-based tabs; toolbar (URL bar, nav buttons, tabs) with allowlist validation.
 - Security: iframe `sandbox="allow-same-origin allow-scripts"`; CSP guidance; URL allow/deny lists; schema-validated postMessage command bus (navigate/back/forward/reload/screenshot request); no inline scripts, no credentialed URLs.
 - Interaction constraints: block mixed content; strip credentials; per-tab origin isolation; no direct DOM injection.
 
-### Settings canvas (whitelist: KeyEditor, ApiEnvelope, FeatureFlag, BudgetControl, AuditLogView)
+## Settings canvas (whitelist: KeyEditor, ApiEnvelope, FeatureFlag, BudgetControl, AuditLogView)
 - Secrets: masked by default; no logging of secret values; copy gated; TTL for in-memory secrets; optional client-side encryption at rest (crypto.subtle with session/user key) if required; HTTPS only.
 - Validation: schema validation for API envelopes; CSRF tokens on mutations; redaction in UI and logs.
 
@@ -156,6 +191,41 @@ flowchart TB
 
 ## Research pointers (for future citation)
 - XYFlow/React Flow virtualization patterns; xterm.js performance guidance; browser iframe sandbox + CSP best practices; UI secret-handling patterns; in-product LLM assistant UX and host/guest interaction models.
+
+## Virtualization and infinite scroll
+
+**Planned (not yet fully implemented):**
+- XYFlow `onlyRenderVisibleElements` enabled in BaseCanvas
+- DataSource interface supports tile-based loading
+- Custom viewport culling hook - pending
+- Tile prefetch logic - pending
+- LRU eviction - pending
+- Offscreen widget pause/resume - pending
+
+```mermaid
+flowchart LR
+  Viewport[Viewport observer] -->|pan/zoom| TileCalc[Tile index]
+  TileCalc --> Prefetch[Prefetch neighbors]
+  TileCalc --> Load[Load visible tiles]
+  Load --> Store[Tile store (LRU)]
+  Store --> Renderer[Render visible nodes/edges]
+  Renderer --> Offscreen[Pause/teardown offscreen]
+```
+
+## Validation Status
+
+| Task | Description | Status | User Validated |
+|------|-------------|--------|----------------|
+| 1 | Define 6 canonical canvas types | ✅ Complete | ✅ |
+| 2 | Remove obsolete implementations | ✅ Complete | ✅ |
+| 3 | Update architecture documentation | 🔄 In Progress | ⏳ |
+| 4 | BaseCanvas architecture design | ✅ Complete | ✅ |
+| 5 | Widget registry system | ✅ Complete | ✅ |
+| 6 | Canvas type implementations | ✅ Complete | ⏳ Needs integration testing |
+| 7 | Widget implementations | ✅ Complete | ⏳ Needs design token migration |
+| 8 | Integration testing | ⏳ Pending | ⏳ |
+| 9 | Ada integration | ⏳ Pending | ⏳ |
+| 10 | Real-time collaboration | ⏳ Pending | ⏳ |
 
 ## Mermaid legend
 - Diagrams above may be embedded directly in implementation docs; keep them updated as the code evolves.

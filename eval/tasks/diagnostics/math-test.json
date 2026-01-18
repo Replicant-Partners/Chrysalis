@@ -1,0 +1,25 @@
+{
+  "type": "evaluate",
+  "name": "Math diagnostic test",
+  "prompt": "Calculate the mean of these numbers: [9.5, 8.7, 8.2, 7.9]\n\nRespond with only this JSON object:\n{\"mean\": X.XX}\n\nReplace X.XX with the calculated value rounded to 2 decimals.",
+  "model": {
+    "provider": "ollama",
+    "name": "deepseek-r1:1.5b"
+  },
+  "parameters": {
+    "temperature": 0.0,
+    "maxTokens": 100,
+    "topP": 1.0
+  },
+  "options": {
+    "outputPath": "results/eval-suite/responses/diagnostics/math-test.md",
+    "includeMetadata": true,
+    "timeoutMs": 60000
+  },
+  "metadata": {
+    "test": "basic_math",
+    "expected": {
+      "mean": 8.58
+    }
+  }
+}

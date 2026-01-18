@@ -90,7 +90,42 @@ if [[ "$RUN_HEALTH" -eq 1 ]]; then
   # Health check (CLI + local provider)
   if [[ -f "$ROOT/eval/tasks/health/health-check.json" ]]; then
     echo "Running health check..."
-    node "$CLI" "$ROOT/eval/tasks/health/health-check.json" --output "$RUNS_DIR/health-check.json"
+    resolved="$RESOLVED_DIR/health-check.json"
+    python3 "$ROOT/scripts/eval/resolve_api_keys.py" "$ROOT/eval/tasks/health/health-check.json" "$resolved"
+
+    set +e
+    python3 - "$resolved" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path, 'r', encoding='utf-8') as handle:
+    task = json.load(handle)
+
+def needs_key(node):
+    if node.get('type') == 'batch':
+        return any(needs_key(t) for t in node.get('tasks', []))
+    if node.get('type') != 'evaluate':
+        return False
+    model = node.get('model', {})
+    provider = str(model.get('provider', '')).lower()
+    if provider == 'ollama':
+        return False
+    return not bool(model.get('apiKey'))
+
+if needs_key(task):
+    print('SKIP_MISSING_API_KEY')
+    sys.exit(2)
+PY
+    status=$?
+    set -e
+    if [[ "$status" -eq 2 ]]; then
+      echo "Skipping health check (missing API key)."
+    elif [[ "$status" -ne 0 ]]; then
+      exit "$status"
+    else
+      node "$CLI" "$resolved" --output "$RUNS_DIR/health-check.json"
+    fi
   else
     echo "Health check task missing. Generate with: scripts/eval/generate_eval_tasks.py"
   fi

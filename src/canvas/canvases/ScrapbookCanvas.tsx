@@ -1,7 +1,11 @@
 import React from 'react';
 import { BaseCanvasWithProvider, BaseCanvasProps } from '../BaseCanvas';
 import { createWidgetRegistry } from '../WidgetRegistry';
-import type { CanvasPolicy } from '../types';
+import { ArtifactWidget, ArtifactWidgetData } from '../widgets/ArtifactWidget';
+import { LinkWidget, LinkWidgetData } from '../widgets/LinkWidget';
+import { NoteWidget, NoteWidgetData } from '../widgets/NoteWidget';
+
+import type { CanvasPolicy, WidgetDefinition } from '../types';
 
 const SCRAPBOOK_POLICY: CanvasPolicy = {
   maxNodes: 500,
@@ -10,13 +14,58 @@ const SCRAPBOOK_POLICY: CanvasPolicy = {
   allowedWidgetTypes: ['artifact', 'note', 'link', 'group'],
 };
 
-export interface ScrapbookCanvasProps extends Omit<BaseCanvasProps, 'canvasKind' | 'registry' | 'policy'> {}
+const noteWidgetDef: WidgetDefinition<NoteWidgetData> = {
+  type: 'note',
+  displayName: 'Note',
+  renderer: NoteWidget,
+  capabilities: ['edit', 'read'],
+  defaultData: {
+    content: 'New note...',
+    tags: []
+  },
+  category: 'content',
+  icon: '📝'
+};
+
+const linkWidgetDef: WidgetDefinition<LinkWidgetData> = {
+  type: 'link',
+  displayName: 'Link',
+  renderer: LinkWidget,
+  capabilities: ['read'],
+  defaultData: {
+    url: 'https://example.com',
+    title: 'New Link',
+    description: ''
+  },
+  category: 'reference',
+  icon: '🔗'
+};
+
+const artifactWidgetDef: WidgetDefinition<ArtifactWidgetData> = {
+  type: 'artifact',
+  displayName: 'Artifact',
+  renderer: ArtifactWidget,
+  capabilities: ['read', 'edit'],
+  defaultData: {
+    artifactType: 'text',
+    content: '',
+    language: undefined,
+    source: undefined
+  },
+  category: 'content',
+  icon: '📦'
+};
+
+export interface ScrapbookCanvasProps extends Omit<BaseCanvasProps, 'canvasKind' | 'registry' | 'policy'> { }
 
 export const ScrapbookCanvas: React.FC<ScrapbookCanvasProps> = (props) => {
-  const registry = React.useMemo(
-    () => createWidgetRegistry('scrapbook', SCRAPBOOK_POLICY.allowedWidgetTypes),
-    []
-  );
+  const registry = React.useMemo(() => {
+    const reg = createWidgetRegistry('scrapbook', SCRAPBOOK_POLICY.allowedWidgetTypes);
+    reg.register(noteWidgetDef);
+    reg.register(linkWidgetDef);
+    reg.register(artifactWidgetDef);
+    return reg;
+  }, []);
 
   return (
     <BaseCanvasWithProvider

@@ -1,0 +1,155 @@
+{
+  "type": "batch",
+  "name": "Progressive Diagnostic Suite (deepseek-r1:1.5b)",
+  "stopOnError": true,
+  "metadata": {
+    "suite": "diagnostic_progressive_v1",
+    "model": "deepseek-r1:1.5b",
+    "purpose": "Isolate failure point through incremental complexity"
+  },
+  "tasks": [
+    {
+      "type": "evaluate",
+      "name": "D1: Simple Echo",
+      "prompt": "Echo this: OK",
+      "model": {
+        "provider": "ollama",
+        "name": "deepseek-r1:1.5b"
+      },
+      "parameters": {
+        "temperature": 0.0,
+        "maxTokens": 50,
+        "topP": 1.0
+      },
+      "options": {
+        "outputPath": "results/eval-suite/responses/diagnostics/d1-echo.md",
+        "includeMetadata": true,
+        "timeoutMs": 30000
+      },
+      "metadata": {
+        "test_id": "D1",
+        "complexity": "minimal"
+      }
+    },
+    {
+      "type": "evaluate",
+      "name": "D2: Simple JSON",
+      "prompt": "Provide this JSON object:\n{\"status\": \"ok\"}\n\nYou may show brief reasoning first (1-2 lines), then provide the JSON.\n\nNote: If you cannot complete this task, simply respond with \"I can't see it\".",
+      "model": {
+        "provider": "ollama",
+        "name": "deepseek-r1:1.5b"
+      },
+      "parameters": {
+        "temperature": 0.0,
+        "maxTokens": 200,
+        "topP": 1.0
+      },
+      "options": {
+        "outputPath": "results/eval-suite/responses/diagnostics/d2-json.md",
+        "includeMetadata": true,
+        "timeoutMs": 60000
+      },
+      "metadata": {
+        "test_id": "D2",
+        "complexity": "json_basic"
+      }
+    },
+    {
+      "type": "evaluate",
+      "name": "D3: Basic Math",
+      "prompt": "What is 2 + 2?\n\nTreat math as discrete computation, not language interpretation. Show brief working (1 line max), then provide the number.\n\nNote: If you cannot complete this task, simply respond with \"I can't see it\".",
+      "model": {
+        "provider": "ollama",
+        "name": "deepseek-r1:1.5b"
+      },
+      "parameters": {
+        "temperature": 0.0,
+        "maxTokens": 100,
+        "topP": 1.0
+      },
+      "options": {
+        "outputPath": "results/eval-suite/responses/diagnostics/d3-math.md",
+        "includeMetadata": true,
+        "timeoutMs": 45000
+      },
+      "metadata": {
+        "test_id": "D3",
+        "complexity": "math_simple"
+      }
+    },
+    {
+      "type": "evaluate",
+      "name": "D4: Array Average",
+      "prompt": "Calculate the average of [9.5, 8.7, 8.2, 7.9].\n\nTreat this as pure computation. Show brief calculation (1-2 lines max), then provide the number rounded to 2 decimals.\n\nNote: If you cannot complete this task, simply respond with \"I can't see it\".",
+      "model": {
+        "provider": "ollama",
+        "name": "deepseek-r1:1.5b"
+      },
+      "parameters": {
+        "temperature": 0.0,
+        "maxTokens": 150,
+        "topP": 1.0
+      },
+      "options": {
+        "outputPath": "results/eval-suite/responses/diagnostics/d4-array-avg.md",
+        "includeMetadata": true,
+        "timeoutMs": 60000
+      },
+      "metadata": {
+        "test_id": "D4",
+        "complexity": "math_medium",
+        "expected": 8.58
+      }
+    },
+    {
+      "type": "evaluate",
+      "name": "D5: Math + JSON",
+      "prompt": "Calculate the average of [9.5, 8.7, 8.2, 7.9] and subtract 6.0 from it.\n\nTreat calculations as discrete computational operations. Be concise - show brief calculation (2-3 lines max), then provide this JSON:\n{\"avg\": X.XX, \"gap\": Y.YY}\n\nNote: If you cannot complete this task, simply respond with \"I can't see it\".",
+      "model": {
+        "provider": "ollama",
+        "name": "deepseek-r1:1.5b"
+      },
+      "parameters": {
+        "temperature": 0.0,
+        "maxTokens": 300,
+        "topP": 1.0
+      },
+      "options": {
+        "outputPath": "results/eval-suite/responses/diagnostics/d5-math-json.md",
+        "includeMetadata": true,
+        "timeoutMs": 120000
+      },
+      "metadata": {
+        "test_id": "D5",
+        "complexity": "math_json_combined",
+        "expected": {
+          "avg": 8.58,
+          "gap": 2.58
+        }
+      }
+    },
+    {
+      "type": "evaluate",
+      "name": "D6: Full Kata Prompt (Simplified)",
+      "prompt": "MODE: 1 Manager\n\nDATA:\n- Cycle time (days): [9.5, 8.7, 8.2, 7.9]\n- Target cycle time: 6.0 days\n- PR review time: 48 hours\n- Target PR review: 24 hours\n\nTASK:\n1) Calculate average cycle time\n2) Calculate gap to target (avg - target)\n3) Propose one experiment\n\nIMPORTANT: Treat mathematical calculations as discrete computational modules, independent of language interpretation.\n\nBe concise - show brief reasoning in bullet points (3-5 lines max).\n\nThen provide this JSON:\n{\n  \"avg_cycle_time\": 0.00,\n  \"gap\": 0.00,\n  \"experiment\": \"short description\"\n}\n\nNote: If you cannot complete this task, simply respond with \"I can't see it\".\n",
+      "model": {
+        "provider": "ollama",
+        "name": "deepseek-r1:1.5b"
+      },
+      "parameters": {
+        "temperature": 0.2,
+        "maxTokens": 600,
+        "topP": 0.9
+      },
+      "options": {
+        "outputPath": "results/eval-suite/responses/diagnostics/d6-kata-simplified.md",
+        "includeMetadata": true,
+        "timeoutMs": 180000
+      },
+      "metadata": {
+        "test_id": "D6",
+        "complexity": "kata_simplified"
+      }
+    }
+  ]
+}

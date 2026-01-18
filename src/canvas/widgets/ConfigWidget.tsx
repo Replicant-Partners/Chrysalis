@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Widget Props, WidgetNodeData } from '../types';
+import type { WidgetProps, WidgetNodeData } from '../types';
 
 export interface ConfigWidgetData extends WidgetNodeData {
   key: string;

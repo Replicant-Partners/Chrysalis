@@ -1,0 +1,26 @@
+{
+  "type": "evaluate",
+  "name": "JSON schema diagnostic test",
+  "prompt": "Create a JSON response with these calculations:\n1. Average of [9.5, 8.7, 8.2, 7.9]\n2. Subtract 6.0 from that average\n\nRespond with this exact JSON schema:\n{\n  \"avg\": 0.00,\n  \"gap\": 0.00\n}\n\nNo extra text. Just the JSON object.",
+  "model": {
+    "provider": "ollama",
+    "name": "deepseek-r1:1.5b"
+  },
+  "parameters": {
+    "temperature": 0.0,
+    "maxTokens": 150,
+    "topP": 1.0
+  },
+  "options": {
+    "outputPath": "results/eval-suite/responses/diagnostics/json-schema-test.md",
+    "includeMetadata": true,
+    "timeoutMs": 90000
+  },
+  "metadata": {
+    "test": "json_schema_adherence",
+    "expected": {
+      "avg": 8.58,
+      "gap": 2.58
+    }
+  }
+}

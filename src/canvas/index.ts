@@ -27,8 +27,7 @@ export { PolicyEngine } from './policy/PolicyEngine';
 // Canvas implementations
 export { SettingsCanvas } from './canvases/SettingsCanvas';
 export { ScrapbookCanvas } from './canvases/ScrapbookCanvas';
-// TODO: Export remaining canvases as they're implemented
-// export { ResearchCanvas } from './canvases/ResearchCanvas';
-// export { WikiCanvas } from './canvases/WikiCanvas';
-// export { TerminalBrowserCanvas } from './canvases/TerminalBrowserCanvas';
-// export { AgentCanvas } from './canvases/AgentCanvas';
+export { ResearchCanvas } from './canvases/ResearchCanvas';
+export { WikiCanvas } from './canvases/WikiCanvas';
+export { TerminalBrowserCanvas } from './canvases/TerminalBrowserCanvas';
+export { AgentCanvas } from './canvases/AgentCanvas';

@@ -11,10 +11,10 @@
 import { getSharedAdapter } from './gateway-bridge';
 import type { UniversalAdapter, TranslationResult, MorphingResult } from './adapter';
 import type { ValidationResult, ProtocolCapabilities } from './types';
-import { createLogger } from '../../shared/logger';
+import { logger } from '../../observability';
 import * as path from 'path';
 
-const log = createLogger('task-executor');
+const log = logger('task-executor');
 
 // ============================================================================
 // Task Definition Types
@@ -527,36 +527,96 @@ export class UniversalAdapterTaskExecutor {
     finishReason: string;
   }> {
     const endpoint = task.model.endpoint || 'http://localhost:11434';
-    const timeout = task.options?.timeoutMs || 30000;
+    const envTimeout = typeof process !== 'undefined' ? Number(process.env.OLLAMA_TIMEOUT_MS) : NaN;
+    const timeout = Number.isFinite(envTimeout)
+      ? envTimeout
+      : (task.options?.timeoutMs || 30000);
+
+    log.info('Ollama request starting', {
+      model: task.model.name,
+      endpoint,
+      timeout,
+      promptLength: task.prompt.length,
+      maxTokens: task.parameters?.maxTokens
+    });
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const timeoutId = setTimeout(() => {
+      log.warn('Ollama request timeout triggered', {
+        model: task.model.name,
+        timeout,
+        elapsed: timeout
+      });
+      controller.abort();
+    }, timeout);
+
+    const requestStart = Date.now();
 
     try {
+      const envMaxTokens = typeof process !== 'undefined' ? Number(process.env.OLLAMA_MAX_TOKENS) : NaN;
+      const maxTokens = Number.isFinite(envMaxTokens)
+        ? envMaxTokens
+        : (task.parameters?.maxTokens ?? 2048);
+
+      const requestPayload = {
+        model: task.model.name,
+        prompt: task.prompt,
+        stream: false,
+        options: {
+          temperature: task.parameters?.temperature ?? 0.7,
+          top_p: task.parameters?.topP ?? 0.9,
+          num_predict: maxTokens,
+          stop: task.parameters?.stopSequences
+        }
+      };
+
+      log.debug('Ollama request payload', requestPayload);
+
+      const fetchStart = Date.now();
       const response = await fetch(`${endpoint}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: task.model.name,
-          prompt: task.prompt,
-          stream: false,
-          options: {
-            temperature: task.parameters?.temperature ?? 0.7,
-            top_p: task.parameters?.topP ?? 0.9,
-            num_predict: task.parameters?.maxTokens ?? 2048,
-            stop: task.parameters?.stopSequences
-          }
-        }),
+        body: JSON.stringify(requestPayload),
         signal: controller.signal
+      });
+
+      const fetchDuration = Date.now() - fetchStart;
+      log.info('Ollama fetch completed', {
+        model: task.model.name,
+        fetchDuration,
+        status: response.status,
+        statusText: response.statusText
       });
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.statusText}`);
+        const errorText = await response.text();
+        log.error('Ollama API error response', {
+          model: task.model.name,
+          status: response.status,
+          statusText: response.statusText,
+          errorText
+        });
+        throw new Error(`Ollama API error: ${response.statusText} - ${errorText}`);
       }
 
+      const parseStart = Date.now();
       const data = await response.json();
+      const parseDuration = Date.now() - parseStart;
+
+      const totalDuration = Date.now() - requestStart;
+
+      log.info('Ollama request completed', {
+        model: task.model.name,
+        totalDuration,
+        fetchDuration,
+        parseDuration,
+        tokensIn: data.prompt_eval_count ?? 0,
+        tokensOut: data.eval_count ?? 0,
+        responseLength: data.response?.length ?? 0,
+        done: data.done
+      });
 
       return {
         response: data.response,
@@ -566,9 +626,23 @@ export class UniversalAdapterTaskExecutor {
       };
     } catch (error) {
       clearTimeout(timeoutId);
+      const totalDuration = Date.now() - requestStart;
+
       if ((error as Error).name === 'AbortError') {
+        log.error('Ollama request aborted (timeout)', {
+          model: task.model.name,
+          timeout,
+          elapsed: totalDuration
+        });
         throw new Error(`Ollama request timeout after ${timeout}ms`);
       }
+
+      log.error('Ollama request failed', {
+        model: task.model.name,
+        elapsed: totalDuration,
+        error: (error as Error).message,
+        errorType: (error as Error).name
+      });
       throw error;
     }
   }

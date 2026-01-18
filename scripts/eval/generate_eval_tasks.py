@@ -17,7 +17,10 @@ BENCH_TASKS_DIR = ROOT / "eval" / "tasks" / "benchmarks"
 HEALTH_TASKS_DIR = ROOT / "eval" / "tasks" / "health"
 RESPONSES_DIR = pathlib.Path("results") / "eval-suite" / "responses"
 
-EXCLUDE_NAME_TOKENS = ["embed", "embedding", "bge-", "nomic-embed", "mxbai-embed"]
+EXCLUDE_NAME_TOKENS = [
+    "embed", "embedding", "bge-", "nomic-embed", "mxbai-embed",  # Embedding models
+    "r1", "-r1:", "o1", "qwq", "deepthink", "thinking"  # Reasoning models (too slow on CPU)
+]
 
 
 def run_ollama_list() -> str:
@@ -44,11 +47,12 @@ def parse_size_to_gb(size_str: str) -> Optional[float]:
     return None
 
 
-def parse_ollama_list(output: str) -> List[Dict[str, object]]:
+def parse_ollama_list(output: str) -> tuple[List[Dict[str, object]], List[Dict[str, object]]]:
     lines = [line for line in output.splitlines() if line.strip()]
     if not lines:
         return []
     models: List[Dict[str, object]] = []
+    excluded: List[Dict[str, object]] = []
     for line in lines[1:]:
         parts = re.split(r"\s{2,}", line.strip())
         if len(parts) < 3:
@@ -59,9 +63,10 @@ def parse_ollama_list(output: str) -> List[Dict[str, object]]:
             continue
         lower = name.lower()
         if any(token in lower for token in EXCLUDE_NAME_TOKENS):
+            excluded.append({"name": name, "size_gb": size_gb, "reason": "excluded_token"})
             continue
         models.append({"name": name, "size_gb": size_gb})
-    return models
+    return models, excluded
 
 
 def slugify(text: str) -> str:
@@ -223,11 +228,31 @@ def main() -> int:
             print(f"Failed to run `ollama list`: {exc}", file=sys.stderr)
             return 1
 
-    models = parse_ollama_list(ollama_output)
+    models, excluded = parse_ollama_list(ollama_output)
     local_models = [
         m for m in models
         if m["size_gb"] >= args.min_gb and m["size_gb"] <= args.max_gb
     ]
+
+    print(
+        "Parsed ollama models:",
+        json.dumps(
+            {
+                "total": len(models) + len(excluded),
+                "eligible": len(models),
+                "excluded": len(excluded),
+                "min_gb": args.min_gb,
+                "max_gb": args.max_gb
+            },
+            indent=2
+        )
+    )
+    if excluded:
+        print("Excluded models (reasoning/embedding):")
+        for item in excluded:
+            print(f"- {item['name']} ({item['size_gb']:.2f} GB) [{item['reason']}]")
+    if not local_models:
+        print("No local models selected after filtering.")
 
     for model in local_models:
         model_meta = {

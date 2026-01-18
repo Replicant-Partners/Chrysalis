@@ -16,7 +16,6 @@
         "name": "mistralai/mistral-large-2411",
         "endpoint": "https://openrouter.ai/api/v1",
         "apiKeyEnv": "OPENROUTER_API_KEY",
-        "apiKey": "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"
       },
       "parameters": {
         "temperature": 0.2,
@@ -56,7 +55,6 @@
         "name": "mistralai/mistral-large-2411",
         "endpoint": "https://openrouter.ai/api/v1",
         "apiKeyEnv": "OPENROUTER_API_KEY",
-        "apiKey": "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"
       },
       "parameters": {
         "temperature": 0.2,
@@ -102,7 +100,6 @@
         "name": "mistralai/mistral-large-2411",
         "endpoint": "https://openrouter.ai/api/v1",
         "apiKeyEnv": "OPENROUTER_API_KEY",
-        "apiKey": "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"
       },
       "parameters": {
         "temperature": 0.2,
@@ -135,7 +132,6 @@
         "name": "mistralai/mistral-large-2411",
         "endpoint": "https://openrouter.ai/api/v1",
         "apiKeyEnv": "OPENROUTER_API_KEY",
-        "apiKey": "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"
       },
       "parameters": {
         "temperature": 0.2,
@@ -172,7 +168,6 @@
         "name": "mistralai/mistral-large-2411",
         "endpoint": "https://openrouter.ai/api/v1",
         "apiKeyEnv": "OPENROUTER_API_KEY",
-        "apiKey": "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"
       },
       "parameters": {
         "temperature": 0.2,

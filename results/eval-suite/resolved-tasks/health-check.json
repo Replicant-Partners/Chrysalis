@@ -1,0 +1,26 @@
+{
+  "type": "evaluate",
+  "name": "Health check (openai/gpt-5-mini)",
+  "prompt": "HEALTH CHECK\nRespond with a single JSON object: {\"ok\": true, \"model\": \"<model_name>\"}.\nNo extra text.\n",
+  "model": {
+    "provider": "openrouter",
+    "name": "openai/gpt-5-mini",
+    "endpoint": "https://openrouter.ai/api/v1",
+    "apiKeyEnv": "OPENROUTER_API_KEY",
+  },
+  "parameters": {
+    "temperature": 0.0,
+    "maxTokens": 128,
+    "topP": 1.0
+  },
+  "options": {
+    "outputPath": "results/eval-suite/responses/health/health-check.md",
+    "includeMetadata": true,
+    "timeoutMs": 90000
+  },
+  "metadata": {
+    "mode": "health",
+    "promptId": "health_check",
+    "rubricId": "kata_v1"
+  }
+}
