@@ -12,13 +12,20 @@
     "outDir": "dist",
     "sourceMap": true,
     "jsx": "react-jsx",
-    "lib": ["ES2022", "DOM"],
-    "types": ["node", "jest"]
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ]
   },
   "include": [
     "src/agents/**/*",
     "src/api/adapter-tasks/**/*",
     "src/api/system-agents/**/*",
+    "src/canvas/**/*",
     "src/config/**/*",
     "src/core/AdapterRegistry.ts",
     "src/core/FrameworkAdapter.ts",

@@ -1,0 +1,124 @@
+{
+  "type": "batch",
+  "name": "Test Batch - 5 Models × 1 Prompt",
+  "tasks": [
+    {
+      "type": "evaluate",
+      "name": "Evaluate mistral:latest - Parameter Calibration",
+      "prompt": "You are managing a data pipeline with current throughput of 150 records/sec. The target is 200 records/sec. Current batch_size=100, worker_threads=4.\n\nHistorical data shows:\n- Throughput correlates 0.7 with batch_size\n- Throughput correlates 0.4 with worker_threads\n\nWhat parameter adjustment do you recommend? Provide your response in this format:\n\n**Parameter**: [which parameter]\n**New Value**: [recommended value]\n**Expected Improvement**: [expected new throughput]\n**Confidence**: [0.0-1.0]\n**Reasoning**: [your explanation]",
+      "model": {
+        "provider": "ollama",
+        "name": "mistral:latest"
+      },
+      "parameters": {
+        "temperature": 0.3,
+        "maxTokens": 500
+      },
+      "options": {
+        "outputPath": "./tests/llm-evaluation/results/test-batch/mistral-mode1.md",
+        "includeMetadata": true,
+        "timeoutMs": 60000
+      },
+      "metadata": {
+        "test_id": "test_batch_001",
+        "model_category": "general"
+      }
+    },
+    {
+      "type": "evaluate",
+      "name": "Evaluate deepseek-r1:8b - Parameter Calibration",
+      "prompt": "You are managing a data pipeline with current throughput of 150 records/sec. The target is 200 records/sec. Current batch_size=100, worker_threads=4.\n\nHistorical data shows:\n- Throughput correlates 0.7 with batch_size\n- Throughput correlates 0.4 with worker_threads\n\nWhat parameter adjustment do you recommend? Provide your response in this format:\n\n**Parameter**: [which parameter]\n**New Value**: [recommended value]\n**Expected Improvement**: [expected new throughput]\n**Confidence**: [0.0-1.0]\n**Reasoning**: [your explanation]",
+      "model": {
+        "provider": "ollama",
+        "name": "deepseek-r1:8b"
+      },
+      "parameters": {
+        "temperature": 0.3,
+        "maxTokens": 500
+      },
+      "options": {
+        "outputPath": "./tests/llm-evaluation/results/test-batch/deepseek-r1-8b-mode1.md",
+        "includeMetadata": true,
+        "timeoutMs": 60000
+      },
+      "metadata": {
+        "test_id": "test_batch_002",
+        "model_category": "reasoning"
+      }
+    },
+    {
+      "type": "evaluate",
+      "name": "Evaluate qwen2.5-coder:7b - Parameter Calibration",
+      "prompt": "You are managing a data pipeline with current throughput of 150 records/sec. The target is 200 records/sec. Current batch_size=100, worker_threads=4.\n\nHistorical data shows:\n- Throughput correlates 0.7 with batch_size\n- Throughput correlates 0.4 with worker_threads\n\nWhat parameter adjustment do you recommend? Provide your response in this format:\n\n**Parameter**: [which parameter]\n**New Value**: [recommended value]\n**Expected Improvement**: [expected new throughput]\n**Confidence**: [0.0-1.0]\n**Reasoning**: [your explanation]",
+      "model": {
+        "provider": "ollama",
+        "name": "qwen2.5-coder:7b"
+      },
+      "parameters": {
+        "temperature": 0.3,
+        "maxTokens": 500
+      },
+      "options": {
+        "outputPath": "./tests/llm-evaluation/results/test-batch/qwen25-coder-mode1.md",
+        "includeMetadata": true,
+        "timeoutMs": 60000
+      },
+      "metadata": {
+        "test_id": "test_batch_003",
+        "model_category": "code"
+      }
+    },
+    {
+      "type": "evaluate",
+      "name": "Evaluate openhermes:v2.5 - Parameter Calibration",
+      "prompt": "You are managing a data pipeline with current throughput of 150 records/sec. The target is 200 records/sec. Current batch_size=100, worker_threads=4.\n\nHistorical data shows:\n- Throughput correlates 0.7 with batch_size\n- Throughput correlates 0.4 with worker_threads\n\nWhat parameter adjustment do you recommend? Provide your response in this format:\n\n**Parameter**: [which parameter]\n**New Value**: [recommended value]\n**Expected Improvement**: [expected new throughput]\n**Confidence**: [0.0-1.0]\n**Reasoning**: [your explanation]",
+      "model": {
+        "provider": "ollama",
+        "name": "openhermes:v2.5"
+      },
+      "parameters": {
+        "temperature": 0.3,
+        "maxTokens": 500
+      },
+      "options": {
+        "outputPath": "./tests/llm-evaluation/results/test-batch/openhermes-mode1.md",
+        "includeMetadata": true,
+        "timeoutMs": 60000
+      },
+      "metadata": {
+        "test_id": "test_batch_004",
+        "model_category": "function_calling"
+      }
+    },
+    {
+      "type": "evaluate",
+      "name": "Evaluate llama3.1:latest - Parameter Calibration",
+      "prompt": "You are managing a data pipeline with current throughput of 150 records/sec. The target is 200 records/sec. Current batch_size=100, worker_threads=4.\n\nHistorical data shows:\n- Throughput correlates 0.7 with batch_size\n- Throughput correlates 0.4 with worker_threads\n\nWhat parameter adjustment do you recommend? Provide your response in this format:\n\n**Parameter**: [which parameter]\n**New Value**: [recommended value]\n**Expected Improvement**: [expected new throughput]\n**Confidence**: [0.0-1.0]\n**Reasoning**: [your explanation]",
+      "model": {
+        "provider": "ollama",
+        "name": "llama3.1:latest"
+      },
+      "parameters": {
+        "temperature": 0.3,
+        "maxTokens": 500
+      },
+      "options": {
+        "outputPath": "./tests/llm-evaluation/results/test-batch/llama31-mode1.md",
+        "includeMetadata": true,
+        "timeoutMs": 60000
+      },
+      "metadata": {
+        "test_id": "test_batch_005",
+        "model_category": "flagship"
+      }
+    }
+  ],
+  "stopOnError": false,
+  "metadata": {
+    "description": "Test batch with 5 diverse models to validate Go evaluation service",
+    "total_models": 5,
+    "total_tests": 5,
+    "categories_covered": ["general", "reasoning", "code", "function_calling", "flagship"],
+    "generated": "2026-01-18T08:01:00Z"
+  }
+}
