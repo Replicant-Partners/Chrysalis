@@ -138,7 +138,7 @@ Contributing to Chrysalis?
 
 | Topic | Description | Location |
 |-------|-------------|----------|
-| **Semantic Agents** | UniformSemanticAgentV2 design | [architecture/](architecture/) |
+| **Semantic Agents** | SemanticAgent design | [architecture/](architecture/) |
 | **Framework Adapters** | MCP, A2A, ACP, multi-agent support | [architecture/](architecture/) |
 | **Bridge Layer** | Agent translation orchestration | [architecture/](architecture/) |
 | **Universal Adapter** | JSON-driven task orchestration (Python) | [architecture/UNIVERSAL_ADAPTER_DESIGN.md](architecture/UNIVERSAL_ADAPTER_DESIGN.md) |

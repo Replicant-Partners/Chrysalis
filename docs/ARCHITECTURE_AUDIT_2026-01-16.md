@@ -67,9 +67,9 @@ Multiple core components do not match their specifications. The codebase require
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Protocol registry v1 | ✅ | `src/adapters/universal/index.ts` - hardcoded URLs |
-| Protocol registry v2 | ✅ | `src/adapters/universal/registry-v2.ts` - semantic hints, fallbacks |
+| Protocol registry v2 | ✅ | `src/adapters/universal/registry.ts` - semantic hints, fallbacks |
 | Prompts v1 | ✅ | `src/adapters/universal/prompts.ts` |
-| Prompts v2 | ✅ | `src/adapters/universal/prompts-v2.ts` - optimized |
+| Prompts v2 | ✅ | `src/adapters/universal/prompts.ts` - optimized |
 | **v2 integration into main adapter** | ❌ | `index.ts` still uses v1 |
 | **LLM wired to Go gateway** | ❌ | Generic `LLMProvider` interface, nothing connected |
 | **Translation cache** | ❌ | Not implemented |
@@ -168,7 +168,7 @@ Voyeur was removed on 2026-01-16 as it violated entity sovereignty principles.
 
 | Requirement | Source |
 |-------------|--------|
-| 5 canvas types: Settings, Board, Scrapbook, Research, Terminal-Browser | Spec |
+| 6 canvas types: Settings, Agent, Scrapbook, Research, Wiki, Terminal-Browser | Spec |
 | Widget system with registry | Spec |
 | Background execution | Spec |
 | Terminal via xterm.js | Spec |

@@ -1,0 +1,28 @@
+{
+  "type": "evaluate",
+  "name": "Evaluate openhermes:v2.5 - Cascading Failure Prevention",
+  "prompt": "Service dependency chain:\nA → B → C → D\n\nCurrent state:\n- Service A: Response time increased 50% (300ms → 450ms)\n- Service B: Error rate 5% (baseline 0.1%)\n- Service C: Queue depth growing (50 → 200 messages)\n- Service D: Normal operation\n\nMetrics from last cascade failure:\n- Started with 60% slowdown in Service A\n- Full cascade within 8 minutes\n- Recovery took 45 minutes\n\nYou have:\n- Circuit breakers on each service\n- Auto-scaling (5 min warmup)\n- Manual traffic routing capability\n\nWhat is your intervention strategy? Provide:\n1. Immediate actions (next 2 minutes)\n2. Short-term actions (2-10 minutes)\n3. Monitoring thresholds to watch\n4. Rollback plan if intervention fails",
+  "model": {
+    "provider": "ollama",
+    "name": "openhermes:v2.5"
+  },
+  "parameters": {
+    "temperature": 0.3,
+    "maxTokens": 1000
+  },
+  "options": {
+    "outputPath": "./tests/llm-evaluation/results/openhermes-v2.5/mode1_compound_002.md",
+    "includeMetadata": true,
+    "timeoutMs": 30000
+  },
+  "metadata": {
+    "mode": 1,
+    "test_id": "mode1_compound_002",
+    "category": "atomic",
+    "complexity": "high",
+    "description": "Cascading Failure Prevention",
+    "model_size_gb": 4.1,
+    "generated": "2026-01-18",
+    "author": "Chrysalis Evaluation Framework"
+  }
+}

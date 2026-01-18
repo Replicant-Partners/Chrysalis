@@ -760,7 +760,7 @@ async function resolveReference(protocol: string): Promise<SpecResult> {
 | Location | Usage | Task Type |
 |----------|-------|-----------|
 | `src/cli/chrysalis-cli.ts` | CLI morph command | `morph` |
-| `src/converter/ConverterV2.ts` | Agent conversion | `translate` |
+| `src/converter/Converter.ts` | Agent conversion | `translate` |
 | `src/quality/tools/universal/adapter.ts` | Quality tool translation | `translate` |
 | `src/mcp-server/chrysalis-tools.ts` | MCP tool bridging | `translate` |
 | `src/agents/system/EvaluationCoordinator.ts` | Evaluation persona routing | `validate` |
@@ -813,7 +813,7 @@ The Universal Adapter integrates with the System Agents layer for complex evalua
 ### 7.1 Simple Translation Task
 
 ```typescript
-import { createUniversalAdapterV2, type LLMProviderV2 } from './adapters/universal';
+import { createUniversalAdapter, type LLMProviderV2 } from './adapters/universal';
 
 // Create LLM provider
 const llm: LLMProviderV2 = {
@@ -832,7 +832,7 @@ const llm: LLMProviderV2 = {
 };
 
 // Create adapter
-const adapter = createUniversalAdapterV2(llm, {
+const adapter = createUniversalAdapter(llm, {
   enableSpecCache: true,
   enableMappingCache: true,
   enableVerification: false

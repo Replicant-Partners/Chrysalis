@@ -78,7 +78,7 @@ This document outlines the comprehensive integration plan for the AI Lead Adapta
 
 **Components**:
 - `AgentAdaptationStrategy`: Strategy for applying adaptations
-- Integration with UniformSemanticAgentV2
+- Integration with SemanticAgent
 
 ## References
 

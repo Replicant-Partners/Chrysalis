@@ -28,7 +28,7 @@ Quick start guide for testing the Universal Adapter V2 with protocol translation
 npm run adapter:list
 ```
 
-Shows all 11+ registered protocols (USA, MCP, A2A, ANP, LMOS, LangChain, CrewAI, OpenAI, AutoGen, ACP, ElizaOS).
+Shows all 11+ registered protocols (SemanticAgent, MCP, A2A, ANP, LMOS, LangChain, CrewAI, OpenAI, AutoGen, ACP, ElizaOS).
 
 ### Run Interactive Demo
 ```bash
@@ -36,9 +36,9 @@ npm run adapter:demo
 ```
 
 Runs 3 automated translation demos:
-- USA → MCP
+- SemanticAgent → MCP
 - CrewAI → A2A
-- OpenAI → USA
+- OpenAI → SemanticAgent
 
 ### Translate Between Specific Protocols
 ```bash
@@ -47,13 +47,13 @@ npm run test:adapter -- --translate <source> <target>
 
 **Examples:**
 ```bash
-# Translate USA agent to MCP format
+# Translate SemanticAgent agent to MCP format
 npm run test:adapter -- --translate usa mcp
 
 # Translate CrewAI agent to A2A format
 npm run test:adapter -- --translate crewai a2a
 
-# Translate OpenAI assistant to USA format
+# Translate OpenAI assistant to SemanticAgent format
 npm run test:adapter -- --translate openai usa
 
 # Translate MCP server to LangChain agent
@@ -73,7 +73,7 @@ Morphing is a higher-fidelity translation that preserves:
 
 **Examples:**
 ```bash
-# Morph USA agent to A2A format
+# Morph SemanticAgent agent to A2A format
 npm run test:adapter -- --morph usa a2a
 
 # Morph CrewAI agent to OpenAI assistant
@@ -96,7 +96,7 @@ The test script includes 5 pre-built example agents:
 
 | Key | Protocol | Description |
 |-----|----------|-------------|
-| `usa` | USA | Chrysalis native format with full capabilities |
+| `usa` | SemanticAgent | Chrysalis native format with full capabilities |
 | `crewai` | CrewAI | Data analyst agent with role/goal/backstory |
 | `mcp` | MCP | File system server with tools and resources |
 | `openai` | OpenAI | Customer support assistant |
@@ -108,7 +108,7 @@ The test script includes 5 pre-built example agents:
 Test semantic preservation by translating back and forth:
 
 ```bash
-# USA → MCP → USA
+# SemanticAgent → MCP → SemanticAgent
 npm run test:adapter -- --translate usa mcp
 npm run test:adapter -- --translate mcp usa
 
@@ -125,7 +125,7 @@ npm run test:adapter -- --morph crewai mcp
 # OpenAI Assistants → CrewAI
 npm run test:adapter -- --morph openai crewai
 
-# USA → LangChain
+# SemanticAgent → LangChain
 npm run test:adapter -- --morph usa langchain
 ```
 
@@ -269,8 +269,8 @@ If still failing, the LLM may need temperature adjustment in `gateway-bridge.ts`
 4. **Check the source code** at:
    - `scripts/test-adapter.ts` - Test script
    - `src/adapters/universal/gateway-bridge.ts` - Gateway integration
-   - `src/adapters/universal/adapter-v2.ts` - Core adapter
-   - `src/adapters/universal/registry-v2.ts` - Protocol registry
+   - `src/adapters/universal/adapter.ts` - Core adapter
+   - `src/adapters/universal/registry.ts` - Protocol registry
 
 ## Have Fun! 🎉
 

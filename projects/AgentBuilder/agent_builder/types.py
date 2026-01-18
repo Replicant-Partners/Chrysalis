@@ -1,5 +1,5 @@
 """
-Type definitions for UniformSemanticAgentV2 and AgentBuilder.
+Type definitions for SemanticAgent and AgentBuilder.
 
 Provides dataclasses and TypedDict definitions for agent configuration.
 """
@@ -508,7 +508,7 @@ class TrainingDict(TypedDict, total=False):
     accumulated_examples: list[dict[str, Any]]
 
 
-class UniformSemanticAgentV2Dict(TypedDict, total=False):
+class SemanticAgentDict(TypedDict, total=False):
     """Full agent configuration dictionary."""
     schema_version: str
     identity: IdentityDict
@@ -536,7 +536,7 @@ class ValidationResult:
 
 
 def validate_agent(agent: dict[str, Any]) -> ValidationResult:
-    """Validate a UniformSemanticAgentV2 dictionary."""
+    """Validate a SemanticAgent dictionary."""
     errors: list[str] = []
     warnings: list[str] = []
 

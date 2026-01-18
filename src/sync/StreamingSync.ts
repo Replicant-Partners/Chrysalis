@@ -5,7 +5,7 @@
  * to source agent with minimal latency.
  */
 
-import type { ExperienceEvent } from '../core/UniformSemanticAgentV2';
+import type { ExperienceEvent } from './core/SemanticAgent';
 import { logger } from '../observability';
 import * as crypto from 'crypto';
 

@@ -5,7 +5,7 @@
  */
 
 // Core types and utilities
-export * from './core/UniformSemanticAgent';
+export * from './core/SemanticAgent';
 export * from './core/FrameworkAdapter';
 export * from './core/AdapterRegistry';
 export * from './core/Encryption';

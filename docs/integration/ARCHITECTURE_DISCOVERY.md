@@ -13,7 +13,7 @@ This document provides a comprehensive architectural discovery of the Chrysalis 
 ### 1.1 Agent Framework (`src/core/`)
 
 **Components**:
-- `UniformSemanticAgentV2.ts`: Core agent implementation with framework morphing
+- `SemanticAgent.ts`: Core agent implementation with framework morphing
 - Agent transformation between ElizaOS, CrewAI, MCP-native formats
 
 **Integration Points**:

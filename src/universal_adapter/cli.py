@@ -574,7 +574,7 @@ class CLICommands:
         provider_configs = [
             {
                 "name": "openai",
-                "models": ["gpt-4o", "gpt-4", "gpt-3.5-turbo", "o1-preview", "o1-mini"],
+                "models": ["gpt-5", "gpt-4o", "gpt-4", "gpt-3.5-turbo", "o1-preview", "o1-mini"],
                 "env_var": "OPENAI_API_KEY",
                 "endpoint": "https://api.openai.com/v1",
             },

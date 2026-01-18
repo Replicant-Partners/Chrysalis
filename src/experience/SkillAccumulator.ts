@@ -5,7 +5,7 @@
  * aggregation, synergy detection, and learning curves.
  */
 
-import type { UniformSemanticAgentV2, Skill } from '../core/UniformSemanticAgentV2';
+import type { SemanticAgent, Skill } from './core/SemanticAgent';
 import { logger } from '../observability';
 import * as crypto from 'crypto';
 
@@ -26,7 +26,7 @@ export class SkillAccumulator {
    * Update skill from instance
    */
   async updateSkill(
-    agent: UniformSemanticAgentV2,
+    agent: SemanticAgent,
     skillData: any,
     sourceInstance: string
   ): Promise<void> {
@@ -53,7 +53,7 @@ export class SkillAccumulator {
    * Accumulate skills from batch
    */
   async accumulateSkills(
-    agent: UniformSemanticAgentV2,
+    agent: SemanticAgent,
     skills: Skill[],
     sourceInstance: string
   ): Promise<SkillAccumulationResult> {
@@ -92,7 +92,7 @@ export class SkillAccumulator {
    * Add new skill
    */
   private async addNewSkill(
-    agent: UniformSemanticAgentV2,
+    agent: SemanticAgent,
     skillData: any,
     sourceInstance: string
   ): Promise<void> {

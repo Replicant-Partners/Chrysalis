@@ -1,0 +1,28 @@
+{
+  "type": "evaluate",
+  "name": "Evaluate openhermes:v2.5 - Process Manager with Compliance Feedback",
+  "prompt": "You receive compliance feedback from the Standards Evaluator:\n\n{{mode2_atomic_001.output}}\n\nYour current process has:\n- No rate limiting on public endpoints\n- Missing request size validation\n- Insufficient error logging\n\nImplementing all fixes will:\n- Increase latency by 15ms (current: 200ms)\n- Add 10% CPU overhead\n- Require 2 hours deployment window\n\nYour SLA commits to 250ms response time and 99.9% uptime.\n\nHow do you incorporate these compliance requirements into your process management? Provide:\n1. Implementation priority order\n2. Resource allocation plan\n3. Risk mitigation strategy\n4. Rollout timeline",
+  "model": {
+    "provider": "ollama",
+    "name": "openhermes:v2.5"
+  },
+  "parameters": {
+    "temperature": 0.3,
+    "maxTokens": 1000
+  },
+  "options": {
+    "outputPath": "./tests/llm-evaluation/results/openhermes-v2.5/mode1_integration_001.md",
+    "includeMetadata": true,
+    "timeoutMs": 30000
+  },
+  "metadata": {
+    "mode": 1,
+    "test_id": "mode1_integration_001",
+    "category": "atomic",
+    "complexity": "high",
+    "description": "Process Manager with Compliance Feedback",
+    "model_size_gb": 4.1,
+    "generated": "2026-01-18",
+    "author": "Chrysalis Evaluation Framework"
+  }
+}

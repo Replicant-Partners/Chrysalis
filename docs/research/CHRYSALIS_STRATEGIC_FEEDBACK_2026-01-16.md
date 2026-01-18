@@ -18,7 +18,7 @@ Chrysalis is **remarkably sophisticated** - significantly more advanced than mos
 
 | Strength | Implementation | Value |
 |----------|---------------|-------|
-| **Universal Semantic Agent** | `UniformSemanticAgentV2` | Protocol-agnostic agent morphing |
+| **Universal Semantic Agent** | `SemanticAgent` | Protocol-agnostic agent morphing |
 | **Cryptographic Identity** | SHA-384 fingerprints, Ed25519 | Tamper-evident agent identity |
 | **Distributed Memory** | `MemoryMerger`, `ExperienceSyncManager` | Cross-instance learning |
 | **Byzantine Resistance** | 2/3 supermajority voting | Hostile environment resilience |

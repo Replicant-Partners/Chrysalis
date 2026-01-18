@@ -282,9 +282,9 @@ The production API services (AgentBuilder, KnowledgeBuilder, SkillBuilder) need 
 ### Example 1: Transform to ElizaOS
 
 ```typescript
-import { ConverterV2 } from './src/converter/ConverterV2';
+import { Converter } from './src/converter/Converter';
 
-const converter = new ConverterV2();
+const converter = new Converter();
 const elizaAgent = await converter.morph(
     sourceAgent,
     'elizaos',

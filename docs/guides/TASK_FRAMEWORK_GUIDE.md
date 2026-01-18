@@ -241,10 +241,10 @@ Every task execution returns a `TaskResult` object:
 
 ## Example Task Files
 
-### Example 1: Translate USA to MCP
+### Example 1: Translate SemanticAgent to MCP
 See: `examples/tasks/translate-usa-to-mcp.json`
 
-Translates a USA file manager agent to MCP server format.
+Translates a SemanticAgent file manager agent to MCP server format.
 
 **Run:**
 ```bash
@@ -304,7 +304,7 @@ This telemetry helps:
 ### 1. Use Descriptive Names
 ```json
 {
-  "name": "Translate FileManager from USA to MCP for Claude Desktop",
+  "name": "Translate FileManager from SemanticAgent to MCP for Claude Desktop",
   "metadata": {
     "description": "Production deployment for Claude Desktop MCP integration",
     "project": "mcp-integration",
@@ -335,7 +335,7 @@ Group related operations:
   "tasks": [
     { "type": "translate", /* MCP */ },
     { "type": "translate", /* A2A */ },
-    { "type": "validate", /* Verify USA source */ }
+    { "type": "validate", /* Verify SemanticAgent source */ }
   ]
 }
 ```

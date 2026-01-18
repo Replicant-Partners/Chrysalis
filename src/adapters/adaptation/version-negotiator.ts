@@ -174,14 +174,14 @@ export class VersionNegotiator extends EventEmitter {
    *
    * @throws {NotImplementedError} Dynamic version discovery not implemented.
    *   Should query:
-   *   - Protocol registry (src/adapters/universal/registry-v2.ts)
+   *   - Protocol registry (src/adapters/universal/registry.ts)
    *   - Upstream protocol spec endpoints
    *   - Local version cache with TTL
    */
   private async getAvailableVersions(protocol: AgentFramework): Promise<string[]> {
     throw new NotImplementedError(
       `getAvailableVersions: Dynamic version discovery not implemented for protocol '${protocol}'. ` +
-        'Requires integration with PROTOCOL_REGISTRY_V2 and upstream version endpoints.'
+        'Requires integration with PROTOCOL_REGISTRY and upstream version endpoints.'
     );
   }
 

@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This document presents a comprehensive analysis of the strategic options for Chrysalis agent specification architecture. After examining Chrysalis's Uniform Semantic Agent (USA) specification, Eclipse LMOS Protocol, and the broader agent ecosystem, **the recommendation is Option 2: Modular Adapter Layers**.
+This document presents a comprehensive analysis of the strategic options for Chrysalis agent specification architecture. After examining Chrysalis's Uniform Semantic Agent (SemanticAgent) specification, Eclipse LMOS Protocol, and the broader agent ecosystem, **the recommendation is Option 2: Modular Adapter Layers**.
 
 **Key Finding**: The agent ecosystem is in a pre-standardization phase analogous to early web protocols (1993-1996). Attempting to define a superset specification now would require continuous maintenance as the ecosystem evolves. The adapter pattern provides flexibility to track ecosystem evolution without accumulating specification debt.
 
@@ -68,7 +68,7 @@ This document presents a comprehensive analysis of the strategic options for Chr
 - Federated discovery (DNS-SD/mDNS local, registries global)
 - Transport-agnostic (HTTP, WebSocket, MQTT supported)
 
-### 1.3 Chrysalis USA Specification Analysis
+### 1.3 Chrysalis SemanticAgent Specification Analysis
 
 **Architecture Philosophy**: Cognitive architecture with fractal patterns, evolved from Kubernetes-style declarative specs.
 
@@ -76,7 +76,7 @@ This document presents a comprehensive analysis of the strategic options for Chr
 - **v1**: Basic agent spec (metadata, identity, capabilities, protocols, execution, deployment)
 - **v2**: Enhanced with comprehensive memory architecture (working, episodic, semantic, procedural, core)
 
-**USA v2 Schema Structure**:
+**SemanticAgent v2 Schema Structure**:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                   Uniform Semantic Agent v2                  │
@@ -105,16 +105,16 @@ This document presents a comprehensive analysis of the strategic options for Chr
 
 ---
 
-## 2. Comparative Analysis: USA vs LMOS
+## 2. Comparative Analysis: SemanticAgent vs LMOS
 
 ### 2.1 Semantic Model Comparison
 
-| Dimension | USA (Chrysalis) | LMOS Protocol | Compatibility |
+| Dimension | SemanticAgent (Chrysalis) | LMOS Protocol | Compatibility |
 |-----------|-----------------|---------------|---------------|
 | **Data Format** | YAML/JSON dataclass | JSON-LD | High (JSON compatible) |
 | **Identity Model** | SHA-384 fingerprint | W3C DID | Medium (different cryptographic basis) |
 | **Capability Description** | tools[], skills[], reasoning | actions{}, properties{}, events{} | High (semantic overlap) |
-| **Memory Model** | Cognitive architecture (5 types) | Not specified | N/A (USA richer) |
+| **Memory Model** | Cognitive architecture (5 types) | Not specified | N/A (SemanticAgent richer) |
 | **Protocol Binding** | mcp, a2a, agent_protocol | forms[] with href/op | Medium (different abstraction) |
 | **Discovery** | Not specified | DNS-SD, registries, federated | N/A (LMOS richer) |
 | **Semantic Web** | None | JSON-LD + @context | Low (fundamental difference) |
@@ -133,20 +133,20 @@ This document presents a comprehensive analysis of the strategic options for Chr
 - 🔶 Skills/capabilities vocabulary
 
 **Low Compatibility Areas** (<50% mapping feasible):
-- ❌ Memory architecture (USA-specific)
+- ❌ Memory architecture (SemanticAgent-specific)
 - ❌ Semantic web context (LMOS-specific)
 - ❌ Discovery mechanisms (LMOS-specific)
-- ❌ Experience sync (USA-specific)
+- ❌ Experience sync (SemanticAgent-specific)
 
 ### 2.3 Migration Complexity Score
 
 | Migration Path | Complexity | Effort (person-weeks) | Risk |
 |----------------|------------|----------------------|------|
-| USA → LMOS | High | 8-12 | Information loss in memory model |
-| LMOS → USA | Medium | 4-6 | Need to invent memory defaults |
-| USA → OpenAI | Low | 2-3 | Well-understood mapping |
-| USA → LangChain | Medium | 3-5 | Runtime differences |
-| USA → Semantic Kernel | Medium | 4-6 | Plugin model differences |
+| SemanticAgent → LMOS | High | 8-12 | Information loss in memory model |
+| LMOS → SemanticAgent | Medium | 4-6 | Need to invent memory defaults |
+| SemanticAgent → OpenAI | Low | 2-3 | Well-understood mapping |
+| SemanticAgent → LangChain | Medium | 3-5 | Runtime differences |
+| SemanticAgent → Semantic Kernel | Medium | 4-6 | Plugin model differences |
 
 ---
 
@@ -163,7 +163,7 @@ This document presents a comprehensive analysis of the strategic options for Chr
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐       │
-│  │  LMOS   │  │ OpenAI  │  │LangChain│  │   USA   │       │
+│  │  LMOS   │  │ OpenAI  │  │LangChain│  │   SemanticAgent   │       │
 │  │ Fields  │  │ Fields  │  │ Fields  │  │ Fields  │       │
 │  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘       │
 │       │            │            │            │             │
@@ -322,7 +322,7 @@ Based on historical patterns (HTTP: 1991→1997, REST: 2000→2008, GraphQL: 201
 │  │  + embedShadow() / extractShadow()                            │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                              │                                       │
-│  Layer 3: Internal Representation (USA Core)                         │
+│  Layer 3: Internal Representation (SemanticAgent Core)                         │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │ AgentCore: minimal schema for Chrysalis service interactions │   │
 │  │  - id, name, capabilities[], protocols[], execution{}        │   │
@@ -343,7 +343,7 @@ Based on historical patterns (HTTP: 1991→1997, REST: 2000→2008, GraphQL: 201
 **Phase 1: Consolidate Adapter Interface** (2 weeks)
 - Unify MCPAdapter, MultiAgentAdapter, ElizaOSAdapter under IAgentBridge
 - Define minimal AgentCore internal representation
-- Deprecate USA v1, keep v2 for backward compatibility
+- Deprecate SemanticAgent v1, keep v2 for backward compatibility
 
 **Phase 2: LMOS Adapter Implementation** (3 weeks)
 - Implement LMOSAdapter following JSON-LD schema
@@ -475,7 +475,7 @@ Rationale:
 }
 ```
 
-## Appendix B: USA v2 Schema Reference
+## Appendix B: SemanticAgent v2 Schema Reference
 
 ```yaml
 apiVersion: usa/v2

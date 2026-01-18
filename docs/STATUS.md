@@ -80,14 +80,15 @@ cd memory_system && python3 -m pytest tests/ fireproof/tests/ -v
 | **React Components** | 🔄 Prototype | Canvas, Toolbar, WidgetWrapper |
 | **Build Integration** | ⚠️ Pending | Needs Vite config for demo |
 
-**Canvas Types**: 5 types defined (architecture complete, React prototype)
+**Canvas Types**: 6 types defined (architecture complete, React prototype)
 
 | Canvas | Status | Key Features |
 |--------|--------|--------------|
 | Settings | ✅ Spec | API key management widgets |
-| Board | ✅ Spec | General-purpose workflow canvas |
+| Agent | ✅ Spec | Managing internal agent teams |
 | Scrapbook | ✅ Spec | Content collection, organization |
 | Research | ✅ Spec | Information synthesis widgets |
+| Wiki | ✅ Spec | MediaWiki knowledgebase |
 | Terminal-Browser | ✅ Spec | xterm.js + sandboxed browser |
 
 **Supporting Services**:
@@ -119,7 +120,7 @@ cd src/canvas/react/demo
 ```mermaid
 flowchart TB
     subgraph Core[TypeScript Core]
-        USA[UniformSemanticAgentV2]
+        SemanticAgent[SemanticAgent]
         PR[PatternResolver]
         CB[CircuitBreaker]
     end
@@ -154,8 +155,8 @@ flowchart TB
         BEH[Behavior Loader]
     end
 
-    USA --> PR
-    USA --> MM
+    SemanticAgent --> PR
+    SemanticAgent --> MM
     MM --> VIF
     MM --> EB
     ESM --> MM
@@ -172,7 +173,7 @@ flowchart TB
 
 | Component | File | Status |
 |-----------|------|--------|
-| Agent Schema v2.0 | `src/core/UniformSemanticAgentV2.ts` | ✅ Implemented |
+| Agent Schema v2.0 | `src/core/SemanticAgent.ts` | ✅ Implemented |
 | Agent Builder | `src/core/AgentBuilder.ts` | ✅ Implemented |
 | Pattern Resolver | `src/fabric/PatternResolver.ts` | ✅ Implemented |
 | Circuit Breaker | `src/utils/CircuitBreaker.ts` | ✅ Implemented |
@@ -223,13 +224,13 @@ flowchart TB
 
 | Feature | Description | Location |
 |---------|-------------|----------|
-| Lossless Morphing | Agent transformation between types | `src/core/UniformSemanticAgentV2.ts` |
+| Lossless Morphing | Agent transformation between types | `src/core/SemanticAgent.ts` |
 | Cryptographic Identity | SHA-384 + Ed25519 | `src/core/patterns/` |
 | Memory Deduplication | Jaccard + embedding similarity | `src/experience/MemoryMerger.ts` |
 | Experience Sync | Streaming, Lumped, Check-in protocols | `src/sync/` |
 | Observability | Logging + tracing + metrics | `src/observability/` |
 | Fireproof Layer | Local-first CRDT document store | `memory_system/fireproof/` |
-| Canvas Architecture | 5 canvas types with widget system | `src/canvas/` |
+| Canvas Architecture | 6 canvas types with widget system | `src/canvas/` |
 | **ACP Adapter** | Client + Server + Bridge for ACP ecosystem | `src/adapters/acp/` |
 | **Go LLM Gateway** | Multi-provider with circuit breaker | `go-services/` |
 

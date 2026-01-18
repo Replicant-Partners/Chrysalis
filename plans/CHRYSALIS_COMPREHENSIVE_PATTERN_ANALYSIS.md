@@ -59,7 +59,7 @@ This report provides an exhaustive analysis of the Chrysalis Universal Protocol 
 | **Command** | `src/cli/agent-morph-v2.ts` | 85% | Encapsulated agent morphing commands |
 | **Iterator** | `src/sync/CRDTState.ts` (GSet[Symbol.iterator]) | 80% | CRDT element iteration |
 | **Mediator** | `src/bridge/orchestrator/bridge-orchestrator.ts` | 95% | Central orchestrator for translations |
-| **Memento** | `src/converter/ConverterV2.ts` (ShadowData) | 90% | Captures agent state for restoration |
+| **Memento** | `src/converter/Converter.ts` (ShadowData) | 90% | Captures agent state for restoration |
 | **Observer** | `src/observability/VoyeurEvents.ts` | 95% | Event notification system |
 | **State** | `src/utils/CircuitBreaker.ts` | 95% | Circuit breaker state machine |
 | **Strategy** | `src/fabric/PatternResolver.ts` | 95% | Selects pattern implementations |
@@ -71,7 +71,7 @@ This report provides an exhaustive analysis of the Chrysalis Universal Protocol 
 ```mermaid
 flowchart TB
     subgraph CoreLayer["Core Layer (Domain Logic)"]
-        USA[UniformSemanticAgentV2]
+        USA[SemanticAgent]
         PR[PatternResolver]
         CB[CircuitBreaker]
         FP[Fingerprint/Hash]
@@ -343,7 +343,7 @@ export class BridgeOrchestrator extends EventEmitter {
 
 **Reference**: GoF p. 283-291
 
-**Implementation**: `src/converter/ConverterV2.ts`
+**Implementation**: `src/converter/Converter.ts`
 
 The Chrysalis Memento goes beyond GoF by including:
 - **Encryption**: ShadowData is encrypted for security
@@ -967,7 +967,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Converter as ConverterV2
+    participant Converter as Converter
     participant Adapter as FrameworkAdapter
     participant Shadow as ShadowData
     participant Sync as ExperienceSyncManager
@@ -1517,7 +1517,7 @@ flowchart TB
 | State | 305-313 | `src/utils/CircuitBreaker.ts` |
 | Strategy | 315-323 | `src/fabric/PatternResolver.ts` |
 | Template Method | 325-330 | `src/services/llm/providers/BaseProvider.ts` |
-| Memento | 283-291 | `src/converter/ConverterV2.ts` |
+| Memento | 283-291 | `src/converter/Converter.ts` |
 
 ### Appendix B: Distributed System Patterns (Chrysalis "10 Universal Patterns")
 

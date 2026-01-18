@@ -73,6 +73,14 @@ npm run build
 cd ui && npm install && npm run build
 ```
 
+### Local Chat (Ollama)
+
+Requires a local Ollama instance (`ollama serve`) with a model pulled (e.g. `ollama pull gemma:2b`).
+
+```bash
+./scripts/run-local-chat.sh
+```
+
 ### Verify Installation
 
 ```bash
@@ -94,7 +102,7 @@ cd ui && npm run build
 
 | Capability | Description | Source |
 |------------|-------------|--------|
-| **Semantic Agent V2** | Agents operating in semantic space with experience sync, instances, protocols | [`UniformSemanticAgentV2.ts`](src/core/UniformSemanticAgentV2.ts) |
+| **Semantic Agent V2** | Agents operating in semantic space with experience sync, instances, protocols | [`SemanticAgent.ts`](src/core/SemanticAgent.ts) |
 | **Framework Adapters** | Multi-protocol support (MCP, A2A, ACP, Agent Protocol) | [`src/adapters/`](src/adapters/) |
 | **Bridge Service** | Agent translation with REST API and caching | [`src/bridge/`](src/bridge/), [`src/api/bridge/`](src/api/bridge/) |
 | **Universal Adapter** | JSON-driven LLM task orchestration with flow execution | [`src/universal_adapter/`](src/universal_adapter/) |
@@ -242,8 +250,8 @@ flowchart TB
         Layout[Layout Engine]
     end
 
-    USA --> Adapters
-    USA --> Patterns
+    SemanticAgent --> Adapters
+    SemanticAgent --> Patterns
     Adapters --> Bridge
     Bridge --> Protocols
     ESM --> Streaming

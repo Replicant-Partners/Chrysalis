@@ -1,0 +1,28 @@
+{
+  "type": "evaluate",
+  "name": "Evaluate olmo-3:7b - Anomaly Detection",
+  "prompt": "You are monitoring API response times. Normal behavior: mean=200ms, std=20ms.\n\nLast 10 measurements (ms): [195, 203, 198, 210, 205, 198, 201, 285, 199, 202]\n\nShould you trigger an alert? Why or why not?",
+  "model": {
+    "provider": "ollama",
+    "name": "olmo-3:7b"
+  },
+  "parameters": {
+    "temperature": 0.3,
+    "maxTokens": 1000
+  },
+  "options": {
+    "outputPath": "./tests/llm-evaluation/results/olmo-3-7b/mode1_atomic_003.md",
+    "includeMetadata": true,
+    "timeoutMs": 30000
+  },
+  "metadata": {
+    "mode": 1,
+    "test_id": "mode1_atomic_003",
+    "category": "atomic",
+    "complexity": "medium",
+    "description": "Anomaly Detection",
+    "model_size_gb": 4.5,
+    "generated": "2026-01-18",
+    "author": "Chrysalis Evaluation Framework"
+  }
+}

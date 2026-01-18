@@ -108,7 +108,7 @@ The pattern resolver (located in `src/core/patterns/`) selects implementations b
 ```mermaid
 flowchart LR
     subgraph Core["Core Layer"]
-        USA[SemanticAgent]
+        SemanticAgent[SemanticAgent]
         Patterns[Cryptographic Patterns]
         CB[CircuitBreaker]
         CostControl[Cost Control]
@@ -164,8 +164,8 @@ flowchart LR
         Terminal[Terminal PTY]
     end
 
-    USA --> Patterns
-    USA --> Adapters
+    SemanticAgent --> Patterns
+    SemanticAgent --> Adapters
     Adapters --> Bridge
     Bridge --> Orchestrator
     Orchestrator --> Cache
@@ -223,12 +223,12 @@ flowchart LR
 sequenceDiagram
     participant Client
     participant Adapter as FrameworkAdapter
-    participant USA as UniformSemanticAgent
+    participant SemanticAgent as UniformSemanticAgent
     participant Shadow as ShadowFields
 
     Client->>Adapter: morph(agent, targetType)
-    Adapter->>USA: extract canonical form
-    USA->>Shadow: store non-mappable fields
+    Adapter->>SemanticAgent: extract canonical form
+    SemanticAgent->>Shadow: store non-mappable fields
     Adapter->>Adapter: transform to target schema
     Adapter->>Client: return morphed agent + shadow
 
@@ -236,7 +236,7 @@ sequenceDiagram
 
     Client->>Adapter: restore(morphedAgent, shadow)
     Adapter->>Shadow: retrieve stored fields
-    Adapter->>USA: reconstruct original
+    Adapter->>SemanticAgent: reconstruct original
     Adapter->>Client: return restored agent
 ```
 

@@ -6,7 +6,7 @@
  */
 
 import type {
-  UniformSemanticAgentV2,
+  SemanticAgent,
   ExperienceEvent,
   ExperienceBatch,
   SyncResult,
@@ -14,7 +14,7 @@ import type {
   ExperienceSyncConfig,
   ExperienceTransportConfig,
   ExperienceTransportType
-} from '../core/UniformSemanticAgentV2';
+} from './core/SemanticAgent';
 import { StreamingSync } from './StreamingSync';
 import { LumpedSync } from './LumpedSync';
 import { CheckInSync } from './CheckInSync';
@@ -88,7 +88,7 @@ export class ExperienceSyncManager {
 
   private syncStatus: Map<string, SyncStatus> = new Map();
   private transports: Map<string, ExperienceTransport> = new Map();
-  private sourceAgents: Map<string, UniformSemanticAgentV2> = new Map();
+  private sourceAgents: Map<string, SemanticAgent> = new Map();
   private syncConfigs: Map<string, ExperienceSyncConfig> = new Map();
   private readonly log = logger('ExperienceSyncManager');
   private readonly centralizedLogger: CentralizedLogger;
@@ -132,7 +132,7 @@ export class ExperienceSyncManager {
     instanceId: string,
     protocol: SyncProtocol,
     config: ExperienceSyncConfig,
-    sourceAgent?: UniformSemanticAgentV2,
+    sourceAgent?: SemanticAgent,
     syncEndpoint?: string,
     overrideTransport?: ExperienceTransportConfig
   ): Promise<void> {
@@ -318,7 +318,7 @@ export class ExperienceSyncManager {
    */
   async receiveSyncEvent(
     instanceId: string,
-    sourceAgent: UniformSemanticAgentV2,
+    sourceAgent: SemanticAgent,
     event: ExperienceEvent
   ): Promise<void> {
     switch (event.event_type) {
@@ -348,7 +348,7 @@ export class ExperienceSyncManager {
    * Merge experiences from batch
    */
   async mergeExperienceBatch(
-    sourceAgent: UniformSemanticAgentV2,
+    sourceAgent: SemanticAgent,
     batch: ExperienceBatch
   ): Promise<MergeResult> {
     this.logger.info(`Merging experience batch`, { instanceId: batch.instance_id });
@@ -580,7 +580,7 @@ export class ExperienceSyncManager {
   }
 
   private async updateCharacteristic(
-    agent: UniformSemanticAgentV2,
+    agent: SemanticAgent,
     data: any,
     instanceId: string
   ): Promise<void> {

@@ -9,6 +9,7 @@
 
 import type { Server as WebSocketServerType } from 'ws';
 import type { IncomingMessage } from 'http';
+import path from 'path';
 import { EventEmitter } from 'events';
 import { logger } from '../../observability';
 
@@ -53,6 +54,7 @@ export interface TerminalServerOptions {
   maxSessions?: number;
   sessionTimeout?: number; // milliseconds
   allowedCommands?: string[]; // whitelist (empty = all allowed)
+  authToken?: string; // Bearer token required for connections
 }
 
 // =============================================================================
@@ -62,7 +64,7 @@ export interface TerminalServerOptions {
 export class TerminalWebSocketServer extends EventEmitter {
   private wss: any | null = null;
   private sessions: Map<string, TerminalSession> = new Map();
-  private readonly options: Required<TerminalServerOptions>;
+  private readonly options: Required<Omit<TerminalServerOptions, 'authToken'>> & Pick<TerminalServerOptions, 'authToken'>;
   private cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor(options: TerminalServerOptions = {}) {
@@ -73,8 +75,11 @@ export class TerminalWebSocketServer extends EventEmitter {
       shell: options.shell ?? process.env.SHELL ?? '/bin/bash',
       maxSessions: options.maxSessions ?? 100,
       sessionTimeout: options.sessionTimeout ?? 30 * 60 * 1000, // 30 minutes
-      allowedCommands: options.allowedCommands ?? []
+      allowedCommands: [...(options.allowedCommands ?? [])],
+      authToken: options.authToken ?? process.env.TERMINAL_WS_TOKEN
     };
+
+    this.ensureDefaultShellAllowed();
   }
 
   /**
@@ -103,8 +108,13 @@ export class TerminalWebSocketServer extends EventEmitter {
 
     logger.info('Terminal WebSocket server started', { 
       port: this.options.port,
-      shell: this.options.shell
+      shell: this.options.shell,
+      authProtected: Boolean(this.options.authToken)
     });
+
+    if (!this.options.authToken) {
+      logger.warn('Terminal WebSocket server is running without authentication. Set TERMINAL_WS_TOKEN or pass authToken to enable protection.');
+    }
 
     this.emit('started', { port: this.options.port });
   }
@@ -146,6 +156,17 @@ export class TerminalWebSocketServer extends EventEmitter {
       return;
     }
 
+    const url = this.parseRequestUrl(req);
+
+    if (!this.authorizeRequest(req, url)) {
+      logger.warn('Unauthorized terminal connection attempt', {
+        remote: req.socket.remoteAddress,
+        path: url.pathname
+      });
+      ws.close(4401, 'Unauthorized');
+      return;
+    }
+
     // Check session limit
     if (this.sessions.size >= this.options.maxSessions) {
       logger.warn('Maximum terminal sessions reached', { 
@@ -156,14 +177,19 @@ export class TerminalWebSocketServer extends EventEmitter {
       return;
     }
 
-    // Parse terminal ID from URL
-    const url = new URL(req.url || '', `http://${req.headers.host}`);
+    const requestedShell = url.searchParams.get('shell');
+    const shell = this.resolveShell(requestedShell);
+    if (!shell) {
+      ws.close(1008, 'Shell not allowed');
+      return;
+    }
+
     const terminalId = url.searchParams.get('id') || `term-${Date.now()}`;
 
     // Create PTY session
     const cols = parseInt(url.searchParams.get('cols') || '80');
     const rows = parseInt(url.searchParams.get('rows') || '24');
-    const cwd = url.searchParams.get('cwd') || process.env.HOME || process.cwd();
+    const cwd = this.resolveCwd(url.searchParams.get('cwd'));
 
     try {
       if (!ptyModule) {
@@ -172,12 +198,13 @@ export class TerminalWebSocketServer extends EventEmitter {
         return;
       }
 
-      const ptyProcess = ptyModule.spawn(this.options.shell, [], {
+      const env = this.buildSanitizedEnv();
+      const ptyProcess = ptyModule.spawn(shell, [], {
         name: 'xterm-256color',
         cols,
         rows,
         cwd,
-        env: { ...process.env, TERM: 'xterm-256color' }
+        env
       });
 
       const session: TerminalSession = {
@@ -189,7 +216,7 @@ export class TerminalWebSocketServer extends EventEmitter {
         cols,
         rows,
         cwd,
-        env: process.env as Record<string, string>
+        env
       };
 
       this.sessions.set(terminalId, session);
@@ -328,6 +355,113 @@ export class TerminalWebSocketServer extends EventEmitter {
       cols: s.cols,
       rows: s.rows
     }));
+  }
+  private ensureDefaultShellAllowed(): void {
+    if (!this.options.allowedCommands.length) {
+      return;
+    }
+
+    const normalizedDefault = this.normalizeCommand(this.options.shell);
+    const hasDefault = this.options.allowedCommands.some(cmd => 
+      this.normalizeCommand(cmd) === normalizedDefault
+    );
+
+    if (!hasDefault) {
+      this.options.allowedCommands.push(this.options.shell);
+    }
+  }
+
+  private parseRequestUrl(req: IncomingMessage): URL {
+    try {
+      return new URL(req.url || '/', `http://${req.headers.host ?? 'localhost'}`);
+    } catch {
+      return new URL('/', 'http://localhost');
+    }
+  }
+
+  private authorizeRequest(req: IncomingMessage, url: URL): boolean {
+    if (!this.options.authToken) {
+      return true;
+    }
+
+    const token = this.extractToken(req, url);
+    return token === this.options.authToken;
+  }
+
+  private extractToken(req: IncomingMessage, url: URL): string | null {
+    const header = req.headers['authorization'];
+    if (typeof header === 'string') {
+      const match = header.match(/^Bearer\s+(.+)$/i);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+
+    const queryToken = url.searchParams.get('token');
+    return queryToken ? queryToken.trim() : null;
+  }
+
+  private resolveShell(requested: string | null): string | null {
+    if (!requested) {
+      return this.options.shell;
+    }
+
+    if (!this.options.allowedCommands.length) {
+      logger.warn('Ignoring shell override because allowedCommands is empty. Provide an allowlist to enable overrides.');
+      return this.options.shell;
+    }
+
+    const normalized = this.normalizeCommand(requested);
+    const allowed = this.options.allowedCommands.some(cmd => 
+      this.normalizeCommand(cmd) === normalized
+    );
+
+    return allowed ? requested : null;
+  }
+
+  private normalizeCommand(cmd: string): string {
+    return path.basename(cmd.trim());
+  }
+
+  private resolveCwd(requested: string | null): string {
+    const fallback = process.env.TERMINAL_DEFAULT_CWD || process.env.HOME || process.cwd();
+    if (!requested) {
+      return fallback;
+    }
+
+    if (!path.isAbsolute(requested)) {
+      logger.warn('Rejecting non-absolute cwd override', { requested });
+      return fallback;
+    }
+
+    const normalized = path.normalize(requested);
+    const allowedRoot = process.env.TERMINAL_ALLOWED_CWD_ROOT;
+    if (allowedRoot) {
+      const normalizedRoot = path.resolve(allowedRoot);
+      if (!normalized.startsWith(normalizedRoot)) {
+        logger.warn('Rejecting cwd outside allowed root', { requested, allowedRoot });
+        return fallback;
+      }
+    }
+
+    return normalized;
+  }
+
+  private buildSanitizedEnv(extra: Record<string, string> = {}): Record<string, string> {
+    const allowedKeys = ['PATH', 'HOME', 'LANG', 'LC_ALL', 'LC_LANG', 'SHELL'];
+    const sanitized: Record<string, string> = {};
+
+    for (const key of allowedKeys) {
+      const value = process.env[key];
+      if (value) {
+        sanitized[key] = value;
+      }
+    }
+
+    sanitized.TERM = 'xterm-256color';
+    sanitized.COLORTERM = 'truecolor';
+
+    return { ...sanitized, ...extra };
   }
 }
 

@@ -11,7 +11,7 @@
  * HIGH-004: Instance state transitions now formally defined and enforced.
  */
 
-import type { InstanceStatus } from './UniformSemanticAgentV2';
+import type { InstanceStatus } from './SemanticAgent';
 
 // =============================================================================
 // TRANSITION DEFINITIONS

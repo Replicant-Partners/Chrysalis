@@ -18,7 +18,7 @@
 
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
-import type { ExperienceEvent, Skill } from '../core/UniformSemanticAgentV2';
+import type { ExperienceEvent, Skill } from './core/SemanticAgent';
 import { logger } from '../observability';
 
 // ============================================================================

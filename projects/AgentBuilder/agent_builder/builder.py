@@ -1,5 +1,5 @@
 """
-AgentBuilder - Fluent builder for UniformSemanticAgentV2 configurations.
+AgentBuilder - Fluent builder for SemanticAgent configurations.
 
 Provides a chainable API to construct complete agent definitions with validation.
 
@@ -170,7 +170,7 @@ def _initialize_from_template(
 
 class AgentBuilder:
     """
-    Fluent builder for UniformSemanticAgentV2 configurations.
+    Fluent builder for SemanticAgent configurations.
 
     Provides a chainable API to construct complete agent definitions.
     All methods return self for chaining.
@@ -761,7 +761,7 @@ class AgentBuilder:
         Build and return the complete agent configuration.
 
         Returns:
-            UniformSemanticAgentV2 configuration dictionary.
+            SemanticAgent configuration dictionary.
 
         Raises:
             AgentBuilderError: If validation fails.

@@ -26,7 +26,7 @@ import type {
   Belief,
   InstanceMetadata,
   Protocols,
-} from '../core/UniformSemanticAgentV2';
+} from './core/SemanticAgent';
 
 export function serializeSkill(
   agentNode: NamedNode,

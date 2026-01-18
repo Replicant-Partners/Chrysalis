@@ -15,7 +15,12 @@ A canvas type defines a workspace with:
 - **Execution model** - Background behavior, resource limits
 
 Built-in canvas types:
-- **Settings** - Configuration and API keys
+- **Settings** - System management and configuration
+- **Agent** - Managing internal agent teams
+- **Scrapbook** - Content collection when organization unclear
+- **Research** - Structured information synthesis
+- **Wiki** - MediaWiki knowledgebase
+- **Terminal-Browser** - Combined terminal and browser workspace
 - **Board** - General workflows and planning
 - **Scrapbook** - Content collection
 - **Research** - Information synthesis
@@ -35,7 +40,7 @@ export const MyWidget: WidgetDefinition = {
   typeId: '@my-org/task-tracker',
 
   // Add to existing canvas types
-  supportedCanvases: ['board', 'scrapbook'],
+  supportedCanvases: ['agent', 'scrapbook'],
 
   // ...rest of definition
 };
@@ -51,8 +56,8 @@ import { getCanvasRegistry, getWidgetRegistry } from '@chrysalis/canvas';
 const canvasRegistry = getCanvasRegistry();
 const widgetRegistry = getWidgetRegistry();
 
-// Create a filtered Board canvas that only allows certain widgets
-canvasRegistry.registerVariant('board', {
+// Create a filtered Agent canvas that only allows certain widgets
+canvasRegistry.registerVariant('agent', {
   variantId: 'board/minimal',
   name: 'Minimal Board',
   description: 'A focused board with only card and note widgets',
@@ -554,7 +559,7 @@ defaultState: {
 What should happen when users switch away?
 
 - Settings canvas: Suspend immediately (no background work needed)
-- Terminal canvas: Keep running (commands executing)
+- Terminal-Browser canvas: Keep running (terminal commands or browser sessions active)
 - Research canvas: Stay active briefly (might be loading)
 
 ### 5. Design Connection Rules Carefully

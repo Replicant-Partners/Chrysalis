@@ -34,7 +34,7 @@ Examined the following files to understand the architecture:
 | `src/adapters/universal/types.ts` | Type definitions | ~300 |
 | `src/adapters/unified-adapter.ts` | Legacy pattern bridge | ~500 |
 | `src/adapters/protocol-registry.ts` | Version tracking | ~400 |
-| `usa_adapters/adapters.py` | Python USA converters | ~400 |
+| `usa_adapters/adapters.py` | Python SemanticAgent converters | ~400 |
 
 ### 2. Protocol Specification Research
 
@@ -99,7 +99,7 @@ This is the **correct abstraction** for cross-protocol translation.
 
 **Impact**: LLM would receive incomplete or no schema information, degrading translation quality.
 
-**Resolution**: Created `registry-v2.ts` with:
+**Resolution**: Created `registry.ts` with:
 - Verified, working specification URLs
 - Alternative/fallback URLs
 - Embedded fallback schemas for offline operation
@@ -111,7 +111,7 @@ This is the **correct abstraction** for cross-protocol translation.
 
 **Impact**: Reduced context available for actual agent data and specifications.
 
-**Resolution**: Created `prompts-v2.ts` with:
+**Resolution**: Created `prompts.ts` with:
 - `MAPPING_PRINCIPLES_COMPACT` (~50 lines, same semantic content)
 - Protocol-specific guidance injection
 - Structured output enforcement
@@ -146,14 +146,14 @@ semanticHints: {
 
 ## Optimizations Implemented
 
-### 1. Enhanced Protocol Registry (`registry-v2.ts`)
+### 1. Enhanced Protocol Registry (`registry.ts`)
 
 - **10 verified protocols** with correct URLs
 - **Semantic hints** for each protocol
 - **Fallback schemas** for offline operation
 - **Version tracking** per protocol
 
-### 2. Optimized Prompts (`prompts-v2.ts`)
+### 2. Optimized Prompts (`prompts.ts`)
 
 - **Token-optimized** mapping principles (~60% reduction)
 - **Protocol-aware** translation prompts
@@ -206,9 +206,9 @@ semanticHints: {
 
 ### Short-Term (Immediate)
 
-1. ✅ **Update registry URLs** - Implemented in `registry-v2.ts`
-2. ✅ **Add semantic hints** - Implemented in `registry-v2.ts`
-3. ✅ **Optimize prompts** - Implemented in `prompts-v2.ts`
+1. ✅ **Update registry URLs** - Implemented in `registry.ts`
+2. ✅ **Add semantic hints** - Implemented in `registry.ts`
+3. ✅ **Optimize prompts** - Implemented in `prompts.ts`
 4. ⬜ **Integrate v2 modules** into main adapter
 
 ### Medium-Term (1-2 weeks)
@@ -252,8 +252,8 @@ This enables:
 
 | File | Description |
 |------|-------------|
-| `src/adapters/universal/registry-v2.ts` | Enhanced protocol registry with verified URLs |
-| `src/adapters/universal/prompts-v2.ts` | Optimized prompt set with semantic hints |
+| `src/adapters/universal/registry.ts` | Enhanced protocol registry with verified URLs |
+| `src/adapters/universal/prompts.ts` | Optimized prompt set with semantic hints |
 | `docs/architecture/UNIVERSAL_ADAPTER_REVIEW.md` | This document |
 
 ### Integration Path

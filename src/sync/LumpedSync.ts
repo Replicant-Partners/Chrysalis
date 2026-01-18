@@ -5,7 +5,7 @@
  * for cost-effective learning aggregation.
  */
 
-import type { ExperienceBatch } from '../core/UniformSemanticAgentV2';
+import type { ExperienceBatch } from './core/SemanticAgent';
 import { logger } from '../observability';
 
 class NotImplementedError extends Error {

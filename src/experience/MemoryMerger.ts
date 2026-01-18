@@ -9,7 +9,7 @@
  * Future: Vector indexing for O(log N) search
  */
 
-import type { UniformSemanticAgentV2 } from '../core/UniformSemanticAgentV2';
+import type { SemanticAgent } from './core/SemanticAgent';
 import { logger } from '../observability';
 import { logger } from '../observability';
 import type { SanitizeResult } from './MemorySanitizer';
@@ -144,7 +144,7 @@ export class MemoryMerger {
    * Add single memory
    */
   async addMemory(
-    agent: UniformSemanticAgentV2,
+    agent: SemanticAgent,
     memoryData: MemoryInput,
     sourceInstance: string
   ): Promise<void> {
@@ -235,7 +235,7 @@ export class MemoryMerger {
    * Merge batch of memories
    */
   async mergeBatch(
-    agent: UniformSemanticAgentV2,
+    agent: SemanticAgent,
     memories: MemoryInput[],
     sourceInstance: string
   ): Promise<MemoryMergeResult> {

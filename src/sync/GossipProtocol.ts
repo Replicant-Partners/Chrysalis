@@ -20,7 +20,7 @@ import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
 import { NotImplementedError } from './adapters/CrdtSyncAdapter';
 import { randomBytes } from 'crypto';
-import type { ExperienceEvent, ExperienceBatch } from '../core/UniformSemanticAgentV2';
+import type { ExperienceEvent, ExperienceBatch } from './core/SemanticAgent';
 import { logger } from '../observability';
 
 // ============================================================================

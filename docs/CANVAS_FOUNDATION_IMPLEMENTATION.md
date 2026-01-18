@@ -4,7 +4,7 @@
 
 ### Core Infrastructure
 1. **`src/canvas/types.ts`**
-   - CanvasKind type (10 canvas types)
+   - CanvasKind type (6 canvas types: settings, agent, scrapbook, research, wiki, terminal-browser)
    - WidgetNodeData, WidgetDefinition interfaces
    - CanvasPolicy, CanvasTheme, CanvasDataSource
    - Event types, lifecycle hooks
@@ -25,9 +25,9 @@
    - Accessibility support
 
 ### Implementation Example
-4. **`src/canvas/canvases/TerminalCanvas.tsx`**
-   - Terminal-specific canvas configuration
-   - Widget allowlist: ['terminal_session']
+4. **`src/canvas/canvases/TerminalBrowserCanvas.tsx`**
+   - Terminal-Browser canvas configuration
+   - Widget allowlist: ['terminal_session', 'browser_tab']
    - Policy: max 20 nodes, rate limits
    - Registry setup with capabilities
 
@@ -112,7 +112,7 @@ if (!validation.valid) {
    - Persistence layer
 
 3. **Remaining Canvases**
-   - Create 9 more canvas implementations following Terminal pattern
+   - Create 5 more canvas implementations (Agent, Scrapbook, Research, Wiki, Settings)
    - Define widget allowlists for each
    - Register widgets
 
@@ -151,7 +151,7 @@ function App() {
 - ✅ Core types defined
 - ✅ WidgetRegistry system complete
 - ✅ BaseCanvas component functional
-- ✅ Terminal canvas example complete
+- ⚠️ Canvas implementations removed (System A and B deprecated)
 - ⚠️ Widget implementations need xterm.js integration
 - ⚠️ Data source needs tile loading implementation
 - ⚠️ 9 canvases remain to be created

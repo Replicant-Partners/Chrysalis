@@ -1,0 +1,28 @@
+{
+  "type": "evaluate",
+  "name": "Evaluate orca2:7b - Ambiguous Process State",
+  "prompt": "Your monitoring shows conflicting signals:\n\nSignal 1 - Application metrics:\n- Response time: 180ms (target: 200ms) ✓\n- Error rate: 0.05% (target: < 0.1%) ✓\n- Throughput: 1200 req/s (normal) ✓\n\nSignal 2 - Infrastructure metrics:\n- CPU: 85% (high)\n- Memory: 90% (high)\n- Disk I/O: 95% (critical)\n- Network: 40% (normal)\n\nSignal 3 - User reports:\n- 5 user complaints about \"slow loading\" in last 10 minutes\n- All from same geographic region (EU)\n- No specific error messages\n\nYour application meets all technical SLAs, but users report issues.\n\nWhat do you do? This requires judgment - explain your reasoning process.",
+  "model": {
+    "provider": "ollama",
+    "name": "orca2:7b"
+  },
+  "parameters": {
+    "temperature": 0.3,
+    "maxTokens": 1000
+  },
+  "options": {
+    "outputPath": "./tests/llm-evaluation/results/orca2-7b/mode1_adversarial_001.md",
+    "includeMetadata": true,
+    "timeoutMs": 30000
+  },
+  "metadata": {
+    "mode": 1,
+    "test_id": "mode1_adversarial_001",
+    "category": "atomic",
+    "complexity": "high",
+    "description": "Ambiguous Process State",
+    "model_size_gb": 3.8,
+    "generated": "2026-01-18",
+    "author": "Chrysalis Evaluation Framework"
+  }
+}

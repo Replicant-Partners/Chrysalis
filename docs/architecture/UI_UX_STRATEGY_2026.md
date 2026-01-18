@@ -10,7 +10,7 @@
 Design a resilient, adaptive UI/UX strategy that leverages the new `UnifiedAdapter` architecture to provide a seamless interface for multi-agent orchestration. The goal is to decouple the frontend from specific agent frameworks (ElizaOS, CrewAI) and instead render interactions based on the abstract `UniversalMessage` protocol.
 
 ### Context
-The backend has migrated to a semantic, LLM-driven adapter layer (`src/adapters/universal/`). Legacy hardcoded adapters have been removed. The UI must now interact with the system via the `UnifiedAdapter` interface, treating all agents as "Universal Agents" with varying capabilities defined by the `registry-v2.ts`.
+The backend has migrated to a semantic, LLM-driven adapter layer (`src/adapters/universal/`). Legacy hardcoded adapters have been removed. The UI must now interact with the system via the `UnifiedAdapter` interface, treating all agents as "Universal Agents" with varying capabilities defined by the `registry.ts`.
 
 ### Success Criteria
 1.  **Protocol Agnosticism**: The UI renders agent messages correctly regardless of the underlying framework (MCP, A2A, etc.).
@@ -104,5 +104,5 @@ interface AdaUICommand {
 
 ### Available Tools & Resources
 *   **MCP Servers**: Use `filesystem` to scaffold components, `postgres` (if available) for persisting user preferences.
-*   **Backend**: `src/adapters/universal/adapter-v2.ts` provides the semantic data.
+*   **Backend**: `src/adapters/universal/adapter.ts` provides the semantic data.
 *   **Reasoning**: `src/universal_adapter/flow/` provides the execution state to visualize.

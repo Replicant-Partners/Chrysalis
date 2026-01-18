@@ -289,7 +289,7 @@ The AI Lead Adaptation System integrates with:
    - Pattern-based memory for adaptation history
    - Knowledge accumulation from adaptations
 
-3. **Agent Transformation** (`src/converter/ConverterV2.ts`)
+3. **Agent Transformation** (`src/converter/Converter.ts`)
    - Adaptation may involve framework transformations
    - Experience preservation across adaptations
 

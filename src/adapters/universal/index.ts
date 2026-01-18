@@ -1,23 +1,23 @@
 /**
  * Universal LLM-Powered Adapter
- * 
+ *
  * A single adapter that translates between ALL agent protocols by:
  * 1. Using semantic category mapping (IDENTITY, CAPABILITIES, INSTRUCTIONS, STATE, etc.)
  * 2. Fetching protocol specifications from registered URLs (with fallbacks)
  * 3. Applying mapping principles via LLM prompts
  * 4. Returning the translated agent representation
- * 
+ *
  * This replaces 22 hand-coded adapters with one LLM-delegated adapter.
- * 
+ *
  * KEY INSIGHT: Map by the MEANING of the category in the schema, not by field names.
  * "tool" in MCP === "skill" in A2A === "function" in OpenAI === "action" in LMOS
- * 
+ *
  * ## Version History
  * - v1.0: Basic adapter with simple registry and prompts
  * - v2.0: Enhanced adapter with semantic categories, morphing, caching, verification
- * 
+ *
  * @module adapters/universal
- * @version 2.0.0
+ * @version 2.0.0 (version marker)
  */
 
 import { MAPPING_PRINCIPLES_PROMPT, buildTranslationPrompt } from './prompts';
@@ -28,12 +28,12 @@ import { MAPPING_PRINCIPLES_PROMPT, buildTranslationPrompt } from './prompts';
 
 /**
  * Registry of agent framework specifications.
- * 
+ *
  * Each entry contains:
  * - name: Human-readable protocol name
  * - specUrl: URL to the official JSON Schema / OpenAPI spec
  * - docsUrl: URL to human-readable documentation
- * 
+ *
  * Adding a new protocol = adding a URL entry (no code required)
  */
 export const PROTOCOL_REGISTRY: Record<string, ProtocolEntry> = {
@@ -43,56 +43,56 @@ export const PROTOCOL_REGISTRY: Record<string, ProtocolEntry> = {
     specUrl: 'https://raw.githubusercontent.com/chrysalis-ai/schemas/main/usa/v2.0/schema.json',
     docsUrl: 'https://chrysalis.dev/docs/usa'
   },
-  
+
   // Anthropic Model Context Protocol
   mcp: {
     name: 'Model Context Protocol',
     specUrl: 'https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/schema.json',
     docsUrl: 'https://spec.modelcontextprotocol.io/'
   },
-  
+
   // Google Agent-to-Agent Protocol
   a2a: {
     name: 'Agent-to-Agent Protocol',
     specUrl: 'https://raw.githubusercontent.com/google/A2A/main/specification/json/a2a.json',
     docsUrl: 'https://google.github.io/A2A/'
   },
-  
+
   // Agent Network Protocol
   anp: {
     name: 'Agent Network Protocol',
     specUrl: 'https://agent-network-protocol.org/spec/v1/schema.json',
     docsUrl: 'https://agent-network-protocol.org/'
   },
-  
+
   // Eclipse LMOS
   lmos: {
     name: 'Eclipse LMOS',
     specUrl: 'https://eclipse.dev/lmos/api/agent-spec.json',
     docsUrl: 'https://eclipse.dev/lmos/'
   },
-  
+
   // LangChain
   langchain: {
     name: 'LangChain Agent',
     specUrl: 'https://api.python.langchain.com/schemas/agent.json',
     docsUrl: 'https://python.langchain.com/docs/'
   },
-  
+
   // CrewAI
   crewai: {
     name: 'CrewAI Agent',
     specUrl: 'https://docs.crewai.com/api/schemas/agent.json',
     docsUrl: 'https://docs.crewai.com/'
   },
-  
+
   // OpenAI Assistants API
   openai: {
     name: 'OpenAI Assistants',
     specUrl: 'https://raw.githubusercontent.com/openai/openai-openapi/master/openapi.yaml',
     docsUrl: 'https://platform.openai.com/docs/assistants/overview'
   },
-  
+
   // Microsoft AutoGen
   autogen: {
     name: 'Microsoft AutoGen',
@@ -148,7 +148,7 @@ export interface LLMProvider {
 
 /**
  * Universal Adapter - One adapter for all protocols
- * 
+ *
  * Instead of hand-coding transformation logic, this adapter:
  * 1. Fetches specs from URLs
  * 2. Builds a prompt with mapping principles
@@ -205,7 +205,7 @@ export class UniversalAdapter {
     protocol: string
   ): Promise<{ valid: boolean; errors: string[] }> {
     const spec = await this.getSpec(protocol);
-    
+
     const prompt = `
 You are a schema validator. Given the following JSON Schema for the ${protocol} protocol:
 
@@ -311,23 +311,23 @@ export function createUniversalAdapter(llm: LLMProvider): UniversalAdapter {
  */
 export {
   // Main class
-  UniversalAdapterV2,
-  
+  UniversalAdapter,
+
   // Factory functions
-  createUniversalAdapterV2,
+  createUniversalAdapter,
   createSimpleAdapter,
-  
+
   // Types
-  type LLMProviderV2,
-  type TranslationResultV2,
+  type LLMProvider,
+  type TranslationResult,
   type MorphingResult,
-  type UniversalAdapterV2Config
-} from './adapter-v2';
+  type UniversalAdapterConfig
+} from './adapter';
 
 // V2 Registry with semantic hints
 export {
-  PROTOCOL_REGISTRY_V2,
-  type ProtocolEntryV2,
+  PROTOCOL_REGISTRY,
+  type ProtocolEntry,
   type SemanticHints,
   type MinimalSchema,
   getRegisteredProtocols,
@@ -336,18 +336,18 @@ export {
   isProtocolRegistered,
   getSemanticHints,
   getSpecUrls
-} from './registry-v2';
+} from './registry';
 
 // V2 Prompts with semantic categories
 export {
   SEMANTIC_CATEGORIES,
   MAPPING_PRINCIPLES_COMPACT,
-  buildTranslationPromptV2,
-  buildValidationPromptV2,
-  buildCapabilityDiscoveryPromptV2,
-  buildFieldMappingPromptV2,
+  buildTranslationPrompt,
+  buildValidationPrompt,
+  buildCapabilityDiscoveryPrompt,
+  buildFieldMappingPrompt,
   buildAgentMorphingPrompt
-} from './prompts-v2';
+} from './prompts';
 
 // V1 Prompts (legacy compatibility)
 export {

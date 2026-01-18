@@ -1,14 +1,14 @@
 /**
  * Gateway-Universal Adapter Bridge
- * 
- * Connects the Universal Adapter V2 to the Go LLM Gateway,
+ *
+ * Connects the Universal Adapter to the Go LLM Gateway,
  * enabling protocol translation with local Ollama models.
- * 
+ *
  * @module adapters/universal/gateway-bridge
  */
 
 import { GatewayLLMClient } from '../../services/gateway/GatewayLLMClient';
-import { UniversalAdapterV2, createUniversalAdapterV2, type LLMProviderV2 } from './adapter-v2';
+import { UniversalAdapter, createUniversalAdapter, type LLMProvider } from './adapter';
 import { DEFAULT_ADA_MODEL } from '../../config/ollama-models';
 import { createLogger } from '../../shared/logger';
 
@@ -16,12 +16,12 @@ const log = createLogger('gateway-bridge');
 
 /**
  * Gateway LLM Provider for Universal Adapter
- * 
- * Adapts GatewayLLMClient to the LLMProviderV2 interface
+ *
+ * Adapts GatewayLLMClient to the LLMProvider interface
  */
-export class GatewayLLMProvider implements LLMProviderV2 {
+export class GatewayLLMProvider implements LLMProvider {
   name = 'gateway';
-  
+
   constructor(
     private client: GatewayLLMClient,
     private agentId: string = 'universal-adapter',
@@ -106,7 +106,7 @@ export function createGatewayAdapter(options?: {
   enableSpecCache?: boolean;
   enableMappingCache?: boolean;
   enableVerification?: boolean;
-}): UniversalAdapterV2 {
+}): UniversalAdapter {
   const client = new GatewayLLMClient({
     baseUrl: options?.gatewayBaseUrl || 'http://localhost:8080',
     model: options?.gatewayModel || DEFAULT_ADA_MODEL
@@ -118,7 +118,7 @@ export function createGatewayAdapter(options?: {
     options?.gatewayModel || DEFAULT_ADA_MODEL
   );
 
-  return createUniversalAdapterV2(provider, {
+  return createUniversalAdapter(provider, {
     enableSpecCache: options?.enableSpecCache ?? true,
     enableMappingCache: options?.enableMappingCache ?? true,
     enableVerification: options?.enableVerification ?? false,
@@ -129,12 +129,12 @@ export function createGatewayAdapter(options?: {
 /**
  * Singleton instance for shared use
  */
-let sharedAdapter: UniversalAdapterV2 | null = null;
+let sharedAdapter: UniversalAdapter | null = null;
 
 /**
  * Get or create shared adapter instance
  */
-export function getSharedAdapter(options?: Parameters<typeof createGatewayAdapter>[0]): UniversalAdapterV2 {
+export function getSharedAdapter(options?: Parameters<typeof createGatewayAdapter>[0]): UniversalAdapter {
   if (!sharedAdapter) {
     sharedAdapter = createGatewayAdapter(options);
     log.info('Created shared Universal Adapter instance', {
@@ -171,7 +171,7 @@ export async function quickMorph(
   agent: Record<string, unknown>,
   from: string,
   to: string,
-  options?: Parameters<UniversalAdapterV2['morph']>[3]
+  options?: Parameters<UniversalAdapter['morph']>[3]
 ) {
   const adapter = getSharedAdapter();
   return adapter.morph(agent, from, to, options);

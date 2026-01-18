@@ -180,6 +180,34 @@ export class SystemAgentChatService {
     }
   }
 
+  private shouldPreferLocalModels(): boolean {
+    const env = process.env.SYSTEM_AGENT_PREFER_LOCAL;
+    if (env === undefined) {
+      return true;
+    }
+    return env.toLowerCase() !== 'false';
+  }
+
+  private resolveModel(binding: SystemAgentBinding): string {
+    const modelConfig = binding.config.modelConfig;
+    const localModel = modelConfig.localModel?.model;
+    const cloudModel = modelConfig.cloudModel?.model;
+    const preferLocal = this.shouldPreferLocalModels();
+
+    if (modelConfig.modelTier === 'local_slm') {
+      return localModel || cloudModel || '';
+    }
+
+    if (modelConfig.modelTier === 'cloud_llm') {
+      if (preferLocal && localModel) return localModel;
+      return cloudModel || localModel || '';
+    }
+
+    // Hybrid defaults to local unless explicitly disabled.
+    if (preferLocal && localModel) return localModel;
+    return cloudModel || localModel || '';
+  }
+
   // ===========================================================================
   // Initialization
   // ===========================================================================
@@ -239,12 +267,18 @@ export class SystemAgentChatService {
       // Try gateway client first
       if (this.config.gatewayClient) {
         try {
+          const model = this.resolveModel(binding);
+          if (!model) {
+            throw new Error(`No model configured for agent ${binding.personaId}`);
+          }
           const response = await this.config.gatewayClient.chat(
             `system-agent-${binding.personaId}`,
             [
               { role: 'system', content: this.buildSystemPrompt(binding) },
               { role: 'user', content: prompt },
-            ]
+            ],
+            options.temperature,
+            model
           );
 
           return this.parseEvaluationResponse(response.content, Date.now() - startTime);

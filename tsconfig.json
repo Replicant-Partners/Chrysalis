@@ -16,16 +16,20 @@
     "types": ["node", "jest"]
   },
   "include": [
-    "src/adapters/**/*",
     "src/agents/**/*",
-    "src/api/**/*",
-    "src/bridge/**/*",
+    "src/api/adapter-tasks/**/*",
+    "src/api/system-agents/**/*",
     "src/config/**/*",
     "src/core/AdapterRegistry.ts",
+    "src/core/FrameworkAdapter.ts",
+    "src/core/SemanticAgent.ts",
     "src/core/config/**/*",
     "src/core/errors.ts",
     "src/core/index.ts",
-    "src/services/**/*",
+    "src/services/gateway/**/*",
+    "src/services/agents/**/*",
+    "src/services/ledger/**/*",
+    "src/services/llm/**/*",
     "src/types/**/*",
     "src/utils/**/*",
     "shared/**/*",
@@ -35,7 +39,6 @@
     "node_modules",
     "dist",
     "src/agents/AgentChatController.ts",
-    "src/bridge/orchestrator.ts",
-    "src/bridge/orchestrator"
+    "src/services/llm/WalletKeyProvider.ts"
   ]
 }

@@ -1,20 +1,20 @@
 /**
  * Chrysalis Unified Adapter Interface
- * 
+ *
  * Bridge interface unifying the two existing adapter patterns in Chrysalis:
  * 1. RDF-Based Pattern (BaseAdapter) - toCanonical()/fromCanonical() with RDF Quads
  * 2. USA-Based Pattern (FrameworkAdapter) - toUniversal()/fromUniversal() with USA v2
- * 
+ *
  * Enables incremental migration and cross-pattern interoperability.
- * 
+ *
  * @module adapters/unified-adapter
  * @version 1.0.0
  * @see {@link ../plans/phase-1a-enhanced-type-system-spec.md}
  */
 
 import { AgentFramework, PROTOCOL_METADATA, ProtocolMaturity } from './protocol-types';
-import { 
-  UniversalMessage, 
+import {
+  UniversalMessage,
   UniversalPayload,
   UniversalMessageType,
   UniversalError,
@@ -22,9 +22,9 @@ import {
   createMessage,
   createError
 } from './protocol-messages';
-import { 
-  ProtocolCapability, 
-  ProtocolFeature, 
+import {
+  ProtocolCapability,
+  ProtocolFeature,
   CapabilityLevel,
   getProtocolCapability,
   supportsFeature
@@ -36,7 +36,7 @@ import {
   checkVersionCompatibility,
   getProtocolHealth
 } from './protocol-registry';
-import { UniversalAdapterV2, UniversalAdapterV2Config } from './universal/adapter-v2';
+import { UniversalAdapter, UniversalAdapterConfig } from './universal/adapter';
 
 // ============================================================================
 // Adapter Pattern Types
@@ -48,7 +48,7 @@ import { UniversalAdapterV2, UniversalAdapterV2Config } from './universal/adapte
 export type AdapterPattern =
   | 'rdf-based'    // BaseAdapter pattern with toCanonical/fromCanonical
   | 'usa-based'    // FrameworkAdapter pattern with toUniversal/fromUniversal
-  | 'universal-v2' // Universal Adapter V2 (LLM-based)
+  | 'universal-v2' // Universal Adapter (LLM-based)
   | 'unified';     // New unified pattern
 
 /**
@@ -78,7 +78,7 @@ export interface AdapterHealth {
 /**
  * Adapter operational status.
  */
-export type AdapterStatus = 
+export type AdapterStatus =
   | 'healthy'      // Fully operational
   | 'degraded'     // Operational with issues
   | 'error'        // Non-operational due to errors
@@ -92,18 +92,18 @@ export type AdapterStatus =
 
 /**
  * Unified adapter interface bridging both existing Chrysalis adapter patterns.
- * 
+ *
  * This interface provides a consistent API for all protocol adapters regardless
  * of their underlying implementation pattern (RDF-based or USA-based).
- * 
+ *
  * @example
  * ```typescript
  * // Create adapter for MCP
  * const mcpAdapter = createUnifiedAdapter('mcp', existingMcpAdapter);
- * 
+ *
  * // Convert to universal message
  * const message = await mcpAdapter.toUniversalMessage(mcpPayload);
- * 
+ *
  * // Check capabilities
  * if (mcpAdapter.supportsFeature('tool-invocation')) {
  *   await mcpAdapter.invokeOperation('tool-invoke', toolParams);
@@ -112,40 +112,40 @@ export type AdapterStatus =
  */
 export interface UnifiedAdapter {
   // === Identity ===
-  
+
   /** Protocol this adapter handles */
   readonly protocol: AgentFramework;
-  
+
   /** Adapter pattern used by underlying implementation */
   readonly pattern: AdapterPattern;
-  
+
   /** Adapter version */
   readonly version: string;
-  
+
   // === Capability Discovery ===
-  
+
   /** Get adapter capabilities */
   getCapabilities(): ProtocolCapability;
-  
+
   /** Check if adapter supports a specific feature */
   supportsFeature(feature: ProtocolFeature): boolean;
-  
+
   /** Get feature implementation level */
   getFeatureLevel(feature: ProtocolFeature): CapabilityLevel;
-  
+
   // === Version Information ===
-  
+
   /** Get protocol version info */
   getVersionInfo(): ProtocolVersionInfo;
-  
+
   /** Check version compatibility */
   checkCompatibility(version: string): VersionCompatibility;
-  
+
   // === Message Conversion ===
-  
+
   /**
    * Convert protocol-specific payload to universal message format.
-   * 
+   *
    * @param protocolPayload - Protocol-specific data structure
    * @param messageType - Type of message being converted
    * @param options - Conversion options
@@ -156,10 +156,10 @@ export interface UnifiedAdapter {
     messageType: UniversalMessageType,
     options?: ConversionOptions
   ): Promise<UniversalMessage>;
-  
+
   /**
    * Convert universal message to protocol-specific format.
-   * 
+   *
    * @param message - Universal message envelope
    * @param options - Conversion options
    * @returns Protocol-specific data structure
@@ -168,12 +168,12 @@ export interface UnifiedAdapter {
     message: UniversalMessage,
     options?: ConversionOptions
   ): Promise<unknown>;
-  
+
   // === Operations ===
-  
+
   /**
    * Invoke a protocol operation.
-   * 
+   *
    * @param operation - Operation type
    * @param params - Operation parameters
    * @param options - Invocation options
@@ -184,23 +184,23 @@ export interface UnifiedAdapter {
     params: UniversalPayload,
     options?: InvocationOptions
   ): Promise<UniversalMessage>;
-  
+
   // === Health & Status ===
-  
+
   /** Get current adapter health status */
   getHealth(): Promise<AdapterHealth>;
-  
+
   /** Check if adapter is ready for operations */
   isReady(): boolean;
-  
+
   // === Lifecycle ===
-  
+
   /** Initialize the adapter */
   initialize(): Promise<void>;
-  
+
   /** Shutdown the adapter gracefully */
   shutdown(): Promise<void>;
-  
+
   /** Reset adapter state */
   reset(): Promise<void>;
 }
@@ -241,7 +241,7 @@ export interface InvocationOptions {
 
 /**
  * RDF-based adapter interface (BaseAdapter pattern).
- * 
+ *
  * Used by: mcp-adapter.ts, langchain-adapter.ts
  */
 export interface RdfBasedAdapter {
@@ -253,13 +253,13 @@ export interface RdfBasedAdapter {
 
 /**
  * USA-based adapter interface (FrameworkAdapter pattern).
- * 
+ *
  * Used by: MCPAdapter.ts, CrewAIAdapter.ts
  */
 export interface UsaBasedAdapter {
   frameworkType: AgentFramework;
-  toUniversal?(agent: unknown): unknown; // Returns UniformSemanticAgentV2
-  fromUniversal?(agent: unknown): unknown; // Takes UniformSemanticAgentV2
+  toUniversal?(agent: unknown): unknown; // Returns SemanticAgent
+  fromUniversal?(agent: unknown): unknown; // Takes SemanticAgent
   toUniversalAsync?(agent: unknown): Promise<unknown>;
   fromUniversalAsync?(agent: unknown): Promise<unknown>;
 }
@@ -270,7 +270,7 @@ export interface UsaBasedAdapter {
 
 /**
  * Wrap an RDF-based adapter (BaseAdapter) to provide unified interface.
- * 
+ *
  * @param protocol - Protocol identifier
  * @param adapter - Legacy RDF-based adapter instance
  * @returns Unified adapter wrapper
@@ -284,7 +284,7 @@ export function wrapRdfAdapter(
 
 /**
  * Wrap a USA-based adapter (FrameworkAdapter) to provide unified interface.
- * 
+ *
  * @param protocol - Protocol identifier
  * @param adapter - Legacy USA-based adapter instance
  * @returns Unified adapter wrapper
@@ -305,12 +305,12 @@ export function wrapUsaAdapter(
  */
 export function createUnifiedAdapter(
   protocol: AgentFramework,
-  adapterOrConfig: RdfBasedAdapter | UsaBasedAdapter | UniversalAdapterV2Config
+  adapterOrConfig: RdfBasedAdapter | UsaBasedAdapter | UniversalAdapterConfig
 ): UnifiedAdapter {
   // Check for V2 config
   if ('llm' in adapterOrConfig) {
-    const v2Adapter = new UniversalAdapterV2(adapterOrConfig as UniversalAdapterV2Config);
-    return new UniversalAdapterV2Wrapper(protocol, v2Adapter);
+    const v2Adapter = new UniversalAdapter(adapterOrConfig as UniversalAdapterConfig);
+    return new UniversalAdapterWrapper(protocol, v2Adapter);
   }
 
   const adapter = adapterOrConfig as RdfBasedAdapter | UsaBasedAdapter;
@@ -325,41 +325,41 @@ export function createUnifiedAdapter(
 }
 
 /**
- * Wrapper for Universal Adapter V2.
+ * Wrapper for Universal Adapter.
  */
-class UniversalAdapterV2Wrapper implements UnifiedAdapter {
+class UniversalAdapterWrapper implements UnifiedAdapter {
   readonly protocol: AgentFramework;
   readonly pattern: AdapterPattern = 'universal-v2';
   readonly version: string = '2.0.0';
-  
-  private readonly adapter: UniversalAdapterV2;
+
+  private readonly adapter: UniversalAdapter;
   private ready = false;
-  
-  constructor(protocol: AgentFramework, adapter: UniversalAdapterV2) {
+
+  constructor(protocol: AgentFramework, adapter: UniversalAdapter) {
     this.protocol = protocol;
     this.adapter = adapter;
   }
-  
+
   getCapabilities(): ProtocolCapability {
     return getProtocolCapability(this.protocol);
   }
-  
+
   supportsFeature(feature: ProtocolFeature): boolean {
     return supportsFeature(this.protocol, feature);
   }
-  
+
   getFeatureLevel(feature: ProtocolFeature): CapabilityLevel {
-    return 'native'; // V2 supports everything via LLM
+    return 'full'; // V2 supports everything via LLM
   }
-  
+
   getVersionInfo(): ProtocolVersionInfo {
     return getEffectiveVersionInfo(this.protocol);
   }
-  
+
   checkCompatibility(version: string): VersionCompatibility {
     return checkVersionCompatibility(this.protocol, version);
   }
-  
+
   async toUniversalMessage(
     protocolPayload: unknown,
     messageType: UniversalMessageType,
@@ -371,7 +371,7 @@ class UniversalAdapterV2Wrapper implements UnifiedAdapter {
       this.protocol,
       'usa'
     );
-    
+
     return createMessage(messageType, this.protocol, {
       raw: options?.preserveRaw
         ? { usa: result.translatedAgent, original: protocolPayload }
@@ -380,22 +380,22 @@ class UniversalAdapterV2Wrapper implements UnifiedAdapter {
       trace: options?.trace
     });
   }
-  
+
   async fromUniversalMessage(
     message: UniversalMessage,
     options?: ConversionOptions
   ): Promise<unknown> {
     const usa = message.payload.raw?.usa || message.payload;
-    
+
     const result = await this.adapter.translate(
       usa as Record<string, unknown>,
       'usa',
       this.protocol
     );
-    
+
     return result.translatedAgent;
   }
-  
+
   async invokeOperation(
     operation: UniversalMessageType,
     params: UniversalPayload,
@@ -409,7 +409,7 @@ class UniversalAdapterV2Wrapper implements UnifiedAdapter {
       { retryable: false }
     );
   }
-  
+
   async getHealth(): Promise<AdapterHealth> {
     return {
       protocol: this.protocol,
@@ -420,19 +420,19 @@ class UniversalAdapterV2Wrapper implements UnifiedAdapter {
       protocolHealth: getProtocolHealth(this.protocol)
     };
   }
-  
+
   isReady(): boolean {
     return true;
   }
-  
+
   async initialize(): Promise<void> {
     // No-op
   }
-  
+
   async shutdown(): Promise<void> {
     // No-op
   }
-  
+
   async reset(): Promise<void> {
     this.adapter.clearCaches();
   }
@@ -449,42 +449,42 @@ class RdfAdapterWrapper implements UnifiedAdapter {
   readonly protocol: AgentFramework;
   readonly pattern: AdapterPattern = 'rdf-based';
   readonly version: string;
-  
+
   private readonly adapter: RdfBasedAdapter;
   private ready = false;
   private lastError?: UniversalError;
   private operationCount = 0;
   private errorCount = 0;
   private totalLatencyMs = 0;
-  
+
   constructor(protocol: AgentFramework, adapter: RdfBasedAdapter) {
     this.protocol = protocol;
     this.adapter = adapter;
     this.version = getEffectiveVersionInfo(protocol).adapterVersion;
   }
-  
+
   getCapabilities(): ProtocolCapability {
     return getProtocolCapability(this.protocol);
   }
-  
+
   supportsFeature(feature: ProtocolFeature): boolean {
     return supportsFeature(this.protocol, feature);
   }
-  
+
   getFeatureLevel(feature: ProtocolFeature): CapabilityLevel {
     const cap = this.getCapabilities();
     const featureDecl = cap.features.find(f => f.feature === feature);
     return featureDecl?.level ?? 'unsupported';
   }
-  
+
   getVersionInfo(): ProtocolVersionInfo {
     return getEffectiveVersionInfo(this.protocol);
   }
-  
+
   checkCompatibility(version: string): VersionCompatibility {
     return checkVersionCompatibility(this.protocol, version);
   }
-  
+
   async toUniversalMessage(
     protocolPayload: unknown,
     messageType: UniversalMessageType,
@@ -494,14 +494,14 @@ class RdfAdapterWrapper implements UnifiedAdapter {
     try {
       // Convert via RDF canonical form
       const canonical = await this.adapter.toCanonical(protocolPayload);
-      
+
       // Create universal message with canonical data in raw
       const message = createMessage(messageType, this.protocol, {
         raw: options?.preserveRaw ? { canonical, original: protocolPayload } : { canonical }
       }, {
         trace: options?.trace
       });
-      
+
       this.recordSuccess(Date.now() - startTime);
       return message;
     } catch (error) {
@@ -509,7 +509,7 @@ class RdfAdapterWrapper implements UnifiedAdapter {
       throw error;
     }
   }
-  
+
   async fromUniversalMessage(
     message: UniversalMessage,
     options?: ConversionOptions
@@ -521,7 +521,7 @@ class RdfAdapterWrapper implements UnifiedAdapter {
       if (!canonical) {
         throw new Error('No canonical form in message');
       }
-      
+
       // Convert from canonical
       const result = await this.adapter.fromCanonical(canonical);
       this.recordSuccess(Date.now() - startTime);
@@ -531,7 +531,7 @@ class RdfAdapterWrapper implements UnifiedAdapter {
       throw error;
     }
   }
-  
+
   async invokeOperation(
     operation: UniversalMessageType,
     params: UniversalPayload,
@@ -546,12 +546,12 @@ class RdfAdapterWrapper implements UnifiedAdapter {
       { retryable: false }
     );
   }
-  
+
   async getHealth(): Promise<AdapterHealth> {
-    const avgLatency = this.operationCount > 0 
-      ? this.totalLatencyMs / this.operationCount 
+    const avgLatency = this.operationCount > 0
+      ? this.totalLatencyMs / this.operationCount
       : undefined;
-    
+
     return {
       protocol: this.protocol,
       status: this.ready ? (this.lastError ? 'degraded' : 'healthy') : 'disconnected',
@@ -563,31 +563,31 @@ class RdfAdapterWrapper implements UnifiedAdapter {
       protocolHealth: getProtocolHealth(this.protocol)
     };
   }
-  
+
   isReady(): boolean {
     return this.ready;
   }
-  
+
   async initialize(): Promise<void> {
     this.ready = true;
   }
-  
+
   async shutdown(): Promise<void> {
     this.ready = false;
   }
-  
+
   async reset(): Promise<void> {
     this.lastError = undefined;
     this.operationCount = 0;
     this.errorCount = 0;
     this.totalLatencyMs = 0;
   }
-  
+
   private recordSuccess(latencyMs: number): void {
     this.operationCount++;
     this.totalLatencyMs += latencyMs;
   }
-  
+
   private recordError(error: unknown): void {
     this.errorCount++;
     this.lastError = {
@@ -597,7 +597,7 @@ class RdfAdapterWrapper implements UnifiedAdapter {
       sourceProtocol: this.protocol
     };
   }
-  
+
   private calculateHealthScore(): number {
     let score = 100;
     if (!this.ready) score -= 50;
@@ -618,42 +618,42 @@ class UsaAdapterWrapper implements UnifiedAdapter {
   readonly protocol: AgentFramework;
   readonly pattern: AdapterPattern = 'usa-based';
   readonly version: string;
-  
+
   private readonly adapter: UsaBasedAdapter;
   private ready = false;
   private lastError?: UniversalError;
   private operationCount = 0;
   private errorCount = 0;
   private totalLatencyMs = 0;
-  
+
   constructor(protocol: AgentFramework, adapter: UsaBasedAdapter) {
     this.protocol = protocol;
     this.adapter = adapter;
     this.version = getEffectiveVersionInfo(protocol).adapterVersion;
   }
-  
+
   getCapabilities(): ProtocolCapability {
     return getProtocolCapability(this.protocol);
   }
-  
+
   supportsFeature(feature: ProtocolFeature): boolean {
     return supportsFeature(this.protocol, feature);
   }
-  
+
   getFeatureLevel(feature: ProtocolFeature): CapabilityLevel {
     const cap = this.getCapabilities();
     const featureDecl = cap.features.find(f => f.feature === feature);
     return featureDecl?.level ?? 'unsupported';
   }
-  
+
   getVersionInfo(): ProtocolVersionInfo {
     return getEffectiveVersionInfo(this.protocol);
   }
-  
+
   checkCompatibility(version: string): VersionCompatibility {
     return checkVersionCompatibility(this.protocol, version);
   }
-  
+
   async toUniversalMessage(
     protocolPayload: unknown,
     messageType: UniversalMessageType,
@@ -670,16 +670,16 @@ class UsaAdapterWrapper implements UnifiedAdapter {
       } else {
         throw new Error('Adapter does not support toUniversal conversion');
       }
-      
+
       // Create universal message with USA data in raw
       const message = createMessage(messageType, this.protocol, {
-        raw: options?.preserveRaw 
-          ? { usa: universal, original: protocolPayload } 
+        raw: options?.preserveRaw
+          ? { usa: universal, original: protocolPayload }
           : { usa: universal }
       }, {
         trace: options?.trace
       });
-      
+
       this.recordSuccess(Date.now() - startTime);
       return message;
     } catch (error) {
@@ -687,7 +687,7 @@ class UsaAdapterWrapper implements UnifiedAdapter {
       throw error;
     }
   }
-  
+
   async fromUniversalMessage(
     message: UniversalMessage,
     options?: ConversionOptions
@@ -699,7 +699,7 @@ class UsaAdapterWrapper implements UnifiedAdapter {
       if (!usa) {
         throw new Error('No USA form in message');
       }
-      
+
       // Convert from USA
       let result: unknown;
       if (this.adapter.fromUniversalAsync) {
@@ -709,7 +709,7 @@ class UsaAdapterWrapper implements UnifiedAdapter {
       } else {
         throw new Error('Adapter does not support fromUniversal conversion');
       }
-      
+
       this.recordSuccess(Date.now() - startTime);
       return result;
     } catch (error) {
@@ -717,7 +717,7 @@ class UsaAdapterWrapper implements UnifiedAdapter {
       throw error;
     }
   }
-  
+
   async invokeOperation(
     operation: UniversalMessageType,
     params: UniversalPayload,
@@ -732,12 +732,12 @@ class UsaAdapterWrapper implements UnifiedAdapter {
       { retryable: false }
     );
   }
-  
+
   async getHealth(): Promise<AdapterHealth> {
-    const avgLatency = this.operationCount > 0 
-      ? this.totalLatencyMs / this.operationCount 
+    const avgLatency = this.operationCount > 0
+      ? this.totalLatencyMs / this.operationCount
       : undefined;
-    
+
     return {
       protocol: this.protocol,
       status: this.ready ? (this.lastError ? 'degraded' : 'healthy') : 'disconnected',
@@ -749,31 +749,31 @@ class UsaAdapterWrapper implements UnifiedAdapter {
       protocolHealth: getProtocolHealth(this.protocol)
     };
   }
-  
+
   isReady(): boolean {
     return this.ready;
   }
-  
+
   async initialize(): Promise<void> {
     this.ready = true;
   }
-  
+
   async shutdown(): Promise<void> {
     this.ready = false;
   }
-  
+
   async reset(): Promise<void> {
     this.lastError = undefined;
     this.operationCount = 0;
     this.errorCount = 0;
     this.totalLatencyMs = 0;
   }
-  
+
   private recordSuccess(latencyMs: number): void {
     this.operationCount++;
     this.totalLatencyMs += latencyMs;
   }
-  
+
   private recordError(error: unknown): void {
     this.errorCount++;
     this.lastError = {
@@ -783,7 +783,7 @@ class UsaAdapterWrapper implements UnifiedAdapter {
       sourceProtocol: this.protocol
     };
   }
-  
+
   private calculateHealthScore(): number {
     let score = 100;
     if (!this.ready) score -= 50;
@@ -802,77 +802,77 @@ class UsaAdapterWrapper implements UnifiedAdapter {
  */
 class AdapterRegistry {
   private adapters: Map<AgentFramework, UnifiedAdapter> = new Map();
-  
+
   /**
    * Register a unified adapter.
    */
   register(adapter: UnifiedAdapter): void {
     this.adapters.set(adapter.protocol, adapter);
   }
-  
+
   /**
    * Get adapter for a protocol.
    */
   get(protocol: AgentFramework): UnifiedAdapter | undefined {
     return this.adapters.get(protocol);
   }
-  
+
   /**
    * Check if adapter is registered.
    */
   has(protocol: AgentFramework): boolean {
     return this.adapters.has(protocol);
   }
-  
+
   /**
    * Get all registered adapters.
    */
   getAll(): UnifiedAdapter[] {
     return Array.from(this.adapters.values());
   }
-  
+
   /**
    * Get all registered protocols.
    */
   getProtocols(): AgentFramework[] {
     return Array.from(this.adapters.keys());
   }
-  
+
   /**
    * Get adapters supporting a specific feature.
    */
   getByFeature(feature: ProtocolFeature): UnifiedAdapter[] {
     return this.getAll().filter(a => a.supportsFeature(feature));
   }
-  
+
   /**
    * Get adapter health for all registered adapters.
    */
   async getAllHealth(): Promise<AdapterHealth[]> {
     return Promise.all(this.getAll().map(a => a.getHealth()));
   }
-  
+
   /**
    * Initialize all registered adapters.
    */
   async initializeAll(): Promise<void> {
     await Promise.all(this.getAll().map(a => a.initialize()));
   }
-  
+
   /**
    * Shutdown all registered adapters.
    */
   async shutdownAll(): Promise<void> {
     await Promise.all(this.getAll().map(a => a.shutdown()));
   }
-  
+
   /**
    * Remove an adapter.
    */
   remove(protocol: AgentFramework): boolean {
     return this.adapters.delete(protocol);
   }
-  
+
   /**
    * Clear all adapters.
    */
@@ -895,14 +895,14 @@ export const adapterRegistry = new AdapterRegistry();
  */
 export class ProtocolBridge {
   private registry: AdapterRegistry;
-  
+
   constructor(registry: AdapterRegistry = adapterRegistry) {
     this.registry = registry;
   }
-  
+
   /**
    * Translate a message from one protocol to another.
-   * 
+   *
    * @param message - Source message
    * @param targetProtocol - Target protocol
    * @returns Translated message for target protocol
@@ -913,28 +913,28 @@ export class ProtocolBridge {
   ): Promise<UniversalMessage> {
     const sourceAdapter = this.registry.get(message.sourceProtocol);
     const targetAdapter = this.registry.get(targetProtocol);
-    
+
     if (!sourceAdapter) {
       throw new Error(`No adapter for source protocol: ${message.sourceProtocol}`);
     }
     if (!targetAdapter) {
       throw new Error(`No adapter for target protocol: ${targetProtocol}`);
     }
-    
+
     // Convert to intermediate format
     const intermediate = await sourceAdapter.fromUniversalMessage(message);
-    
+
     // Convert to target protocol format, then back to universal
     return targetAdapter.toUniversalMessage(
-      intermediate, 
+      intermediate,
       message.type,
       { trace: message.trace }
     );
   }
-  
+
   /**
    * Route a message to the appropriate adapter.
-   * 
+   *
    * @param message - Message to route
    * @returns Adapter for the message's target protocol
    */
@@ -942,7 +942,7 @@ export class ProtocolBridge {
     const target = message.targetProtocol ?? message.sourceProtocol;
     return this.registry.get(target);
   }
-  
+
   /**
    * Check if translation is possible between two protocols.
    */

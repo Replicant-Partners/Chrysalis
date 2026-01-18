@@ -306,9 +306,9 @@ See **Lossless Morphing**
 
 **Agent operating in semantic/meaning space** rather than just syntactic pattern matching. Core abstraction in Chrysalis.
 
-*Current Version*: UniformSemanticAgentV2
+*Current Version*: SemanticAgent
 
-*Related*: USA, Agent
+*Related*: SemanticAgent, Agent
 
 → See [Architecture](architecture/)
 
@@ -380,17 +380,17 @@ See **Adapter** — Framework-specific adapters in TypeScript.
 
 ⚠️ *Confusion Warning*: Two systems share "Universal Adapter" name but serve different purposes.
 
-### UniformSemanticAgentV2 (USA V2)
+### SemanticAgent (SemanticAgent)
 
 **Current semantic agent schema and implementation**. Successor to V1, designed for experience sync, protocols, and instance management.
 
 *Related*: Semantic Agent, Agent
 
-→ See [src/core/UniformSemanticAgentV2.ts](../src/core/UniformSemanticAgentV2.ts)
+→ See [src/core/SemanticAgent.ts](../src/core/SemanticAgent.ts)
 
-### USA
+### SemanticAgent
 
-See **UniformSemanticAgentV2**
+See **SemanticAgent**
 
 ---
 
@@ -436,7 +436,7 @@ See **UniformSemanticAgentV2**
 | **REST** | Representational State Transfer | HTTP API architectural style |
 | **SSOT** | Single Source of Truth | One authoritative reference |
 | **TUI** | Terminal User Interface | Text-based UI (removed from Chrysalis) |
-| **USA** | UniformSemanticAgent | Current agent schema |
+| **SemanticAgent** | Canonical agent type | Current agent schema (formerly UniformSemanticAgent) |
 | **UUID** | Universally Unique Identifier | Unique identifier |
 
 ---
@@ -491,12 +491,12 @@ Framework Adapter | Protocol Adapter | Clarity—adapts frameworks, not just pro
 Bridge Layer | Translation Layer | Established term in codebase
 Experience Sync | Learning Sync, Knowledge Sync | Official protocol name
 Universal Adapter (Python) | Task Orchestrator | Official component name
-UniformSemanticAgentV2 | USA V2, Semantic Agent V2 | Canonical class name
+SemanticAgent | SemanticAgent, Semantic Agent V2 | Canonical class name
 
 ### Capitalization
 
 - **Proper names**: Chrysalis, Fireproof, MCP, A2A, ACP
-- **Code constructs**: `UniformSemanticAgentV2`, `CircuitBreaker`, `MemoryMerger`
+- **Code constructs**: `SemanticAgent`, `CircuitBreaker`, `MemoryMerger`
 - **Generic concepts**: semantic agent, bridge layer, adapter pattern
 
 ### Abbreviations

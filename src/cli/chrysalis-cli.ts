@@ -26,12 +26,12 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import chalk from 'chalk';
 import { Converter } from '../converter/Converter';
-import { ConverterV2 } from '../converter/ConverterV2';
+import { Converter } from '../converter/Converter';
 import { adapterRegistry } from '../adapters/unified-adapter';
 import { generateKeyPair } from '../core/Encryption';
 import { getConfig, initializeConfig, validateConfig, exportConfig } from '../core/config';
 import { isSuccess } from '../../shared/api-core/src/result';
-import type { AgentImplementationType, SyncProtocol } from '../core/UniformSemanticAgentV2';
+import type { AgentImplementationType, SyncProtocol } from './core/SemanticAgent';
 
 // Adapters are now auto-registered or loaded via registry-v2
 // Legacy manual registration is removed.
@@ -93,7 +93,7 @@ program
         console.log(`Type: ${options.type}`);
         console.log(`Sync: ${options.sync || 'auto'}\n`);
         
-        const converter = new ConverterV2();
+        const converter = new Converter();
         const result = await converter.morph(
           sourceAgent,
           options.type as AgentImplementationType,
@@ -247,7 +247,7 @@ program
       console.log(`Source agent: ${sourceAgent.identity?.name || 'Unknown'}\n`);
       
       // Sync
-      const converter = new ConverterV2();
+      const converter = new Converter();
       const result = await converter.syncExperience(
         sourceAgent,
         options.instanceId
@@ -293,7 +293,7 @@ program
       console.log(`Instances: ${instanceIds.length}\n`);
       
       // Merge
-      const converter = new ConverterV2();
+      const converter = new Converter();
       const result = await converter.mergeMultipleInstances(
         sourceAgent,
         instanceIds
@@ -586,6 +586,9 @@ program
       console.error('\n❌ TUI Error:', error.message);
       if (error.message.includes('ink')) {
         console.error('\n💡 Make sure Ink is installed: npm install ink ink-text-input');
+      }
+      if (error.message.includes('tsx')) {
+        console.error('\n💡 Make sure tsx is available: npm install');
       }
       process.exit(1);
     }

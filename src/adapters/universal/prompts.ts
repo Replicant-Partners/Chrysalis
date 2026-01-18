@@ -1,5 +1,11 @@
 /**
- * Universal Adapter Prompts
+ * Universal Adapter
+ *
+ * ENHANCED prompt set with:
+ * - Protocol-specific semantic hints integration
+ * - Token-optimized formatting
+ * - Versioned spec awareness
+ * - Structured output enforcement
  *
  * CORE PRINCIPLE: Map by Semantic Category Meaning
  *
@@ -8,108 +14,102 @@
  * in A2A, they map because they belong to the same semantic category:
  * "actions an agent can perform."
  *
- * This is the core insight: transformation logic lives in prompts that
- * express principles about semantic category equivalence. The LLM applies
- * these principles to any protocol pair.
- *
- * @module adapters/universal/prompts
- * @version 1.0.0
+ * @module adapters/universal/prompts-v2
+ * @version 2.0.0 (version marker)
  */
 
+import { SemanticHints, ProtocolEntry, MinimalSchema } from './registry';
+
 // ============================================================================
-// Core Mapping Principles
+// Semantic Category Definitions
 // ============================================================================
 
 /**
- * Mapping Principles Prompt
- * 
- * These principles guide the LLM in translating between ANY two agent protocols.
- * They are protocol-agnostic and focus on semantic equivalence.
+ * Semantic categories that represent fundamental agent concepts.
+ * These are protocol-agnostic conceptual buckets that guide translation.
  */
-export const MAPPING_PRINCIPLES_PROMPT = `
-# Agent Protocol Translation Principles
+export const SEMANTIC_CATEGORIES = {
+  IDENTITY: {
+    description: 'Who the agent is - unique identifiers and names',
+    concepts: ['id', 'uuid', 'name', 'identifier', 'agentId', 'agent_name', 'displayName', 'title', 'role', 'did'],
+    priority: 'required'
+  },
+  CAPABILITIES: {
+    description: 'What the agent can do - tools, skills, functions',
+    concepts: ['tool', 'capability', 'function', 'skill', 'action', 'method', 'command', 'plugin', 'interface'],
+    priority: 'required'
+  },
+  INSTRUCTIONS: {
+    description: 'How the agent behaves - prompts, personas, goals',
+    concepts: ['system_prompt', 'instructions', 'persona', 'goal', 'backstory', 'system_message', 'system'],
+    priority: 'high'
+  },
+  STATE: {
+    description: 'What the agent remembers - memory, context',
+    concepts: ['memory', 'context', 'state', 'history', 'knowledge', 'working_set', 'beliefs', 'episodic', 'semantic'],
+    priority: 'medium'
+  },
+  COMMUNICATION: {
+    description: 'How the agent talks - style, voice, patterns',
+    concepts: ['voice', 'tone', 'communication_style', 'manner', 'adjectives', 'topics'],
+    priority: 'low'
+  },
+  EXECUTION: {
+    description: 'How the agent runs - LLM config, runtime settings',
+    concepts: ['llm', 'model', 'runtime', 'execution', 'llm_config', 'temperature', 'max_tokens'],
+    priority: 'medium'
+  },
+  METADATA: {
+    description: 'Descriptive information - version, author, tags',
+    concepts: ['version', 'author', 'description', 'tags', 'created', 'modified', 'metadata'],
+    priority: 'low'
+  },
+  SECURITY: {
+    description: 'Access control and authentication',
+    concepts: ['security', 'securityDefinitions', 'authentication', 'auth', 'credentials', 'proof'],
+    priority: 'medium'
+  }
+} as const;
 
-You are translating an AI agent definition from one protocol format to another.
-Apply these principles to ensure accurate, lossless translation.
+// ============================================================================
+// Core Mapping Principles (Token-Optimized)
+// ============================================================================
 
-## Principle 1: Map by Semantic Category Meaning (CORE PRINCIPLE)
+/**
+ * Compact mapping principles for LLM context.
+ * Designed to minimize tokens while preserving semantic clarity.
+ */
+export const MAPPING_PRINCIPLES_COMPACT = `
+## Agent Protocol Translation Rules
 
-The fundamental translation principle is: **map by the MEANING of the category in the schema**.
+### Rule 1: SEMANTIC CATEGORY MAPPING (Primary Rule)
+Map fields by MEANING, not syntax. Categories:
+- IDENTITY: id, name, uuid, title, role, did → agent identifier
+- CAPABILITIES: tools, skills, functions, actions, plugins → agent abilities
+- INSTRUCTIONS: system_prompt, instructions, goal, backstory → behavior guidance
+- STATE: memory, context, history, beliefs → agent knowledge
+- EXECUTION: llm, model, runtime → execution config
+- METADATA: version, author, tags → descriptive info
 
-Every field in a schema belongs to a semantic category - a conceptual bucket of meaning.
-Translation happens at the category level, not the field name level.
+### Rule 2: PRESERVE ALL DATA
+- Never drop fields. Use extension field for unmappable data.
+- Round-trip: source → target → source should be lossless.
 
-Example Semantic Categories:
-- **ACTIONS** (things the agent can do): tool, capability, function, skill, action, method, command
-- **IDENTITY** (who the agent is): id, uuid, name, identifier, agentId, agent_name, displayName
-- **STATE** (what the agent remembers): memory, context, state, history, knowledge, working_set
-- **COMMUNICATION** (how the agent talks): system_prompt, instructions, persona, voice, style
+### Rule 3: STRUCTURAL TRANSFORMS
+- Flat ↔ Nested: \`agent.identity.name\` ↔ \`name\`
+- Array ↔ Object: Transform bidirectionally
+- Type coerce: string IDs ↔ URIs
 
-When you see "tools" in MCP and "capabilities" in A2A, don't think "these are different fields."
-Think: "Both belong to the ACTIONS semantic category - they represent what the agent can do."
+### Rule 4: REQUIRED FIELDS
+- Always populate target required fields
+- Defaults: ID=UUID, version="1.0.0", name="Unnamed Agent"
 
-Then map by category meaning:
-- Source field → Identify its semantic category → Find target field(s) in same category → Map
-
-## Principle 2: Preserve All Information
-
-- Never drop fields - if a target protocol lacks an equivalent, use an extension mechanism:
-  - Store in "_extensions", "metadata", "additionalProperties", or similar
-  - Document what was preserved and where
-- Round-trip preservation: source → target → source should be lossless
-
-## Principle 3: Structural Transformation
-
-- Flat ↔ Nested: If source has \`agent.identity.name\` and target wants \`name\`, flatten appropriately
-- Array ↔ Object: Some protocols use arrays, others use keyed objects - transform bidirectionally
-- Type coercion: String IDs may need to become URIs or vice versa
-
-## Principle 4: Required Fields
-
-- Always ensure target protocol's REQUIRED fields are populated
-- Use reasonable defaults if source lacks the data:
-  - IDs: Generate UUID if missing
-  - Timestamps: Use current time
-  - Versions: Use "1.0.0" or "unknown"
-  - Names: Use a descriptive placeholder like "Unnamed Agent"
-
-## Principle 5: Capability Mapping
-
-Agent capabilities/tools/functions are the most complex mapping. Map by:
-
-| Source Concept | Equivalent Target Concepts |
-|----------------|---------------------------|
-| tool | capability, function, skill, action, method |
-| input_schema | parameters, args, inputSchema, arguments |
-| description | help, summary, doc, documentation |
-| returns | output, result, outputSchema, response |
-
-## Principle 6: Memory/Context Mapping
-
-| Source Concept | Equivalent Target Concepts |
-|----------------|---------------------------|
-| memory | context, state, history, knowledge |
-| episodic | events, logs, history |
-| semantic | facts, knowledge_base, learned |
-| short_term | working_memory, buffer, cache |
-| long_term | persistent, stored, archived |
-
-## Principle 7: Identity Mapping
-
-| Source Concept | Equivalent Target Concepts |
-|----------------|---------------------------|
-| id | identifier, uuid, agentId, agent_id |
-| name | title, label, displayName, agent_name |
-| version | schema_version, api_version, ver |
-| created | createdAt, created_at, timestamp, birthdate |
-
-## Principle 8: Communication Style
-
-| Source Concept | Equivalent Target Concepts |
-|----------------|---------------------------|
-| system_prompt | instructions, system_message, persona |
-| personality | traits, characteristics, style |
-| voice | tone, communication_style, manner |
+### Rule 5: TOOL/CAPABILITY MAPPING
+| Concept | Equivalents |
+|---------|------------|
+| tool | capability, function, skill, action |
+| inputSchema | parameters, args, arguments |
+| description | help, summary, doc |
 `;
 
 // ============================================================================
@@ -117,159 +117,172 @@ Agent capabilities/tools/functions are the most complex mapping. Map by:
 // ============================================================================
 
 /**
- * Build a complete translation prompt
- * 
- * This combines:
- * 1. Mapping principles (how to translate)
- * 2. Source protocol spec (what we're translating from)
- * 3. Target protocol spec (what we're translating to)
- * 4. Agent data (what to translate)
+ * Build optimized translation prompt with protocol-specific hints
  */
 export function buildTranslationPrompt(
   agent: Record<string, unknown>,
   sourceProtocol: string,
   targetProtocol: string,
-  sourceSpec: string,
-  targetSpec: string
+  sourceEntry: ProtocolEntry,
+  targetEntry: ProtocolEntry,
+  sourceSpec?: string,
+  targetSpec?: string
 ): string {
+  const sourceHints = sourceEntry.semanticHints;
+  const targetHints = targetEntry.semanticHints;
+  
+  // Build protocol-specific guidance
+  const protocolGuidance = buildProtocolGuidance(sourceHints, targetHints);
+  
+  // Use fallback schema if spec not provided
+  const sourceSchema = sourceSpec || JSON.stringify(sourceEntry.fallbackSchema, null, 2);
+  const targetSchema = targetSpec || JSON.stringify(targetEntry.fallbackSchema, null, 2);
+
   return `
-${MAPPING_PRINCIPLES_PROMPT}
+${MAPPING_PRINCIPLES_COMPACT}
 
 ---
+# Translation Task: ${sourceProtocol} → ${targetProtocol}
 
-# Translation Task
+## Protocol-Specific Guidance
+${protocolGuidance}
 
-Translate the following agent from **${sourceProtocol}** format to **${targetProtocol}** format.
+## Source Protocol: ${sourceEntry.name} (v${sourceEntry.specVersion})
+${sourceHints.notes}
 
-## Source Protocol Specification (${sourceProtocol})
-
+Schema:
 \`\`\`json
-${sourceSpec}
+${sourceSchema}
 \`\`\`
 
-## Target Protocol Specification (${targetProtocol})
+## Target Protocol: ${targetEntry.name} (v${targetEntry.specVersion})
+${targetHints.notes}
 
+Schema:
 \`\`\`json
-${targetSpec}
+${targetSchema}
 \`\`\`
 
-## Agent to Translate
-
+## Agent Data to Translate
 \`\`\`json
 ${JSON.stringify(agent, null, 2)}
 \`\`\`
 
 ---
-
-## Response Format
-
-Return a JSON object with exactly this structure:
-
+## Response Format (JSON only)
 \`\`\`json
 {
-  "translatedAgent": {
-    // The agent in ${targetProtocol} format
-  },
-  "confidence": 0.95,  // Your confidence in the translation (0-1)
+  "translatedAgent": { /* Agent in ${targetProtocol} format */ },
+  "confidence": 0.95,
   "fieldMappings": [
-    // List of how each field was mapped
-    {"source": "source.path", "target": "target.path", "notes": "explanation"}
+    {"source": "path.to.field", "target": "target.path", "category": "IDENTITY"}
   ],
-  "unmappedFields": [
-    // Fields from source that couldn't be directly mapped (stored in extensions)
-  ],
-  "warnings": [
-    // Any issues or concerns about the translation
-  ]
+  "unmappedFields": ["field.stored.in.extensions"],
+  "warnings": ["any translation issues"]
 }
 \`\`\`
 
-## Important
-
-1. The translatedAgent MUST be valid according to the target protocol specification
-2. Preserve ALL data - use extensions/metadata for unmappable fields
-3. Generate required fields if missing from source
-4. Return ONLY the JSON response, no additional text
+Return ONLY valid JSON. No explanation text.
 `;
 }
 
+/**
+ * Build protocol-specific field mapping guidance
+ */
+function buildProtocolGuidance(
+  sourceHints: SemanticHints,
+  targetHints: SemanticHints
+): string {
+  const lines: string[] = [];
+  
+  // Identity mapping
+  lines.push(`Identity: ${sourceHints.identityField} → ${targetHints.identityField}`);
+  
+  // Capabilities mapping
+  lines.push(`Capabilities: ${sourceHints.capabilitiesField} → ${targetHints.capabilitiesField}`);
+  
+  // Description mapping
+  lines.push(`Description: ${sourceHints.descriptionField} → ${targetHints.descriptionField}`);
+  
+  // Prompt/Instructions mapping (if both have it)
+  if (sourceHints.promptField && targetHints.promptField) {
+    lines.push(`Instructions: ${sourceHints.promptField} → ${targetHints.promptField}`);
+  }
+  
+  // Extension field for unmappable data
+  lines.push(`Extensions: unmapped fields → ${targetHints.extensionField}`);
+  
+  return lines.join('\n');
+}
+
 // ============================================================================
-// Specialized Prompt Templates
+// Specialized Prompt Builders
 // ============================================================================
 
 /**
- * Prompt for validating an agent against a protocol spec
+ * Build validation prompt with protocol-specific schema
  */
 export function buildValidationPrompt(
   agent: Record<string, unknown>,
-  protocol: string,
-  spec: string
+  protocolEntry: ProtocolEntry,
+  spec?: string
 ): string {
+  const schema = spec || JSON.stringify(protocolEntry.fallbackSchema, null, 2);
+  
   return `
-# Agent Validation Task
+# Validate Agent: ${protocolEntry.name}
 
-Validate the following agent data against the ${protocol} protocol specification.
-
-## Protocol Specification
-
+## Protocol Schema (v${protocolEntry.specVersion})
 \`\`\`json
-${spec}
+${schema}
 \`\`\`
 
 ## Agent Data
-
 \`\`\`json
 ${JSON.stringify(agent, null, 2)}
 \`\`\`
 
-## Response Format
+## Required Fields
+${protocolEntry.fallbackSchema?.required?.join(', ') || 'See schema'}
 
-Return a JSON object:
-
+## Response (JSON only)
 \`\`\`json
 {
-  "valid": true,  // or false
-  "errors": [
-    // List of validation errors (empty if valid)
-    {"path": "field.path", "error": "description of error", "expected": "what was expected"}
-  ],
-  "warnings": [
-    // Non-fatal issues
-    {"path": "field.path", "warning": "description"}
-  ],
-  "suggestions": [
-    // Improvements that could be made
-  ]
+  "valid": true,
+  "errors": [{"path": "field.path", "error": "message", "expected": "type"}],
+  "warnings": [{"path": "field.path", "warning": "message"}],
+  "suggestions": ["improvement suggestions"]
 }
 \`\`\`
 `;
 }
 
 /**
- * Prompt for discovering protocol capabilities
+ * Build capability discovery prompt
  */
 export function buildCapabilityDiscoveryPrompt(
-  protocol: string,
-  spec: string
+  protocolEntry: ProtocolEntry,
+  spec?: string
 ): string {
+  const schema = spec || JSON.stringify(protocolEntry.fallbackSchema, null, 2);
+  
   return `
-# Protocol Capability Discovery
+# Discover Capabilities: ${protocolEntry.name}
 
-Analyze the ${protocol} protocol specification and extract its capabilities.
-
-## Protocol Specification
-
+## Protocol Schema (v${protocolEntry.specVersion})
 \`\`\`json
-${spec}
+${schema}
 \`\`\`
 
-## Response Format
+## Semantic Hints
+- Identity field: ${protocolEntry.semanticHints.identityField}
+- Capabilities field: ${protocolEntry.semanticHints.capabilitiesField}
+- Extension field: ${protocolEntry.semanticHints.extensionField}
 
-Return a JSON object:
-
+## Response (JSON only)
 \`\`\`json
 {
-  "protocol": "${protocol}",
+  "protocol": "${protocolEntry.name}",
   "features": {
     "tools": "native|partial|unsupported",
     "memory": "native|partial|unsupported",
@@ -281,80 +294,200 @@ Return a JSON object:
     "discovery": "native|partial|unsupported",
     "authentication": "native|partial|unsupported"
   },
-  "requiredFields": [
-    // List of required fields in agent definition
-  ],
-  "optionalFields": [
-    // List of optional fields
-  ],
-  "extensionMechanism": "how to store extra fields (e.g., 'metadata', '_extensions')",
-  "notes": "any important observations about this protocol"
+  "requiredFields": [],
+  "optionalFields": [],
+  "extensionMechanism": "${protocolEntry.semanticHints.extensionField}",
+  "notes": "${protocolEntry.semanticHints.notes.substring(0, 100)}..."
 }
 \`\`\`
 `;
 }
 
 /**
- * Prompt for generating field mappings between two protocols
+ * Build field mapping generation prompt between two protocols
  */
 export function buildFieldMappingPrompt(
-  sourceProtocol: string,
-  targetProtocol: string,
-  sourceSpec: string,
-  targetSpec: string
+  sourceEntry: ProtocolEntry,
+  targetEntry: ProtocolEntry,
+  sourceSpec?: string,
+  targetSpec?: string
 ): string {
+  const sourceSchema = sourceSpec || JSON.stringify(sourceEntry.fallbackSchema, null, 2);
+  const targetSchema = targetSpec || JSON.stringify(targetEntry.fallbackSchema, null, 2);
+  
   return `
-# Protocol Field Mapping Generation
+# Generate Field Mappings: ${sourceEntry.name} → ${targetEntry.name}
 
-Generate a comprehensive field mapping between ${sourceProtocol} and ${targetProtocol}.
+${MAPPING_PRINCIPLES_COMPACT}
 
-## Source Protocol (${sourceProtocol}) Specification
+## Source: ${sourceEntry.name} (v${sourceEntry.specVersion})
+${sourceEntry.semanticHints.notes}
 
+Known mappings:
+${Object.entries(sourceEntry.semanticHints.fieldMappings)
+  .map(([k, v]) => `- ${k}: ${v.join(', ')}`)
+  .join('\n')}
+
+Schema:
 \`\`\`json
-${sourceSpec}
+${sourceSchema}
 \`\`\`
 
-## Target Protocol (${targetProtocol}) Specification
+## Target: ${targetEntry.name} (v${targetEntry.specVersion})
+${targetEntry.semanticHints.notes}
 
+Known mappings:
+${Object.entries(targetEntry.semanticHints.fieldMappings)
+  .map(([k, v]) => `- ${k}: ${v.join(', ')}`)
+  .join('\n')}
+
+Schema:
 \`\`\`json
-${targetSpec}
+${targetSchema}
 \`\`\`
 
-${MAPPING_PRINCIPLES_PROMPT}
-
-## Response Format
-
-Return a JSON object with field mappings:
-
+## Response (JSON only)
 \`\`\`json
 {
-  "sourceProtocol": "${sourceProtocol}",
-  "targetProtocol": "${targetProtocol}",
+  "sourceProtocol": "${sourceEntry.name}",
+  "targetProtocol": "${targetEntry.name}",
   "mappings": [
     {
       "source": "source.field.path",
       "target": "target.field.path",
+      "category": "IDENTITY|CAPABILITIES|INSTRUCTIONS|STATE|EXECUTION|METADATA",
       "transform": "none|rename|restructure|typeCoerce",
       "bidirectional": true,
       "confidence": 0.95,
-      "notes": "explanation of mapping"
+      "notes": "mapping rationale"
     }
   ],
-  "sourceOnlyFields": [
-    // Fields in source with no target equivalent (need extension storage)
-  ],
-  "targetOnlyFields": [
-    // Required target fields with no source equivalent (need defaults)
-  ],
+  "sourceOnlyFields": ["fields with no target equivalent"],
+  "targetOnlyFields": ["required target fields needing defaults"],
   "complexMappings": [
-    // Mappings that require special handling
     {
       "description": "what needs special handling",
       "sourceFields": ["field1", "field2"],
       "targetFields": ["combined.field"],
-      "logic": "description of transformation logic"
+      "logic": "transformation logic"
     }
   ]
+}
+\`\`\`
+`;
+}
+
+// ============================================================================
+// Agent Morphing Prompt (LLM as Flexible Adapter)
+// ============================================================================
+
+/**
+ * Build prompt for agent morphing - LLM acts as flexible adapter middleware.
+ * This is the core of the "LLM as adapter" paradigm.
+ */
+export function buildAgentMorphingPrompt(
+  agent: Record<string, unknown>,
+  sourceProtocol: string,
+  targetProtocol: string,
+  sourceEntry: ProtocolEntry,
+  targetEntry: ProtocolEntry,
+  additionalContext?: {
+    preserveExtensions?: boolean;
+    targetCapabilities?: string[];
+    customMappings?: Record<string, string>;
+  }
+): string {
+  const context = additionalContext || {};
+  
+  return `
+# AGENT MORPHING: Transform Agent Identity Across Protocols
+
+You are a **semantic protocol translator** that understands agent representations
+across different frameworks. Your task is to MORPH an agent from one protocol's
+representation to another while preserving its essential identity, capabilities,
+and behavioral characteristics.
+
+## Core Philosophy
+The same agent should behave identically regardless of which protocol defines it.
+"Tool" in MCP === "Skill" in A2A === "Function" in OpenAI === "Action" in LMOS.
+These are syntactic differences; the semantic meaning is identical.
+
+## Morphing Task
+Transform: **${sourceEntry.name}** → **${targetEntry.name}**
+
+### Source Agent (${sourceProtocol})
+Identity field: \`${sourceEntry.semanticHints.identityField}\`
+Capabilities: \`${sourceEntry.semanticHints.capabilitiesField}\`
+${sourceEntry.semanticHints.notes}
+
+\`\`\`json
+${JSON.stringify(agent, null, 2)}
+\`\`\`
+
+### Target Protocol (${targetProtocol})
+Identity field: \`${targetEntry.semanticHints.identityField}\`
+Capabilities: \`${targetEntry.semanticHints.capabilitiesField}\`
+Extensions: \`${targetEntry.semanticHints.extensionField}\`
+${targetEntry.semanticHints.notes}
+
+${context.targetCapabilities ? `
+### Required Target Capabilities
+${context.targetCapabilities.join(', ')}
+` : ''}
+
+${context.customMappings ? `
+### Custom Field Overrides
+${Object.entries(context.customMappings)
+  .map(([s, t]) => `- ${s} → ${t}`)
+  .join('\n')}
+` : ''}
+
+## Morphing Rules
+
+1. **Preserve Agent Essence**: The morphed agent must:
+   - Retain the same name/identifier (or closest equivalent)
+   - Keep all capabilities/tools (transform format, not function)
+   - Maintain behavioral instructions (system prompt, persona, goals)
+   - Transfer memory/context configuration where applicable
+
+2. **Capability Translation**:
+   - Map tool schemas accurately (input parameters, descriptions)
+   - Preserve tool names unless they conflict with target conventions
+   - Include all tool metadata in extensions if not directly mappable
+
+3. **Identity Preservation**:
+   - Primary identifier must map to target's identity field
+   - Version information should transfer to metadata
+   - Author/creator info goes to metadata/extensions
+
+4. **Behavioral Fidelity**:
+   - System prompts → instructions field
+   - Goals/objectives → clearly documented
+   - Persona/backstory → preserved in appropriate field
+
+5. **Extension Storage**: ${context.preserveExtensions !== false ? 
+   `Store ALL unmappable data in \`${targetEntry.semanticHints.extensionField}\`` :
+   'Minimal extension storage - only critical data'}
+
+## Response Format (JSON only)
+\`\`\`json
+{
+  "morphedAgent": {
+    // Complete agent in ${targetProtocol} format
+    // Include ALL fields, even optional ones populated from source
+  },
+  "morphingReport": {
+    "identityPreserved": true,
+    "capabilitiesCount": { "source": 5, "target": 5 },
+    "instructionsTransferred": true,
+    "statePreserved": true,
+    "dataLoss": [],
+    "transformations": [
+      {"field": "tools[0]", "action": "renamed", "from": "search", "to": "web_search"}
+    ]
+  },
+  "confidence": 0.95,
+  "warnings": []
 }
 \`\`\`
 `;
@@ -365,9 +498,11 @@ Return a JSON object with field mappings:
 // ============================================================================
 
 export default {
-  MAPPING_PRINCIPLES_PROMPT,
+  SEMANTIC_CATEGORIES,
+  MAPPING_PRINCIPLES_COMPACT,
   buildTranslationPrompt,
   buildValidationPrompt,
   buildCapabilityDiscoveryPrompt,
-  buildFieldMappingPrompt
+  buildFieldMappingPrompt,
+  buildAgentMorphingPrompt
 };

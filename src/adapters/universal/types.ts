@@ -1,8 +1,8 @@
 /**
  * Universal Adapter Type Definitions
- * 
+ *
  * Core types for the LLM-powered universal protocol adapter.
- * 
+ *
  * @module adapters/universal/types
  * @version 1.0.0
  */
@@ -14,7 +14,7 @@
 /**
  * Protocol identifier - string key for registered protocols
  */
-export type ProtocolId = 
+export type ProtocolId =
   | 'usa'       // Chrysalis Uniform Semantic Agent (internal)
   | 'mcp'       // Anthropic Model Context Protocol
   | 'a2a'       // Google Agent-to-Agent Protocol
@@ -29,7 +29,7 @@ export type ProtocolId =
 /**
  * Trust level for protocol specifications
  */
-export type TrustLevel = 'internal' | 'verified' | 'experimental';
+export type TrustLevel = 'internal' | 'verified' | 'experimental' | 'community';
 
 /**
  * Semantic version
@@ -51,13 +51,13 @@ export interface SemanticVersion {
 export interface AgentRepresentation {
   /** Raw data in protocol-specific format */
   data: Record<string, unknown>;
-  
+
   /** Protocol this representation conforms to */
   protocol: ProtocolId;
-  
+
   /** Schema version (if known) */
   schemaVersion?: string;
-  
+
   /** Source information */
   source?: {
     url?: string;
@@ -148,31 +148,31 @@ export type ProtocolSchema = JsonSchema | OpenApiSpec | AsyncApiSpec;
 export interface ProtocolSpec {
   /** Protocol identifier */
   id: ProtocolId;
-  
+
   /** Human-readable name */
   name: string;
-  
+
   /** Specification URL */
   specUrl: string;
-  
+
   /** Parsed specification schema */
   schema: ProtocolSchema;
-  
+
   /** Schema version */
   version: SemanticVersion;
-  
+
   /** Trust level */
   trustLevel: TrustLevel;
-  
+
   /** Last fetched timestamp */
   lastFetched: Date;
-  
+
   /** Cache TTL in seconds */
   cacheTtl: number;
-  
+
   /** Optional documentation URL */
   docsUrl?: string;
-  
+
   /** Optional example agent */
   exampleAgent?: Record<string, unknown>;
 }
@@ -198,19 +198,19 @@ export interface ProtocolInfo {
 export interface FieldMapping {
   /** Source field path (dot notation) */
   source: string;
-  
+
   /** Target field path (dot notation) */
   target: string;
-  
+
   /** Confidence in this mapping (0.0 - 1.0) */
   confidence: number;
-  
+
   /** Transform required (if any) */
   transform?: 'none' | 'rename' | 'type_coerce' | 'restructure' | 'custom';
-  
+
   /** Custom transform function (serialized) */
   customTransform?: string;
-  
+
   /** Notes about this mapping */
   notes?: string;
 }
@@ -221,22 +221,22 @@ export interface FieldMapping {
 export interface TranslationOptions {
   /** Strict mode - fail on unmappable fields */
   strict?: boolean;
-  
+
   /** Include confidence scores in result */
   includeConfidence?: boolean;
-  
+
   /** Allow lossy translation (some data may be lost) */
   allowLossy?: boolean;
-  
+
   /** Custom field mappings (overrides learned mappings) */
   fieldOverrides?: FieldMapping[];
-  
+
   /** Maximum LLM reasoning steps */
   maxReasoningSteps?: number;
-  
+
   /** Request reasoning trace */
   includeReasoningTrace?: boolean;
-  
+
   /** Timeout in milliseconds */
   timeoutMs?: number;
 }
@@ -247,16 +247,16 @@ export interface TranslationOptions {
 export interface TranslationWarning {
   /** Warning code */
   code: string;
-  
+
   /** Warning message */
   message: string;
-  
+
   /** Severity level */
   severity: 'info' | 'warning' | 'error';
-  
+
   /** Affected field path (if applicable) */
   fieldPath?: string;
-  
+
   /** Suggestion for resolution */
   suggestion?: string;
 }
@@ -267,16 +267,16 @@ export interface TranslationWarning {
 export interface ReasoningStep {
   /** Step number */
   step: number;
-  
+
   /** Description of reasoning */
   description: string;
-  
+
   /** Fields considered */
   fields: string[];
-  
+
   /** Decision made */
   decision: string;
-  
+
   /** Confidence */
   confidence: number;
 }
@@ -287,34 +287,34 @@ export interface ReasoningStep {
 export interface TranslationResult {
   /** Translated agent representation */
   result: AgentRepresentation;
-  
+
   /** Translation fidelity score (0.0 - 1.0) */
   fidelity: number;
-  
+
   /** LLM confidence score (0.0 - 1.0) */
   confidence: number;
-  
+
   /** Successfully mapped fields */
   mappedFields: string[];
-  
+
   /** Fields stored in extensions (not directly mappable) */
   extensionFields: string[];
-  
+
   /** Fields that were lost in translation */
   lostFields: string[];
-  
+
   /** Translation warnings */
   warnings: TranslationWarning[];
-  
+
   /** Field mappings used */
   fieldMappings: FieldMapping[];
-  
+
   /** LLM reasoning trace (if requested) */
   reasoningTrace?: ReasoningStep[];
-  
+
   /** Translation duration in milliseconds */
   durationMs: number;
-  
+
   /** Timestamp */
   timestamp: Date;
 }
@@ -329,16 +329,16 @@ export interface TranslationResult {
 export interface ValidationError {
   /** Error code */
   code: string;
-  
+
   /** Error message */
   message: string;
-  
+
   /** Path to invalid field */
   path: string;
-  
+
   /** Expected value/type */
   expected?: string;
-  
+
   /** Actual value/type */
   actual?: string;
 }
@@ -349,13 +349,13 @@ export interface ValidationError {
 export interface ValidationWarning {
   /** Warning code */
   code: string;
-  
+
   /** Warning message */
   message: string;
-  
+
   /** Path to field */
   path: string;
-  
+
   /** Suggestion */
   suggestion?: string;
 }
@@ -366,13 +366,13 @@ export interface ValidationWarning {
 export interface ValidationResult {
   /** Whether validation passed */
   valid: boolean;
-  
+
   /** Validation errors */
   errors: ValidationError[];
-  
+
   /** Validation warnings */
   warnings: ValidationWarning[];
-  
+
   /** Schema used for validation */
   schemaVersion?: string;
 }
@@ -409,19 +409,19 @@ export type FeatureLevel = 'native' | 'partial' | 'emulated' | 'unsupported';
 export interface ProtocolCapabilities {
   /** Protocol identifier */
   protocol: ProtocolId;
-  
+
   /** Feature support map */
   features: Map<ProtocolFeature, FeatureLevel>;
-  
+
   /** Maximum message size (bytes) */
   maxMessageSize?: number;
-  
+
   /** Supported content types */
   contentTypes?: string[];
-  
+
   /** Authentication methods supported */
   authMethods?: string[];
-  
+
   /** Additional capabilities */
   extensions?: Record<string, unknown>;
 }
@@ -436,16 +436,16 @@ export interface ProtocolCapabilities {
 export interface RegistrationOptions {
   /** Override existing registration */
   overwrite?: boolean;
-  
+
   /** Trust level (default: experimental) */
   trustLevel?: TrustLevel;
-  
+
   /** Cache TTL in seconds (default: 43200 = 12 hours) */
   cacheTtl?: number;
-  
+
   /** Documentation URL */
   docsUrl?: string;
-  
+
   /** Example agent JSON */
   exampleAgent?: Record<string, unknown>;
 }
@@ -460,10 +460,10 @@ export interface RegistrationOptions {
 export interface LLMProvider {
   /** Provider name */
   name: string;
-  
+
   /** Complete a prompt */
   complete(prompt: string, options: LLMCompletionOptions): Promise<LLMResponse>;
-  
+
   /** Check if provider is available */
   isAvailable(): Promise<boolean>;
 }
@@ -474,19 +474,19 @@ export interface LLMProvider {
 export interface LLMCompletionOptions {
   /** Maximum tokens to generate */
   maxTokens?: number;
-  
+
   /** Temperature (0.0 - 2.0) */
   temperature?: number;
-  
+
   /** Response format */
   responseFormat?: 'text' | 'json';
-  
+
   /** Stop sequences */
   stopSequences?: string[];
-  
+
   /** System prompt */
   systemPrompt?: string;
-  
+
   /** Timeout in milliseconds */
   timeoutMs?: number;
 }
@@ -497,20 +497,20 @@ export interface LLMCompletionOptions {
 export interface LLMResponse {
   /** Generated content */
   content: string;
-  
+
   /** Parsed JSON (if responseFormat is 'json') */
   json?: Record<string, unknown>;
-  
+
   /** Confidence score (if available) */
   confidence?: number;
-  
+
   /** Token usage */
   usage?: {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
   };
-  
+
   /** Model used */
   model?: string;
 }
@@ -535,19 +535,19 @@ export interface CacheKey {
 export interface CachedMappings {
   /** Cache key */
   key: CacheKey;
-  
+
   /** Field mappings */
   mappings: FieldMapping[];
-  
+
   /** Cache timestamp */
   cachedAt: Date;
-  
+
   /** Cache expiry */
   expiresAt: Date;
-  
+
   /** Number of successful uses */
   useCount: number;
-  
+
   /** Average fidelity achieved */
   avgFidelity: number;
 }

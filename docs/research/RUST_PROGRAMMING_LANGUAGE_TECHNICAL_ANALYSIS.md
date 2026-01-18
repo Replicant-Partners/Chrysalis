@@ -625,7 +625,7 @@ Experimental browser engine proving Rust's viability for parallel browser compon
 
 ### 8.6 Security-Critical Infrastructure
 
-- Government cybersecurity adoption (USA, others)
+- Government cybersecurity adoption (SemanticAgent, others)
 - Cryptographic library implementations
 - Network security tools
 

@@ -249,7 +249,7 @@ interface UserSkillsManager {
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  ┌────────── EXISTING CHRYSALIS CORE ──────────────────────────┐   │
-│  │  UniformSemanticAgentV2 | MemoryMerger | ExperienceSyncManager│   │
+│  │  SemanticAgent | MemoryMerger | ExperienceSyncManager│   │
 │  │  SkillAccumulator | OODARecorder | Byzantine Resistance     │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                                 +                                   │

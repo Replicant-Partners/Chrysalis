@@ -1,0 +1,28 @@
+{
+  "type": "evaluate",
+  "name": "Evaluate qwen3:1.7b - Resource Allocation Dilemma",
+  "prompt": "Two critical situations occurring simultaneously:\n\nSituation A: Production database failover in progress\n- Requires immediate attention\n- 15 minutes ETA to restore\n- Affects 100% of users\n- You're the only DBA available\n\nSituation B: Payment processing system showing errors\n- Started 2 minutes ago\n- Error rate climbing: 2% → 8% → 15%\n- Affects financial transactions\n- Could cascade to fraud detection system\n- Payment team lead is investigating but needs your architecture expertise\n\nYou cannot effectively handle both. What do you do?\n\nNote: There is no perfect answer. Demonstrate how you make decisions under impossible constraints.",
+  "model": {
+    "provider": "ollama",
+    "name": "qwen3:1.7b"
+  },
+  "parameters": {
+    "temperature": 0.3,
+    "maxTokens": 1000
+  },
+  "options": {
+    "outputPath": "./tests/llm-evaluation/results/qwen3-1.7b/mode1_adversarial_002.md",
+    "includeMetadata": true,
+    "timeoutMs": 30000
+  },
+  "metadata": {
+    "mode": 1,
+    "test_id": "mode1_adversarial_002",
+    "category": "atomic",
+    "complexity": "high",
+    "description": "Resource Allocation Dilemma",
+    "model_size_gb": 1.4,
+    "generated": "2026-01-18",
+    "author": "Chrysalis Evaluation Framework"
+  }
+}

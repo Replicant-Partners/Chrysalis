@@ -5,7 +5,7 @@
  * from deployed instances with confidence tracking.
  */
 
-import type { UniformSemanticAgentV2 } from '../core/UniformSemanticAgentV2';
+import type { SemanticAgent } from './core/SemanticAgent';
 import { logger } from '../observability';
 import * as crypto from 'crypto';
 
@@ -51,7 +51,7 @@ export class KnowledgeIntegrator {
    * Add single knowledge item
    */
   async addKnowledge(
-    agent: UniformSemanticAgentV2,
+    agent: SemanticAgent,
     knowledgeData: KnowledgeInput,
     sourceInstance: string
   ): Promise<void> {
@@ -115,7 +115,7 @@ export class KnowledgeIntegrator {
    * Integrate knowledge batch
    */
   async integrate(
-    agent: UniformSemanticAgentV2,
+    agent: SemanticAgent,
     knowledgeItems: KnowledgeInput[],
     sourceInstance: string
   ): Promise<KnowledgeIntegrationResult> {
@@ -158,7 +158,7 @@ export class KnowledgeIntegrator {
    * Verify knowledge with multiple sources
    */
   async verifyKnowledge(
-    agent: UniformSemanticAgentV2,
+    agent: SemanticAgent,
     knowledgeId: string,
     additionalSource: string
   ): Promise<void> {

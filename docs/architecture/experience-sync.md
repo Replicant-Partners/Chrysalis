@@ -61,7 +61,7 @@ flowchart TB
 ### Protocol Selection
 
 ```typescript
-// From src/core/UniformSemanticAgentV2.ts:18
+// From src/core/SemanticAgent.ts:18
 export type SyncProtocol = 'streaming' | 'lumped' | 'check_in';
 ```
 
@@ -94,7 +94,7 @@ sequenceDiagram
 ### Configuration
 
 ```typescript
-// From src/core/UniformSemanticAgentV2.ts:211
+// From src/core/SemanticAgent.ts:211
 streaming?: {
   enabled: boolean;
   interval_ms: number;        // Batch interval
@@ -132,7 +132,7 @@ sequenceDiagram
 ### Configuration
 
 ```typescript
-// From src/core/UniformSemanticAgentV2.ts:218
+// From src/core/SemanticAgent.ts:218
 lumped?: {
   enabled: boolean;
   batch_interval: string;    // e.g., "1h", "6h", "24h"
@@ -172,7 +172,7 @@ sequenceDiagram
 ### Configuration
 
 ```typescript
-// From src/core/UniformSemanticAgentV2.ts:225
+// From src/core/SemanticAgent.ts:225
 check_in?: {
   enabled: boolean;
   schedule: string;          // cron expression
@@ -206,7 +206,7 @@ flowchart LR
 ### Transport Configuration
 
 ```typescript
-// From src/core/UniformSemanticAgentV2.ts:23
+// From src/core/SemanticAgent.ts:23
 export type ExperienceTransportType = 'https' | 'websocket' | 'mcp';
 
 export interface ExperienceTransportConfig {
@@ -276,7 +276,7 @@ flowchart TB
 ### Merge Strategy
 
 ```typescript
-// From src/core/UniformSemanticAgentV2.ts:231
+// From src/core/SemanticAgent.ts:231
 merge_strategy: {
   conflict_resolution: 'latest_wins' | 'weighted_merge' | 'manual_review';
   memory_deduplication: boolean;
@@ -317,7 +317,7 @@ flowchart LR
 ### Skill Structure
 
 ```typescript
-// From src/core/UniformSemanticAgentV2.ts:141
+// From src/core/SemanticAgent.ts:141
 export interface Skill {
   skill_id: string;
   name: string;
@@ -400,7 +400,7 @@ See [`VoyeurEvents.ts`](../../src/observability/VoyeurEvents.ts) for full event 
 
 ```typescript
 import { ExperienceSyncManager } from './src/sync/ExperienceSyncManager';
-import type { UniformSemanticAgentV2, ExperienceSyncConfig } from './src/core/UniformSemanticAgentV2';
+import type { SemanticAgent, ExperienceSyncConfig } from './src/core/SemanticAgent';
 
 // Create sync manager
 const syncManager = new ExperienceSyncManager();

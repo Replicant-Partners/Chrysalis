@@ -1,4 +1,4 @@
-import { Episode, OODAField, OODAInterrogatives, OODAStage, OODAStep } from '../core/UniformSemanticAgentV2';
+import { Episode, OODAField, OODAInterrogatives, OODAStage, OODAStep } from './core/SemanticAgent';
 
 function emptyStep(): OODAStep {
   return { who: [], what: [], when: [], where: [], why: [], how: [], huh: [] };

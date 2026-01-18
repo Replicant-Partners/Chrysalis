@@ -113,10 +113,10 @@ Examples:
 - [ ] Resource budgets approved
 - [ ] State preservation validated
 
-**Checkpoint 3.2:** Terminal/Browser integration
-- [ ] Terminal multiplexing reviewed
-- [ ] Browser security model approved
-- [ ] Tab management validated
+**Checkpoint 3.2:** Terminal-Browser integration
+- [ ] Combined terminal-browser canvas reviewed
+- [ ] Terminal multiplexing and browser security model approved
+- [ ] Tab management and session handling validated
 
 ### Phase 4: Ecosystem
 **Checkpoint 4.1:** Widget publishing
@@ -227,46 +227,22 @@ Maintain living documents:
 
 ## Current Architecture Summary
 
-### Files Created (Tasks 1-9)
+### Canvas Types (6 canonical types)
 
-```
-src/canvas/
-├── core/
-│   ├── types.ts           # Core data models
-│   ├── BaseCanvas.ts      # Abstract canvas class
-│   └── index.ts
-├── widgets/
-│   ├── types.ts           # Widget definitions
-│   ├── WidgetRegistry.ts  # Widget registration
-│   └── index.ts
-├── binding/
-│   ├── types.ts           # Binding protocols
-│   ├── CanvasWidgetBinder.ts
-│   └── index.ts
-├── layout/
-│   ├── types.ts           # Layout configuration
-│   ├── LayoutEngine.ts    # Snap-to-grid, collision
-│   └── index.ts
-├── execution/
-│   ├── types.ts           # Execution states
-│   ├── ExecutionManager.ts
-│   └── index.ts
-├── terminal/
-│   ├── types.ts           # Terminal configuration
-│   ├── TerminalManager.ts
-│   └── index.ts
-├── browser/
-│   ├── types.ts           # Browser security
-│   ├── BrowserManager.ts
-│   └── index.ts
-├── publishing/
-│   ├── types.ts           # Package manifest
-│   ├── PackageManager.ts
-│   └── index.ts
-├── reference-widgets/
-│   └── index.ts           # 10 reference widgets
-└── index.ts               # Main export
-```
+The Chrysalis canvas system implements 6 canvas types:
+
+1. **Settings** - System management: file locations, terminal config, cloud resources, LLM connections
+2. **Agent** - Managing internal agents: store, revise, maintain, run teams of agents working on projects
+3. **Scrapbook** - Collecting material when organization is still being discovered; gathering, linking, grouping
+4. **Research** - Gathering with known domain and sense-making frameworks; structured information synthesis
+5. **Wiki** - MediaWiki backend knowledgebase for storing structured explicit knowledge
+6. **Terminal-Browser** - Combined canvas for teams coding/working with terminal and browser
+
+### Implementation Status
+
+The previous canvas implementation files (System A and System B) have been removed. The canvas system will be built fresh following the architecture defined in `docs/canvas-architecture.md` and the requirements in `canvas-type-notes.md`.
+
+Current state: `src/canvas/` directory is empty, ready for clean implementation.
 
 ### Component Relationships
 
@@ -325,16 +301,12 @@ graph TB
 
 | Task | Description | Status | User Validated |
 |------|-------------|--------|----------------|
-| 1 | Core canvas abstraction | ✅ Complete | ✅ |
-| 2 | Widget architecture | ✅ Complete | ✅ |
-| 3 | Canvas-widget binding | ✅ Complete | ✅ |
-| 4 | Spatial layout engine | ✅ Complete | ✅ |
-| 5 | Background execution | ✅ Complete | ✅ |
-| 6 | Terminal integration | ✅ Complete | ✅ |
-| 7 | Browser component | ✅ Complete | ✅ |
-| 8 | Widget publishing | ✅ Complete | ✅ |
-| 9 | Reference widgets | ✅ Complete | ✅ |
-| 10 | Development protocol | ✅ Complete | ⏳ Pending |
+| 1 | Define 6 canonical canvas types | ✅ Complete | ✅ |
+| 2 | Remove obsolete implementations | ✅ Complete | ✅ |
+| 3 | Update architecture documentation | ✅ Complete | ✅ |
+| 4 | BaseCanvas architecture design | ⏳ Pending | ⏳ |
+| 5 | Widget registry system | ⏳ Pending | ⏳ |
+| 6 | Canvas type implementations | ⏳ Pending | ⏳ |
 
 ---
 
@@ -349,7 +321,7 @@ Build the actual React components that render canvases and widgets using the def
 Integrate with Zustand/Redux for application-wide canvas state.
 
 ### Path C: Backend Integration
-Connect terminal/browser managers to actual backend services.
+Connect Terminal-Browser canvas to actual backend services (PTY, sandboxed browser).
 
 ### Path D: Testing
 Write unit and integration tests for all managers.

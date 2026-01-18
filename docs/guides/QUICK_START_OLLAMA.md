@@ -15,10 +15,22 @@ brew install ollama
 ## 2. Pull Default Model
 
 ```bash
-ollama pull ministral-3:3b
+ollama pull gemma:2b
 ```
 
 ## 3. Start Services
+
+### Fast Path (Local Chat TUI)
+
+If you want a working local chat path with system agents:
+
+```bash
+./scripts/run-local-chat.sh
+```
+
+### Manual Path (Three Terminals)
+
+If you prefer to run each service yourself:
 
 ```bash
 # Terminal 1: Start Ollama
@@ -26,10 +38,13 @@ ollama serve
 
 # Terminal 2: Start Gateway (from Chrysalis root)
 cd go-services
-go run cmd/gateway/main.go
+LLM_PROVIDER=ollama OLLAMA_BASE_URL=http://localhost:11434 go run ./cmd/gateway
 
-# Terminal 3: Start Chrysalis
-npm run dev
+# Terminal 3: Start System Agents API + TUI
+cd ..
+npm run build
+GATEWAY_BASE_URL=http://localhost:8080 npm run service:system-agents
+npx tsx src/cli/chrysalis-cli.ts chat
 ```
 
 ## 4. Verify
@@ -41,20 +56,21 @@ curl http://localhost:11434/api/version
 # Check Gateway
 curl http://localhost:8080/health
 
-# Should see: {"status": "ok"}
+# Check System Agents
+curl http://localhost:3200/api/v1/system-agents/health
 ```
 
 ## 5. Test Ada
 
 ```bash
-npm run dev:ada-demo
+In the TUI, send a message and target Ada:
+  /agent ada
+  hello
 ```
-
-Click "Request Help" in the demo console to test Ada's response with Ollama.
 
 ## Done! 🎉
 
-Ada is now using **ministral-3:3b** locally via Ollama.
+Ada is now using **gemma:2b** locally via Ollama.
 
 ## Quick Commands
 
@@ -63,7 +79,7 @@ Ada is now using **ministral-3:3b** locally via Ollama.
 ollama list
 
 # Run model interactively
-ollama run ministral-3:3b
+ollama run gemma:2b
 
 # Pull alternative model
 ollama pull qwen3:4b
@@ -86,12 +102,12 @@ cd go-services && go run cmd/gateway/main.go
 
 **Model not found?**
 ```bash
-ollama pull ministral-3:3b
+ollama pull gemma:2b
 ```
 
 ## Available Models
 
-- `ministral-3:3b` (3.0 GB) ⭐ **Default**
+- `gemma:2b` (2.0 GB) ⭐ **Default**
 - `granite4:3b` (2.1 GB) - Enterprise
 - `qwen3:4b` (2.5 GB) - Multilingual
 - `llama3.2:latest` (2.0 GB) - Versatile

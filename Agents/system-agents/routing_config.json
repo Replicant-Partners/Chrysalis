@@ -3,7 +3,7 @@
   "routingConfigId": "system_agents_routing",
   "version": "1.0.0",
   "description": "Chat pane and user routing configuration for System Agents Layer",
-  
+
   "chatPanes": {
     "@ada": {
       "personaId": "ada",
@@ -48,7 +48,7 @@
         "showRecommendations": true
       }
     },
-    
+
     "@lea": {
       "personaId": "lea",
       "displayName": "Lea - Implementation Reviewer",
@@ -99,7 +99,7 @@
         "showApprovalStatus": true
       }
     },
-    
+
     "@phil": {
       "personaId": "phil",
       "displayName": "Phil - Forecast Analyst",
@@ -149,7 +149,7 @@
         "showTrackingRecommendation": true
       }
     },
-    
+
     "@david": {
       "personaId": "david",
       "displayName": "David - Metacognitive Guardian",
@@ -201,7 +201,59 @@
         "showHumanReviewRequired": true
       }
     },
-    
+
+    "@milton": {
+      "personaId": "milton",
+      "displayName": "Milton - Ops Caretaker",
+      "description": "System operations, telemetry, maintenance, and configuration",
+      "icon": "📋",
+      "defaultPrompt": "OPS_HEALTH_CHECK_PROMPT",
+      "availablePrompts": [
+        "OPS_HEALTH_CHECK_PROMPT",
+        "DRIFT_DETECTION_PROMPT",
+        "CONFIG_CHANGE_PROPOSAL_PROMPT",
+        "ROOT_CAUSE_ANALYSIS_PROMPT",
+        "MAINTENANCE_RECOMMENDATION_PROMPT"
+      ],
+      "quickActions": [
+        {
+          "label": "Health Check",
+          "promptId": "OPS_HEALTH_CHECK_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Check for Drift",
+          "promptId": "DRIFT_DETECTION_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Propose Config Change",
+          "promptId": "CONFIG_CHANGE_PROPOSAL_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Root Cause Analysis",
+          "promptId": "ROOT_CAUSE_ANALYSIS_PROMPT",
+          "variant": "standard"
+        },
+        {
+          "label": "Maintenance Tasks",
+          "promptId": "MAINTENANCE_RECOMMENDATION_PROMPT",
+          "variant": "standard"
+        }
+      ],
+      "inputHints": {
+        "placeholder": "Describe an operational issue, telemetry anomaly, or maintenance question...",
+        "supportedTypes": ["telemetry", "config", "logs", "metrics", "incident"]
+      },
+      "outputDisplay": {
+        "showHealthScore": true,
+        "showDriftIndicators": true,
+        "showRollbackPlan": true,
+        "showChecklist": true
+      }
+    },
+
     "@evaluate": {
       "personaId": "coordinator",
       "displayName": "Full Evaluation Pipeline",
@@ -245,12 +297,22 @@
       }
     }
   },
-  
+
   "userRouting": {
     "defaultPersona": "@evaluate",
     "contextAwareRouting": {
       "enabled": true,
       "rules": [
+        {
+          "condition": "artifactType == 'telemetry' OR artifactType == 'metrics' OR artifactType == 'logs'",
+          "route": "@milton",
+          "reason": "Operational data routed to ops caretaker"
+        },
+        {
+          "condition": "requestType == 'config_change' OR requestType == 'maintenance'",
+          "route": "@milton",
+          "reason": "Configuration and maintenance requests routed to ops caretaker"
+        },
         {
           "condition": "artifactType == 'code' AND length < 100",
           "route": "@lea",
@@ -284,11 +346,11 @@
       "onUncertainty": "@evaluate"
     }
   },
-  
+
   "mentionParsing": {
     "enabled": true,
     "mentionPrefix": "@",
-    "validMentions": ["ada", "lea", "phil", "david", "evaluate"],
+    "validMentions": ["ada", "lea", "phil", "david", "milton", "evaluate"],
     "mentionBehavior": {
       "inlineInvocation": true,
       "contextInheritance": true,
@@ -309,7 +371,7 @@
       }
     ]
   },
-  
+
   "sessionManagement": {
     "contextRetention": {
       "enabled": true,
@@ -337,7 +399,7 @@
       }
     }
   },
-  
+
   "integrationPoints": {
     "chatUI": {
       "provider": "chrysalis_ui",
@@ -360,7 +422,7 @@
       "promptRegistry": "llm://registry/prompts"
     }
   },
-  
+
   "telemetry": {
     "routingMetrics": [
       "route_selection_count_by_persona",
@@ -375,6 +437,6 @@
       "human_review_resolution_time"
     ]
   },
-  
+
   "lastUpdated": "2026-01-13T09:58:00Z"
 }

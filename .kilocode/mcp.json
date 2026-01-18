@@ -1,0 +1,43 @@
+{
+  "mcpServers": {
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "BSAPEQWOUQnuMA4C9v_KbkViRr3zzxG"
+      }
+    },
+    "sentry": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-sentry",
+        "--auth-token",
+        "${SENTRY_AUTH_TOKEN}"
+      ]
+    },
+    "kagi": {
+      "command": "uvx",
+      "args": [
+        "kagimcp"
+      ],
+      "env": {
+        "KAGI_API_KEY": "SZAsU6D0bp49KY5ksRYRjWu-K0lovy-oKDHHCxUr-hY.UyBbhDbjmT1sXbudF0BSSpVzoeYYzMLxhb6Q0MoXFHs",
+        "KAGI_SUMMARIZER_ENGINE": ""
+      }
+    },
+    "oxylabs": {
+      "command": "uvx",
+      "args": [
+        "oxylabs-mcp"
+      ],
+      "env": {
+        "OXYLABS_USERNAME": "mdz@axolotl.partners",
+        "OXYLABS_PASSWORD": "2025$#Scrapper",
+        "OXYLABS_AI_STUDIO_API_KEY": "zLyhXnlUdn4A0Tyl1tSnk1XiYeDQYSPQ439uQbnw"
+      }
+    }
+  }
+}

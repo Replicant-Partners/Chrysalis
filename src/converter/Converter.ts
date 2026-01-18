@@ -7,7 +7,7 @@
  */
 
 import * as crypto from 'crypto';
-import type { UniformSemanticAgent } from '../core/UniformSemanticAgent';
+import type { SemanticAgent } from '../core/SemanticAgent';
 import type { FrameworkAdapter, ShadowData, EncryptedShadow } from '../core/FrameworkAdapter';
 import {
   encryptShadow,
@@ -33,7 +33,7 @@ export interface ConversionOptions {
  */
 export interface ConversionResult {
   agent: any;                     // Converted agent
-  universal: UniformSemanticAgent;      // Universal representation
+  universal: SemanticAgent;      // Universal representation
   restorationKey: string;         // Key for restoration
   metadata: {
     from: string;                 // Source framework

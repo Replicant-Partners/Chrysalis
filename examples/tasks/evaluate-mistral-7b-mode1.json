@@ -1,0 +1,27 @@
+{
+  "type": "evaluate",
+  "name": "Evaluate Mistral 7B - Mode 1: Process Manager",
+  "prompt": "You are managing a data pipeline with current throughput of 150 records/sec. The target is 200 records/sec. Current batch_size=100, worker_threads=4.\n\nHistorical data shows:\n- Throughput correlates 0.7 with batch_size\n- Throughput correlates 0.4 with worker_threads\n\nWhat parameter adjustment do you recommend? Provide your response in this format:\n\n**Parameter**: [which parameter]\n**New Value**: [recommended value]\n**Expected Improvement**: [expected new throughput]\n**Confidence**: [0.0-1.0]\n**Reasoning**: [your explanation]",
+  "model": {
+    "provider": "ollama",
+    "name": "mistral:latest"
+  },
+  "parameters": {
+    "temperature": 0.3,
+    "maxTokens": 500
+  },
+  "options": {
+    "outputPath": "./tests/llm-evaluation/results/mistral-7b-mode1-atomic001.md",
+    "includeMetadata": true,
+    "timeoutMs": 30000
+  },
+  "metadata": {
+    "mode": 1,
+    "test_id": "mode1_atomic_001",
+    "category": "atomic",
+    "complexity": "low",
+    "description": "Simple parameter calibration test for process management",
+    "created": "2026-01-17T23:28:00Z",
+    "author": "Chrysalis Evaluation Framework"
+  }
+}

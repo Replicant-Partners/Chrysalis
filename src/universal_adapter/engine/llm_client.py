@@ -349,6 +349,69 @@ class TemplateProvider(LLMProvider):
         return (True, [])
 
 
+class OllamaProvider(LLMProvider):
+    """Ollama local LLM provider."""
+
+    def __init__(self, api_key: str = "", endpoint: str | None = None) -> None:
+        # api_key not needed for Ollama but kept for interface compatibility
+        self.endpoint = endpoint or "http://localhost:11434"
+
+    async def complete(self, request: LLMRequest) -> LLMResponse:
+        """Execute completion via Ollama API."""
+        try:
+            import httpx
+        except ImportError:
+            raise LLMError("httpx package required: pip install httpx")
+
+        messages = [
+            {"role": msg.role.value, "content": msg.content}
+            for msg in request.messages
+        ]
+
+        body = {
+            "model": request.model,
+            "messages": messages,
+            "stream": False,
+        }
+
+        if request.temperature is not None:
+            body["options"] = body.get("options", {})
+            body["options"]["temperature"] = request.temperature
+        if request.max_tokens is not None:
+            body["options"] = body.get("options", {})
+            body["options"]["num_predict"] = request.max_tokens
+
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                resp = await client.post(
+                    f"{self.endpoint}/api/chat",
+                    json=body,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+
+                return LLMResponse(
+                    content=data.get("message", {}).get("content", ""),
+                    model=data.get("model", request.model),
+                    finish_reason=data.get("done_reason", "stop"),
+                    usage={
+                        "prompt_tokens": data.get("prompt_eval_count", 0),
+                        "completion_tokens": data.get("eval_count", 0),
+                        "total_tokens": data.get("prompt_eval_count", 0) + data.get("eval_count", 0),
+                    }
+                )
+        except httpx.HTTPStatusError as e:
+            raise LLMError(f"Ollama error: {e.response.status_code} - {e.response.text}")
+        except httpx.ConnectError as e:
+            raise LLMConnectionError(f"Cannot connect to Ollama at {self.endpoint}: {e}")
+        except Exception as e:
+            raise LLMError(f"Ollama request failed: {e}")
+
+    def validate_config(self, config: ResourceLLM) -> tuple[bool, list[str]]:
+        # No API key needed for Ollama
+        return (True, [])
+
+
 class LLMClient:
     """
     High-level LLM client that routes requests to appropriate providers.
@@ -359,6 +422,7 @@ class LLMClient:
     PROVIDERS = {
         "openai": OpenAIProvider,
         "anthropic": AnthropicProvider,
+        "ollama": OllamaProvider,
         "template": TemplateProvider,
     }
 

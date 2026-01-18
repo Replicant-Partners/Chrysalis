@@ -21,7 +21,8 @@
     "service:gateway": "npm run build && node dist/services/capability-gateway/run-gateway.js",
     "service:terminal": "npm run build && node dist/api/terminal/run-terminal-server.js",
     "service:feedback": "npm run build && node dist/api/feedback/run-feedback-server.js",
-    "service:system-agents": "npm run build && node dist/api/system-agents/run-system-agents-server.js",
+    "service:system-agents": "npm run build && node dist/src/api/system-agents/run-system-agents-server.js",
+    "tui:chat": "cd src/tui && npx tsx app.tsx",
     "test:adapter": "tsx scripts/test-adapter.ts",
     "adapter:list": "tsx scripts/test-adapter.ts --list",
     "adapter:demo": "tsx scripts/test-adapter.ts --demo"
@@ -43,7 +44,6 @@
   "bin": {
     "chrysalis": "dist/cli/chrysalis-cli.js",
     "agent-morph": "dist/cli/agent-morph.js",
-    "agent-morph-v2": "dist/cli/agent-morph-v2.js",
     "chrysalis-task": "dist/cli/adapter-task.js"
   },
   "dependencies": {
@@ -88,11 +88,13 @@
     "@opentelemetry/sdk-metrics": "^2.4.0",
     "@opentelemetry/sdk-trace-base": "^2.4.0",
     "@testing-library/jest-dom": "^6.9.1",
+    "@types/express": "^5.0.6",
     "@types/graphlib": "^2.1.12",
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.8",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.57.1",

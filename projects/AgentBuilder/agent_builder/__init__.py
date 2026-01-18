@@ -1,5 +1,5 @@
 """
-AgentBuilder - Fluent builder for UniformSemanticAgentV2 configurations.
+AgentBuilder - Fluent builder for SemanticAgent configurations.
 
 This module provides a Python fluent API for constructing agent configurations
 with validation and type safety.
@@ -100,7 +100,7 @@ from .types import (
     MetadataDict,
     PersonalityDict,
     TrainingDict,
-    UniformSemanticAgentV2Dict,
+    SemanticAgentDict,
     # Functions
     validate_agent,
 )
@@ -183,7 +183,7 @@ __all__ = [
     "MetadataDict",
     "PersonalityDict",
     "TrainingDict",
-    "UniformSemanticAgentV2Dict",
+    "SemanticAgentDict",
     # Functions
     "validate_agent",
 ]

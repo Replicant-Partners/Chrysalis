@@ -70,7 +70,7 @@ This document specifies the architecture for consolidating the existing 22 proto
 │  │  │  │ LMOS       │ https://eclipse.dev/lmos/spec      │   │   │   │
 │  │  │  │ LangChain  │ https://api.langchain.com/schema   │   │   │   │
 │  │  │  │ CrewAI     │ https://docs.crewai.com/api/spec   │   │   │   │
-│  │  │  │ USA        │ internal://chrysalis/usa/v2.0      │   │   │   │
+│  │  │  │ SemanticAgent        │ internal://chrysalis/usa/v2.0      │   │   │   │
 │  │  │  └────────────┴────────────────────────────────────┘   │   │   │
 │  │  └─────────────────────────────────────────────────────────┘   │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
@@ -422,7 +422,7 @@ export class ProtocolRegistryImpl implements ProtocolRegistry {
    * Initialize built-in protocol specifications
    */
   private initializeBuiltInProtocols(): void {
-    // USA (Internal - Chrysalis native format)
+    // SemanticAgent (Internal - Chrysalis native format)
     this.specs.set('usa', {
       id: 'usa',
       name: 'Uniform Semantic Agent',

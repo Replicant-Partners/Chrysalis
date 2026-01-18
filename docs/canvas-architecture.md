@@ -1,15 +1,14 @@
 # Chrysalis Canvas Architecture
 
 ## Status and scope
-- Canonical canvas count: **10 canvases** (Settings, Board, Scrapbook, Research, Wiki, Terminal, Browser, Scenarios, Curation, Media) per [`docs/STATUS.md`](docs/STATUS.md).
-- Voyeur UI exposure: **Deprecated**; no client SSE consumption.
+- Canonical canvas types: **Settings, Agent, Scrapbook, Research, Wiki, Terminal-Browser**
 - This document specifies the modular XYFlow-based architecture, widget registries, virtualization, and Ada (system LLM) interaction model for all canvases.
 
 ## Goals
 - Single, strongly typed base XYFlow React component with per-canvas widget whitelists enforced via registry.
 - Horizontal + vertical infinite scroll with virtualization and resource-aware rendering.
-- Secure, capability-scoped canvases for Terminal, Browser, Media, and Settings.
-- Embedded Ada assistant as host of the UI “house,” guiding guests with low cognitive overhead and strict guardrails.
+- Secure, capability-scoped canvases for Terminal-Browser and Settings.
+- Embedded Ada assistant as host of the UI "house," guiding guests with low cognitive overhead and strict guardrails.
 
 ## Architectural principles
 - **Least privilege:** Per-canvas widget whitelists; deny by default.
@@ -42,7 +41,7 @@
 
 ### Data model (simplified)
 ```typescript
-type CanvasKind = 'settings' | 'board' | 'scrapbook' | 'research' | 'wiki' | 'terminal' | 'browser' | 'scenarios' | 'curation' | 'media';
+type CanvasKind = 'settings' | 'agent' | 'scrapbook' | 'research' | 'wiki' | 'terminal-browser';
 type WidgetType = string; // constrained per-canvas by registry
 
 interface WidgetNodeData<WidgetType, Extra = unknown> {
@@ -65,7 +64,7 @@ interface CanvasPolicy {
 - Tile-based loading (2D grid); prefetch neighbor tiles on pan/zoom; debounce viewport changes; throttle edge routing recompute.
 - LRU eviction for offscreen tiles; skeleton placeholders while loading.
 - Resource caps per canvas: max in-memory nodes, max concurrent loads, backpressure signals to data source.
-- Offscreen pause for heavy widgets (terminal sessions, media players); resume on re-entry.
+- Offscreen pause for heavy widgets (terminal sessions); resume on re-entry.
 
 ```mermaid
 flowchart LR
@@ -79,27 +78,29 @@ flowchart LR
 
 ## Canvas implementations
 
-### Terminal canvas (whitelist: TerminalSession)
+### Terminal-Browser canvas (whitelist: TerminalSession, BrowserTab)
 - Widgets: `terminal_session` only; creation guarded by registry and policy.
 - Lifecycle: mount xterm; connect to PTY WS (origin-checked); debounce resize; dispose on unmount; cap scrollback; limit concurrent sessions.
 - Virtualization: keep shell node rendered; lazily attach xterm when near/in viewport; pause WS flow when offscreen; resumable sessions.
 - Security: rate-limit writes; sanitize output; optional addons: fit, webgl (optional), weblinks, serialize.
 
-### Browser canvas (whitelist: BrowserTab, optional Devtools if allowed)
+### Agent canvas (whitelist: AgentCard, AgentConnection)
+- Widgets: agent cards with state indicators; connections between agents for workflow visualization.
+- Lifecycle: manage internal agents - store, revise, maintain, run teams; accumulate agent capabilities and knowledge.
+- Features: infinite scroll for large agent teams; canvas per project team expected use pattern.
+- Integration: connects to memory stack, wiki, and skill registry for agent competitive advantage.
+
+### Combined Terminal-Browser functionality
 - Widgets: sandboxed iframe-based tabs; toolbar (URL bar, nav buttons, tabs) with allowlist validation.
 - Security: iframe `sandbox="allow-same-origin allow-scripts"`; CSP guidance; URL allow/deny lists; schema-validated postMessage command bus (navigate/back/forward/reload/screenshot request); no inline scripts, no credentialed URLs.
 - Interaction constraints: block mixed content; strip credentials; per-tab origin isolation; no direct DOM injection.
-
-### Media canvas (whitelist: AudioPlayer, VideoPlayer, Waveform, TimelineClip)
-- Safety: no autoplay with sound by default; gesture-gated play; volume caps; content-type validation; CORS-safe fetch; captions/tracks required for accessibility.
-- Performance: pause/teardown offscreen media; resolution-adaptive loading; GPU-friendly transforms; memory caps.
 
 ### Settings canvas (whitelist: KeyEditor, ApiEnvelope, FeatureFlag, BudgetControl, AuditLogView)
 - Secrets: masked by default; no logging of secret values; copy gated; TTL for in-memory secrets; optional client-side encryption at rest (crypto.subtle with session/user key) if required; HTTPS only.
 - Validation: schema validation for API envelopes; CSRF tokens on mutations; redaction in UI and logs.
 
 ## Ada: embedded UI assistant
-- Role: host of the UI “house”; users are guests. Guides, never intrudes. Respects capability/approval gates.
+- Role: host of the UI "house"; users are guests. Guides, never intrudes. Respects capability/approval gates.
 - Presence: either chat pane and/or floating guide; reads context (active canvas, selection, viewport, recent events, focus, errors).
 - Signals: mouse/focus changes, blocked widget attempts, errors, inactivity, validation failures, user help requests.
 - Privacy: no secrets echoed; no PII logging; defers to settings policy.
@@ -148,14 +149,13 @@ flowchart TB
 
 ## Testing strategy
 - Unit: registry guards, schema validation, policy enforcement, Ada state transitions, logging redaction.
-- Integration: terminal WS lifecycle, browser iframe command bus, media offscreen pause, settings secret handling, registry enforcement per canvas.
-- Load/soak: virtualization under large node counts; PTY fan-out; media concurrency.
+- Integration: terminal-browser WS lifecycle and iframe command bus, settings secret handling, registry enforcement per canvas.
+- Load/soak: virtualization under large node counts; PTY fan-out.
 - Security: CSP/sandbox verification, URL allowlist tests, secret redaction, WS origin tests.
-- Accessibility: keyboard nav, ARIA on controls, focus order, captions/tracks for media.
+- Accessibility: keyboard nav, ARIA on controls, focus order.
 
 ## Research pointers (for future citation)
-- XYFlow/React Flow virtualization patterns; xterm.js performance guidance; browser iframe sandbox + CSP best practices; media accessibility (WCAG 2.2 captions/transcripts); UI secret-handling patterns; in-product LLM assistant UX and host/guest interaction models.
+- XYFlow/React Flow virtualization patterns; xterm.js performance guidance; browser iframe sandbox + CSP best practices; UI secret-handling patterns; in-product LLM assistant UX and host/guest interaction models.
 
 ## Mermaid legend
 - Diagrams above may be embedded directly in implementation docs; keep them updated as the code evolves.
-

@@ -1,0 +1,299 @@
+# Canvas Specification: Commons & Scratch
+
+**Version**: 1.0.0
+**Date**: January 17, 2026
+**Status**: Initial Specification
+
+---
+
+## Executive Summary
+
+This document specifies two primary workspace canvases for Chrysalis:
+
+1. **Commons Canvas** - Shared multi-agent workspace with real-time collaboration
+2. **Scratch Canvas** - Individual workspace for personal exploration
+
+Both canvases integrate with the System Agents Layer and provide a visual interface for agent-driven workflows.
+
+---
+
+## 1. Commons Canvas
+
+### 1.1 Purpose
+
+The **Commons** is the central shared workspace where:
+- Multiple agents can be visualized and orchestrated
+- Users collaborate in real-time (via YJS CRDT)
+- Evaluation pipelines are triggered and monitored
+- Agent outputs are displayed and refined
+
+### 1.2 Key Behaviors
+
+| Behavior | Description |
+|----------|-------------|
+| **Agent Cards** | Visualize each active agent (Ada, Lea, Phil, David, Milton) with status indicators |
+| **Drop Zone** | Accept file drops to trigger agent evaluation pipelines |
+| **Live Output** | Stream agent responses as they generate |
+| **Pipeline View** | Show @evaluate pipeline progression through stages |
+| **Collaboration Cursors** | Show other users' positions (YJS awareness) |
+| **History Rail** | Scrollable timeline of recent agent interactions |
+
+### 1.3 Allowed Widgets
+
+```typescript
+type CommonsWidgetType =
+  | 'agent-card'        // Agent persona card with status
+  | 'evaluation-result' // Output from agent evaluation
+  | 'pipeline-tracker'  // Multi-agent pipeline progress
+  | 'file-drop-zone'    // Drop target for artifacts
+  | 'chat-thread'       // Conversation with agent(s)
+  | 'activity-feed'     // Recent activity log
+  | 'note'              // Collaborative notes
+  ;
+```
+
+### 1.4 Agent Execution Bridge
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Commons as Commons Canvas
+    participant Router as Routing Config
+    participant Agent as System Agent
+    participant LLM as LLM Gateway
+
+    User->>Commons: Drop file / @mention agent
+    Commons->>Router: Route request based on artifact type
+    Router->>Agent: Select agent(s) based on rules
+    Agent->>LLM: Execute prompt via Gateway
+    LLM-->>Agent: Streaming response
+    Agent-->>Commons: Update evaluation-result widget
+    Commons-->>User: Display live output
+```
+
+### 1.5 Canvas Actions
+
+| Action | Trigger | Result |
+|--------|---------|--------|
+| `DROP_FILE` | File dragged onto canvas | Create file-drop-zone widget, trigger routing |
+| `MENTION_AGENT` | `@ada`, `@milton`, etc. in chat | Route to specified agent, create chat-thread |
+| `RUN_PIPELINE` | `@evaluate` command | Create pipeline-tracker, run full evaluation |
+| `SHARE_RESULT` | Click "Share" on result | Copy result widget to specified location |
+| `BRANCH_THREAD` | Fork conversation | Create new chat-thread with context |
+
+### 1.6 Persistence
+
+- **State**: YJS document with canvas nodes/edges
+- **Sync**: WebSocket to collaboration server
+- **Storage**: Fireproof for durability
+- **Scope**: Shared across all users with canvas access
+
+---
+
+## 2. Scratch Canvas
+
+### 2.1 Purpose
+
+The **Scratch** canvas is a personal workspace for:
+- Individual exploration and experimentation
+- Draft work before sharing to Commons
+- Private agent conversations
+- Personal notes and organization
+
+### 2.2 Key Behaviors
+
+| Behavior | Description |
+|----------|-------------|
+| **Private by Default** | Only visible to the owner |
+| **Quick Notes** | Rapid note capture with auto-save |
+| **Agent Chat** | Private conversations with any agent |
+| **Draft Results** | Hold evaluation results before sharing |
+| **Promote to Commons** | Move items to shared workspace |
+| **No Collaboration** | Single-user, no CRDT overhead |
+
+### 2.3 Allowed Widgets
+
+```typescript
+type ScratchWidgetType =
+  | 'note'              // Personal notes (markdown)
+  | 'code-snippet'      // Code with syntax highlighting
+  | 'chat-thread'       // Private agent conversation
+  | 'evaluation-result' // Evaluation output (draft)
+  | 'file-reference'    // Link to file (not embedded)
+  | 'todo-list'         // Personal tasks
+  | 'bookmark'          // Saved references
+  ;
+```
+
+### 2.4 Canvas Actions
+
+| Action | Trigger | Result |
+|--------|---------|--------|
+| `QUICK_NOTE` | `Cmd+N` or toolbar | Create note widget at cursor |
+| `CHAT_AGENT` | `@agent` in scratch | Private conversation widget |
+| `PROMOTE` | Right-click → "Share to Commons" | Copy widget to Commons canvas |
+| `ARCHIVE` | Right-click → "Archive" | Move to archive (retrievable) |
+| `EXPORT` | Right-click → "Export" | Download as markdown/JSON |
+
+### 2.5 Persistence
+
+- **State**: Local storage + optional cloud sync
+- **Sync**: None (single-user)
+- **Storage**: IndexedDB for fast local access
+- **Scope**: Private to user
+
+---
+
+## 3. Agent Execution Bridge
+
+### 3.1 Overview
+
+The Agent Execution Bridge connects canvas actions to System Agent execution:
+
+```typescript
+interface AgentExecutionBridge {
+  /** Route a request to appropriate agent(s) */
+  route(request: CanvasRequest): Promise<AgentRoute>;
+
+  /** Execute request through routed agent(s) */
+  execute(route: AgentRoute, input: AgentInput): AsyncIterable<AgentOutput>;
+
+  /** Cancel ongoing execution */
+  cancel(executionId: string): void;
+
+  /** Get execution status */
+  status(executionId: string): ExecutionStatus;
+}
+
+interface CanvasRequest {
+  canvasId: string;
+  widgetId?: string;
+  artifactType: ArtifactType;
+  content: string | File;
+  mentions: string[];  // @ada, @evaluate, etc.
+  context?: Record<string, unknown>;
+}
+
+interface AgentRoute {
+  agents: string[];           // ['ada', 'lea'] or ['coordinator']
+  pipelineMode: boolean;      // true for @evaluate
+  pipelineStages?: string[];  // ['ada', 'lea', 'phil', 'david']
+  reason: string;             // "Routed to ada for structural analysis"
+}
+
+interface AgentOutput {
+  agentId: string;
+  type: 'chunk' | 'complete' | 'error';
+  content: string;
+  metadata?: {
+    tokensUsed?: number;
+    confidence?: number;
+    verdict?: string;
+  };
+}
+```
+
+### 3.2 Routing Rules
+
+From `routing_config.json`, applied in order:
+
+1. **Telemetry/Metrics** → `@milton` (Ops Caretaker)
+2. **Config/Maintenance** → `@milton` (Ops Caretaker)
+3. **Short Code** → `@lea` (Quick Review)
+4. **Predictions** → `@phil` (Forecast)
+5. **Architecture/Schema** → `@ada` (Structure)
+6. **Bias Check** → `@david` (Metacognitive)
+7. **Explicit @mention** → Specified agent
+8. **Default** → `@evaluate` (Full Pipeline)
+
+### 3.3 Widget ↔ Agent Mapping
+
+| Widget Type | Default Agent | Purpose |
+|-------------|---------------|---------|
+| `evaluation-result` | Varies | Display agent output |
+| `chat-thread` | Mentioned | Conversation container |
+| `pipeline-tracker` | coordinator | Pipeline progress |
+| `agent-card` | Self | Agent status display |
+| `file-drop-zone` | Auto-routed | File ingestion |
+
+---
+
+## 4. Canvas State Schema
+
+### 4.1 Shared State (YJS Document)
+
+```typescript
+interface CanvasYDoc {
+  /** Canvas metadata */
+  meta: {
+    id: string;
+    kind: 'commons' | 'scratch';
+    title: string;
+    createdAt: number;
+    updatedAt: number;
+  };
+
+  /** Widget nodes */
+  nodes: YMap<WidgetNode>;
+
+  /** Connections between widgets */
+  edges: YMap<WidgetEdge>;
+
+  /** Viewport state */
+  viewport: {
+    x: number;
+    y: number;
+    zoom: number;
+  };
+
+  /** Active executions */
+  executions: YMap<ExecutionState>;
+
+  /** User awareness (for Commons) */
+  awareness?: YAwareness;
+}
+
+interface WidgetNode {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  data: Record<string, unknown>;
+  locked?: boolean;
+  createdBy?: string;
+  createdAt: number;
+}
+```
+
+---
+
+## 5. Implementation Priority
+
+### Phase 1: Minimal Viable Canvas (MVP)
+1. ✅ BaseCanvas component (exists)
+2. ⏳ Agent Card widget
+3. ⏳ Chat Thread widget
+4. ⏳ Agent Execution Bridge (basic routing)
+5. ⏳ Local persistence (IndexedDB)
+
+### Phase 2: Collaboration
+1. ⏳ YJS integration
+2. ⏳ Awareness cursors
+3. ⏳ Pipeline Tracker widget
+4. ⏳ Activity Feed widget
+
+### Phase 3: Polish
+1. ⏳ File drop handling
+2. ⏳ Evaluation Result widget (rich display)
+3. ⏳ Canvas themes
+4. ⏳ Accessibility audit
+
+---
+
+## 6. Related Documents
+
+- [Canvas Architecture](../canvas-architecture.md)
+- [Canvas UI Completion Plan](../../plans/CANVAS_UI_COMPLETION_PLAN.md)
+- [System Agents Layer](../../Agents/system-agents/README.md)
+- [Routing Config](../../Agents/system-agents/routing_config.json)
+- [48-Hour Integration Sprint](../../plans/48_HOUR_INTEGRATION_SPRINT.md)

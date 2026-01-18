@@ -5,7 +5,7 @@
  * bidirectional conversion between the framework and Uniform Semantic Agent format.
  */
 
-import type { UniformSemanticAgent, ValidationResult } from './UniformSemanticAgent';
+import type { SemanticAgent, ValidationResult } from './SemanticAgent';
 
 /**
  * Encrypted shadow data structure
@@ -29,7 +29,7 @@ export interface EncryptedShadow {
  */
 export interface ShadowData<
   TFrameworkAgent = unknown,
-  TUniversal extends UniformSemanticAgent = UniformSemanticAgent
+  TUniversal extends SemanticAgent = SemanticAgent
 > {
   framework: string;
   version: string;
@@ -69,7 +69,7 @@ export interface FieldMapping<TFrameworkAgent = unknown> {
  */
 export abstract class FrameworkAdapter<
   TFrameworkAgent = unknown,
-  TUniversal extends UniformSemanticAgent = UniformSemanticAgent
+  TUniversal extends SemanticAgent = SemanticAgent
 > {
   // Adapter metadata
   abstract readonly name: string;

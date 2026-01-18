@@ -29,13 +29,13 @@ export interface ShadowData {
   data: {
     [key: string]: any;    // ❌ Index signature with any
     _original: any;        // ❌ Source agent untyped
-    _universal: UniformSemanticAgent;  // ✅ Typed
+    _universal: SemanticAgent;  // ✅ Typed
   };
 }
 
 abstract class FrameworkAdapter {
-  abstract toUniversal(frameworkAgent: any): Promise<UniformSemanticAgent>;
-  abstract fromUniversal(universalAgent: UniformSemanticAgent): Promise<any>;
+  abstract toUniversal(frameworkAgent: any): Promise<SemanticAgent>;
+  abstract fromUniversal(universalAgent: SemanticAgent): Promise<any>;
   // ❌ `any` in, `any` out - type information lost
 }
 ```
@@ -74,8 +74,8 @@ abstract class FrameworkAdapter<TAgent extends FrameworkAgentBase> {
   abstract readonly version: string;
   abstract readonly supports_shadow: boolean;
   
-  abstract toUniversal(frameworkAgent: TAgent): Promise<UniformSemanticAgent>;
-  abstract fromUniversal(universalAgent: UniformSemanticAgent): Promise<TAgent>;
+  abstract toUniversal(frameworkAgent: TAgent): Promise<SemanticAgent>;
+  abstract fromUniversal(universalAgent: SemanticAgent): Promise<TAgent>;
   abstract embedShadow(agent: TAgent, shadow: EncryptedShadow): Promise<TAgent>;
   abstract extractShadow(agent: TAgent): Promise<EncryptedShadow | null>;
   abstract validate(agent: TAgent): Promise<ValidationResult>;
@@ -99,7 +99,7 @@ class LangChainAdapter extends FrameworkAdapter<LangChainAgent> {
   readonly version = '1.0';
   readonly supports_shadow = true;
   
-  async toUniversal(agent: LangChainAgent): Promise<UniformSemanticAgent> {
+  async toUniversal(agent: LangChainAgent): Promise<SemanticAgent> {
     // Type-safe access to agent.name, agent.tools, etc.
   }
   // ...
@@ -124,7 +124,7 @@ interface ShadowPayload<TOriginal> {
   // Known structure for framework-specific extras
   extras: Record<string, unknown>;
   _original: TOriginal;
-  _universal: UniformSemanticAgent;
+  _universal: SemanticAgent;
 }
 
 // Usage in FrameworkAdapter
@@ -210,8 +210,8 @@ export abstract class FrameworkAdapter<TAgent = LegacyAgent> {
   abstract readonly supports_shadow: boolean;
   
   // Type-safe methods
-  abstract toUniversal(frameworkAgent: TAgent): Promise<UniformSemanticAgent>;
-  abstract fromUniversal(universalAgent: UniformSemanticAgent): Promise<TAgent>;
+  abstract toUniversal(frameworkAgent: TAgent): Promise<SemanticAgent>;
+  abstract fromUniversal(universalAgent: SemanticAgent): Promise<TAgent>;
   abstract embedShadow(agent: TAgent, shadow: EncryptedShadow): Promise<TAgent>;
   abstract extractShadow(agent: TAgent): Promise<EncryptedShadow | null>;
   abstract validate(agent: TAgent): Promise<ValidationResult>;
@@ -241,7 +241,7 @@ export class LangChainAdapter extends FrameworkAdapter<LangChainAgent> {
   readonly version = '1.0.0';
   readonly supports_shadow = true;
   
-  async toUniversal(agent: LangChainAgent): Promise<UniformSemanticAgent> {
+  async toUniversal(agent: LangChainAgent): Promise<SemanticAgent> {
     // Now type-safe: agent.name, agent.tools, etc. are typed
     return {
       identity: {
@@ -252,7 +252,7 @@ export class LangChainAdapter extends FrameworkAdapter<LangChainAgent> {
     };
   }
   
-  async fromUniversal(universal: UniformSemanticAgent): Promise<LangChainAgent> {
+  async fromUniversal(universal: SemanticAgent): Promise<LangChainAgent> {
     return {
       __brand: 'langchain',
       name: universal.identity.name,
@@ -293,7 +293,7 @@ Refactor Converter to work with typed adapters:
 
 // REMOVE: // @ts-nocheck
 
-import type { UniformSemanticAgent } from '../core/UniformSemanticAgent';
+import type { SemanticAgent } from '../core/SemanticAgent';
 import type { 
   FrameworkAdapter, 
   EncryptedShadow 
@@ -305,7 +305,7 @@ import type { AnyFrameworkAgent } from '../types/frameworks';
  */
 export interface ConversionResult<TTarget> {
   agent: TTarget;
-  universal: UniformSemanticAgent;
+  universal: SemanticAgent;
   restorationKey: string;
   metadata: ConversionMetadata;
 }

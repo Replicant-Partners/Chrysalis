@@ -36,6 +36,8 @@ import {
   StoredAgent,
   TranslationRecord,
   BridgeEvent,
+  BridgeEventType,
+  BridgePrimitive,
 } from '../../bridge/service-integration';
 import {
   BridgeOrchestrator,
@@ -58,6 +60,25 @@ export interface CanonicalAgent {
 import { createLogger } from '../../shared/logger';
 
 const log = createLogger('bridge-api');
+const BRIDGE_EVENT_TYPES = new Set<BridgeEventType>([
+  'AgentTranslated',
+  'AgentIngested',
+  'AgentStored',
+  'AdapterRegistered',
+  'AdapterDeregistered',
+  'TranslationFailed',
+  'ValidationFailed',
+  'CanonicalUpdated',
+]);
+
+const BRIDGE_PRIMITIVES = new Set<BridgePrimitive>([
+  'translation',
+  'adapter',
+  'agent',
+  'canonical',
+]);
+
+
 
 // ============================================================================
 // Request/Response Types
@@ -653,16 +674,26 @@ export class BridgeAPIController {
       return;
     }
 
-    const type = url.searchParams.get('type') || undefined;
-    const primitive = url.searchParams.get('primitive') || undefined;
+    const typeResult = this.parseEventTypeParam(url.searchParams.get('type'));
+    if (typeResult.error) {
+      badRequest(res, typeResult.error, ErrorCode.INVALID_FORMAT);
+      return;
+    }
+
+    const primitiveResult = this.parsePrimitiveParam(url.searchParams.get('primitive'));
+    if (primitiveResult.error) {
+      badRequest(res, primitiveResult.error, ErrorCode.INVALID_FORMAT);
+      return;
+    }
+
     const since = url.searchParams.get('since') || undefined;
     const limit = url.searchParams.get('limit')
       ? parseInt(url.searchParams.get('limit')!, 10)
       : 100;
 
     const events = this.service.events.getHistory({
-      type,
-      primitive,
+      type: typeResult.value,
+      primitive: primitiveResult.value,
       since,
       limit,
     });
@@ -671,6 +702,24 @@ export class BridgeAPIController {
       events,
       count: events.length,
     }));
+  }
+
+  private parseEventTypeParam(value: string | null): { value?: BridgeEventType; error?: string } {
+    if (!value) {
+      return {};
+    }
+    return BRIDGE_EVENT_TYPES.has(value as BridgeEventType)
+      ? { value: value as BridgeEventType }
+      : { error: `Invalid event type: ${value}` };
+  }
+
+  private parsePrimitiveParam(value: string | null): { value?: BridgePrimitive; error?: string } {
+    if (!value) {
+      return {};
+    }
+    return BRIDGE_PRIMITIVES.has(value as BridgePrimitive)
+      ? { value: value as BridgePrimitive }
+      : { error: `Invalid event primitive: ${value}` };
   }
 
   /**

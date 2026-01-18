@@ -400,19 +400,19 @@ export type {
 // V2 Adapter (RECOMMENDED - enhanced with semantic categories and morphing)
 export {
   // Main class
-  UniversalAdapterV2,
-  createUniversalAdapterV2,
+  UniversalAdapter,
+  createUniversalAdapter,
   createSimpleAdapter,
   
   // Types
-  type LLMProviderV2,
-  type TranslationResultV2,
+  type LLMProvider,
+  type TranslationResult,
   type MorphingResult,
-  type UniversalAdapterV2Config,
+  type UniversalAdapterConfig,
   
   // V2 Registry with semantic hints
-  PROTOCOL_REGISTRY_V2,
-  type ProtocolEntryV2,
+  PROTOCOL_REGISTRY,
+  type ProtocolEntry,
   type SemanticHints,
   getRegisteredProtocols,
   getProtocol,
@@ -424,7 +424,7 @@ export {
   // Semantic Categories
   SEMANTIC_CATEGORIES,
   MAPPING_PRINCIPLES_COMPACT,
-  buildTranslationPromptV2,
+  buildTranslationPrompt,
   buildAgentMorphingPrompt
 } from './universal';
 

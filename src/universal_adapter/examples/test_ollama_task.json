@@ -1,0 +1,19 @@
+{
+  "schema": "chrysalis.task/v1",
+  "goal": {
+    "description": "Answer a simple question",
+    "success_criteria": ["Response contains a greeting"]
+  },
+  "llm": {
+    "provider": "ollama",
+    "model": "qwen3:4b",
+    "endpoint": "http://localhost:11434"
+  },
+  "prompts": [
+    {
+      "id": "greet",
+      "role": "user",
+      "content": "Say hello and tell me you are ready to help."
+    }
+  ]
+}

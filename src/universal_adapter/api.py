@@ -762,7 +762,7 @@ def list_providers(check_keys: bool = True) -> APIResponse[list[ProviderInfo]]:
     providers = [
         ProviderInfo(
             name="openai",
-            models=["gpt-4o", "gpt-4", "gpt-3.5-turbo", "o1-preview", "o1-mini"],
+            models=["gpt-5", "gpt-4o", "gpt-4", "gpt-3.5-turbo", "o1-preview", "o1-mini"],
             endpoint="https://api.openai.com/v1",
             api_key_env="OPENAI_API_KEY",
             api_key_configured=bool(os.environ.get("OPENAI_API_KEY")) if check_keys else False,

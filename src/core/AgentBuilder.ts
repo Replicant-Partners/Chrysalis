@@ -1,5 +1,5 @@
 /**
- * AgentBuilder - Fluent Builder Pattern for UniformSemanticAgentV2
+ * AgentBuilder - Fluent Builder Pattern for SemanticAgent
  *
  * Implements the Builder pattern (Gang of Four, 1994) to provide a fluent
  * interface for constructing complex agent objects step by step.

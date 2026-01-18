@@ -11,7 +11,9 @@
  * Or: node dist/services/terminal/TerminalPTYServer.js
  */
 
-import { WebSocketServer, WebSocket } from 'ws';
+import WS, { WebSocketServer } from 'ws';
+import type { IncomingMessage } from 'http';
+import path from 'path';
 import { spawn, IPty } from 'node-pty';
 import { EventEmitter } from 'events';
 import { createLogger } from '../../shared/logger';
@@ -29,9 +31,10 @@ interface PTYSession {
   rows: number;
   createdAt: number;
   lastActivity: number;
+  env: Record<string, string>;
 }
 
-interface IncomingMessage {
+interface TerminalMessage {
   type: 'create' | 'data' | 'resize' | 'close';
   sessionId: string;
   shell?: string;
@@ -41,7 +44,7 @@ interface IncomingMessage {
   data?: string;
 }
 
-interface OutgoingMessage {
+interface TerminalOutgoingMessage {
   type: 'session:created' | 'data' | 'state' | 'exit' | 'error';
   sessionId: string;
   payload?: unknown;
@@ -59,6 +62,9 @@ interface ServerConfig {
   maxSessions: number;
   sessionTimeoutMs: number;
   heartbeatIntervalMs: number;
+  authToken?: string;
+  allowedShells: string[];
+  allowedCwdRoot?: string;
 }
 
 const DEFAULT_CONFIG: ServerConfig = {
@@ -69,25 +75,41 @@ const DEFAULT_CONFIG: ServerConfig = {
   maxSessions: parseInt(process.env.TERMINAL_MAX_SESSIONS || '50', 10),
   sessionTimeoutMs: parseInt(process.env.TERMINAL_SESSION_TIMEOUT_MS || '3600000', 10), // 1 hour
   heartbeatIntervalMs: 30000,
+  authToken: process.env.TERMINAL_WS_TOKEN,
+  allowedShells: process.env.TERMINAL_ALLOWED_SHELLS
+    ? process.env.TERMINAL_ALLOWED_SHELLS.split(',').map((s) => s.trim()).filter(Boolean)
+    : [],
+  allowedCwdRoot: process.env.TERMINAL_ALLOWED_CWD_ROOT,
 };
 
 const log = createLogger('terminal-pty');
 
 // =============================================================================
+type WebSocketServerInstance = InstanceType<typeof WebSocketServer>;
+
+type WebSocketClient = InstanceType<typeof WS>;
+
+type RawData = string | Buffer | ArrayBuffer | Buffer[];
+
 // Terminal PTY Server
 // =============================================================================
 
 export class TerminalPTYServer {
   private config: ServerConfig;
-  private wss: WebSocketServer | null = null;
+  private wss: WebSocketServerInstance | null = null;
   private sessions: Map<string, PTYSession> = new Map();
-  private clientSessions: Map<WebSocket, Set<string>> = new Map();
+  private clientSessions: Map<WebSocketClient, Set<string>> = new Map();
   private emitter = new EventEmitter();
   private heartbeatInterval?: NodeJS.Timeout;
   private cleanupInterval?: NodeJS.Timeout;
 
   constructor(config?: Partial<ServerConfig>) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.config = {
+      ...DEFAULT_CONFIG,
+      ...config,
+      allowedShells: [...(config?.allowedShells ?? DEFAULT_CONFIG.allowedShells)],
+    };
+    this.ensureDefaultShellAllowed();
   }
 
   // ===========================================================================
@@ -105,16 +127,19 @@ export class TerminalPTYServer {
           host: this.config.host,
         });
 
-        this.wss.on('connection', (ws) => this.handleConnection(ws));
+        this.wss.on('connection', (ws: WebSocketClient, req: IncomingMessage) => this.handleConnection(ws, req));
 
         this.wss.on('listening', () => {
-          log.info('server listening', { host: this.config.host, port: this.config.port });
+          log.info('server listening', { host: this.config.host, port: this.config.port, authProtected: Boolean(this.config.authToken) });
+          if (!this.config.authToken) {
+            log.warn('Terminal PTY server is running without authentication. Set TERMINAL_WS_TOKEN or provide authToken in config.');
+          }
           this.startHeartbeat();
           this.startCleanup();
           resolve();
         });
 
-        this.wss.on('error', (error) => {
+        this.wss.on('error', (error: Error) => {
           log.error('server error', { error });
           reject(error);
         });
@@ -161,13 +186,20 @@ export class TerminalPTYServer {
   // Connection Handling
   // ===========================================================================
 
-  private handleConnection(ws: WebSocket): void {
-    log.info('client connected');
+  private handleConnection(ws: WebSocketClient, req: IncomingMessage): void {
+    if (!this.isAuthorized(req)) {
+      log.warn('Unauthorized PTY connection attempt', { remote: req.socket.remoteAddress });
+      ws.close(4401, 'Unauthorized');
+      return;
+    }
+
+    log.info('client connected', { remote: req.socket.remoteAddress });
     this.clientSessions.set(ws, new Set());
 
-    ws.on('message', (data) => {
+    ws.on('message', (data: RawData) => {
       try {
-        const message: IncomingMessage = JSON.parse(data.toString());
+        const text = typeof data === 'string' ? data : data.toString('utf8');
+        const message: TerminalMessage = JSON.parse(text);
         this.handleMessage(ws, message);
       } catch (error) {
         this.sendError(ws, 'unknown', `Invalid message: ${error}`);
@@ -180,7 +212,7 @@ export class TerminalPTYServer {
       this.clientSessions.delete(ws);
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', (error: Error) => {
       log.error('websocket error', { error });
     });
 
@@ -190,7 +222,7 @@ export class TerminalPTYServer {
     });
   }
 
-  private handleMessage(ws: WebSocket, message: IncomingMessage): void {
+  private handleMessage(ws: WebSocketClient, message: TerminalMessage): void {
     switch (message.type) {
       case 'create':
         this.createSession(ws, message);
@@ -205,7 +237,7 @@ export class TerminalPTYServer {
         this.closeSession(message.sessionId);
         break;
       default:
-        this.sendError(ws, message.sessionId, `Unknown message type: ${(message as IncomingMessage & { type: string }).type}`);
+        this.sendError(ws, message.sessionId, `Unknown message type: ${(message as TerminalMessage & { type: string }).type}`);
     }
   }
 
@@ -213,7 +245,7 @@ export class TerminalPTYServer {
   // Session Management
   // ===========================================================================
 
-  private createSession(ws: WebSocket, message: IncomingMessage): void {
+  private createSession(ws: WebSocketClient, message: TerminalMessage): void {
     // Check session limit
     if (this.sessions.size >= this.config.maxSessions) {
       this.sendError(ws, message.sessionId, `Maximum sessions (${this.config.maxSessions}) reached`);
@@ -221,23 +253,25 @@ export class TerminalPTYServer {
     }
 
     const sessionId = message.sessionId;
-    const shell = message.shell || this.config.defaultShell;
-    const cwd = message.cwd || this.config.defaultCwd;
+    const shell = this.resolveShell(message.shell);
+    if (!shell) {
+      this.sendError(ws, sessionId, 'Shell not allowed');
+      return;
+    }
+
+    const cwd = this.resolveCwd(message.cwd);
     const cols = message.cols || 80;
     const rows = message.rows || 24;
 
     try {
       // Spawn PTY process
+      const env = this.buildSanitizedEnv();
       const pty = spawn(shell, [], {
         name: 'xterm-256color',
         cols,
         rows,
         cwd,
-        env: {
-          ...process.env,
-          TERM: 'xterm-256color',
-          COLORTERM: 'truecolor',
-        },
+        env,
       });
 
       const session: PTYSession = {
@@ -249,6 +283,7 @@ export class TerminalPTYServer {
         rows,
         createdAt: Date.now(),
         lastActivity: Date.now(),
+        env,
       };
 
       this.sessions.set(sessionId, session);
@@ -312,24 +347,163 @@ export class TerminalPTYServer {
   }
 
   // ===========================================================================
+  // Security Helpers
+  // ===========================================================================
+
+  private isAuthorized(req: IncomingMessage): boolean {
+    if (!this.config.authToken) {
+      // Authentication disabled - warn already emitted at startup
+      return true;
+    }
+
+    const token = this.extractToken(req);
+    return token === this.config.authToken;
+  }
+
+  private extractToken(req: IncomingMessage): string | null {
+    const authHeader = req.headers['authorization'];
+    if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+      return authHeader.slice(7);
+    }
+
+    const url = this.parseRequestUrl(req);
+    const tokenParam = url.searchParams.get('token');
+    if (tokenParam) {
+      return tokenParam;
+    }
+
+    const cookieHeader = req.headers.cookie;
+    if (cookieHeader) {
+      const tokenCookie = cookieHeader
+        .split(';')
+        .map((c) => c.trim())
+        .find((c) => c.startsWith('terminal_token='));
+      if (tokenCookie) {
+        const [, value] = tokenCookie.split('=');
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  private parseRequestUrl(req: IncomingMessage): URL {
+    try {
+      return new URL(req.url || '/', `http://${req.headers.host ?? 'localhost'}`);
+    } catch {
+      return new URL('/', 'http://localhost');
+    }
+  }
+
+  private resolveShell(override?: string | null): string | null {
+    if (!override) {
+      return this.config.defaultShell;
+    }
+
+    if (!this.config.allowedShells.length) {
+      // Overrides only allowed when explicit allowlist exists
+      log.warn('Shell override requested without allowedShells configured; using default');
+      return this.config.defaultShell;
+    }
+
+    if (this.isShellAllowed(override)) {
+      return override;
+    }
+
+    log.warn('Rejected shell override', { override });
+    return null;
+  }
+
+  private normalizeCommand(cmd: string): string {
+    return path.basename(cmd.trim());
+  }
+
+  private isShellAllowed(shell: string): boolean {
+    if (!this.config.allowedShells.length) {
+      return true;
+    }
+
+    const normalized = this.normalizeCommand(shell);
+    return this.config.allowedShells.some((allowed) => {
+      const normalizedAllowed = this.normalizeCommand(allowed);
+      return normalizedAllowed === normalized || allowed === shell;
+    });
+  }
+
+  private resolveCwd(override?: string | null): string {
+    const fallback = this.config.defaultCwd;
+    if (!override) {
+      return fallback;
+    }
+
+    if (!path.isAbsolute(override)) {
+      log.warn('Rejecting non-absolute cwd override', { override });
+      return fallback;
+    }
+
+    const normalized = path.normalize(override);
+    if (this.config.allowedCwdRoot) {
+      const normalizedRoot = path.resolve(this.config.allowedCwdRoot);
+      if (!normalized.startsWith(normalizedRoot)) {
+        log.warn('Rejecting cwd outside allowed root', { override, allowedRoot: normalizedRoot });
+        return fallback;
+      }
+    }
+
+    return normalized;
+  }
+
+  private buildSanitizedEnv(extra: Record<string, string> = {}): Record<string, string> {
+    const allowedKeys = ['PATH', 'HOME', 'LANG', 'LC_ALL', 'LC_LANG', 'SHELL'];
+    const sanitized: Record<string, string> = {};
+
+    for (const key of allowedKeys) {
+      const value = process.env[key];
+      if (value) {
+        sanitized[key] = value;
+      }
+    }
+
+    sanitized.TERM = 'xterm-256color';
+    sanitized.COLORTERM = 'truecolor';
+
+    return { ...sanitized, ...extra };
+  }
+
+  private ensureDefaultShellAllowed(): void {
+    if (!this.config.allowedShells.length) {
+      return;
+    }
+
+    const normalizedDefault = this.normalizeCommand(this.config.defaultShell);
+    const hasDefault = this.config.allowedShells.some(
+      (allowed) => this.normalizeCommand(allowed) === normalizedDefault
+    );
+
+    if (!hasDefault) {
+      this.config.allowedShells.push(this.config.defaultShell);
+    }
+  }
+
+  // ===========================================================================
   // Messaging
   // ===========================================================================
 
-  private send(ws: WebSocket, message: OutgoingMessage): void {
-    if (ws.readyState === WebSocket.OPEN) {
+  private send(ws: WebSocketClient, message: TerminalOutgoingMessage): void {
+    if (ws.readyState === WS.OPEN) {
       ws.send(JSON.stringify(message));
     }
   }
 
-  private sendError(ws: WebSocket, sessionId: string, error: string): void {
+  private sendError(ws: WebSocketClient, sessionId: string, error: string): void {
     this.send(ws, { type: 'error', sessionId, payload: error });
   }
 
-  private broadcast(sessionId: string, message: OutgoingMessage): void {
+  private broadcast(sessionId: string, message: TerminalOutgoingMessage): void {
     if (!this.wss) return;
 
-    this.wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
+    this.wss.clients.forEach((client: WebSocketClient) => {
+      if (client.readyState === WS.OPEN) {
         // Send to all clients that have this session
         const clientSessionIds = this.clientSessions.get(client);
         if (clientSessionIds?.has(sessionId)) {
@@ -345,8 +519,8 @@ export class TerminalPTYServer {
 
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(() => {
-      this.wss?.clients.forEach((ws) => {
-        if (ws.readyState === WebSocket.OPEN) {
+      this.wss?.clients.forEach((ws: WebSocketClient) => {
+        if (ws.readyState === WS.OPEN) {
           ws.ping();
         }
       });

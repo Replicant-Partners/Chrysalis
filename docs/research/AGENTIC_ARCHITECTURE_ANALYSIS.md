@@ -757,7 +757,7 @@ function resolveImplementation(
 **Rationale**: Agents must adapt to deployment contexts without losing information.
 
 ```
-UniformSemanticAgent (Canonical)
+SemanticAgent (Canonical)
     ↓
 ┌───────────┬───────────┬───────────┐
 │    MCP    │Multi-Agent│Orchestrated│
@@ -886,9 +886,9 @@ interface CalibrationMetrics {
 
 ```typescript
 interface AgentAdapter {
-  morph(agent: UniformSemanticAgent, targetType: string): MorphedAgent;
-  restore(morphed: MorphedAgent, shadow: ShadowFields): UniformSemanticAgent;
-  validate(agent: UniformSemanticAgent): ValidationResult;
+  morph(agent: SemanticAgent, targetType: string): MorphedAgent;
+  restore(morphed: MorphedAgent, shadow: ShadowFields): SemanticAgent;
+  validate(agent: SemanticAgent): ValidationResult;
 }
 ```
 
@@ -1029,7 +1029,7 @@ The agent framework landscape is fragmenting rapidly:
 **Impact**: Agents must morph between frameworks without information loss.
 
 **Mitigation Strategy**: 
-- Establish canonical agent representation (UniformSemanticAgent)
+- Establish canonical agent representation (SemanticAgent)
 - Implement lossless morphing with shadow fields
 - Maintain bidirectional adapters for each framework
 - Test round-trip fidelity continuously
@@ -1427,7 +1427,7 @@ Current architectures have scaling limits:
 
 | Term | Definition |
 |------|------------|
-| **Agent** | Autonomous process with cryptographic identity implementing UniformSemanticAgent schema |
+| **Agent** | Autonomous process with cryptographic identity implementing SemanticAgent schema |
 | **Bead** | Short-term memory unit; append-only text blob with metadata |
 | **Byzantine Resistance** | Ability to reach consensus despite malicious or faulty agents (2/3 supermajority) |
 | **CRDT** | Conflict-free Replicated Data Type; enables merge without coordination |

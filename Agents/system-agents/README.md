@@ -10,11 +10,11 @@ flowchart TB
         PR[Prompt Registry]
         CR[Complexity Router]
         LA[LLM Adapter]
-        
+
         PR --> CR
         CR --> LA
     end
-    
+
     subgraph H2[Horizontal 2: System Agents Layer]
         subgraph Personas[Evaluation Personas]
             ADA[Ada: Algorithmic Architect]
@@ -22,38 +22,38 @@ flowchart TB
             PHIL[Phil: Forecast Analyst]
             DAVID[David: Metacognitive Guardian]
         end
-        
+
         subgraph Prompts[Prompt Sets]
             ADA_P[Structure Evaluation]
             LEA_P[Implementation Review]
             PHIL_P[Forecast Analysis]
             DAVID_P[Metacognitive Audit]
         end
-        
+
         EC[Evaluation Coordinator]
         REG[Prompt Registry H2]
     end
-    
+
     subgraph Memory[Memory System]
         BEADS[Beads Service]
         FP[Fireproof Service]
         ZEP[Zep Hooks]
     end
-    
+
     H1 --> H2
     ADA --> ADA_P
     LEA --> LEA_P
     PHIL --> PHIL_P
     DAVID --> DAVID_P
-    
+
     ADA_P --> EC
     LEA_P --> EC
     PHIL_P --> EC
     DAVID_P --> EC
-    
+
     EC --> REG
     REG --> LA
-    
+
     Personas --> Memory
 ```
 
@@ -62,13 +62,13 @@ flowchart TB
 ```mermaid
 flowchart LR
     INPUT[Artifact Input] --> ADA
-    
+
     ADA[Ada] --> |structural analysis| LEA[Lea]
     LEA --> |implementation review| PHIL[Phil]
     PHIL --> |probability estimates| DAVID[David]
-    
+
     DAVID --> |metacognitive audit| OUTPUT[Coordinated Output]
-    
+
     DAVID -.-> |monitors| ADA
     DAVID -.-> |monitors| LEA
     DAVID -.-> |monitors| PHIL
@@ -103,6 +103,13 @@ flowchart LR
 - **Key Prompts**: METACOGNITIVE_AUDIT_PROMPT, BIAS_DETECTION_PROMPT
 - **Memory**: `chrysalis_david` database
 
+### Milton (Ops Caretaker)
+- **Role**: System operations, telemetry monitoring, drift detection, and safe configuration management
+- **Model Tier**: Local SLM (Qwen/Gemma) - escalates to hybrid for complex analysis
+- **Key Prompts**: OPS_HEALTH_CHECK_PROMPT, DRIFT_DETECTION_PROMPT, CONFIG_CHANGE_PROPOSAL_PROMPT, ROOT_CAUSE_ANALYSIS_PROMPT
+- **Memory**: `chrysalis_milton` database
+- **Special**: Uses Five Whys methodology; always provides rollback plans; inspired by Milton Waddams from Office Space - the quiet critical infrastructure that everyone overlooks 🔥
+
 ## Directory Structure
 
 ```
@@ -120,7 +127,8 @@ Agents/system-agents/
 │   ├── ada_evaluation_prompts.json    # Ada's prompt templates
 │   ├── lea_evaluation_prompts.json    # Lea's prompt templates
 │   ├── phil_evaluation_prompts.json   # Phil's prompt templates
-│   └── david_evaluation_prompts.json  # David's prompt templates
+│   ├── david_evaluation_prompts.json  # David's prompt templates
+│   └── milton_evaluation_prompts.json # Milton's ops prompt templates
 │
 └── schemas/
     ├── system-agent.schema.json       # Persona config schema
@@ -190,18 +198,18 @@ flowchart TB
         PHIL_MEM[chrysalis_phil]
         DAVID_MEM[chrysalis_david]
     end
-    
+
     subgraph Shared[Shared Memory]
         EVAL_HIST[evaluation_history]
         PATTERNS[pattern_catalog]
     end
-    
+
     subgraph Services[Memory Services]
         BEADS[Beads Service]
         FP[Fireproof Service]
         ZEP[Zep Hooks]
     end
-    
+
     PerPersona --> Services
     Services --> Shared
 ```
@@ -280,6 +288,7 @@ Personas can be accessed via chat panes configured in [`routing_config.json`](./
 - **@lea** - Code review
 - **@phil** - Probability assessment
 - **@david** - Bias check
+- **@milton** - Ops & maintenance
 - **@evaluate** - Full pipeline
 
 ## Version History

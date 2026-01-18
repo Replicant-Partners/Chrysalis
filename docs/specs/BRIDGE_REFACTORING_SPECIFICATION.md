@@ -18,7 +18,7 @@ This specification documents the identified refactoring opportunities for the Ch
 | Component | File | Lines | Status | Notes |
 |-----------|------|-------|--------|-------|
 | Base Adapter | `src/adapters/base-adapter.ts` | ~600 | Complete | Template method pattern |
-| USA Adapter | `src/adapters/usa-adapter.ts` | ~450 | Complete | Native Chrysalis format |
+| SemanticAgent Adapter | `src/adapters/usa-adapter.ts` | ~450 | Complete | Native Chrysalis format |
 | LMOS Adapter | `src/adapters/lmos-adapter.ts` | ~500 | Complete | Eclipse LMOS protocol |
 | MCP Adapter | `src/adapters/mcp-adapter.ts` | ~400 | Complete | Model Context Protocol |
 | LangChain Adapter | `src/adapters/langchain-adapter.ts` | ~400 | Complete | LangChain agents |
