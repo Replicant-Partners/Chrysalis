@@ -1,0 +1,38 @@
+{
+  "rubricId": "kata_v1",
+  "scale": "0-5",
+  "categories": {
+    "logic": {
+      "weight": 1,
+      "description": "Internal consistency, correct reasoning steps, no contradictions."
+    },
+    "semantics": {
+      "weight": 1,
+      "description": "Uses correct domain terms and registry IDs; meaning preserved."
+    },
+    "process_adherence": {
+      "weight": 1,
+      "description": "Follows required output schema and mode-specific steps."
+    },
+    "metacognition": {
+      "weight": 1,
+      "description": "Includes self-check, notes assumptions/risks."
+    },
+    "accuracy": {
+      "weight": 1,
+      "description": "Matches expected numeric values and classifications within tolerance."
+    },
+    "response_time": {
+      "weight": 1,
+      "description": "Latency in ms; lower is better."
+    }
+  },
+  "response_time_scoring_ms": {
+    "thresholds": [1000, 3000, 8000, 15000, 30000],
+    "scores": [5, 4, 3, 2, 1, 0]
+  },
+  "accuracy_tolerance": {
+    "numeric_abs": 0.05,
+    "numeric_pct": 0.5
+  }
+}

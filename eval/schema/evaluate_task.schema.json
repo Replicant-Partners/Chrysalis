@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Universal Adapter Evaluate Task (Chrysalis Eval Suite)",
+  "type": "object",
+  "required": ["type", "prompt", "model"],
+  "properties": {
+    "type": {"const": "evaluate"},
+    "id": {"type": "string"},
+    "name": {"type": "string"},
+    "prompt": {"type": "string"},
+    "model": {
+      "type": "object",
+      "required": ["provider", "name"],
+      "properties": {
+        "provider": {"type": "string"},
+        "name": {"type": "string"},
+        "endpoint": {"type": "string"},
+        "apiKey": {"type": "string"},
+        "apiKeyEnv": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "temperature": {"type": "number"},
+        "maxTokens": {"type": "number"},
+        "topP": {"type": "number"},
+        "stopSequences": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "options": {
+      "type": "object",
+      "properties": {
+        "outputPath": {"type": "string"},
+        "includeMetadata": {"type": "boolean"},
+        "timeoutMs": {"type": "number"}
+      },
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "mode": {"type": "string"},
+        "promptId": {"type": "string"},
+        "rubricId": {"type": "string"},
+        "expected": {"type": "object"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

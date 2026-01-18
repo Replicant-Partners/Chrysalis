@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Universal Adapter Batch Task (Chrysalis Eval Suite)",
+  "type": "object",
+  "required": ["type", "tasks"],
+  "properties": {
+    "type": {"const": "batch"},
+    "id": {"type": "string"},
+    "name": {"type": "string"},
+    "stopOnError": {"type": "boolean"},
+    "metadata": {"type": "object"},
+    "tasks": {
+      "type": "array",
+      "items": {"$ref": "evaluate_task.schema.json"}
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "notes": "Model identifiers and endpoints may need adjustment to match your providers.",
+  "models": [
+    {
+      "id": "anthropic_sonnet_4_5",
+      "displayName": "Sonnet 4.5",
+      "provider": "anthropic",
+      "name": "sonnet-4.5",
+      "apiKeyEnv": "ANTHROPIC_API_KEY"
+    },
+    {
+      "id": "anthropic_opus_4_5",
+      "displayName": "Opus 4.5",
+      "provider": "anthropic",
+      "name": "opus-4.5",
+      "apiKeyEnv": "ANTHROPIC_API_KEY"
+    },
+    {
+      "id": "openai_gpt_5_2_codex",
+      "displayName": "OpenAI GPT-5.2 Codex",
+      "provider": "openai",
+      "name": "gpt-5.2-codex",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    },
+    {
+      "id": "openai_gpt_5_2",
+      "displayName": "OpenAI GPT-5.2",
+      "provider": "openai",
+      "name": "gpt-5.2",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    },
+    {
+      "id": "z_ai_glm_4_7",
+      "displayName": "Z.ai GLM-4.7",
+      "provider": "openai",
+      "name": "glm-4.7",
+      "endpoint": "https://api.z.ai/v1",
+      "apiKeyEnv": "ZAI_API_KEY",
+      "providerNotes": "Requires OpenAI-compatible endpoint. Update endpoint as needed."
+    },
+    {
+      "id": "mistral_top_thinking_latest",
+      "displayName": "Mistral Top-Thinking Latest",
+      "provider": "openai",
+      "name": "mistral-large-latest",
+      "endpoint": "https://api.mistral.ai/v1",
+      "apiKeyEnv": "MISTRAL_API_KEY",
+      "providerNotes": "Verify model id for the latest top-thinking variant."
+    }
+  ]
+}

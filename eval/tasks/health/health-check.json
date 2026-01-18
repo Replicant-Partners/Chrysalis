@@ -1,0 +1,24 @@
+{
+  "type": "evaluate",
+  "name": "Health check (sammcj/functionary-small-v3.2:q6_k)",
+  "prompt": "HEALTH CHECK\nRespond with a single JSON object: {\"ok\": true, \"model\": \"<model_name>\"}.\nNo extra text.\n",
+  "model": {
+    "provider": "ollama",
+    "name": "sammcj/functionary-small-v3.2:q6_k"
+  },
+  "parameters": {
+    "temperature": 0.0,
+    "maxTokens": 128,
+    "topP": 1.0
+  },
+  "options": {
+    "outputPath": "results/eval-suite/responses/health/health-check.md",
+    "includeMetadata": true,
+    "timeoutMs": 20000
+  },
+  "metadata": {
+    "mode": "health",
+    "promptId": "health_check",
+    "rubricId": "kata_v1"
+  }
+}

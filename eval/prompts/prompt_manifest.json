@@ -1,0 +1,95 @@
+{
+  "version": "1.0",
+  "suite": "kata_eval_v1",
+  "prompts": [
+    {
+      "id": "mode1_manager",
+      "mode": "mode1",
+      "title": "Mode 1 Manager",
+      "file": "eval/prompts/mode1_manager.md",
+      "rubricId": "kata_v1",
+      "expected": {
+        "metrics": {
+          "avg_cycle_time_days": 8.58,
+          "cycle_time_gap_days": 2.58,
+          "cycle_time_reduction_pct": 30.07,
+          "pr_review_gap_hours": 24.0,
+          "wip_gap": 3.0,
+          "defect_gap_pct": 1.4
+        },
+        "required_experiments": 1
+      }
+    },
+    {
+      "id": "mode2_process_analyst",
+      "mode": "mode2",
+      "title": "Mode 2 Process Analyst",
+      "file": "eval/prompts/mode2_process_analyst.md",
+      "rubricId": "kata_v1",
+      "expected": {
+        "registry_status": {
+          "GH-1": "pass",
+          "GH-2": "fail",
+          "GH-3": "pass",
+          "GH-4": "fail",
+          "GH-5": "pass",
+          "GH-6": "fail"
+        },
+        "dora_classification": {
+          "DORA-1": "medium",
+          "DORA-2": "low",
+          "DORA-3": "high"
+        },
+        "compliance_score_pct": 50,
+        "process_quality_rating": "medium"
+      }
+    },
+    {
+      "id": "mode3_root_cause",
+      "mode": "mode3",
+      "title": "Mode 3 Root Cause",
+      "file": "eval/prompts/mode3_root_cause.md",
+      "rubricId": "kata_v1",
+      "expected": {
+        "why_chain_length": 5,
+        "adjacent_registry_min": 2
+      }
+    },
+    {
+      "id": "mode4_complex_learner",
+      "mode": "mode4",
+      "title": "Mode 4 Complex Learner",
+      "file": "eval/prompts/mode4_complex_learner.md",
+      "rubricId": "kata_v1",
+      "expected": {
+        "required_prompt_updates": ["mode1_manager", "mode2_process_analyst"],
+        "process_updates_min": 1
+      }
+    },
+    {
+      "id": "mode_combined",
+      "mode": "combined",
+      "title": "Combined Modes",
+      "file": "eval/prompts/mode_combined.md",
+      "rubricId": "kata_v1",
+      "expected": {
+        "mode1_metrics": {
+          "avg_cycle_time_days": 8.58,
+          "cycle_time_gap_days": 2.58,
+          "cycle_time_reduction_pct": 30.07,
+          "pr_review_gap_hours": 24.0,
+          "wip_gap": 3.0,
+          "defect_gap_pct": 1.4
+        },
+        "mode2_registry_status": {
+          "GH-1": "pass",
+          "GH-2": "fail",
+          "GH-3": "pass",
+          "GH-4": "fail",
+          "GH-5": "pass",
+          "GH-6": "fail"
+        }
+      }
+    }
+  ]
+}
