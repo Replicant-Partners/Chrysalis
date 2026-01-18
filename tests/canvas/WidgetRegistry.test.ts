@@ -2,10 +2,15 @@
  * WidgetRegistry Tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { WidgetRegistry, createWidgetRegistry, WidgetRegistryError } from '../../src/canvas/WidgetRegistry';
-import type { WidgetDefinition } from '../../src/canvas/types';
+import type { WidgetDefinition, WidgetNodeData } from '../../src/canvas/types';
 import React from 'react';
+
+// Define a custom widget data type for testing
+interface NoteWidgetData extends WidgetNodeData {
+  text?: string;
+}
 
 describe('WidgetRegistry', () => {
   let registry: WidgetRegistry;
@@ -85,7 +90,7 @@ describe('WidgetRegistry', () => {
 
   describe('createDefaultData', () => {
     it('should create data with default values', () => {
-      const definition: WidgetDefinition = {
+      const definition: WidgetDefinition<NoteWidgetData> = {
         type: 'note',
         displayName: 'Note',
         renderer: () => React.createElement('div'),
@@ -95,7 +100,7 @@ describe('WidgetRegistry', () => {
 
       registry.register(definition);
       const data = registry.createDefaultData('note');
-      
+
       expect(data.type).toBe('note');
       expect(data.label).toBe('Note');
       expect(data).toHaveProperty('text', 'Default text');
