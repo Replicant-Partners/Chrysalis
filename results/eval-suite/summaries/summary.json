@@ -1,110 +1,25 @@
 {
   "runs": [
     {
-      "model": "Sonnet 3.7",
-      "run_file": "results/eval-suite/runs/anthropic_sonnet_3_7.result.json",
+      "model": "Opus 4.5",
+      "run_file": "results/eval-suite/runs/anthropic_opus_4_5.result.json",
       "tasks": [
         {
           "promptId": "mode1_manager",
-          "latencyMs": 397,
-          "scores": {
-            "logic": 1,
-            "semantics": 2,
-            "process_adherence": 2,
-            "metacognition": 0,
-            "accuracy": 0.0,
-            "response_time": 5
-          },
-          "responseParsed": false
-        },
-        {
-          "promptId": "mode2_process_analyst",
-          "latencyMs": 141,
-          "scores": {
-            "logic": 2,
-            "semantics": 2,
-            "process_adherence": 3,
-            "metacognition": 0,
-            "accuracy": 0.0,
-            "response_time": 5
-          },
-          "responseParsed": false
-        },
-        {
-          "promptId": "mode3_root_cause",
-          "latencyMs": 133,
-          "scores": {
-            "logic": 2,
-            "semantics": 2,
-            "process_adherence": 2,
-            "metacognition": 0,
-            "accuracy": 2,
-            "response_time": 5
-          },
-          "responseParsed": false
-        },
-        {
-          "promptId": "mode4_complex_learner",
-          "latencyMs": 130,
-          "scores": {
-            "logic": 2,
-            "semantics": 2,
-            "process_adherence": 2,
-            "metacognition": 0,
-            "accuracy": 2,
-            "response_time": 5
-          },
-          "responseParsed": false
-        },
-        {
-          "promptId": "mode_combined",
-          "latencyMs": 172,
-          "scores": {
-            "logic": 1.5,
-            "semantics": 2.0,
-            "process_adherence": 2.5,
-            "metacognition": 0.0,
-            "accuracy": 0.0,
-            "response_time": 5
-          },
-          "responseParsed": false
-        }
-      ],
-      "summary": {
-        "logic": 1.7,
-        "semantics": 2.0,
-        "process_adherence": 2.3,
-        "metacognition": 0.0,
-        "accuracy": 0.8,
-        "response_time": 5.0
-      }
-    },
-    {
-      "model": "health-check",
-      "run_file": "results/eval-suite/runs/health-check.json",
-      "tasks": [],
-      "summary": {}
-    },
-    {
-      "model": "OpenAI GPT-5",
-      "run_file": "results/eval-suite/runs/openai_gpt_5.result.json",
-      "tasks": [
-        {
-          "promptId": "mode1_manager",
-          "latencyMs": 27280,
+          "latencyMs": 13163,
           "scores": {
             "logic": 5,
             "semantics": 4,
             "process_adherence": 5,
             "metacognition": 5,
             "accuracy": 5.0,
-            "response_time": 1
+            "response_time": 2
           },
           "responseParsed": true
         },
         {
           "promptId": "mode2_process_analyst",
-          "latencyMs": 13866,
+          "latencyMs": 8637,
           "scores": {
             "logic": 4,
             "semantics": 5,
@@ -117,7 +32,165 @@
         },
         {
           "promptId": "mode3_root_cause",
-          "latencyMs": 24517,
+          "latencyMs": 13684,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode4_complex_learner",
+          "latencyMs": 21499,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 1
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode_combined",
+          "latencyMs": 38336,
+          "scores": {
+            "logic": 1.5,
+            "semantics": 2.0,
+            "process_adherence": 2,
+            "metacognition": 0.0,
+            "accuracy": 0.0,
+            "response_time": 0
+          },
+          "responseParsed": false
+        }
+      ],
+      "summary": {
+        "logic": 3.7,
+        "semantics": 3.8,
+        "process_adherence": 4.4,
+        "metacognition": 4.0,
+        "accuracy": 4.0,
+        "response_time": 1.4
+      }
+    },
+    {
+      "model": "Sonnet 3.7",
+      "run_file": "results/eval-suite/runs/anthropic_sonnet_3_7.result.json",
+      "tasks": [
+        {
+          "promptId": "mode1_manager",
+          "latencyMs": 11970,
+          "scores": {
+            "logic": 5,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode2_process_analyst",
+          "latencyMs": 8958,
+          "scores": {
+            "logic": 4,
+            "semantics": 5,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode3_root_cause",
+          "latencyMs": 14231,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode4_complex_learner",
+          "latencyMs": 15679,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 1
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode_combined",
+          "latencyMs": 24759,
+          "scores": {
+            "logic": 4.5,
+            "semantics": 3.0,
+            "process_adherence": 4.0,
+            "metacognition": 0.0,
+            "accuracy": 2.5,
+            "response_time": 1
+          },
+          "responseParsed": true
+        }
+      ],
+      "summary": {
+        "logic": 4.3,
+        "semantics": 4.0,
+        "process_adherence": 4.8,
+        "metacognition": 4.0,
+        "accuracy": 4.5,
+        "response_time": 1.6
+      }
+    },
+    {
+      "model": "Sonnet 4.5",
+      "run_file": "results/eval-suite/runs/anthropic_sonnet_4_5.result.json",
+      "tasks": [
+        {
+          "promptId": "mode1_manager",
+          "latencyMs": 17609,
+          "scores": {
+            "logic": 5,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 1
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode2_process_analyst",
+          "latencyMs": 14019,
+          "scores": {
+            "logic": 4,
+            "semantics": 5,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode3_root_cause",
+          "latencyMs": 15785,
           "scores": {
             "logic": 4,
             "semantics": 4,
@@ -130,7 +203,171 @@
         },
         {
           "promptId": "mode4_complex_learner",
-          "latencyMs": 43266,
+          "latencyMs": 23841,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 1
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode_combined",
+          "latencyMs": 23447,
+          "scores": {
+            "logic": 1.5,
+            "semantics": 2.0,
+            "process_adherence": 2,
+            "metacognition": 0.0,
+            "accuracy": 0.0,
+            "response_time": 1
+          },
+          "responseParsed": false
+        }
+      ],
+      "summary": {
+        "logic": 3.7,
+        "semantics": 3.8,
+        "process_adherence": 4.4,
+        "metacognition": 4.0,
+        "accuracy": 4.0,
+        "response_time": 1.2
+      }
+    },
+    {
+      "model": "health-check",
+      "run_file": "results/eval-suite/runs/health-check.json",
+      "tasks": [],
+      "summary": {}
+    },
+    {
+      "model": "Mistral Top-Thinking Latest",
+      "run_file": "results/eval-suite/runs/mistral_top_thinking_latest.result.json",
+      "tasks": [
+        {
+          "promptId": "mode1_manager",
+          "latencyMs": 10947,
+          "scores": {
+            "logic": 5,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode2_process_analyst",
+          "latencyMs": 10712,
+          "scores": {
+            "logic": 4,
+            "semantics": 5,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode3_root_cause",
+          "latencyMs": 9399,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode4_complex_learner",
+          "latencyMs": 12405,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode_combined",
+          "latencyMs": 27624,
+          "scores": {
+            "logic": 4.5,
+            "semantics": 3.0,
+            "process_adherence": 4.0,
+            "metacognition": 0.0,
+            "accuracy": 2.5,
+            "response_time": 1
+          },
+          "responseParsed": true
+        }
+      ],
+      "summary": {
+        "logic": 4.3,
+        "semantics": 4.0,
+        "process_adherence": 4.8,
+        "metacognition": 4.0,
+        "accuracy": 4.5,
+        "response_time": 1.8
+      }
+    },
+    {
+      "model": "OpenAI GPT-5",
+      "run_file": "results/eval-suite/runs/openai_gpt_5.result.json",
+      "tasks": [
+        {
+          "promptId": "mode1_manager",
+          "latencyMs": 37889,
+          "scores": {
+            "logic": 5,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 0
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode2_process_analyst",
+          "latencyMs": 19768,
+          "scores": {
+            "logic": 4,
+            "semantics": 5,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 1
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode3_root_cause",
+          "latencyMs": 23509,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 1
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode4_complex_learner",
+          "latencyMs": 37615,
           "scores": {
             "logic": 4,
             "semantics": 4,
@@ -143,7 +380,7 @@
         },
         {
           "promptId": "mode_combined",
-          "latencyMs": 45480,
+          "latencyMs": 53238,
           "scores": {
             "logic": 4.5,
             "semantics": 3.0,
@@ -161,7 +398,165 @@
         "process_adherence": 4.8,
         "metacognition": 4.0,
         "accuracy": 4.5,
-        "response_time": 0.8
+        "response_time": 0.4
+      }
+    },
+    {
+      "model": "OpenAI GPT-5.2",
+      "run_file": "results/eval-suite/runs/openai_gpt_5_2.result.json",
+      "tasks": [
+        {
+          "promptId": "mode1_manager",
+          "latencyMs": 9993,
+          "scores": {
+            "logic": 5,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode2_process_analyst",
+          "latencyMs": 7014,
+          "scores": {
+            "logic": 4,
+            "semantics": 5,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 3
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode3_root_cause",
+          "latencyMs": 14144,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode4_complex_learner",
+          "latencyMs": 16176,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 1
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode_combined",
+          "latencyMs": 34790,
+          "scores": {
+            "logic": 4.5,
+            "semantics": 3.0,
+            "process_adherence": 4.0,
+            "metacognition": 0.0,
+            "accuracy": 2.5,
+            "response_time": 0
+          },
+          "responseParsed": true
+        }
+      ],
+      "summary": {
+        "logic": 4.3,
+        "semantics": 4.0,
+        "process_adherence": 4.8,
+        "metacognition": 4.0,
+        "accuracy": 4.5,
+        "response_time": 1.6
+      }
+    },
+    {
+      "model": "OpenAI GPT-5.2 Codex",
+      "run_file": "results/eval-suite/runs/openai_gpt_5_2_codex.result.json",
+      "tasks": [
+        {
+          "promptId": "mode1_manager",
+          "latencyMs": 11604,
+          "scores": {
+            "logic": 5,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode2_process_analyst",
+          "latencyMs": 8977,
+          "scores": {
+            "logic": 4,
+            "semantics": 5,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode3_root_cause",
+          "latencyMs": 9717,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode4_complex_learner",
+          "latencyMs": 10340,
+          "scores": {
+            "logic": 4,
+            "semantics": 4,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5,
+            "response_time": 2
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode_combined",
+          "latencyMs": 23960,
+          "scores": {
+            "logic": 4.5,
+            "semantics": 3.0,
+            "process_adherence": 4.0,
+            "metacognition": 0.0,
+            "accuracy": 2.5,
+            "response_time": 1
+          },
+          "responseParsed": true
+        }
+      ],
+      "summary": {
+        "logic": 4.3,
+        "semantics": 4.0,
+        "process_adherence": 4.8,
+        "metacognition": 4.0,
+        "accuracy": 4.5,
+        "response_time": 1.8
       }
     },
     {
@@ -170,7 +565,7 @@
       "tasks": [
         {
           "promptId": "mode1_manager",
-          "latencyMs": 2,
+          "latencyMs": 3,
           "scores": {
             "logic": 1,
             "semantics": 2,
@@ -183,7 +578,7 @@
         },
         {
           "promptId": "mode2_process_analyst",
-          "latencyMs": 0,
+          "latencyMs": 1,
           "scores": {
             "logic": 2,
             "semantics": 2,
@@ -196,7 +591,7 @@
         },
         {
           "promptId": "mode3_root_cause",
-          "latencyMs": 2,
+          "latencyMs": 1,
           "scores": {
             "logic": 2,
             "semantics": 2,
@@ -209,7 +604,7 @@
         },
         {
           "promptId": "mode4_complex_learner",
-          "latencyMs": 1,
+          "latencyMs": 0,
           "scores": {
             "logic": 2,
             "semantics": 2,
@@ -226,7 +621,7 @@
           "scores": {
             "logic": 1.5,
             "semantics": 2.0,
-            "process_adherence": 2.5,
+            "process_adherence": 2,
             "metacognition": 0.0,
             "accuracy": 0.0,
             "response_time": 5
@@ -237,19 +632,98 @@
       "summary": {
         "logic": 1.7,
         "semantics": 2.0,
-        "process_adherence": 2.3,
+        "process_adherence": 2.2,
         "metacognition": 0.0,
         "accuracy": 0.8,
         "response_time": 5.0
       }
+    },
+    {
+      "model": "Z.ai GLM-4.7",
+      "run_file": "results/eval-suite/runs/z_ai_glm_4_7.result.json",
+      "tasks": [
+        {
+          "promptId": "mode1_manager",
+          "latencyMs": 29912,
+          "scores": {
+            "logic": 1,
+            "semantics": 2,
+            "process_adherence": 2,
+            "metacognition": 0,
+            "accuracy": 0.0,
+            "response_time": 1
+          },
+          "responseParsed": false
+        },
+        {
+          "promptId": "mode2_process_analyst",
+          "latencyMs": 35178,
+          "scores": {
+            "logic": 4,
+            "semantics": 5,
+            "process_adherence": 5,
+            "metacognition": 5,
+            "accuracy": 5.0,
+            "response_time": 0
+          },
+          "responseParsed": true
+        },
+        {
+          "promptId": "mode3_root_cause",
+          "latencyMs": 51065,
+          "scores": {
+            "logic": 2,
+            "semantics": 2,
+            "process_adherence": 2,
+            "metacognition": 0,
+            "accuracy": 2,
+            "response_time": 0
+          },
+          "responseParsed": false
+        },
+        {
+          "promptId": "mode4_complex_learner",
+          "latencyMs": 36319,
+          "scores": {
+            "logic": 2,
+            "semantics": 2,
+            "process_adherence": 2,
+            "metacognition": 0,
+            "accuracy": 2,
+            "response_time": 0
+          },
+          "responseParsed": false
+        },
+        {
+          "promptId": "mode_combined",
+          "latencyMs": 30411,
+          "scores": {
+            "logic": 1.5,
+            "semantics": 2.0,
+            "process_adherence": 2,
+            "metacognition": 0.0,
+            "accuracy": 0.0,
+            "response_time": 0
+          },
+          "responseParsed": false
+        }
+      ],
+      "summary": {
+        "logic": 2.1,
+        "semantics": 2.6,
+        "process_adherence": 2.6,
+        "metacognition": 1.0,
+        "accuracy": 1.8,
+        "response_time": 0.2
+      }
     }
   ],
   "overall": {
-    "logic": 2.57,
-    "semantics": 2.67,
-    "process_adherence": 3.13,
-    "metacognition": 1.33,
-    "accuracy": 2.03,
-    "response_time": 3.6
+    "logic": 3.63,
+    "semantics": 3.58,
+    "process_adherence": 4.18,
+    "metacognition": 3.22,
+    "accuracy": 3.68,
+    "response_time": 1.67
   }
 }

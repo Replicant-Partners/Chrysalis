@@ -1,0 +1,275 @@
+{
+  "taskId": "task_1768743850994_9y9fs1jx5",
+  "taskType": "batch",
+  "taskName": "Kata evaluation suite (Z.ai GLM-4.7)",
+  "success": true,
+  "result": [
+    {
+      "taskId": "task_1768743850994_zmmkgzxr4",
+      "taskType": "evaluate",
+      "taskName": "Mode 1 Manager (Z.ai GLM-4.7)",
+      "success": true,
+      "result": {
+        "response": "",
+        "tokensIn": 4771,
+        "tokensOut": 1600,
+        "latencyMs": 29912,
+        "finishReason": "length",
+        "model": "z-ai/glm-4.7",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:44:10.994Z",
+        "endTime": "2026-01-18T13:44:40.910Z",
+        "durationMs": 29916,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 6371
+      },
+      "metadata": {
+        "mode": "mode1",
+        "promptId": "mode1_manager",
+        "rubricId": "kata_v1",
+        "expected": {
+          "metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "required_experiments": 1
+        },
+        "modelDisplayName": "Z.ai GLM-4.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:44:10.994Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768743880910_j5yakaokt",
+      "taskType": "evaluate",
+      "taskName": "Mode 2 Process Analyst (Z.ai GLM-4.7)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode2_process_analyst\",\n  \"registry_checks\": [\n    {\"registry_id\": \"GH-1\", \"status\": \"pass\", \"evidence\": \"PR template present\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-2\", \"status\": \"fail\", \"evidence\": \"Review time 48h > 24h limit\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-3\", \"status\": \"pass\", \"evidence\": \"Required checks on main\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-4\", \"status\": \"fail\", \"evidence\": \"CODEOWNERS file missing\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-5\", \"status\": \"pass\", \"evidence\": \"No direct push enabled\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-6\", \"status\": \"fail\", \"evidence\": \"Triage is ad hoc\", \"recommendation\": \"\"}\n  ],\n  \"dora_classification\": {\n    \"DORA-1\": \"medium\",\n    \"DORA-2\": \"low\",\n    \"DORA-3\": \"high\"\n  },\n  \"compliance_score_pct\": 50,\n  \"process_quality_rating\": \"medium\",\n  \"recommendations\": [\n    \"Implement CODEOWNERS for critical paths (GH-4).\",\n    \"Reduce PR review time to under 24 hours (GH-2).\",\n    \"Establish weekly issue triage cadence (GH-6).\",\n    \"Optimize cycle time to below 7 days (DORA-2).\"\n  ],\n  \"self_check\": \"Score 50/100 calculated correctly. DORA classifications match evidence. All constraints met.\"\n}",
+        "tokensIn": 3354,
+        "tokensOut": 2317,
+        "latencyMs": 35178,
+        "finishReason": "stop",
+        "model": "z-ai/glm-4.7",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:44:40.910Z",
+        "endTime": "2026-01-18T13:45:16.089Z",
+        "durationMs": 35179,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5671
+      },
+      "metadata": {
+        "mode": "mode2",
+        "promptId": "mode2_process_analyst",
+        "rubricId": "kata_v1",
+        "expected": {
+          "registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "dora_classification": {
+            "DORA-1": "medium",
+            "DORA-2": "low",
+            "DORA-3": "high"
+          },
+          "compliance_score_pct": 50,
+          "process_quality_rating": "medium"
+        },
+        "modelDisplayName": "Z.ai GLM-4.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:44:40.910Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768743916089_mpge2adt8",
+      "taskType": "evaluate",
+      "taskName": "Mode 3 Root Cause (Z.ai GLM-4.7)",
+      "success": true,
+      "result": {
+        "response": "",
+        "tokensIn": 3700,
+        "tokensOut": 1600,
+        "latencyMs": 51065,
+        "finishReason": "length",
+        "model": "z-ai/glm-4.7",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:45:16.089Z",
+        "endTime": "2026-01-18T13:46:07.155Z",
+        "durationMs": 51066,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5300
+      },
+      "metadata": {
+        "mode": "mode3",
+        "promptId": "mode3_root_cause",
+        "rubricId": "kata_v1",
+        "expected": {
+          "why_chain_length": 5,
+          "adjacent_registry_min": 2
+        },
+        "modelDisplayName": "Z.ai GLM-4.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:45:16.089Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768743967155_ky165049v",
+      "taskType": "evaluate",
+      "taskName": "Mode 4 Complex Learner (Z.ai GLM-4.7)",
+      "success": true,
+      "result": {
+        "response": "",
+        "tokensIn": 4092,
+        "tokensOut": 1600,
+        "latencyMs": 36319,
+        "finishReason": "length",
+        "model": "z-ai/glm-4.7",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:46:07.155Z",
+        "endTime": "2026-01-18T13:46:43.475Z",
+        "durationMs": 36320,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5692
+      },
+      "metadata": {
+        "mode": "mode4",
+        "promptId": "mode4_complex_learner",
+        "rubricId": "kata_v1",
+        "expected": {
+          "required_prompt_updates": [
+            "mode1_manager",
+            "mode2_process_analyst"
+          ],
+          "process_updates_min": 1,
+          "diagram_required": true
+        },
+        "modelDisplayName": "Z.ai GLM-4.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:46:07.155Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768744003475_oax7f2nie",
+      "taskType": "evaluate",
+      "taskName": "Combined Modes (Z.ai GLM-4.7)",
+      "success": true,
+      "result": {
+        "response": "",
+        "tokensIn": 4195,
+        "tokensOut": 1600,
+        "latencyMs": 30411,
+        "finishReason": "length",
+        "model": "z-ai/glm-4.7",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:46:43.475Z",
+        "endTime": "2026-01-18T13:47:13.888Z",
+        "durationMs": 30413,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5795
+      },
+      "metadata": {
+        "mode": "combined",
+        "promptId": "mode_combined",
+        "rubricId": "kata_v1",
+        "expected": {
+          "mode1_metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "mode2_registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "diagram_required": true
+        },
+        "modelDisplayName": "Z.ai GLM-4.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:46:43.475Z",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0
+  },
+  "telemetry": {
+    "startTime": "2026-01-18T13:44:10.994Z",
+    "endTime": "2026-01-18T13:47:13.888Z",
+    "durationMs": 182894,
+    "llmCalls": 5,
+    "cacheHits": {
+      "spec": 0,
+      "mapping": 0
+    },
+    "errors": [],
+    "warnings": []
+  },
+  "metadata": {
+    "suite": "kata_eval_v1",
+    "model": "Z.ai GLM-4.7",
+    "executedAt": "2026-01-18T13:44:10.994Z",
+    "version": "1.0.0"
+  }
+}

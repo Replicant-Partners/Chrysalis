@@ -95,6 +95,8 @@ def score_mode2(response: dict, expected: dict, rubric: dict) -> Tuple[float, fl
     registry_map = {}
     if isinstance(registry_checks, list):
         for item in registry_checks:
+            if not isinstance(item, dict):
+                continue
             rid = item.get("registry_id")
             if rid:
                 registry_map[rid] = item.get("status")

@@ -1,0 +1,275 @@
+{
+  "taskId": "task_1768743786289_nar3tmyjc",
+  "taskType": "batch",
+  "taskName": "Kata evaluation suite (OpenAI GPT-5.2 Codex)",
+  "success": true,
+  "result": [
+    {
+      "taskId": "task_1768743786289_mqr6c95gb",
+      "taskType": "evaluate",
+      "taskName": "Mode 1 Manager (OpenAI GPT-5.2 Codex)",
+      "success": true,
+      "result": {
+        "response": "{\"mode\":\"mode1_manager\",\"metrics\":{\"avg_cycle_time_days\":8.58,\"cycle_time_gap_days\":2.58,\"cycle_time_reduction_pct\":30.03,\"pr_review_gap_hours\":24.0,\"wip_gap\":3.0,\"defect_gap_pct\":1.4},\"target_condition\":{\"cycle_time_days\":6.0,\"pr_review_time_hours\":24,\"wip_avg\":6,\"defect_escape_pct\":2.5},\"experiments\":[{\"id\":\"E1\",\"hypothesis\":\"If we enforce WIP limit 6 with a daily pull policy, cycle time will drop by reducing multitasking.\",\"step\":\"Set board WIP limit to 6 and stop starting new work until a slot opens.\",\"expected_metric_change\":\"Avg WIP <=6; cycle time -0.5 days within 1 week.\",\"timebox_days\":7},{\"id\":\"E2\",\"hypothesis\":\"If we add a daily review rotation and 24h SLA, PR review time will drop to <=24h.\",\"step\":\"Create reviewer rotation and auto-assign; prioritize PRs in daily standup.\",\"expected_metric_change\":\"PR review time <=24h; cycle time -0.3 days.\",\"timebox_days\":7}],\"coach_actions\":[\"Review WIP/aging items daily and unblock fastest.\",\"Track PR aging; escalate any PR >24h.\",\"Verify defect escapes weekly and link to root causes.\",\"Adjust experiments only after timebox ends.\"],\"risks\":[\"WIP limit may create idle time if blockers persist.\",\"Review rotation may reduce deep focus if overused.\",\"Cycle time gains may stall if build failures stay at 92%.\"],\"self_check\":\"Mean=8.58; gap=2.58; reduction=30.03%. PR gap=24; WIP gap=3; defect gap=1.40.\"}",
+        "tokensIn": 5282,
+        "tokensOut": 551,
+        "latencyMs": 11604,
+        "finishReason": "stop",
+        "model": "openai/gpt-5.2-codex",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:43:06.289Z",
+        "endTime": "2026-01-18T13:43:17.896Z",
+        "durationMs": 11607,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5833
+      },
+      "metadata": {
+        "mode": "mode1",
+        "promptId": "mode1_manager",
+        "rubricId": "kata_v1",
+        "expected": {
+          "metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "required_experiments": 1
+        },
+        "modelDisplayName": "OpenAI GPT-5.2 Codex",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:43:06.289Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768743797896_4j6vywop8",
+      "taskType": "evaluate",
+      "taskName": "Mode 2 Process Analyst (OpenAI GPT-5.2 Codex)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode2_process_analyst\",\n  \"registry_checks\": [\n    {\"registry_id\": \"GH-1\", \"status\": \"pass\", \"evidence\": \"PR description template present: yes.\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-2\", \"status\": \"fail\", \"evidence\": \"PR review time is 48 hours; exceeds 24 hours.\", \"recommendation\": \"Reduce review SLAs to <=24h to meet GH-2.\"},\n    {\"registry_id\": \"GH-3\", \"status\": \"pass\", \"evidence\": \"Required checks on main branch: yes.\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-4\", \"status\": \"fail\", \"evidence\": \"CODEOWNERS file present: no.\", \"recommendation\": \"Add CODEOWNERS for critical paths per GH-4.\"},\n    {\"registry_id\": \"GH-5\", \"status\": \"pass\", \"evidence\": \"Branch protection: no direct push enabled.\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-6\", \"status\": \"fail\", \"evidence\": \"Issue triage cadence is ad hoc, not weekly.\", \"recommendation\": \"Establish weekly triage to satisfy GH-6.\"}\n  ],\n  \"dora_classification\": {\n    \"DORA-1\": \"medium\",\n    \"DORA-2\": \"low\",\n    \"DORA-3\": \"high\"\n  },\n  \"compliance_score_pct\": 50,\n  \"process_quality_rating\": \"medium\",\n  \"recommendations\": [\n    \"Enforce <=24h reviews to comply with GH-2 and improve flow.\",\n    \"Add CODEOWNERS for critical paths to meet GH-4.\",\n    \"Set weekly issue triage to satisfy GH-6.\"\n  ],\n  \"self_check\": \"Checked GH-1..GH-6 once each, score uses 3/6 passes, DORA mappings follow given proxies.\"\n}",
+        "tokensIn": 5094,
+        "tokensOut": 552,
+        "latencyMs": 8977,
+        "finishReason": "stop",
+        "model": "openai/gpt-5.2-codex",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:43:17.897Z",
+        "endTime": "2026-01-18T13:43:26.875Z",
+        "durationMs": 8978,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5646
+      },
+      "metadata": {
+        "mode": "mode2",
+        "promptId": "mode2_process_analyst",
+        "rubricId": "kata_v1",
+        "expected": {
+          "registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "dora_classification": {
+            "DORA-1": "medium",
+            "DORA-2": "low",
+            "DORA-3": "high"
+          },
+          "compliance_score_pct": 50,
+          "process_quality_rating": "medium"
+        },
+        "modelDisplayName": "OpenAI GPT-5.2 Codex",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:43:17.897Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768743806875_j34relnsy",
+      "taskType": "evaluate",
+      "taskName": "Mode 3 Root Cause (OpenAI GPT-5.2 Codex)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode3_root_cause\",\n  \"problem_statement\": \"Delivery flow is constrained: defects escape at 3.9% for 3 sprints, reviews take 48h, WIP 9>6, 65% coverage, deploy weekly.\",\n  \"why_chain\": [\n    {\"why\": 1, \"cause\": \"Defects escape and deploys are slow because changes batch up and feedback is delayed.\"},\n    {\"why\": 2, \"cause\": \"Feedback is delayed because PR reviews take ~48h and testing is incomplete.\"},\n    {\"why\": 3, \"cause\": \"Reviews lag and tests are incomplete because WIP is above limit and coverage is 65%.\"},\n    {\"why\": 4, \"cause\": \"WIP stays high because work is pulled without enforcing limits or clear review SLAs.\"},\n    {\"why\": 5, \"cause\": \"There is no explicit flow policy tying WIP limits, review SLAs, and test quality gates to deploy readiness.\"}\n  ],\n  \"root_cause\": \"Lack of explicit flow policy enforcing WIP limits, review SLAs, and test quality gates before deploy.\",\n  \"adjacent_registry_targets\": [\n    {\"name\": \"DORA Metrics v2\", \"reason\": \"Aligns flow and quality signals; helps set targets for lead time, deployment frequency, and change fail rate.\"},\n    {\"name\": \"SPACE Framework\", \"reason\": \"Balances speed with quality and collaboration; useful to tune review SLAs and test coverage focus.\"}\n  ],\n  \"experiments\": [\n    {\"id\": \"E1\", \"hypothesis\": \"Enforcing WIP=6 and a 24h review SLA will reduce review time and batch size.\", \"step\": \"Cap WIP at 6, add daily review swarm, track review aging.\", \"signal\": \"Median review time <24h and WIP <=6 for 2 sprints.\"},\n    {\"id\": \"E2\", \"hypothesis\": \"Raising coverage to 75% on changed code reduces defect escapes.\", \"step\": \"Gate merges on 75% diff coverage and add CI smoke tests.\", \"signal\": \"Defect escape rate drops below 3% over 2 sprints.\"}\n  ],\n  \"self_check\": \"Why chain has 5 steps; root cause matches 5th why; two registries and two experiments provided.\"\n}",
+        "tokensIn": 4855,
+        "tokensOut": 510,
+        "latencyMs": 9717,
+        "finishReason": "stop",
+        "model": "openai/gpt-5.2-codex",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:43:26.875Z",
+        "endTime": "2026-01-18T13:43:36.593Z",
+        "durationMs": 9718,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5365
+      },
+      "metadata": {
+        "mode": "mode3",
+        "promptId": "mode3_root_cause",
+        "rubricId": "kata_v1",
+        "expected": {
+          "why_chain_length": 5,
+          "adjacent_registry_min": 2
+        },
+        "modelDisplayName": "OpenAI GPT-5.2 Codex",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:43:26.875Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768743816594_aw9t6gki9",
+      "taskType": "evaluate",
+      "taskName": "Mode 4 Complex Learner (OpenAI GPT-5.2 Codex)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode4_complex_learner\",\n  \"synthesis\": {\n    \"learning_statement\": \"Review bottlenecks and unbounded WIP are extending cycle time and hiding defects; focus on review flow control and merge hygiene.\",\n    \"top_insights\": [\"Reviews >24h and missing CODEOWNERS drive GH failures and slow flow.\", \"Unbounded WIP masks defects and raises change failure rate.\"],\n    \"priority_constraints\": [\"Keep review turnaround under 24h while limiting queue size.\"],\n    \"risks\": [\"Overly strict WIP limits could stall urgent fixes without an expedite path.\"]\n  },\n  \"prompt_updates\": [\n    {\"prompt_id\": \"mode1_manager\", \"change\": \"Add review-queue WIP limit and expedite lane; track review SLA breaches daily.\", \"rationale\": \"Directly targets review bottleneck and GH-2 failure.\"},\n    {\"prompt_id\": \"mode2_process_analyst\", \"change\": \"Audit CODEOWNERS coverage and weekly triage cadence; tie to DORA lead time and CFR.\", \"rationale\": \"Addresses GH-4/GH-6 gaps and links process to outcomes.\"}\n  ],\n  \"process_updates\": [\n    {\"id\": \"P1\", \"change\": \"Implement review-queue WIP limit with pre-merge checklist for defects and owners.\", \"expected_effect\": \"Reduce review wait, improve merge quality, lower change failure rate.\"}\n  ],\n  \"diagram_mermaid\": \"flowchart LR; A[WIP limit]-->B[Review queue]; B-->C[Checklist]; C-->D[Faster merge]; D-->E[Lower CFR]\",\n  \"learning_metric\": {\"name\": \"Review SLA Compliance\", \"definition\": \"% PRs reviewed within 24h each week.\", \"target\": \">=85% for 4 consecutive weeks\"},\n  \"self_check\": \"Schema met: 2 prompt updates, 1 process update, mermaid <=6 nodes, strings <=160.\"\n}",
+        "tokensIn": 4952,
+        "tokensOut": 420,
+        "latencyMs": 10340,
+        "finishReason": "stop",
+        "model": "openai/gpt-5.2-codex",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:43:36.594Z",
+        "endTime": "2026-01-18T13:43:46.935Z",
+        "durationMs": 10341,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5372
+      },
+      "metadata": {
+        "mode": "mode4",
+        "promptId": "mode4_complex_learner",
+        "rubricId": "kata_v1",
+        "expected": {
+          "required_prompt_updates": [
+            "mode1_manager",
+            "mode2_process_analyst"
+          ],
+          "process_updates_min": 1,
+          "diagram_required": true
+        },
+        "modelDisplayName": "OpenAI GPT-5.2 Codex",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:43:36.594Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768743826935_8mmj1l1as",
+      "taskType": "evaluate",
+      "taskName": "Combined Modes (OpenAI GPT-5.2 Codex)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"combined\",\n  \"mode1\": {\n    \"metrics\": {\n      \"avg_cycle_time_days\": 8.58,\n      \"cycle_time_gap_days\": 2.58,\n      \"cycle_time_reduction_pct\": 30.03,\n      \"pr_review_gap_hours\": 24.0,\n      \"wip_gap\": 3.0,\n      \"defect_gap_pct\": 1.4\n    },\n    \"experiments\": [\n      {\n        \"id\": \"E1\",\n        \"hypothesis\": \"If we enforce WIP<=6 and daily WIP review, cycle time drops by 1.0 day in 2 weeks.\",\n        \"method\": \"Set WIP limit to 6, add 10-min daily WIP check, stop starting new work when limit hit.\",\n        \"measure\": \"Cycle time, WIP average, blocked time.\",\n        \"duration_weeks\": 2\n      },\n      {\n        \"id\": \"E2\",\n        \"hypothesis\": \"If we add PR review rota with 24h SLA, PR review time falls to <=24h.\",\n        \"method\": \"Assign daily reviewer on rotation, use PR template, auto-reminders at 12h.\",\n        \"measure\": \"PR review time, review latency distribution.\",\n        \"duration_weeks\": 2\n      }\n    ],\n    \"coach_actions\": [\n      \"Align on WIP policy and agree a stop-start rule.\",\n      \"Create reviewer rota and monitor SLA adherence daily.\"\n    ],\n    \"risks\": [\n      \"WIP limit may slow throughput if blockers persist.\",\n      \"Reviewer rota may overload key engineers.\"\n    ]\n  },\n  \"mode2\": {\n    \"registry_checks\": [\n      {\"id\": \"GH-1\", \"status\": \"unknown\", \"evidence\": \"No data provided.\"},\n      {\"id\": \"GH-2\", \"status\": \"fail\", \"evidence\": \"PR review time is 48h > 24h.\"},\n      {\"id\": \"GH-3\", \"status\": \"unknown\", \"evidence\": \"Status checks data not provided.\"},\n      {\"id\": \"GH-4\", \"status\": \"unknown\", \"evidence\": \"CODEOWNERS data not provided.\"},\n      {\"id\": \"GH-5\", \"status\": \"unknown\", \"evidence\": \"Protected branch push data not provided.\"},\n      {\"id\": \"GH-6\", \"status\": \"unknown\", \"evidence\": \"Issue triage cadence not provided.\"}\n    ],\n    \"dora_classification\": {\n      \"deployment_frequency\": \"medium\",\n      \"lead_time\": \"low\",\n      \"change_failure_rate\": \"high\"\n    },\n    \"compliance_score_pct\": 0.0,\n    \"process_quality_rating\": \"needs_improvement\"\n  },\n  \"mode3\": {\n    \"why_chain\": [\n      \"Why is cycle time high? PR reviews take 48h.\",\n      \"Why are PR reviews slow? Reviews are queued behind other WIP.\",\n      \"Why is WIP high? Work is started before prior items finish.\",\n      \"Why is starting too early? No enforced WIP limit behavior.\",\n      \"Why no enforcement? Lack of daily WIP visibility and ownership.\"\n    ],\n    \"root_cause\": \"WIP limit not enforced, causing PR queue delays.\",\n    \"adjacent_registry_targets\": [\"Accelerate (DevOps Research)\", \"Google SRE Workbook (change management)\"],\n    \"experiments\": [\n      {\n        \"id\": \"E3\",\n        \"hypothesis\": \"If we add explicit change review checklist, defect escape drops by 0.7%.\",\n        \"method\": \"Add lightweight change checklist to PR template for 2 weeks.\",\n        \"measure\": \"Defect escapes per deployment.\",\n        \"duration_weeks\": 2\n      }\n    ]\n  },\n  \"mode4\": {\n    \"synthesis\": {\n      \"focus\": \"Reduce WIP and PR latency to cut cycle time and defect escapes.\",\n      \"next_target\": \"Cycle time <=7.0 days and PR review <=36h in 2 weeks.\"\n    },\n    \"prompt_updates\": [\n      \"Ask for daily WIP avg, PR review percentile, and blocked time.\",\n      \"Confirm which GH standards are currently enforced.\"\n    ],\n    \"process_updates\": [\n      \"Introduce daily WIP check and stop-start rule.\",\n      \"Create reviewer rota with 24h SLA and reminders.\"\n    ],\n    \"learning_metric\": {\n      \"name\": \"PR_review_time_p50_hours\",\n      \"target\": 24.0\n    }\n  },\n  \"diagram_mermaid\": \"flowchart TD;A[WIP>6]-->B[PR queue];B-->C[Review>24h];C-->D[Cycle time high];D-->E[Experiments];E-->F[Metrics]\",\n  \"self_check\": \"Computed gaps, kept <=2 experiments in Mode1, strings <=160 chars, Mermaid <=6 nodes.\"\n}",
+        "tokensIn": 5340,
+        "tokensOut": 1372,
+        "latencyMs": 23960,
+        "finishReason": "stop",
+        "model": "openai/gpt-5.2-codex",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:43:46.935Z",
+        "endTime": "2026-01-18T13:44:10.897Z",
+        "durationMs": 23962,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 6712
+      },
+      "metadata": {
+        "mode": "combined",
+        "promptId": "mode_combined",
+        "rubricId": "kata_v1",
+        "expected": {
+          "mode1_metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "mode2_registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "diagram_required": true
+        },
+        "modelDisplayName": "OpenAI GPT-5.2 Codex",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:43:46.935Z",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0
+  },
+  "telemetry": {
+    "startTime": "2026-01-18T13:43:06.289Z",
+    "endTime": "2026-01-18T13:44:10.897Z",
+    "durationMs": 64608,
+    "llmCalls": 5,
+    "cacheHits": {
+      "spec": 0,
+      "mapping": 0
+    },
+    "errors": [],
+    "warnings": []
+  },
+  "metadata": {
+    "suite": "kata_eval_v1",
+    "model": "OpenAI GPT-5.2 Codex",
+    "executedAt": "2026-01-18T13:43:06.289Z",
+    "version": "1.0.0"
+  }
+}
