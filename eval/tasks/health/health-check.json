@@ -1,10 +1,10 @@
 {
   "type": "evaluate",
-  "name": "Health check (sammcj/functionary-small-v3.2:q6_k)",
+  "name": "Health check (deepseek-r1:1.5b)",
   "prompt": "HEALTH CHECK\nRespond with a single JSON object: {\"ok\": true, \"model\": \"<model_name>\"}.\nNo extra text.\n",
   "model": {
     "provider": "ollama",
-    "name": "sammcj/functionary-small-v3.2:q6_k"
+    "name": "deepseek-r1:1.5b"
   },
   "parameters": {
     "temperature": 0.0,
@@ -14,7 +14,7 @@
   "options": {
     "outputPath": "results/eval-suite/responses/health/health-check.md",
     "includeMetadata": true,
-    "timeoutMs": 20000
+    "timeoutMs": 90000
   },
   "metadata": {
     "mode": "health",

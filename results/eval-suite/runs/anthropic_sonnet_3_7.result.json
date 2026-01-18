@@ -1,0 +1,275 @@
+{
+  "taskId": "task_1768741740395_ogk6abyhc",
+  "taskType": "batch",
+  "taskName": "Kata evaluation suite (Sonnet 3.7)",
+  "success": true,
+  "result": [
+    {
+      "taskId": "task_1768741740395_d5d8g1yrg",
+      "taskType": "evaluate",
+      "taskName": "Mode 1 Manager (Sonnet 3.7)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode1_manager\",\n  \"metrics\": {\n    \"avg_cycle_time_days\": 8.58,\n    \"cycle_time_gap_days\": 2.58,\n    \"cycle_time_reduction_pct\": 30.07,\n    \"pr_review_gap_hours\": 24,\n    \"wip_gap\": 3,\n    \"defect_gap_pct\": 1.4\n  },\n  \"target_condition\": {\n    \"cycle_time_days\": 6.0,\n    \"pr_review_time_hours\": 24,\n    \"wip_avg\": 6,\n    \"defect_escape_pct\": 2.5\n  },\n  \"experiments\": [\n    {\n      \"id\": \"E1\",\n      \"hypothesis\": \"Reducing WIP limit from 6 to 4 will decrease cycle time by focusing team effort and reducing context switching.\",\n      \"step\": \"Implement WIP limit of 4 for 2 weeks and track daily WIP and cycle time metrics.\",\n      \"expected_metric_change\": \"Reduce WIP by 2 items and cycle time by 1.5 days.\",\n      \"timebox_days\": 14\n    },\n    {\n      \"id\": \"E2\",\n      \"hypothesis\": \"Implementing PR review SLA of 24 hours with automated reminders will reduce review time by 50%.\",\n      \"step\": \"Configure PR review reminders at 12h and 20h, and track review completion times.\",\n      \"expected_metric_change\": \"Reduce PR review time from 48h to 24h, contributing to 1 day cycle time reduction.\",\n      \"timebox_days\": 7\n    }\n  ],\n  \"coach_actions\": [\n    \"Facilitate daily standup focus on WIP reduction and blocked items.\",\n    \"Help team visualize cycle time and WIP correlation using DORA metrics dashboard.\",\n    \"Coach on PR size reduction techniques to improve review speed.\",\n    \"Guide team in setting up automated PR review reminders and tracking.\"\n  ],\n  \"risks\": [\n    \"WIP reduction may initially slow delivery as team adjusts to new constraints.\",\n    \"PR review time improvements may require cultural shift in prioritizing reviews.\",\n    \"Defect escape rate may temporarily increase if team rushes to meet new cycle time targets.\"\n  ],\n  \"self_check\": \"Calculations verified: avg cycle time (9.5+8.7+8.2+7.9)/4=8.58, gap=8.58-6=2.58, reduction %=(2.58/8.58)*100=30.07%. All other gaps computed correctly.\"\n}",
+        "tokensIn": 6030,
+        "tokensOut": 637,
+        "latencyMs": 11970,
+        "finishReason": "stop",
+        "model": "anthropic/claude-3.7-sonnet",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:09:00.395Z",
+        "endTime": "2026-01-18T13:09:12.366Z",
+        "durationMs": 11971,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 6667
+      },
+      "metadata": {
+        "mode": "mode1",
+        "promptId": "mode1_manager",
+        "rubricId": "kata_v1",
+        "expected": {
+          "metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "required_experiments": 1
+        },
+        "modelDisplayName": "Sonnet 3.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:09:00.395Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768741752366_ncko5ppxu",
+      "taskType": "evaluate",
+      "taskName": "Mode 2 Process Analyst (Sonnet 3.7)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode2_process_analyst\",\n  \"registry_checks\": [\n    {\"registry_id\": \"GH-1\", \"status\": \"pass\", \"evidence\": \"PR template present: yes\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-2\", \"status\": \"fail\", \"evidence\": \"PR review time (hours): 48\", \"recommendation\": \"Reduce PR review time to under 24 hours to improve collaboration flow\"},\n    {\"registry_id\": \"GH-3\", \"status\": \"pass\", \"evidence\": \"Required checks on main branch: yes\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-4\", \"status\": \"fail\", \"evidence\": \"CODEOWNERS file present: no\", \"recommendation\": \"Implement CODEOWNERS file to ensure critical paths have designated reviewers\"},\n    {\"registry_id\": \"GH-5\", \"status\": \"pass\", \"evidence\": \"Branch protection (no direct push): yes\", \"recommendation\": \"\"},\n    {\"registry_id\": \"GH-6\", \"status\": \"fail\", \"evidence\": \"Issue triage cadence: ad hoc (not weekly)\", \"recommendation\": \"Establish weekly issue triage meetings to improve backlog management\"}\n  ],\n  \"dora_classification\": {\n    \"DORA-1\": \"medium\",\n    \"DORA-2\": \"low\",\n    \"DORA-3\": \"high\"\n  },\n  \"compliance_score_pct\": 50,\n  \"process_quality_rating\": \"medium\",\n  \"recommendations\": [\n    \"Implement CODEOWNERS file (GH-4) to ensure critical code paths have designated reviewers\",\n    \"Reduce PR review time from 48 to under 24 hours (GH-2) to improve collaboration flow and cycle time\",\n    \"Establish weekly issue triage cadence (GH-6) to improve backlog management and prioritization\",\n    \"Focus on reducing cycle time (DORA-2) from 8.58 days to under 7 days to achieve medium rating\"\n  ],\n  \"self_check\": \"Verified all registry items evaluated, DORA metrics classified correctly, compliance score calculated as 3/6=50%, and recommendations address all failing checks with registry IDs.\"\n}",
+        "tokensIn": 3762,
+        "tokensOut": 537,
+        "latencyMs": 8958,
+        "finishReason": "stop",
+        "model": "anthropic/claude-3.7-sonnet",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:09:12.366Z",
+        "endTime": "2026-01-18T13:09:21.325Z",
+        "durationMs": 8959,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 4299
+      },
+      "metadata": {
+        "mode": "mode2",
+        "promptId": "mode2_process_analyst",
+        "rubricId": "kata_v1",
+        "expected": {
+          "registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "dora_classification": {
+            "DORA-1": "medium",
+            "DORA-2": "low",
+            "DORA-3": "high"
+          },
+          "compliance_score_pct": 50,
+          "process_quality_rating": "medium"
+        },
+        "modelDisplayName": "Sonnet 3.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:09:12.366Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768741761325_tl9cr48qv",
+      "taskType": "evaluate",
+      "taskName": "Mode 3 Root Cause (Sonnet 3.7)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode3_root_cause\",\n  \"problem_statement\": \"The team is experiencing persistent quality issues with flat defect escape rates, slow PR reviews, excessive WIP, inadequate test coverage, and infrequent deployments.\",\n  \"why_chain\": [\n    {\"why\": 1, \"cause\": \"Defects are escaping to production because the team has inadequate quality controls in their development process.\"},\n    {\"why\": 2, \"cause\": \"Quality controls are inadequate because the team is overwhelmed with too much work in progress (WIP) and slow PR reviews.\"},\n    {\"why\": 3, \"cause\": \"High WIP and slow reviews occur because the team is batching large changes for infrequent weekly deployments.\"},\n    {\"why\": 4, \"cause\": \"The team deploys infrequently because their deployment process is risky and manual, with insufficient test coverage to provide confidence.\"},\n    {\"why\": 5, \"cause\": \"The deployment process remains risky because the team lacks a systematic approach to continuous delivery and hasn't prioritized automation and testing infrastructure.\"}\n  ],\n  \"root_cause\": \"The team lacks a mature continuous delivery system with proper automation and testing infrastructure, leading to a cycle of large batches, high WIP, slow reviews, and quality issues.\",\n  \"adjacent_registry_targets\": [\n    {\"name\": \"DORA Metrics v2\", \"reason\": \"Provides specific benchmarks for deployment frequency, lead time, and change failure rate that can help the team measure progress toward continuous delivery maturity.\"},\n    {\"name\": \"Accelerate (DevOps Research)\", \"reason\": \"Offers evidence-based practices for improving software delivery performance, particularly around automation, testing, and deployment processes.\"}\n  ],\n  \"experiments\": [\n    {\"id\": \"E1\", \"hypothesis\": \"Implementing automated deployment pipelines will reduce deployment risk and enable more frequent deployments.\", \"step\": \"Create an automated CI/CD pipeline for a single service with automated tests and one-click deployment.\", \"signal\": \"Deployment frequency increases and lead time decreases for the pilot service compared to others.\"},\n    {\"id\": \"E2\", \"hypothesis\": \"Reducing batch size by enforcing WIP limits will improve PR review times and quality.\", \"step\": \"Strictly enforce WIP limit of 6 for two weeks and encourage smaller, more focused PRs.\", \"signal\": \"PR review time decreases below 24 hours and defect escape rate begins to decline.\"}\n  ],\n  \"self_check\": \"The root cause identifies the systemic issue behind all symptoms: infrequent deployments drive large batches, causing high WIP, slow reviews, and quality issues. DORA and Accelerate directly address this.\"\n}",
+        "tokensIn": 4221,
+        "tokensOut": 627,
+        "latencyMs": 14231,
+        "finishReason": "stop",
+        "model": "anthropic/claude-3.7-sonnet",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:09:21.325Z",
+        "endTime": "2026-01-18T13:09:35.558Z",
+        "durationMs": 14233,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 4848
+      },
+      "metadata": {
+        "mode": "mode3",
+        "promptId": "mode3_root_cause",
+        "rubricId": "kata_v1",
+        "expected": {
+          "why_chain_length": 5,
+          "adjacent_registry_min": 2
+        },
+        "modelDisplayName": "Sonnet 3.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:09:21.325Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768741775558_cax2urgfu",
+      "taskType": "evaluate",
+      "taskName": "Mode 4 Complex Learner (Sonnet 3.7)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode4_complex_learner\",\n  \"synthesis\": {\n    \"learning_statement\": \"Our team's high cycle time (8.58 days) is primarily driven by review bottlenecks and unbounded WIP, which masks quality issues until late in the process, resulting in poor DORA metrics across lead time and change failure rate.\",\n    \"top_insights\": [\n      \"PR reviews exceeding 24 hours are the critical bottleneck in our delivery pipeline\",\n      \"Lack of WIP limits allows too many items to enter the system, hiding defects and causing context switching\",\n      \"DORA metrics confirm our lead time is poor (>7 days) and change failure rate is high (<=15%)\"\n    ],\n    \"priority_constraints\": [\n      \"Team capacity for reviews is limited by current staffing\",\n      \"Quality gates must be maintained while improving flow\",\n      \"Changes must be measurable against DORA metrics framework\"\n    ],\n    \"risks\": [\n      \"Enforcing WIP limits may initially slow apparent productivity\",\n      \"Review SLAs without capacity planning could lead to rushed reviews\",\n      \"Focus on speed without quality controls may increase defect rate\"\n    ]\n  },\n  \"prompt_updates\": [\n    {\n      \"prompt_id\": \"mode1_manager\", \n      \"change\": \"Add DORA metrics tracking (deployment frequency, lead time, change failure rate, recovery time) to the data collection and analysis requirements\", \n      \"rationale\": \"DORA metrics provide industry-standard benchmarks to evaluate our improvement efforts and align with research-backed performance indicators\"\n    },\n    {\n      \"prompt_id\": \"mode2_process_analyst\", \n      \"change\": \"Include analysis of review queue depth over time and correlation with defect rates; check for CODEOWNERS file and weekly triage process\", \n      \"rationale\": \"Tracking review queue depth will help identify WIP issues, while CODEOWNERS and triage processes are missing governance controls\"\n    }\n  ],\n  \"process_updates\": [\n    {\n      \"id\": \"P1\", \n      \"change\": \"Implement team-wide WIP limits with visual management: max 2 PRs in progress per developer, max 3 PRs in review queue per team\", \n      \"expected_effect\": \"Reduce cycle time by 30% by limiting context switching, increasing review focus, and preventing bottlenecks from forming in the review stage\"\n    }\n  ],\n  \"diagram_mermaid\": \"graph TD\\n    A[Code] --> B[PR Created]\\n    B --> C[PR Review]\\n    C --> D{WIP Limit Check}\\n    D -->|Within Limit| E[Merge]\\n    D -->|Exceeds Limit| B\\n    E --> F[Deploy]\",\n  \"learning_metric\": {\n    \"name\": \"Review Response Time\", \n    \"definition\": \"Time between PR submission and first substantive review comment or approval\", \n    \"target\": \"Reduce average from 24+ hours to under 8 hours within 30 days\"\n  },\n  \"self_check\": \"This plan addresses the root cause (review bottlenecks + WIP) with concrete process changes, adds DORA metrics tracking, and focuses on a specific measurable outcome (review response time) that will impact cycle time.\"\n}",
+        "tokensIn": 5123,
+        "tokensOut": 785,
+        "latencyMs": 15679,
+        "finishReason": "stop",
+        "model": "anthropic/claude-3.7-sonnet",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:09:35.558Z",
+        "endTime": "2026-01-18T13:09:51.239Z",
+        "durationMs": 15681,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5908
+      },
+      "metadata": {
+        "mode": "mode4",
+        "promptId": "mode4_complex_learner",
+        "rubricId": "kata_v1",
+        "expected": {
+          "required_prompt_updates": [
+            "mode1_manager",
+            "mode2_process_analyst"
+          ],
+          "process_updates_min": 1,
+          "diagram_required": true
+        },
+        "modelDisplayName": "Sonnet 3.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:09:35.558Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768741791239_c2spbh72r",
+      "taskType": "evaluate",
+      "taskName": "Combined Modes (Sonnet 3.7)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"combined\",\n  \"mode1\": {\n    \"metrics\": {\n      \"avg_cycle_time_days\": 8.58,\n      \"cycle_time_gap_days\": 2.58,\n      \"cycle_time_reduction_pct\": 30.07,\n      \"pr_review_gap_hours\": 24.00,\n      \"wip_gap\": 3.00,\n      \"defect_gap_pct\": 1.40\n    },\n    \"experiments\": [\n      \"Implement GH-2 (PR reviews within 24 hours) with automated reminders and dedicated review time blocks to reduce PR review time by 50%\",\n      \"Enforce WIP limits through visual management and daily standups to reduce actual WIP from 9 to 6, potentially improving cycle time by 1-2 days\"\n    ],\n    \"coach_actions\": [\n      \"Facilitate daily WIP review in standups with visual indicators when approaching limits\",\n      \"Set up metrics dashboard tracking PR review time and WIP counts to provide visibility\"\n    ],\n    \"risks\": [\n      \"Team may resist enforced WIP limits if root causes of high WIP aren't addressed\",\n      \"PR review time reduction may not translate to cycle time improvement if other bottlenecks exist\"\n    ]\n  },\n  \"mode2\": {\n    \"registry_checks\": [\n      {\"id\": \"GH-1\", \"name\": \"PR description template\", \"status\": \"unknown\", \"impact\": \"medium\"},\n      {\"id\": \"GH-2\", \"name\": \"24-hour reviews\", \"status\": \"fail\", \"impact\": \"high\"},\n      {\"id\": \"GH-3\", \"name\": \"Required status checks\", \"status\": \"unknown\", \"impact\": \"high\"},\n      {\"id\": \"GH-4\", \"name\": \"CODEOWNERS required\", \"status\": \"unknown\", \"impact\": \"medium\"},\n      {\"id\": \"GH-5\", \"name\": \"Protected branches\", \"status\": \"unknown\", \"impact\": \"medium\"},\n      {\"id\": \"GH-6\", \"name\": \"Weekly issue triage\", \"status\": \"unknown\", \"impact\": \"low\"}\n    ],\n    \"dora_classification\": {\n      \"deployment_frequency\": \"medium\",\n      \"lead_time\": \"medium\",\n      \"change_failure_rate\": \"high\"\n    },\n    \"compliance_score_pct\": 0.00,\n    \"process_quality_rating\": \"Below average - failing GH-2 with unknown status on other checks; medium DORA metrics for deployment frequency and lead time\"\n  },\n  \"mode3\": {\n    \"why_chain\": [\n      \"Why is cycle time high? Because PR review time is 48 hours and WIP is exceeding limits\",\n      \"Why is PR review time high? Because there's no enforced process for timely reviews\",\n      \"Why is there no enforced process? Because GitHub collaboration standards aren't implemented\",\n      \"Why aren't standards implemented? Because the team lacks visibility into bottlenecks and their impact\",\n      \"Why is there poor visibility? Because the team isn't measuring and tracking key delivery metrics consistently\"\n    ],\n    \"root_cause\": \"The team lacks a structured approach to measuring and improving delivery metrics, resulting in process bottlenecks (PR reviews, WIP) that aren't being addressed systematically\",\n    \"adjacent_registry_targets\": [\n      \"DORA Metrics v2 - provides framework for measuring key delivery performance indicators\",\n      \"Accelerate (DevOps Research) - offers proven practices to improve cycle time and quality\"\n    ],\n    \"experiments\": [\n      \"Implement daily DORA metrics tracking with team visibility dashboard to create awareness of bottlenecks\",\n      \"Adopt 2 key practices from Accelerate: trunk-based development and automated testing to reduce integration issues\"\n    ]\n  },\n  \"mode4\": {\n    \"synthesis\": {\n      \"key_insight\": \"PR review time (48h) and excessive WIP (9 vs 6 limit) are immediate bottlenecks, but underlying issue is lack of metrics-driven improvement process\",\n      \"priority_focus\": \"Implement GitHub standards (especially GH-2) while establishing DORA metrics tracking to drive systematic improvement\",\n      \"expected_impact\": \"30% cycle time reduction possible by addressing PR reviews and WIP, with further gains from DORA-driven improvements\"\n    },\n    \"prompt_updates\": [\n      \"Add current GitHub standards compliance status to initial context\",\n      \"Include trend data for DORA metrics over past 8 weeks to better identify patterns\",\n      \"Request information about automated testing capabilities and current trunk-based development practices\"\n    ],\n    \"process_updates\": [\n      \"Establish daily team review of DORA metrics with visual management board\",\n      \"Create weekly retrospective focused specifically on delivery metrics and bottlenecks\",\n      \"Implement automated PR review time tracking with alerts for approaching SLAs\"\n    ],\n    \"learning_metric\": {\n      \"name\": \"Experiment completion rate\",\n      \"current\": 0,\n      \"target\": 100,\n      \"unit\": \"percent\",\n      \"description\": \"Percentage of planned experiments completed with measured results, regardless of success/failure\"\n    }\n  },\n  \"diagram_mermaid\": \"graph TD\\n  A[High Cycle Time] --> B[Long PR Reviews]\\n  A --> C[Excessive WIP]\\n  B --> D[Missing GitHub Standards]\\n  C --> D\\n  D --> E[Poor Metrics Visibility]\\n  E --> F[Implement DORA Tracking]\",\n  \"self_check\": \"Analysis identifies key bottlenecks (PR reviews, WIP) with appropriate experiments. DORA classification is accurate based on data. Root cause analysis correctly identifies deeper systemic issues beyond symptoms. Synthesis connects immediate actions with longer-term improvement framework.\"\n}",
+        "tokensIn": 4558,
+        "tokensOut": 1384,
+        "latencyMs": 24759,
+        "finishReason": "stop",
+        "model": "anthropic/claude-3.7-sonnet",
+        "provider": "openrouter"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T13:09:51.239Z",
+        "endTime": "2026-01-18T13:10:16.001Z",
+        "durationMs": 24762,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5942
+      },
+      "metadata": {
+        "mode": "combined",
+        "promptId": "mode_combined",
+        "rubricId": "kata_v1",
+        "expected": {
+          "mode1_metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "mode2_registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "diagram_required": true
+        },
+        "modelDisplayName": "Sonnet 3.7",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T13:09:51.239Z",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0
+  },
+  "telemetry": {
+    "startTime": "2026-01-18T13:09:00.395Z",
+    "endTime": "2026-01-18T13:10:16.001Z",
+    "durationMs": 75606,
+    "llmCalls": 5,
+    "cacheHits": {
+      "spec": 0,
+      "mapping": 0
+    },
+    "errors": [],
+    "warnings": []
+  },
+  "metadata": {
+    "suite": "kata_eval_v1",
+    "model": "Sonnet 3.7",
+    "executedAt": "2026-01-18T13:09:00.395Z",
+    "version": "1.0.0"
+  }
+}

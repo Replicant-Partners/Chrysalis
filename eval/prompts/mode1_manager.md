@@ -35,6 +35,12 @@ CALCULATION RULES:
 - wip_gap = actual WIP average - target WIP average
 - defect_gap_pct = current defect escape rate - target defect escape rate
 
+CONCISION RULES:
+- All string values <= 160 characters.
+- experiments length <= 2.
+- coach_actions length <= 4.
+- risks length <= 3.
+
 OUTPUT RULES:
 - Return a single JSON object only. No extra text, no code fences.
 - Round all numeric values to 2 decimals.

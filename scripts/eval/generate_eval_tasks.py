@@ -121,7 +121,7 @@ def build_evaluate_task(
         "options": {
             "outputPath": output_path,
             "includeMetadata": True,
-            "timeoutMs": 60000
+            "timeoutMs": 90000
         },
         "metadata": {
             "mode": prompt["mode"],
@@ -186,7 +186,7 @@ def build_health_task(model_meta: dict) -> dict:
         "options": {
             "outputPath": str((RESPONSES_DIR / "health" / "health-check.md").as_posix()),
             "includeMetadata": True,
-            "timeoutMs": 20000
+            "timeoutMs": 90000
         },
         "metadata": {
             "mode": "health",
@@ -257,13 +257,13 @@ def main() -> int:
         write_task_file(BENCH_TASKS_DIR / filename, batch)
 
     if local_models:
-        first = local_models[0]
+        smallest = sorted(local_models, key=lambda m: m["size_gb"])[0]
         health_model_meta = {
             "provider": "ollama",
-            "name": first["name"],
-            "displayName": first["name"],
-            "id": first["name"],
-            "size_gb": round(float(first["size_gb"]), 2)
+            "name": smallest["name"],
+            "displayName": smallest["name"],
+            "id": smallest["name"],
+            "size_gb": round(float(smallest["size_gb"]), 2)
         }
         health_task = build_health_task(health_model_meta)
         write_task_file(HEALTH_TASKS_DIR / "health-check.json", health_task)

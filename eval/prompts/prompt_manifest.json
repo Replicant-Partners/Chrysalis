@@ -63,7 +63,8 @@
       "rubricId": "kata_v1",
       "expected": {
         "required_prompt_updates": ["mode1_manager", "mode2_process_analyst"],
-        "process_updates_min": 1
+        "process_updates_min": 1,
+        "diagram_required": true
       }
     },
     {
@@ -88,7 +89,8 @@
           "GH-4": "fail",
           "GH-5": "pass",
           "GH-6": "fail"
-        }
+        },
+        "diagram_required": true
       }
     }
   ]

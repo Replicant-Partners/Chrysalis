@@ -1,0 +1,356 @@
+{
+  "taskId": "task_1768735296477_3gtk5t5hr",
+  "taskType": "batch",
+  "taskName": "Kata evaluation suite (Z.ai GLM-4.6)",
+  "success": false,
+  "result": [
+    {
+      "taskId": "task_1768735296477_z5qyhtimr",
+      "taskType": "evaluate",
+      "taskName": "Mode 1 Manager (Z.ai GLM-4.6)",
+      "success": false,
+      "error": {
+        "message": "OpenAI API key required",
+        "code": "TASK_EXECUTION_ERROR",
+        "details": {}
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:21:36.477Z",
+        "endTime": "2026-01-18T11:21:36.480Z",
+        "durationMs": 3,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.479Z",
+            "context": "evaluate-task"
+          },
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.480Z",
+            "context": "task-execution"
+          }
+        ],
+        "warnings": []
+      },
+      "metadata": {
+        "mode": "mode1",
+        "promptId": "mode1_manager",
+        "rubricId": "kata_v1",
+        "expected": {
+          "metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "required_experiments": 1
+        },
+        "modelDisplayName": "Z.ai GLM-4.6",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:21:36.477Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735296481_2v58d30ku",
+      "taskType": "evaluate",
+      "taskName": "Mode 2 Process Analyst (Z.ai GLM-4.6)",
+      "success": false,
+      "error": {
+        "message": "OpenAI API key required",
+        "code": "TASK_EXECUTION_ERROR",
+        "details": {}
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:21:36.481Z",
+        "endTime": "2026-01-18T11:21:36.482Z",
+        "durationMs": 1,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.482Z",
+            "context": "evaluate-task"
+          },
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.482Z",
+            "context": "task-execution"
+          }
+        ],
+        "warnings": []
+      },
+      "metadata": {
+        "mode": "mode2",
+        "promptId": "mode2_process_analyst",
+        "rubricId": "kata_v1",
+        "expected": {
+          "registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "dora_classification": {
+            "DORA-1": "medium",
+            "DORA-2": "low",
+            "DORA-3": "high"
+          },
+          "compliance_score_pct": 50,
+          "process_quality_rating": "medium"
+        },
+        "modelDisplayName": "Z.ai GLM-4.6",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:21:36.481Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735296483_0sospwm35",
+      "taskType": "evaluate",
+      "taskName": "Mode 3 Root Cause (Z.ai GLM-4.6)",
+      "success": false,
+      "error": {
+        "message": "OpenAI API key required",
+        "code": "TASK_EXECUTION_ERROR",
+        "details": {}
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:21:36.483Z",
+        "endTime": "2026-01-18T11:21:36.484Z",
+        "durationMs": 1,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.484Z",
+            "context": "evaluate-task"
+          },
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.484Z",
+            "context": "task-execution"
+          }
+        ],
+        "warnings": []
+      },
+      "metadata": {
+        "mode": "mode3",
+        "promptId": "mode3_root_cause",
+        "rubricId": "kata_v1",
+        "expected": {
+          "why_chain_length": 5,
+          "adjacent_registry_min": 2
+        },
+        "modelDisplayName": "Z.ai GLM-4.6",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:21:36.483Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735296485_pem2g0pao",
+      "taskType": "evaluate",
+      "taskName": "Mode 4 Complex Learner (Z.ai GLM-4.6)",
+      "success": false,
+      "error": {
+        "message": "OpenAI API key required",
+        "code": "TASK_EXECUTION_ERROR",
+        "details": {}
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:21:36.485Z",
+        "endTime": "2026-01-18T11:21:36.485Z",
+        "durationMs": 0,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.485Z",
+            "context": "evaluate-task"
+          },
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.485Z",
+            "context": "task-execution"
+          }
+        ],
+        "warnings": []
+      },
+      "metadata": {
+        "mode": "mode4",
+        "promptId": "mode4_complex_learner",
+        "rubricId": "kata_v1",
+        "expected": {
+          "required_prompt_updates": [
+            "mode1_manager",
+            "mode2_process_analyst"
+          ],
+          "process_updates_min": 1,
+          "diagram_required": true
+        },
+        "modelDisplayName": "Z.ai GLM-4.6",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:21:36.485Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735296485_i2vznst5a",
+      "taskType": "evaluate",
+      "taskName": "Combined Modes (Z.ai GLM-4.6)",
+      "success": false,
+      "error": {
+        "message": "OpenAI API key required",
+        "code": "TASK_EXECUTION_ERROR",
+        "details": {}
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:21:36.485Z",
+        "endTime": "2026-01-18T11:21:36.486Z",
+        "durationMs": 1,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.486Z",
+            "context": "evaluate-task"
+          },
+          {
+            "message": "OpenAI API key required",
+            "timestamp": "2026-01-18T11:21:36.486Z",
+            "context": "task-execution"
+          }
+        ],
+        "warnings": []
+      },
+      "metadata": {
+        "mode": "combined",
+        "promptId": "mode_combined",
+        "rubricId": "kata_v1",
+        "expected": {
+          "mode1_metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "mode2_registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "diagram_required": true
+        },
+        "modelDisplayName": "Z.ai GLM-4.6",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:21:36.485Z",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 0,
+    "failed": 5
+  },
+  "telemetry": {
+    "startTime": "2026-01-18T11:21:36.477Z",
+    "endTime": "2026-01-18T11:21:36.486Z",
+    "durationMs": 9,
+    "llmCalls": 5,
+    "cacheHits": {
+      "spec": 0,
+      "mapping": 0
+    },
+    "errors": [
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.479Z",
+        "context": "evaluate-task"
+      },
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.480Z",
+        "context": "task-execution"
+      },
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.482Z",
+        "context": "evaluate-task"
+      },
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.482Z",
+        "context": "task-execution"
+      },
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.484Z",
+        "context": "evaluate-task"
+      },
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.484Z",
+        "context": "task-execution"
+      },
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.485Z",
+        "context": "evaluate-task"
+      },
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.485Z",
+        "context": "task-execution"
+      },
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.486Z",
+        "context": "evaluate-task"
+      },
+      {
+        "message": "OpenAI API key required",
+        "timestamp": "2026-01-18T11:21:36.486Z",
+        "context": "task-execution"
+      }
+    ],
+    "warnings": []
+  },
+  "metadata": {
+    "suite": "kata_eval_v1",
+    "model": "Z.ai GLM-4.6",
+    "executedAt": "2026-01-18T11:21:36.477Z",
+    "version": "1.0.0"
+  }
+}

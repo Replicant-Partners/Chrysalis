@@ -1,0 +1,275 @@
+{
+  "taskId": "task_1768734971860_1irl8qask",
+  "taskType": "batch",
+  "taskName": "Kata evaluation suite (OpenAI GPT-5)",
+  "success": true,
+  "result": [
+    {
+      "taskId": "task_1768734971860_7lo7pilqj",
+      "taskType": "evaluate",
+      "taskName": "Mode 1 Manager (OpenAI GPT-5)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode1_manager\",\n  \"metrics\": {\n    \"avg_cycle_time_days\": 8.58,\n    \"cycle_time_gap_days\": 2.58,\n    \"cycle_time_reduction_pct\": 30.09,\n    \"pr_review_gap_hours\": 24.00,\n    \"wip_gap\": 3.00,\n    \"defect_gap_pct\": 1.40\n  },\n  \"target_condition\": {\n    \"cycle_time_days\": 6.0,\n    \"pr_review_time_hours\": 24,\n    \"wip_avg\": 6,\n    \"defect_escape_pct\": 2.5\n  },\n  \"experiments\": [\n    {\n      \"id\": \"E1\",\n      \"hypothesis\": \"Enforcing WIP<=6 and swarming oldest work will cut avg WIP to 6 and reduce cycle time by ~1.2d.\",\n      \"step\": \"Set WIP limit to 6, block new starts when WIP>=6, daily check, assign idle devs to reviews/aging items.\",\n      \"expected_metric_change\": \"WIP 9->6; cycle time -1.2d.\",\n      \"timebox_days\": 7\n    },\n    {\n      \"id\": \"E2\",\n      \"hypothesis\": \"A PR review rota with 24h SLA and smaller PRs will reduce review time to <=24h and cut cycle time by ~0.8d; fewer escapes.\",\n      \"step\": \"Create reviewer rota, prefer small PRs, reviewers prioritize PRs daily; add auto reminders at 4h/20h.\",\n      \"expected_metric_change\": \"PR review 48h->24h; cycle time -0.8d; defect escapes -0.3pp.\",\n      \"timebox_days\": 7\n    }\n  ],\n  \"coach_actions\": [\n    \"Confirm WIP policy and visible board limits today.\",\n    \"Kick off review rota; set 24h SLA and slack alerts.\",\n    \"Monitor daily: WIP, PR age, cycle time; unblock fast.\",\n    \"Review results in 7 days; adjust next experiments.\"\n  ],\n  \"risks\": [\n    \"Reviewers overloaded; PR quality drops.\",\n    \"Work floods hidden channels to bypass WIP.\",\n    \"Small PR rule increases overhead short-term.\"\n  ],\n  \"self_check\": \"Avg CT 8.58; gap 2.58d; reduction 30.09%; PR gap 24h; WIP gap 3; defect gap 1.40%. All rounded to 2 decimals.\"\n}",
+        "tokensIn": 701,
+        "tokensOut": 4137,
+        "latencyMs": 37889,
+        "finishReason": "stop",
+        "model": "gpt-5",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:16:11.860Z",
+        "endTime": "2026-01-18T11:16:49.758Z",
+        "durationMs": 37898,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 4838
+      },
+      "metadata": {
+        "mode": "mode1",
+        "promptId": "mode1_manager",
+        "rubricId": "kata_v1",
+        "expected": {
+          "metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "required_experiments": 1
+        },
+        "modelDisplayName": "OpenAI GPT-5",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:16:11.860Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735009758_s98lbfdvi",
+      "taskType": "evaluate",
+      "taskName": "Mode 2 Process Analyst (OpenAI GPT-5)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode2_process_analyst\",\n  \"registry_checks\": [\n    {\n      \"registry_id\": \"GH-1\",\n      \"status\": \"pass\",\n      \"evidence\": \"PR template present: yes\",\n      \"recommendation\": \"Maintain template; include risk, test plan, and rollback sections.\"\n    },\n    {\n      \"registry_id\": \"GH-2\",\n      \"status\": \"fail\",\n      \"evidence\": \"PR review time: 48h\",\n      \"recommendation\": \"Set 24h review SLO; auto-assign reviewers; enable reminders; track SLA.\"\n    },\n    {\n      \"registry_id\": \"GH-3\",\n      \"status\": \"pass\",\n      \"evidence\": \"Required checks on main: yes\",\n      \"recommendation\": \"Keep checks updated; block merges on failing checks and missing reviews.\"\n    },\n    {\n      \"registry_id\": \"GH-4\",\n      \"status\": \"fail\",\n      \"evidence\": \"CODEOWNERS present: no\",\n      \"recommendation\": \"Add CODEOWNERS for critical paths; require owner review before merge.\"\n    },\n    {\n      \"registry_id\": \"GH-5\",\n      \"status\": \"pass\",\n      \"evidence\": \"No direct push enabled: yes\",\n      \"recommendation\": \"Review protection rules quarterly; include admin enforcement.\"\n    },\n    {\n      \"registry_id\": \"GH-6\",\n      \"status\": \"fail\",\n      \"evidence\": \"Issue triage: ad hoc (not weekly)\",\n      \"recommendation\": \"Schedule weekly triage; define labels, SLAs, and ownership.\"\n    }\n  ],\n  \"dora_classification\": {\n    \"DORA-1\": \"medium\",\n    \"DORA-2\": \"low\",\n    \"DORA-3\": \"high\"\n  },\n  \"compliance_score_pct\": 50,\n  \"process_quality_rating\": \"medium\",\n  \"recommendations\": [\n    \"Implement CODEOWNERS for critical paths; require owner review (GH-4).\",\n    \"Enforce 24h PR review SLO with auto-assignment and reminders (GH-2).\",\n    \"Establish a weekly issue triage ritual with labels and SLAs (GH-6).\",\n    \"Reduce lead time to <=7 days via smaller PRs, faster CI, and WIP limits (DORA-2).\"\n  ],\n  \"self_check\": \"Mapped GH-1..GH-6 correctly; passes=3; compliance=50%; DORA per rules; strings <=160; single JSON only.\"\n}",
+        "tokensIn": 674,
+        "tokensOut": 2279,
+        "latencyMs": 19768,
+        "finishReason": "stop",
+        "model": "gpt-5",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:16:49.758Z",
+        "endTime": "2026-01-18T11:17:09.533Z",
+        "durationMs": 19775,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 2953
+      },
+      "metadata": {
+        "mode": "mode2",
+        "promptId": "mode2_process_analyst",
+        "rubricId": "kata_v1",
+        "expected": {
+          "registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "dora_classification": {
+            "DORA-1": "medium",
+            "DORA-2": "low",
+            "DORA-3": "high"
+          },
+          "compliance_score_pct": 50,
+          "process_quality_rating": "medium"
+        },
+        "modelDisplayName": "OpenAI GPT-5",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:16:49.758Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735029533_seik2zjqy",
+      "taskType": "evaluate",
+      "taskName": "Mode 3 Root Cause (OpenAI GPT-5)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode3_root_cause\",\n  \"problem_statement\": \"Quality and flow lag: escape rate 3.9% for 3 sprints, PR review 48h, WIP 9>6, test coverage 65%, deploys 1/week.\",\n  \"why_chain\": [\n    {\"why\": 1, \"cause\": \"Defects keep escaping because validation occurs late and shallow.\"},\n    {\"why\": 2, \"cause\": \"Validation is late/shallow as PRs wait ~48h and tests cover only 65%.\"},\n    {\"why\": 3, \"cause\": \"PRs wait and tests lag because WIP averages 9>6, overloading reviewers and CI.\"},\n    {\"why\": 4, \"cause\": \"WIP exceeds limits and gates are weak due to no enforced WIP/review SLA or CI quality policy.\"},\n    {\"why\": 5, \"cause\": \"No enforcement exists because the team lacks a working agreement/governance tied to delivery/quality goals.\"}\n  ],\n  \"root_cause\": \"Team lacks an enforced working agreement governing WIP limits, review SLAs, and CI quality gates tied to delivery goals.\",\n  \"adjacent_registry_targets\": [\n    {\"name\": \"DORA Metrics v2\", \"reason\": \"To set target thresholds and governance for flow/quality (DF, lead time, change fail), aligning policies with outcomes.\"},\n    {\"name\": \"GitHub Collaboration Standard v1.2\", \"reason\": \"To define PR review SLAs, CODEOWNERS, protected branches, required checks, and reviewer rotations to enforce policy.\"}\n  ],\n  \"experiments\": [\n    {\"id\": \"E1\", \"hypothesis\": \"If we enforce WIP<=6 and 24h review SLA, PR wait and escapes will drop.\", \"step\": \"Add board WIP gates, reviewer rotations, and GitHub SLA alerts for 2 sprints.\", \"signal\": \"Median PR review <24h, WIP avg <=6, defect escape <3% by sprint 2.\"},\n    {\"id\": \"E2\", \"hypothesis\": \"If we add CI quality gates (diff coverage>=75%, small PRs), escapes decline.\", \"step\": \"Enable branch protection: required checks, diff coverage>=75%, cap PR size at 300 LOC.\", \"signal\": \"Coverage >=75%, escape rate <3%, deploy freq >=2/week within 2 sprints.\"}\n  ],\n  \"self_check\": \"5 whys present; root cause matches 5th why; 2 registries from list; 2 experiments; all strings concise and under limits.\"\n}",
+        "tokensIn": 435,
+        "tokensOut": 2936,
+        "latencyMs": 23509,
+        "finishReason": "stop",
+        "model": "gpt-5",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:17:09.533Z",
+        "endTime": "2026-01-18T11:17:33.046Z",
+        "durationMs": 23513,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 3371
+      },
+      "metadata": {
+        "mode": "mode3",
+        "promptId": "mode3_root_cause",
+        "rubricId": "kata_v1",
+        "expected": {
+          "why_chain_length": 5,
+          "adjacent_registry_min": 2
+        },
+        "modelDisplayName": "OpenAI GPT-5",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:17:09.533Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735053046_gjy4ekvwg",
+      "taskType": "evaluate",
+      "taskName": "Mode 4 Complex Learner (OpenAI GPT-5)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode4_complex_learner\",\n  \"synthesis\": {\n    \"learning_statement\": \"Review bottlenecks and unbounded WIP drive long lead time and defects; apply review WIP<=3, CODEOWNERS, and a pre-merge checklist to speed flow and quality.\",\n    \"top_insights\": [\n      \"PR reviews breach 24h (GH-2), inflating lead time (>7d).\",\n      \"Unbounded WIP hides defects, raising change failure (~15%).\",\n      \"Missing CODEOWNERS and triage slow routing and decisions.\"\n    ],\n    \"priority_constraints\": [\n      \"No new headcount or tools; GitHub only.\",\n      \"Maintain deployment frequency while cutting lead time.\",\n      \"Keep added PR overhead <=15 minutes.\"\n    ],\n    \"risks\": [\n      \"Reviewer overload or SLA gaming.\",\n      \"Checklist fatigue lowers compliance.\",\n      \"CODEOWNERS misroutes increase wait time.\"\n    ]\n  },\n  \"prompt_updates\": [\n    {\n      \"prompt_id\": \"mode1_manager\",\n      \"change\": \"Enforce review WIP<=3, 24h first-review SLA, adopt CODEOWNERS and pre-merge checklist; hold weekly triage; track DORA v2 + SPACE.\",\n      \"rationale\": \"Targets review bottleneck, surfaces defects earlier, and fixes GH-2/4/6 gaps while measuring delivery and satisfaction.\"\n    },\n    {\n      \"prompt_id\": \"mode2_process_analyst\",\n      \"change\": \"Implement CODEOWNERS, configure review WIP<=3, define 24h SLA dashboards, create pre-merge checklist v1, schedule weekly triage.\",\n      \"rationale\": \"Closes GH-2/4/6 failures and enables Mode 3 experiments with measurable controls and visibility.\"\n    }\n  ],\n  \"process_updates\": [\n    {\n      \"id\": \"P1\",\n      \"change\": \"Adopt Review Flow Policy: review WIP<=3, 24h first review SLA, CODEOWNERS routing, pre-merge checklist v1.\",\n      \"expected_effect\": \"Cut review wait, reduce lead time <7d, lower change failure via earlier defect detection.\"\n    }\n  ],\n  \"diagram_mermaid\": \"flowchart TD;A[WIP∞]-->B[Review jam];B-->C[>24h];C-->D[Lead>7d];A-->E[Defects];F[WIP3+Checklist]-->B;F-->E\",\n  \"learning_metric\": {\n    \"name\": \"First review within 24h\",\n    \"definition\": \"% of PRs receiving first review in <=24h (weekly).\",\n    \"target\": \">=80% for 3 consecutive weeks.\"\n  },\n  \"self_check\": \"All constraints met: 2 prompt updates, 1 process change, valid Mermaid (<=6 nodes), strings <=160, focused on review WIP and defects.\"\n}",
+        "tokensIn": 532,
+        "tokensOut": 5361,
+        "latencyMs": 37615,
+        "finishReason": "stop",
+        "model": "gpt-5",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:17:33.047Z",
+        "endTime": "2026-01-18T11:18:10.666Z",
+        "durationMs": 37619,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 5893
+      },
+      "metadata": {
+        "mode": "mode4",
+        "promptId": "mode4_complex_learner",
+        "rubricId": "kata_v1",
+        "expected": {
+          "required_prompt_updates": [
+            "mode1_manager",
+            "mode2_process_analyst"
+          ],
+          "process_updates_min": 1,
+          "diagram_required": true
+        },
+        "modelDisplayName": "OpenAI GPT-5",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:17:33.047Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735090666_wj7i9cv50",
+      "taskType": "evaluate",
+      "taskName": "Combined Modes (OpenAI GPT-5)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"combined\",\n  \"mode1\": {\n    \"metrics\": {\n      \"avg_cycle_time_days\": 8.58,\n      \"cycle_time_gap_days\": 2.58,\n      \"cycle_time_reduction_pct\": 30.03,\n      \"pr_review_gap_hours\": 24.00,\n      \"wip_gap\": 3.00,\n      \"defect_gap_pct\": 1.40,\n      \"build_success_rate_pct\": 92.00,\n      \"test_coverage_pct\": 65.00,\n      \"deployment_frequency\": \"1/week\",\n      \"target_cycle_time_days\": 6.00,\n      \"target_pr_review_hours\": 24.00,\n      \"target_wip\": 6.00,\n      \"target_defect_escape_pct\": 2.50\n    },\n    \"experiments\": [\n      {\n        \"name\": \"Enforce WIP<=6\",\n        \"hypothesis\": \"Reducing WIP from 9 to 6 cuts waiting and lowers cycle time by >=0.5d.\",\n        \"changes\": [\n          \"Set board WIP=6\",\n          \"Block new starts when WIP=6\",\n          \"Daily WIP check\"\n        ],\n        \"timebox_days\": 7,\n        \"owner\": \"Team lead\",\n        \"success_criteria\": [\n          \"Avg WIP<=6 for 5 days\",\n          \"Avg cycle time -0.5d\",\n          \"No throughput drop\"\n        ],\n        \"expected_impact\": [\n          \"cycle_time\",\n          \"pr_review_time\"\n        ]\n      },\n      {\n        \"name\": \"24h PR review SLA\",\n        \"hypothesis\": \"SLA + routing will reduce PR review to <=24h and cut cycle >=1d.\",\n        \"changes\": [\n          \"Add PR template (GH-1)\",\n          \"Set CODEOWNERS (GH-4)\",\n          \"Review rota + 24h SLA (GH-2)\"\n        ],\n        \"timebox_days\": 7,\n        \"owner\": \"Repo admin\",\n        \"success_criteria\": [\n          \"Median PR review<=24h\",\n          \"90% PRs use template\",\n          \"Assigned owner on all PRs\"\n        ],\n        \"expected_impact\": [\n          \"pr_review_time\",\n          \"cycle_time\",\n          \"defect_escape_rate\"\n        ]\n      }\n    ],\n    \"coach_actions\": [\n      \"Facilitate 30-min WIP policy workshop\",\n      \"Set up live WIP and PR lead-time dashboard\",\n      \"Configure GitHub templates and CODEOWNERS\",\n      \"Shadow standups to reinforce WIP/SLA\"\n    ],\n    \"risks\": [\n      \"Pushback on limiting starts; mitigate with flow data\",\n      \"Reviewer overload; mitigate with rota and backup\",\n      \"Hidden untracked work; audit weekly\",\n      \"Metric gaming; track outcomes not only targets\"\n    ]\n    },\n  \"mode2\": {\n    \"registry_checks\": [\n      {\"id\": \"GH-1\", \"status\": \"unknown\", \"note\": \"No evidence of PR template.\"},\n      {\"id\": \"GH-2\", \"status\": \"fail\", \"note\": \"PR review time 48h > 24h.\"},\n      {\"id\": \"GH-3\", \"status\": \"unknown\", \"note\": \"No data on required checks.\"},\n      {\"id\": \"GH-4\", \"status\": \"unknown\", \"note\": \"No data on CODEOWNERS.\"},\n      {\"id\": \"GH-5\", \"status\": \"unknown\", \"note\": \"No data on protected branch pushes.\"},\n      {\"id\": \"GH-6\", \"status\": \"unknown\", \"note\": \"No data on weekly triage.\"}\n    ],\n    \"dora_classification\": {\n      \"DORA-1\": {\"level\": \"medium\", \"value\": \"1/week\"},\n      \"DORA-2\": {\"level\": \"low\", \"lead_time_days\": 8.58},\n      \"DORA-3\": {\"level\": \"high\", \"change_failure_rate_pct\": 3.90}\n    },\n    \"compliance_score_pct\": 0.00,\n    \"process_quality_rating\": \"low\"\n  },\n  \"mode3\": {\n    \"why_chain\": [\n      \"Cycle time avg 8.58d > 6d.\",\n      \"Because PR reviews take 48h.\",\n      \"Because reviewers are overloaded and context switching.\",\n      \"Because WIP is 9 (limit 6) and PRs are large.\",\n      \"Because no 24h SLA, no CODEOWNERS, and weak PR standards.\"\n    ],\n    \"root_cause\": \"Excessive WIP and missing PR review standards causing review queues.\",\n    \"adjacent_registry_targets\": [\n      {\"registry\": \"GitHub Collaboration Standard v1.2\", \"why\": \"Set PR template, ownership, and 24h reviews.\"},\n      {\"registry\": \"Accelerate (DevOps Research)\", \"why\": \"Limit WIP and use small batches.\"}\n    ],\n    \"experiments\": [\n      {\"name\": \"Enforce WIP<=6\", \"focus\": \"Reduce queues and waiting.\"},\n      {\"name\": \"24h PR review SLA\", \"focus\": \"Cut review delay and rework.\"}\n    ]\n  },\n  \"mode4\": {\n    \"synthesis\": {\n      \"key_bets\": [\n        \"Cap WIP to 6 to improve flow\",\n        \"24h PR reviews via template + CODEOWNERS + rota\"\n      ],\n      \"expected_outcomes\": [\n        \"Cycle time -> ~7.5d in 2 weeks\",\n        \"PR review <=24h median\",\n        \"WIP avg <=6\",\n        \"Defects trend toward <=2.5%\"\n      ],\n      \"guardrails\": [\n        \"Build success >=92%\",\n        \"No throughput drop\",\n        \"No increase in rework\"\n      ],\n      \"metrics_to_watch\": [\n        \"cycle_time\",\n        \"pr_review_time\",\n        \"WIP\",\n        \"defect_escape_rate\"\n      ],\n      \"cadence\": \"Daily check; weekly retro\"\n    },\n    \"prompt_updates\": [\n      \"Standup: report WIP count and blockers first.\",\n      \"Standup: each PR states size and reviewer.\",\n      \"Use PR template with context, risks, test plan.\"\n    ],\n    \"process_updates\": [\n      \"Working agreement: WIP<=6 enforced\",\n      \"PR review SLA: <=24h median\",\n      \"Enable CODEOWNERS for critical paths\",\n      \"Adopt PR template for all PRs\",\n      \"Plan weekly triage (GH-6) next\"\n    ],\n    \"learning_metric\": {\n      \"primary\": \"PR review lead time (h)\",\n      \"baseline\": 48.00,\n      \"target\": 24.00,\n      \"secondary\": \"Avg WIP\",\n      \"secondary_baseline\": 9.00,\n      \"secondary_target\": 6.00,\n      \"cadence\": \"Daily\",\n      \"decision_rule\": \"If trend misses 3 days, adjust rota/WIP policy.\"\n    }\n  },\n  \"diagram_mermaid\": \"flowchart LR\\nA[High WIP (9)] --> B[Review queue (48h)]\\nB --> C[Cycle time 8.58d]\\nC --> D[Defect escapes 3.9%]\\nD --> E[Target: CT 6d, Def <=2.5%]\",\n  \"self_check\": \"Calcs rounded; <=2 experiments; only provided data used; Mermaid valid; strings concise; targets and constraints honored.\"\n}",
+        "tokensIn": 920,
+        "tokensOut": 6350,
+        "latencyMs": 53238,
+        "finishReason": "stop",
+        "model": "gpt-5",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:18:10.667Z",
+        "endTime": "2026-01-18T11:19:03.907Z",
+        "durationMs": 53240,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 7270
+      },
+      "metadata": {
+        "mode": "combined",
+        "promptId": "mode_combined",
+        "rubricId": "kata_v1",
+        "expected": {
+          "mode1_metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "mode2_registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "diagram_required": true
+        },
+        "modelDisplayName": "OpenAI GPT-5",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:18:10.667Z",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0
+  },
+  "telemetry": {
+    "startTime": "2026-01-18T11:16:11.860Z",
+    "endTime": "2026-01-18T11:19:03.907Z",
+    "durationMs": 172047,
+    "llmCalls": 5,
+    "cacheHits": {
+      "spec": 0,
+      "mapping": 0
+    },
+    "errors": [],
+    "warnings": []
+  },
+  "metadata": {
+    "suite": "kata_eval_v1",
+    "model": "OpenAI GPT-5",
+    "executedAt": "2026-01-18T11:16:11.860Z",
+    "version": "1.0.0"
+  }
+}

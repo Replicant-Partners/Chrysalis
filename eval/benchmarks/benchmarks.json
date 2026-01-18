@@ -1,52 +1,87 @@
 {
   "version": "1.0",
-  "notes": "Model identifiers and endpoints may need adjustment to match your providers.",
+  "notes": "OpenRouter model identifiers validated against /models list provided on 2026-01-18.",
   "models": [
-    {
-      "id": "anthropic_sonnet_4_5",
-      "displayName": "Sonnet 4.5",
-      "provider": "anthropic",
-      "name": "sonnet-4.5",
-      "apiKeyEnv": "ANTHROPIC_API_KEY"
-    },
-    {
-      "id": "anthropic_opus_4_5",
-      "displayName": "Opus 4.5",
-      "provider": "anthropic",
-      "name": "opus-4.5",
-      "apiKeyEnv": "ANTHROPIC_API_KEY"
-    },
     {
       "id": "openai_gpt_5_2_codex",
       "displayName": "OpenAI GPT-5.2 Codex",
-      "provider": "openai",
-      "name": "gpt-5.2-codex",
-      "apiKeyEnv": "OPENAI_API_KEY"
+      "provider": "openrouter",
+      "name": "openai/gpt-5.2-codex",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "providerNotes": "Validated id: openai/gpt-5.2-codex"
     },
     {
       "id": "openai_gpt_5_2",
       "displayName": "OpenAI GPT-5.2",
-      "provider": "openai",
-      "name": "gpt-5.2",
-      "apiKeyEnv": "OPENAI_API_KEY"
+      "provider": "openrouter",
+      "name": "openai/gpt-5.2",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "providerNotes": "Validated id: openai/gpt-5.2"
+    },
+    {
+      "id": "openai_gpt_5",
+      "displayName": "OpenAI GPT-5",
+      "provider": "openrouter",
+      "name": "openai/gpt-5",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "providerNotes": "Validated id: openai/gpt-5"
+    },
+    {
+      "id": "anthropic_sonnet_4_5",
+      "displayName": "Sonnet 4.5",
+      "provider": "openrouter",
+      "name": "anthropic/claude-sonnet-4.5",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "providerNotes": "Validated id: anthropic/claude-sonnet-4.5"
+    },
+    {
+      "id": "anthropic_opus_4_5",
+      "displayName": "Opus 4.5",
+      "provider": "openrouter",
+      "name": "anthropic/claude-opus-4.5",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "providerNotes": "Validated id: anthropic/claude-opus-4.5"
+    },
+    {
+      "id": "anthropic_sonnet_3_7",
+      "displayName": "Sonnet 3.7",
+      "provider": "openrouter",
+      "name": "anthropic/claude-3.7-sonnet",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "providerNotes": "Validated id: anthropic/claude-3.7-sonnet"
     },
     {
       "id": "z_ai_glm_4_7",
       "displayName": "Z.ai GLM-4.7",
-      "provider": "openai",
-      "name": "glm-4.7",
-      "endpoint": "https://api.z.ai/v1",
-      "apiKeyEnv": "ZAI_API_KEY",
-      "providerNotes": "Requires OpenAI-compatible endpoint. Update endpoint as needed."
+      "provider": "openrouter",
+      "name": "z-ai/glm-4.7",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "providerNotes": "Validated id: z-ai/glm-4.7"
+    },
+    {
+      "id": "z_ai_glm_4_6",
+      "displayName": "Z.ai GLM-4.6",
+      "provider": "openrouter",
+      "name": "z-ai/glm-4.6",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "providerNotes": "Validated id: z-ai/glm-4.6"
     },
     {
       "id": "mistral_top_thinking_latest",
       "displayName": "Mistral Top-Thinking Latest",
-      "provider": "openai",
-      "name": "mistral-large-latest",
-      "endpoint": "https://api.mistral.ai/v1",
-      "apiKeyEnv": "MISTRAL_API_KEY",
-      "providerNotes": "Verify model id for the latest top-thinking variant."
+      "provider": "openrouter",
+      "name": "mistralai/mistral-large-2411",
+      "endpoint": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "providerNotes": "Validated id: mistralai/mistral-large-2411"
     }
   ]
 }

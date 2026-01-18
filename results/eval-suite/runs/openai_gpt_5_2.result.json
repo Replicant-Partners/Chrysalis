@@ -1,0 +1,275 @@
+{
+  "taskId": "task_1768735171236_7hyzmmulx",
+  "taskType": "batch",
+  "taskName": "Kata evaluation suite (OpenAI GPT-5.2)",
+  "success": true,
+  "result": [
+    {
+      "taskId": "task_1768735171237_jal79z12t",
+      "taskType": "evaluate",
+      "taskName": "Mode 1 Manager (OpenAI GPT-5.2)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode1_manager\",\n  \"metrics\": {\n    \"avg_cycle_time_days\": 8.58,\n    \"cycle_time_gap_days\": 2.58,\n    \"cycle_time_reduction_pct\": 30.08,\n    \"pr_review_gap_hours\": 24.00,\n    \"wip_gap\": 3.00,\n    \"defect_gap_pct\": 1.40\n  },\n  \"target_condition\": {\n    \"cycle_time_days\": 6.0,\n    \"pr_review_time_hours\": 24,\n    \"wip_avg\": 6,\n    \"defect_escape_pct\": 2.5\n  },\n  \"experiments\": [\n    {\n      \"id\": \"E1\",\n      \"hypothesis\": \"If we enforce WIP<=6 with a daily 10-min unblock focus, cycle time will drop by 0.50 days within 7 days.\",\n      \"step\": \"Set board WIP limit=6; stop starting new work when >6; daily pick top blocker; swarm until cleared.\",\n      \"expected_metric_change\": \"WIP avg 9.00-><=6.00; cycle time avg -0.50 days.\",\n      \"timebox_days\": 7\n    },\n    {\n      \"id\": \"E2\",\n      \"hypothesis\": \"If we add PR review SLA (<=24h) with 2 daily review windows, PR review time will drop to <=24h in 7 days.\",\n      \"step\": \"Add CODEOWNERS + rotating reviewer; 11:00/16:00 review windows; PRs>12h flagged; limit PR size to 300 LOC.\",\n      \"expected_metric_change\": \"PR review time 48.00h-><=24.00h; cycle time avg -0.30 days.\",\n      \"timebox_days\": 7\n    }\n  ],\n  \"coach_actions\": [\n    \"Confirm single value-stream start/end for cycle time; update dashboard daily for cycle, WIP, PR age, escapes.\",\n    \"Run a 15-min weekly experiment review: results vs expected, learnings, next step or stop.\",\n    \"Facilitate blocker swarming; ensure no new work starts when WIP>6.\",\n    \"Coach reviewers to honor SLA; escalate stuck PRs at standup if >12h without review.\"\n  ],\n  \"risks\": [\n    \"WIP enforcement may idle specialists if swarming habits are weak.\",\n    \"Review windows may slip if urgent work interrupts; needs strict prioritization.\",\n    \"Smaller PRs may increase PR count; ensure batching does not return.\"\n  ],\n  \"self_check\": \"Avg cycle=(9.5+8.7+8.2+7.9)/4=8.575->8.58; gap=8.58-6=2.58; pct=2.58/8.58=30.08%; PR gap=48-24=24; WIP gap=9-6=3; defect gap=3.9-2.5=1.4.\"\n}",
+        "tokensIn": 701,
+        "tokensOut": 647,
+        "latencyMs": 9993,
+        "finishReason": "stop",
+        "model": "gpt-5.2",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:19:31.237Z",
+        "endTime": "2026-01-18T11:19:41.236Z",
+        "durationMs": 9999,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 1348
+      },
+      "metadata": {
+        "mode": "mode1",
+        "promptId": "mode1_manager",
+        "rubricId": "kata_v1",
+        "expected": {
+          "metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "required_experiments": 1
+        },
+        "modelDisplayName": "OpenAI GPT-5.2",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:19:31.237Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735181237_rd9avnokx",
+      "taskType": "evaluate",
+      "taskName": "Mode 2 Process Analyst (OpenAI GPT-5.2)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode2_process_analyst\",\n  \"registry_checks\": [\n    {\n      \"registry_id\": \"GH-1\",\n      \"status\": \"pass\",\n      \"evidence\": \"PR template present: yes.\",\n      \"recommendation\": \"\"\n    },\n    {\n      \"registry_id\": \"GH-2\",\n      \"status\": \"fail\",\n      \"evidence\": \"PR review time: 48 hours (target <=24).\",\n      \"recommendation\": \"GH-2: Set review SLA <=24h; add reviewer rotation, smaller PRs, and reminders.\"\n    },\n    {\n      \"registry_id\": \"GH-3\",\n      \"status\": \"pass\",\n      \"evidence\": \"Required checks on main branch: yes.\",\n      \"recommendation\": \"\"\n    },\n    {\n      \"registry_id\": \"GH-4\",\n      \"status\": \"fail\",\n      \"evidence\": \"CODEOWNERS file present: no.\",\n      \"recommendation\": \"GH-4: Add CODEOWNERS for critical paths; require approval from owners via branch rules.\"\n    },\n    {\n      \"registry_id\": \"GH-5\",\n      \"status\": \"pass\",\n      \"evidence\": \"Branch protection: no direct push enabled.\",\n      \"recommendation\": \"\"\n    },\n    {\n      \"registry_id\": \"GH-6\",\n      \"status\": \"fail\",\n      \"evidence\": \"Issue triage cadence: ad hoc (not weekly).\",\n      \"recommendation\": \"GH-6: Establish weekly triage with backlog hygiene and ownership for labels, priority, and aging.\"\n    }\n  ],\n  \"dora_classification\": {\n    \"DORA-1\": \"medium\",\n    \"DORA-2\": \"low\",\n    \"DORA-3\": \"high\"\n  },\n  \"compliance_score_pct\": 50,\n  \"process_quality_rating\": \"medium\",\n  \"recommendations\": [\n    \"GH-2: Set review SLA <=24h; add reviewer rotation, smaller PRs, and reminders.\",\n    \"GH-4: Add CODEOWNERS for critical paths; require approval from owners via branch rules.\",\n    \"GH-6: Establish weekly triage with backlog hygiene and ownership for labels, priority, and aging.\",\n    \"DORA-2: Reduce cycle time (8.58d) via WIP limits, slicing work, CI speedups, and faster reviews (GH-2).\"\n  ],\n  \"self_check\": \"Checks include GH-1..GH-6 once; score=(3/6)*100=50; DORA uses given proxies; strings kept concise.\"\n}",
+        "tokensIn": 674,
+        "tokensOut": 551,
+        "latencyMs": 7014,
+        "finishReason": "stop",
+        "model": "gpt-5.2",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:19:41.237Z",
+        "endTime": "2026-01-18T11:19:48.256Z",
+        "durationMs": 7019,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 1225
+      },
+      "metadata": {
+        "mode": "mode2",
+        "promptId": "mode2_process_analyst",
+        "rubricId": "kata_v1",
+        "expected": {
+          "registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "dora_classification": {
+            "DORA-1": "medium",
+            "DORA-2": "low",
+            "DORA-3": "high"
+          },
+          "compliance_score_pct": 50,
+          "process_quality_rating": "medium"
+        },
+        "modelDisplayName": "OpenAI GPT-5.2",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:19:41.237Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735188256_nv4vzzsd2",
+      "taskType": "evaluate",
+      "taskName": "Mode 3 Root Cause (OpenAI GPT-5.2)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode3_root_cause\",\n  \"problem_statement\": \"Quality and flow are stalled: defect escape 3.9% flat, PR review 48h, WIP 9>6, coverage 65%, deploys 1/week.\",\n  \"why_chain\": [\n    {\n      \"why\": 1,\n      \"cause\": \"Defects escape and delivery is slow because changes wait in review and big batches ship weekly.\"\n    },\n    {\n      \"why\": 2,\n      \"cause\": \"PRs wait because reviewers are overloaded and work is queued; WIP exceeds limits.\"\n    },\n    {\n      \"why\": 3,\n      \"cause\": \"WIP exceeds limits because teams start more work than they finish; reviews and tests are not treated as first-class.\"\n    },\n    {\n      \"why\": 4,\n      \"cause\": \"Reviews/tests lag because quality gates are mostly manual and late; automation is insufficient (65% coverage) so risk stays high.\"\n    },\n    {\n      \"why\": 5,\n      \"cause\": \"Automation and flow controls are not standardized or enforced; no explicit policy for PR size, WIP, review SLAs, and CI quality gates.\"\n    }\n  ],\n  \"root_cause\": \"Lack of enforced, standard flow+quality policies (WIP, PR size, review SLA, CI gates) keeps work queued and forces weekly big-batch releases.\",\n  \"adjacent_registry_targets\": [\n    {\n      \"name\": \"DORA Metrics v2\",\n      \"reason\": \"Links deploy freq, lead time, CFR, and MTTR; helps confirm big-batch + slow review as primary constraint.\"\n    },\n    {\n      \"name\": \"GitHub Collaboration Standard v1.2\",\n      \"reason\": \"Provides concrete norms for PR size, review turnaround, CODEOWNERS, batching, and queue hygiene to reduce review latency.\"\n    }\n  ],\n  \"experiments\": [\n    {\n      \"id\": \"E1\",\n      \"hypothesis\": \"If PRs are smaller with a review SLA, review time will drop and defect escape will improve.\",\n      \"step\": \"2 sprints: cap PR to <=300 LOC, require 1 reviewer, set 8h review SLA, add CODEOWNERS, track queue daily.\",\n      \"signal\": \"Median PR review time <24h; defect escape <3.0%; WIP trends toward <=6.\"\n    },\n    {\n      \"id\": \"E2\",\n      \"hypothesis\": \"If CI quality gates are enforced, risk drops and deploy frequency can increase safely.\",\n      \"step\": \"Add CI gates: required tests, coverage floor 75% on changed files, flaky test quarantine, trunk-green rule.\",\n      \"signal\": \"Coverage >=75% on changed files; deploys >=2/week; defect escape <3.0% without higher rollback.\"\n    }\n  ],\n  \"self_check\": \"5 whys provided; root cause matches why 5; 2 registries chosen from list; 2 experiments only; strings <=160 chars.\"\n}",
+        "tokensIn": 435,
+        "tokensOut": 642,
+        "latencyMs": 14144,
+        "finishReason": "stop",
+        "model": "gpt-5.2",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:19:48.256Z",
+        "endTime": "2026-01-18T11:20:02.405Z",
+        "durationMs": 14149,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 1077
+      },
+      "metadata": {
+        "mode": "mode3",
+        "promptId": "mode3_root_cause",
+        "rubricId": "kata_v1",
+        "expected": {
+          "why_chain_length": 5,
+          "adjacent_registry_min": 2
+        },
+        "modelDisplayName": "OpenAI GPT-5.2",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:19:48.256Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735202405_yfqvhwsx8",
+      "taskType": "evaluate",
+      "taskName": "Mode 4 Complex Learner (OpenAI GPT-5.2)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"mode4_complex_learner\",\n  \"synthesis\": {\n    \"learning_statement\": \"Cycle time and quality issues are driven by a PR review bottleneck and unbounded WIP; tightening review flow and merge gates should cut delay and defects.\",\n    \"top_insights\": [\n      \"PR reviews exceeding 24h are the main queue delay and violate proposed SLAs.\",\n      \"Lack of CODEOWNERS and weekly triage reduces review routing and prioritization clarity.\",\n      \"Unbounded WIP masks defects and correlates with higher change failure rate.\",\n      \"A pre-merge checklist plus review queue WIP limit targets root causes with low tooling cost.\"\n    ],\n    \"priority_constraints\": [\n      \"Keep changes lightweight: GitHub-native controls, minimal new tooling, <1 sprint rollout.\",\n      \"Strings and artifacts must be measurable via GitHub timestamps and PR metadata.\",\n      \"Limit scope to review flow and merge quality gates before broader DORA/SPACE expansion.\"\n    ],\n    \"risks\": [\n      \"WIP limits may increase wait time if reviewer capacity is not rebalanced.\",\n      \"Checklist may become cargo-cult if not enforced via required status checks.\",\n      \"Tight SLAs may incentivize shallow reviews unless paired with quality signals.\"\n    ]\n  },\n  \"prompt_updates\": [\n    {\n      \"prompt_id\": \"mode1_manager\",\n      \"change\": \"Add review-queue WIP + SLA ops plan: set max PRs in Review per team, add CODEOWNERS, define escalation, and track review age daily.\",\n      \"rationale\": \"Mode3 shows review bottleneck is root cause; manager prompt must drive capacity, routing, and visible queue control.\"\n    },\n    {\n      \"prompt_id\": \"mode2_process_analyst\",\n      \"change\": \"Extend audit to PR metadata: review age distribution, time-in-state, WIP counts, CODEOWNERS coverage, checklist compliance, and triage cadence evidence.\",\n      \"rationale\": \"Mode3 needs flow diagnostics beyond pass/fail controls to validate bottleneck removal and WIP effects.\"\n    }\n  ],\n  \"process_updates\": [\n    {\n      \"id\": \"P1\",\n      \"change\": \"Policy bundle: add CODEOWNERS + required pre-merge checklist; enforce review-queue WIP limit and 24h review SLA with escalation.\",\n      \"expected_effect\": \"Reduce PR waiting time, surface work sooner, improve merge quality, and lower change failure rate by tightening gates and routing.\"\n    }\n  ],\n  \"diagram_mermaid\": \"flowchart TD\\nA[Create PR]-->B[Review Queue WIP Limit]\\nB-->C[CODEOWNERS Auto-Assign]\\nC-->D[24h SLA + Escalate]\\nD-->E[Checklist + Required Checks]\\nE-->F[Merge]\",\n  \"learning_metric\": {\n    \"name\": \"PR review SLA compliance\",\n    \"definition\": \"% of PRs receiving first human review within 24h; measured weekly from PR open to first review timestamp.\",\n    \"target\": \">=85% for 2 consecutive weeks\"\n  },\n  \"self_check\": \"Schema OK; prompt_updates=2, process_updates=1; Mermaid <=6 nodes; strings <=160 chars; aligns to review bottleneck + WIP root cause.\"\n}",
+        "tokensIn": 532,
+        "tokensOut": 690,
+        "latencyMs": 16176,
+        "finishReason": "stop",
+        "model": "gpt-5.2",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:20:02.405Z",
+        "endTime": "2026-01-18T11:20:18.585Z",
+        "durationMs": 16180,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 1222
+      },
+      "metadata": {
+        "mode": "mode4",
+        "promptId": "mode4_complex_learner",
+        "rubricId": "kata_v1",
+        "expected": {
+          "required_prompt_updates": [
+            "mode1_manager",
+            "mode2_process_analyst"
+          ],
+          "process_updates_min": 1,
+          "diagram_required": true
+        },
+        "modelDisplayName": "OpenAI GPT-5.2",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:20:02.405Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "taskId": "task_1768735218585_ishyfddkr",
+      "taskType": "evaluate",
+      "taskName": "Combined Modes (OpenAI GPT-5.2)",
+      "success": true,
+      "result": {
+        "response": "{\n  \"mode\": \"combined\",\n  \"mode1\": {\n    \"metrics\": {\n      \"avg_cycle_time_days\": 8.58,\n      \"cycle_time_gap_days\": 2.58,\n      \"cycle_time_reduction_pct\": 30.14,\n      \"pr_review_gap_hours\": 24.00,\n      \"wip_gap\": 3.00,\n      \"defect_gap_pct\": 1.40\n    },\n    \"experiments\": [\n      {\n        \"id\": \"E1\",\n        \"hypothesis\": \"If we enforce <=24h reviews + CODEOWNERS, PR wait time drops and cycle time trends to 6.0 days.\",\n        \"change\": \"Enable GH-2 + GH-4 on critical paths; rotate daily reviewer-on-call; cap PR size via template checklist.\",\n        \"measure\": \"Median PR review time; cycle time; % PRs reviewed <=24h.\",\n        \"scope_duration\": \"1 week, new PRs only, max 1 repo or critical path module.\",\n        \"success_criteria\": \"PR review median <=24h; cycle time improves >=0.5d vs baseline; no defect escape increase.\"\n      },\n      {\n        \"id\": \"E2\",\n        \"hypothesis\": \"If we keep WIP <=6, flow improves and cycle time falls without raising defects.\",\n        \"change\": \"Hard WIP gate: no new work pulled when WIP>6; daily 10-min WIP review; swarm to finish oldest items.\",\n        \"measure\": \"Avg WIP; cycle time; queue time; deployment frequency.\",\n        \"scope_duration\": \"1 week, team-wide, exclude urgent incidents.\",\n        \"success_criteria\": \"Avg WIP <=6.5; cycle time improves >=0.5d; deploy frequency stays >=1/week.\"\n      }\n    ],\n    \"coach_actions\": [\n      \"Establish baseline: PR review median, PR age, WIP by stage, defects escaped weekly.\",\n      \"Set explicit policies: reviewer-on-call rules, WIP gate, and escalation when review >24h.\",\n      \"Run end-of-week kata reflection: what blocked flow, what to standardize next.\"\n    ],\n    \"risks\": [\n      \"Review SLA may cause shallow reviews; mitigate with required checks and PR template.\",\n      \"WIP cap may feel like slowdown; mitigate by swarming and explicit unblock protocol.\",\n      \"CODEOWNERS may bottleneck; mitigate with backup owners and rotation.\"\n    ]\n  },\n  \"mode2\": {\n    \"registry_checks\": [\n      {\n        \"registry\": \"GitHub Collaboration Standard v1.2\",\n        \"checks\": [\n          \"GH-1 PR template required: unknown\",\n          \"GH-2 Reviews within 24h: failing (48h)\",\n          \"GH-3 Required status checks: unknown\",\n          \"GH-4 CODEOWNERS on critical paths: unknown\",\n          \"GH-5 No direct push protected branches: unknown\",\n          \"GH-6 Weekly issue triage: unknown\"\n        ]\n      },\n      {\n        \"registry\": \"DORA Metrics v2 (simplified)\",\n        \"checks\": [\n          \"DORA-1 Deployment frequency: 1/week\",\n          \"DORA-2 Lead time proxy (cycle time): 8.58 days\",\n          \"DORA-3 Change failure proxy (defect escapes): 3.90%\"\n        ]\n      }\n    ],\n    \"dora_classification\": {\n      \"deployment_frequency\": {\n        \"value\": \"1/week\",\n        \"class\": \"medium\"\n      },\n      \"lead_time_proxy\": {\n        \"value_days\": 8.58,\n        \"class\": \"low\"\n      },\n      \"change_failure_proxy\": {\n        \"value_pct\": 3.90,\n        \"class\": \"high\"\n      }\n    },\n    \"compliance_score_pct\": 0.00,\n    \"process_quality_rating\": \"Needs improvement; key SLA (GH-2) failing and other controls unverified.\"\n  },\n  \"mode3\": {\n    \"why_chain\": [\n      {\n        \"why\": 1,\n        \"problem\": \"Cycle time is 8.58d vs target 6.0d and PR review is 48h vs 24h.\",\n        \"because\": \"Work waits in review and queues due to high WIP (avg 9 > limit 6).\"\n      },\n      {\n        \"why\": 2,\n        \"problem\": \"Work waits in review and queues.\",\n        \"because\": \"Too many concurrent items reduce focus; reviewers context-switch and reviews are delayed.\"\n      },\n      {\n        \"why\": 3,\n        \"problem\": \"Too many concurrent items and delayed reviews persist.\",\n        \"because\": \"WIP limit is not enforced and there is no explicit review ownership/rotation policy.\"\n      },\n      {\n        \"why\": 4,\n        \"problem\": \"No enforcement and no clear ownership policy.\",\n        \"because\": \"Team norms prioritize starting work over finishing; collaboration standards not operationalized.\"\n      },\n      {\n        \"why\": 5,\n        \"problem\": \"Norms favor starting over finishing.\",\n        \"because\": \"Lack of a defined flow system with gates (WIP, review SLA) and feedback loops tied to metrics.\"\n      }\n    ],\n    \"root_cause\": \"Flow policies (WIP gate + review SLA ownership) are not operationalized, causing queues and long review waits.\",\n    \"adjacent_registry_targets\": [\n      {\n        \"registry\": \"Google SRE Workbook (change management)\",\n        \"target\": \"Change review/approval flow, small batch changes, and fast feedback via automation.\"\n      },\n      {\n        \"registry\": \"Accelerate (DevOps Research)\",\n        \"target\": \"Limit WIP, reduce batch size, and improve flow efficiency to reduce lead time.\"\n      }\n    ],\n    \"experiments\": [\n      {\n        \"id\": \"E1R\",\n        \"links_to\": \"E1\",\n        \"registry_alignment\": \"GH-2, GH-4; SRE change review practices\",\n        \"expected_effect\": \"Reduce review queue time and improve cycle time.\"\n      },\n      {\n        \"id\": \"E2R\",\n        \"links_to\": \"E2\",\n        \"registry_alignment\": \"Accelerate flow + WIP limits\",\n        \"expected_effect\": \"Reduce queueing and improve throughput predictability.\"\n      }\n    ]\n  },\n  \"mode4\": {\n    \"synthesis\": {\n      \"focus\": \"Improve flow by enforcing WIP<=6 and PR reviews<=24h with explicit ownership and standards.\",\n      \"next_4_weeks_strategy\": \"Run 2 weekly experiments: (1) review SLA+CODEOWNERS, (2) WIP gate+swarm. Standardize wins.\",\n      \"expected_outcomes\": \"Cycle time toward 6.0d, PR review <=24h, WIP <=6, defect escapes <=2.5%.\"\n    },\n    \"prompt_updates\": [\n      \"Always compute gaps vs targets and pick <=2 experiments/week tied to the biggest constraint.\",\n      \"Require success criteria: flow metric + quality guardrail (defect escape) for every experiment.\",\n      \"If unknown compliance, mark as unknown and add a verification task before scoring.\"\n    ],\n    \"process_updates\": [\n      \"Daily: 10-min WIP+review aging check; swarm to finish oldest work; escalate reviews >24h.\",\n      \"Weekly: verify GH controls (template, status checks, CODEOWNERS, no direct push, triage) and record pass/fail.\",\n      \"Define reviewer-on-call rotation and backup owners to avoid CODEOWNERS bottlenecks.\"\n    ],\n    \"learning_metric\": {\n      \"name\": \"Flow efficiency proxy\",\n      \"definition\": \"Median PR review time and avg WIP tracked weekly; aim PR<=24h and WIP<=6.\",\n      \"cadence\": \"Weekly\"\n    }\n  },\n  \"diagram_mermaid\": \"flowchart TD\\nA[Current: CT 8.58d, PR 48h, WIP 9]-->B[Constraint: Queues in review + too much WIP]\\nB-->C[Exp1: Enforce 24h reviews + CODEOWNERS]\\nB-->D[Exp2: Hard WIP gate <=6 + swarm]\\nC-->E[Measure: PR<=24h, CT trend, defects]\\nD-->E\",\n  \"self_check\": \"Checks: 2 experiments max/week; metrics rounded 2 decimals; strings <=160 chars; mermaid <=6 nodes; single JSON only.\"\n}",
+        "tokensIn": 920,
+        "tokensOut": 1795,
+        "latencyMs": 34790,
+        "finishReason": "stop",
+        "model": "gpt-5.2",
+        "provider": "openai"
+      },
+      "telemetry": {
+        "startTime": "2026-01-18T11:20:18.585Z",
+        "endTime": "2026-01-18T11:20:53.379Z",
+        "durationMs": 34794,
+        "llmCalls": 1,
+        "cacheHits": {
+          "spec": 0,
+          "mapping": 0
+        },
+        "errors": [],
+        "warnings": [],
+        "tokensUsed": 2715
+      },
+      "metadata": {
+        "mode": "combined",
+        "promptId": "mode_combined",
+        "rubricId": "kata_v1",
+        "expected": {
+          "mode1_metrics": {
+            "avg_cycle_time_days": 8.58,
+            "cycle_time_gap_days": 2.58,
+            "cycle_time_reduction_pct": 30.07,
+            "pr_review_gap_hours": 24,
+            "wip_gap": 3,
+            "defect_gap_pct": 1.4
+          },
+          "mode2_registry_status": {
+            "GH-1": "pass",
+            "GH-2": "fail",
+            "GH-3": "pass",
+            "GH-4": "fail",
+            "GH-5": "pass",
+            "GH-6": "fail"
+          },
+          "diagram_required": true
+        },
+        "modelDisplayName": "OpenAI GPT-5.2",
+        "modelSizeGB": null,
+        "executedAt": "2026-01-18T11:20:18.585Z",
+        "version": "1.0.0"
+      }
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0
+  },
+  "telemetry": {
+    "startTime": "2026-01-18T11:19:31.237Z",
+    "endTime": "2026-01-18T11:20:53.379Z",
+    "durationMs": 82142,
+    "llmCalls": 5,
+    "cacheHits": {
+      "spec": 0,
+      "mapping": 0
+    },
+    "errors": [],
+    "warnings": []
+  },
+  "metadata": {
+    "suite": "kata_eval_v1",
+    "model": "OpenAI GPT-5.2",
+    "executedAt": "2026-01-18T11:19:31.237Z",
+    "version": "1.0.0"
+  }
+}

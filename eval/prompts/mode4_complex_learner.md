@@ -28,6 +28,10 @@ TASK:
 
 RULES:
 - prompt_updates must include entries for mode1_manager and mode2_process_analyst.
+- prompt_updates length must be exactly 2.
+- process_updates length must be exactly 1.
+- diagram_mermaid is required and must be a valid Mermaid flowchart with <= 6 nodes.
+- All string values <= 160 characters.
 
 OUTPUT RULES:
 - Return a single JSON object only. No extra text, no code fences.
@@ -48,6 +52,7 @@ OUTPUT JSON SCHEMA:
   "process_updates": [
     {"id": "P1", "change": "", "expected_effect": ""}
   ],
+  "diagram_mermaid": "",
   "learning_metric": {"name": "", "definition": "", "target": ""},
   "self_check": ""
 }

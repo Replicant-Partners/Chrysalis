@@ -171,8 +171,11 @@ def score_mode4(response: dict, expected: dict, rubric: dict) -> Tuple[float, fl
     process_updates_min = expected.get("process_updates_min", 0)
     process_updates_ok = isinstance(process_updates, list) and len(process_updates) >= process_updates_min
 
-    accuracy_score = 5 if required.issubset(prompt_ids) and process_updates_ok else 2
-    process_score = 5 if prompt_updates and process_updates_ok else 2
+    diagram_required = expected.get("diagram_required", False)
+    diagram_ok = bool(response.get("diagram_mermaid")) if diagram_required else True
+
+    accuracy_score = 5 if required.issubset(prompt_ids) and process_updates_ok and diagram_ok else 2
+    process_score = 5 if prompt_updates and process_updates_ok and diagram_ok else 2
     semantics_score = 4 if response.get("synthesis") else 2
     metacog_score = 5 if response.get("self_check") else 0
     logic_score = 4 if response.get("learning_metric") else 2
@@ -190,12 +193,23 @@ def score_combined(response: dict, expected: dict, rubric: dict) -> Tuple[float,
     l1, s1, p1, m1, a1 = score_mode1(mode1_resp, mode1_expected, rubric)
     l2, s2, p2, m2, a2 = score_mode2(mode2_resp, mode2_expected, rubric)
 
+    logic = (l1 + l2) / 2
+    semantics = (s1 + s2) / 2
+    process = (p1 + p2) / 2
+    metacog = (m1 + m2) / 2
+    accuracy = (a1 + a2) / 2
+
+    diagram_required = expected.get("diagram_required", False)
+    if diagram_required and not response.get("diagram_mermaid"):
+        process = min(process, 2)
+        accuracy = min(accuracy, 2)
+
     return (
-        (l1 + l2) / 2,
-        (s1 + s2) / 2,
-        (p1 + p2) / 2,
-        (m1 + m2) / 2,
-        (a1 + a2) / 2,
+        logic,
+        semantics,
+        process,
+        metacog,
+        accuracy,
     )
 
 

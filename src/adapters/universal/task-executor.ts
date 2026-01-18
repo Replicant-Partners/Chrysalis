@@ -12,6 +12,7 @@ import { getSharedAdapter } from './gateway-bridge';
 import type { UniversalAdapter, TranslationResult, MorphingResult } from './adapter';
 import type { ValidationResult, ProtocolCapabilities } from './types';
 import { createLogger } from '../../shared/logger';
+import * as path from 'path';
 
 const log = createLogger('task-executor');
 
@@ -467,6 +468,7 @@ export class UniversalAdapterTaskExecutor {
           break;
         
         case 'openai':
+        case 'openrouter':
           ({ response, tokensIn, tokensOut, finishReason } = await this.callOpenAI(task));
           break;
         
@@ -480,6 +482,7 @@ export class UniversalAdapterTaskExecutor {
       // Save response to file if outputPath specified
       if (task.options?.outputPath) {
         const fs = await import('fs/promises');
+        await fs.mkdir(path.dirname(task.options.outputPath), { recursive: true });
         const outputContent = task.options.includeMetadata
           ? this.formatResponseWithMetadata(response, {
               model: task.model.name,
@@ -645,25 +648,50 @@ export class UniversalAdapterTaskExecutor {
       throw new Error('OpenAI API key required');
     }
 
-    const endpoint = task.model.endpoint || 'https://api.openai.com/v1';
+    const provider = task.model.provider.toLowerCase();
+    const endpoint = task.model.endpoint || (
+      provider === 'openrouter'
+        ? 'https://openrouter.ai/api/v1'
+        : 'https://api.openai.com/v1'
+    );
+    const isOpenRouter = endpoint.includes('openrouter.ai');
     const timeout = task.options?.timeoutMs || 60000;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
+      const useMaxCompletionTokens = task.model.name.startsWith('gpt-5') && !isOpenRouter;
+      const maxTokens = task.parameters?.maxTokens;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${task.model.apiKey}`
+      };
+      if (isOpenRouter) {
+        const referer = typeof process !== 'undefined'
+          ? (process.env.OPENROUTER_HTTP_REFERER || process.env.OPENROUTER_REFERER)
+          : undefined;
+        const title = typeof process !== 'undefined'
+          ? (process.env.OPENROUTER_X_TITLE || process.env.OPENROUTER_APP_NAME || process.env.OPENROUTER_TITLE)
+          : undefined;
+        if (referer) {
+          headers['HTTP-Referer'] = referer;
+        }
+        if (title) {
+          headers['X-Title'] = title;
+        }
+      }
+
       const response = await fetch(`${endpoint}/chat/completions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${task.model.apiKey}`
-        },
+        headers,
         body: JSON.stringify({
           model: task.model.name,
           messages: [{ role: 'user', content: task.prompt }],
           temperature: task.parameters?.temperature ?? 0.7,
           top_p: task.parameters?.topP,
-          max_tokens: task.parameters?.maxTokens,
+          max_tokens: useMaxCompletionTokens ? undefined : maxTokens,
+          max_completion_tokens: useMaxCompletionTokens ? maxTokens : undefined,
           stop: task.parameters?.stopSequences
         }),
         signal: controller.signal

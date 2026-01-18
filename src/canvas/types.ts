@@ -9,19 +9,7 @@
  */
 
 import { ReactElement, ComponentType } from 'react';
-// TODO: Install reactflow package before uncommenting
-// import { Node, Edge, Viewport } from 'reactflow';
-
-// Temporary type stubs until reactflow is installed
-type Node = any;
-type Edge = any;
-type Viewport = any;
-type NodeChange = any;
-type EdgeChange = any;
-type Connection = any;
-type OnNodesChange = any;
-type OnEdgesChange = any;
-type OnConnect = any;
+import type { Node, Edge, Viewport, NodeChange, EdgeChange, Connection, OnNodesChange, OnEdgesChange, OnConnect } from 'reactflow';
 
 /**
  * Canvas Kind Type
@@ -472,24 +460,21 @@ export interface CanvasConfig {
 /**
  * Canvas Node
  * 
- * ReactFlow Node extended with WidgetNodeData
+ * ReactFlow Node with WidgetNodeData
+ * Properly parameterized to work with ReactFlow's type system
  */
-export interface CanvasNode<TData extends WidgetNodeData = WidgetNodeData> extends Node {
-  data: TData;
-  type: string; // matches WidgetDefinition.type
-}
+export type CanvasNode<TData extends WidgetNodeData = WidgetNodeData> = Node<TData>;
 
 /**
  * Canvas Edge
  * 
  * ReactFlow Edge with optional metadata
+ * Properly parameterized to work with ReactFlow's type system
  */
-export interface CanvasEdge extends Edge {
-  data?: {
-    label?: string;
-    metadata?: Record<string, unknown>;
-  };
-}
+export type CanvasEdge = Edge<{
+  label?: string;
+  metadata?: Record<string, unknown>;
+}>;
 
 /**
  * Canvas Data
@@ -553,70 +538,6 @@ export interface OperationMessage {
 }
 
 /**
- * Re-export ReactFlow types for convenience (once reactflow is installed)
+ * Re-export ReactFlow types for convenience
  */
-// export type { Node, Edge, Viewport } from 'reactflow';
-// export type {
-//   NodeChange,
-//   EdgeChange,
-//   Connection,
-//   OnNodesChange,
-//   OnEdgesChange,
-//   OnConnect,
-// } from 'reactflow';
-
-/**
- * Utility type for extracting widget data type from canvas type
- */
-export type WidgetDataForCanvas<K extends CanvasKind> =
-  K extends 'settings' ? SettingsWidgetData :
-  K extends 'agent' ? AgentWidgetData :
-  K extends 'scrapbook' ? ScrapbookWidgetData :
-  K extends 'research' ? ResearchWidgetData :
-  K extends 'wiki' ? WikiWidgetData :
-  K extends 'terminal-browser' ? TerminalBrowserWidgetData :
-  WidgetNodeData;
-
-/**
- * Canvas-specific widget data types (to be extended by implementations)
- */
-export interface SettingsWidgetData extends WidgetNodeData {
-  type: 'config' | 'connection' | 'credential';
-}
-
-export interface AgentWidgetData extends WidgetNodeData {
-  type: 'agent_card' | 'team_group';
-}
-
-export interface ScrapbookWidgetData extends WidgetNodeData {
-  type: 'artifact' | 'note' | 'link' | 'group';
-}
-
-export interface ResearchWidgetData extends WidgetNodeData {
-  type: 'source' | 'citation' | 'synthesis' | 'hypothesis';
-}
-
-export interface WikiWidgetData extends WidgetNodeData {
-  type: 'wiki_page' | 'wiki_section' | 'wiki_link';
-}
-
-export interface TerminalBrowserWidgetData extends WidgetNodeData {
-  type: 'terminal_session' | 'browser_tab' | 'code_editor';
-}
-
-/**
- * Export all types for definition external use
- * Note: Interfaces are already exported via 'export interface' declarations above
- * Only need to export the ReactFlow re-exports here
- */
-export type {
-  Node,
-  Edge,
-  Viewport,
-  NodeChange,
-  EdgeChange,
-  Connection,
-  OnNodesChange,
-  OnEdgesChange,
-  OnConnect,
-};
+export type { Node, Edge, Viewport, NodeChange, EdgeChange, Connection, OnNodesChange, OnEdgesChange, OnConnect } from 'reactflow';

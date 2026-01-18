@@ -60,6 +60,10 @@ CALCULATION + CLASSIFICATION RULES:
 - DORA-3 uses defect escape rate as the change failure rate proxy for this task.
 - Compliance score = (passes / 6) * 100.
 
+CONCISION + DIAGRAM RULES:
+- All string values <= 160 characters.
+- diagram_mermaid is required and must be a valid Mermaid flowchart with <= 6 nodes.
+
 OUTPUT RULES:
 - Return a single JSON object only. No extra text, no code fences.
 - Round all numeric values to 2 decimals.
@@ -72,5 +76,6 @@ OUTPUT JSON SCHEMA:
   "mode2": {"registry_checks": [], "dora_classification": {}, "compliance_score_pct": 0, "process_quality_rating": ""},
   "mode3": {"why_chain": [], "root_cause": "", "adjacent_registry_targets": [], "experiments": []},
   "mode4": {"synthesis": {}, "prompt_updates": [], "process_updates": [], "learning_metric": {}},
+  "diagram_mermaid": "",
   "self_check": ""
 }

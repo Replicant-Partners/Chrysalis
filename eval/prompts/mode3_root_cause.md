@@ -29,6 +29,10 @@ TASK:
 RULES:
 - The root_cause must be consistent with the 5th why.
 - Choose registries only from the provided list.
+- why_chain length must be exactly 5.
+- adjacent_registry_targets length must be exactly 2.
+- experiments length must be exactly 2.
+- All string values <= 160 characters.
 
 OUTPUT RULES:
 - Return a single JSON object only. No extra text, no code fences.

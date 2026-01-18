@@ -37,7 +37,7 @@ Prompts are stored in `eval/prompts/` and assembled by `prompt_manifest.json`.
 - `eval/prompts/mode4_complex_learner.md`: Mode 4 Complex Learner
 - `eval/prompts/mode_combined.md`: Combined Modes 1-4
 
-All prompts require strict JSON output for reproducibility.
+All prompts require strict JSON output for reproducibility. Concision limits and a compact Mermaid diagram field are enforced for Mode 4 and Combined.
 
 ## Evidence Basis
 Prompts and scoring align with established delivery and quality frameworks. Proxy metrics are explicit in the prompt text to maintain transparency.
@@ -102,6 +102,14 @@ results/eval-suite/runs/<task-file>.result.json
 - `scripts/eval/run_eval_suite.sh`: health check, run all tasks, then score.
 - `scripts/eval/resolve_api_keys.py`: injects API keys from env into tasks.
 - `scripts/eval/score_eval_results.py`: computes scores and writes summaries.
+
+## OpenRouter Model Discovery
+OpenRouter model IDs should be validated against the `/models` endpoint before running benchmarks.
+
+```
+curl -s https://openrouter.ai/api/v1/models \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY"
+```
 
 ## File Layout
 - `eval/prompts/`: prompt texts

@@ -1,0 +1,41 @@
+{
+  "taskId": "task_1768739154923_pjgwfeaqg",
+  "taskType": "evaluate",
+  "taskName": "Health check (deepseek-r1:1.5b)",
+  "success": false,
+  "error": {
+    "message": "fetch failed",
+    "code": "TASK_EXECUTION_ERROR",
+    "details": {}
+  },
+  "telemetry": {
+    "startTime": "2026-01-18T12:25:54.923Z",
+    "endTime": "2026-01-18T12:25:54.949Z",
+    "durationMs": 26,
+    "llmCalls": 1,
+    "cacheHits": {
+      "spec": 0,
+      "mapping": 0
+    },
+    "errors": [
+      {
+        "message": "fetch failed",
+        "timestamp": "2026-01-18T12:25:54.949Z",
+        "context": "evaluate-task"
+      },
+      {
+        "message": "fetch failed",
+        "timestamp": "2026-01-18T12:25:54.949Z",
+        "context": "task-execution"
+      }
+    ],
+    "warnings": []
+  },
+  "metadata": {
+    "mode": "health",
+    "promptId": "health_check",
+    "rubricId": "kata_v1",
+    "executedAt": "2026-01-18T12:25:54.923Z",
+    "version": "1.0.0"
+  }
+}

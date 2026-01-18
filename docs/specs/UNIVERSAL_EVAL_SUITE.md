@@ -114,6 +114,8 @@ These references anchor the **construct validity** of the prompt tasks while kee
 - Each prompt requires **JSON-only output**.
 - Calculations and classification rules are explicit to reduce ambiguity.
 - Models must not ask clarifying questions.
+- Concision limits are enforced in each prompt (string length and list size caps).
+- Mode 4 and Combined outputs include a compact `diagram_mermaid` field.
 
 ### 3.2 Prompt Files (Authoritative)
 
@@ -232,6 +234,12 @@ scripts/eval/generate_eval_tasks.py
 # Run evaluation suite
 scripts/eval/run_eval_suite.sh
 
+# Run one of 5 local batches (skip benchmarks)
+scripts/eval/run_eval_suite.sh --batch 1 --batches 5 --skip-benchmarks
+
+# Run only benchmarks
+scripts/eval/run_eval_suite.sh --benchmarks-only
+
 # Score outputs (if running steps manually)
 scripts/eval/score_eval_results.py \
   --runs results/eval-suite/runs \
@@ -243,8 +251,36 @@ scripts/eval/score_eval_results.py \
 ## 8) Limitations
 
 - External providers require API keys available via `.env` (`*_API_KEY` variables).
+- OpenRouter benchmarks use `OPENROUTER_API_KEY`; optional headers `OPENROUTER_HTTP_REFERER` and `OPENROUTER_X_TITLE` are supported (per the OpenRouter SDK).
+- OpenRouter model discovery requires an authenticated `GET https://openrouter.ai/api/v1/models` call (Authorization: Bearer).
 - DORA-2 and DORA-3 use explicit proxies due to limited input evidence.
 - Model identifiers and endpoints in `eval/benchmarks/benchmarks.json` may need updates.
+
+---
+
+## 9) OpenRouter Models API (for ID validation)
+
+Endpoint:
+- `GET https://openrouter.ai/api/v1/models`
+
+Auth:
+- `Authorization: Bearer <OPENROUTER_API_KEY>`
+
+Optional query params:
+- `category`
+- `supported_parameters`
+- `use_rss`
+- `use_rss_chat_links`
+
+Response shape:
+- JSON object with `data: Model[]`
+- Each `Model` includes `id`, `name`, `pricing`, `context_length`, `supported_parameters`, `default_parameters`
+
+Example (curl):
+```
+curl -s https://openrouter.ai/api/v1/models \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY"
+```
 
 ---
 
@@ -259,6 +295,8 @@ scripts/eval/score_eval_results.py \
 - OWASP SAMM v2: https://owaspsamm.org/
 - ISO 9001 overview: https://www.iso.org/iso-9001-quality-management.html
 - Google SRE Workbook: https://sre.google/workbook/
+- OpenRouter models API: https://openrouter.ai/api/v1/models
+- OpenRouter Python SDK (local install): `~/.local/lib/python3.13/site-packages/openrouter/sdkconfiguration.py` (base URL), `~/.local/lib/python3.13/site-packages/openrouter/sdk.py` (env vars), `~/.local/lib/python3.13/site-packages/openrouter/models/internal/globals.py` (HTTP-Referer/X-Title headers), `~/.local/lib/python3.13/site-packages/openrouter/components/security.py` (Authorization bearer)
 
 Internal references:
 - Task framework guide: `docs/guides/TASK_FRAMEWORK_GUIDE.md`

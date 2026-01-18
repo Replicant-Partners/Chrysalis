@@ -40,6 +40,11 @@ CLASSIFICATION RULES:
 - DORA-3 uses defect escape rate as the change failure rate proxy for this task.
 - Compliance score = (passes / 6) * 100.
 
+CONCISION RULES:
+- All string values <= 160 characters.
+- registry_checks must include GH-1..GH-6 exactly once each.
+- recommendations length <= 4.
+
 OUTPUT RULES:
 - Return a single JSON object only. No extra text, no code fences.
 - Use the exact keys and schema below.
