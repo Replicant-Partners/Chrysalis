@@ -1,0 +1,63 @@
+[package]
+name = "chrysalis_memory"
+version = "0.1.0"
+edition = "2021"
+authors = ["Chrysalis Team"]
+description = "High-performance CRDT-based memory system for autonomous agents"
+license = "MIT"
+
+[lib]
+name = "chrysalis_memory"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# PyO3 for Python bindings
+pyo3 = { version = "0.22", features = ["extension-module"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+
+# Storage
+rusqlite = { version = "0.32", features = ["bundled", "blob"] }
+
+# Cryptography for content addressing
+sha2 = "0.10"
+hex = "0.4"
+
+# UUID generation
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Error handling
+thiserror = "2.0"
+anyhow = "1.0"
+
+# Concurrent data structures
+dashmap = "6.0"
+parking_lot = "0.12"
+
+# Vector operations (for embeddings)
+ndarray = "0.16"
+
+[dev-dependencies]
+criterion = "0.5"
+proptest = "1.0"
+
+[[bench]]
+name = "crdt_bench"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3

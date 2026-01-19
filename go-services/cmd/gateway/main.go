@@ -234,6 +234,22 @@ func createProvider(name string, cfg config.Config) llm.Provider {
 		}
 		return p
 
+	case "huggingface":
+		if cfg.HuggingFaceKey == "" {
+			log.Printf("skipping huggingface: HUGGINGFACE_API_KEY not set")
+			return nil
+		}
+		p, err := llm.NewHuggingFaceProvider(llm.HuggingFaceConfig{
+			APIKey:       cfg.HuggingFaceKey,
+			BaseURL:      cfg.HuggingFaceURL, // Optional: for Inference Endpoints
+			DefaultModel: defaultModel(cfg.DefaultModel, "Qwen/Qwen2.5-Coder-7B-Instruct"),
+		})
+		if err != nil {
+			log.Printf("failed to create huggingface provider: %v", err)
+			return nil
+		}
+		return p
+
 	case "mock":
 		return llm.MockProvider{DefaultModel: defaultModel(cfg.DefaultModel, "gpt-4o-mini")}
 

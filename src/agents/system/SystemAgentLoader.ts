@@ -226,6 +226,27 @@ export class SystemAgentLoader {
   }
 
   /**
+   * Alias for getAllBindings (for compatibility)
+   */
+  getBindingsArray(): AgentBinding[] {
+    return this.getAllBindings();
+  }
+
+  /**
+   * Initialize the loader by loading all agents
+   */
+  async initialize(): Promise<void> {
+    await this.loadAll();
+  }
+
+  /**
+   * Alias for loadAllAgents (for compatibility)
+   */
+  async loadAll(): Promise<SystemAgentRoster> {
+    return this.loadAllAgents();
+  }
+
+  /**
    * Get model configuration for an agent
    */
   getModelConfig(agentId: string): LoadedSystemAgent['modelInfo'] | null {
@@ -305,6 +326,45 @@ export function getRecommendedAgentPair(taskType: string): { primary: string; se
   };
 
   return recommendations[taskType] || recommendations.default;
+}
+
+// =============================================================================
+// Singleton Instance & Convenience Functions
+// =============================================================================
+
+let _instance: SystemAgentLoader | null = null;
+
+/**
+ * Get the singleton SystemAgentLoader instance
+ */
+export function getSystemAgentLoader(agentsDir?: string): SystemAgentLoader {
+  if (!_instance) {
+    _instance = new SystemAgentLoader(agentsDir);
+  }
+  return _instance;
+}
+
+/**
+ * Reset the singleton instance (useful for testing)
+ */
+export function resetSystemAgentLoader(): void {
+  _instance = null;
+}
+
+/**
+ * Load all system agents
+ */
+export async function loadSystemAgents(agentsDir?: string): Promise<SystemAgentRoster> {
+  const loader = getSystemAgentLoader(agentsDir);
+  return loader.loadAll();
+}
+
+/**
+ * Get a specific system agent by ID
+ */
+export async function getSystemAgent(agentId: string): Promise<LoadedSystemAgent | null> {
+  const loader = getSystemAgentLoader();
+  return loader.loadAgent(agentId);
 }
 
 export default SystemAgentLoader;

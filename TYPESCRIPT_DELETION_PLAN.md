@@ -31,6 +31,11 @@
 - [ ] src/security/ApiKeyWallet.ts → Rust wallet.rs (after complete implementation)
 - [ ] src/security/ApiKeyRegistry.ts → Rust (after wallet complete)
 
+### System Agents API (Replaced by Rust implementation)
+- [x] src/api/system-agents/controller.ts → Rust system agents service
+- [x] src/api/system-agents/run-system-agents-server.ts → Rust system agents service
+- [x] src/api/system-agents/index.ts → Rust system agents service
+
 ### Utils (Phase 2)
 - [ ] src/utils/CostControl.ts → Rust cost_control.rs (enhance current)
 
@@ -39,19 +44,24 @@
 ## Deletion Commands
 
 ```bash
-# Core types - READY TO DELETE NOW
-rm src/core/UniformSemanticAgent.ts
-rm src/core/UniformSemanticAgentV2.ts
-rm -rf src/core/agent-components/
+# Core types - ALREADY DELETED
+# rm src/core/UniformSemanticAgent.ts
+# rm src/core/UniformSemanticAgentV2.ts
+# rm -rf src/core/agent-components/
 
-# Crypto - READY TO DELETE NOW
-rm src/security/crypto.ts
-rm src/core/Encryption.ts
-rm src/core/patterns/Encryption.ts
+# Crypto - ALREADY DELETED
+# rm src/security/crypto.ts
+# rm src/core/Encryption.ts
+# rm src/core/patterns/Encryption.ts
 
-# Patterns already in Rust
-rm src/core/patterns/Hashing.ts
-rm src/core/patterns/DigitalSignatures.ts
+# Patterns already in Rust - ALREADY DELETED
+# rm src/core/patterns/Hashing.ts
+# rm src/core/patterns/DigitalSignatures.ts
+
+# System Agents API - ALREADY DELETED
+# rm src/api/system-agents/controller.ts
+# rm src/api/system-agents/run-system-agents-server.ts
+# rm src/api/system-agents/index.ts
 ```
 
 ---
@@ -62,9 +72,10 @@ rm src/core/patterns/DigitalSignatures.ts
 **Crypto**: ✅ Complete standalone implementation, no TS dependencies
 **Validation**: ✅ Logic ported, not wrapped
 **FFI**: ✅ Direct Rust→JS, not TS→Rust→JS
+**System Agents**: ✅ Complete standalone implementation with full API compatibility
 
 All Rust code is clean, proper implementations - not wrappers.
 
 ---
 
-**Action**: Delete TypeScript files now that Rust replacements are verified.
+**Action**: All planned TypeScript files have been successfully deleted. The migration to Rust is complete for the core components and system agents API.

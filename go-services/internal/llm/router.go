@@ -103,6 +103,22 @@ func (r *ModelRouter) resolveProvider(model string) (Provider, string) {
 			return p, "openrouter"
 		}
 
+	// HuggingFace models - direct API or via OpenRouter
+	case strings.HasPrefix(model, "huggingface/"),
+		strings.HasPrefix(model, "hf/"),
+		strings.HasPrefix(model, "Qwen/"),
+		strings.HasPrefix(model, "meta-llama/"),
+		strings.HasPrefix(model, "bigcode/"),
+		strings.HasPrefix(model, "codellama/"),
+		strings.HasPrefix(model, "microsoft/"):
+		// Prefer direct HuggingFace if available
+		if p, ok := r.providers["huggingface"]; ok {
+			return p, "huggingface"
+		}
+		if p, ok := r.providers["openrouter"]; ok {
+			return p, "openrouter"
+		}
+
 	// OpenRouter - explicit prefix or any model with org/ prefix
 	case strings.HasPrefix(model, "openrouter/"),
 		strings.Contains(model, "/"):
@@ -142,8 +158,8 @@ func (r *ModelRouter) resolveProvider(model string) (Provider, string) {
 		}
 	}
 
-	// Default fallback order: cursor -> ollama -> openrouter (OpenAI/Anthropic DEPRECATED)
-	fallbackOrder := []string{"cursor", "ollama", "openrouter"}
+	// Default fallback order: cursor -> ollama -> huggingface -> openrouter (OpenAI/Anthropic DEPRECATED)
+	fallbackOrder := []string{"cursor", "ollama", "huggingface", "openrouter"}
 	for _, id := range fallbackOrder {
 		if p, ok := r.providers[id]; ok {
 			log.Printf("router: no specific match for model %q, falling back to %s", model, id)

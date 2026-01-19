@@ -21,9 +21,33 @@
 - **Cloud**: Zep KG + vector index; object storage for beads/context/persona/skills snapshots.
 
 ## Provider Strategy
-- Primary: **Nomic** (`NOMIC_API_KEY`, model default `nomic-embed-text-v1`, dims 768).
-- Fallback: **OpenAI** (`OPENAI_API_KEY`, dims 3072).
-- Tests/offline: **Deterministic** (forced via `EMBEDDING_PROVIDER=deterministic`).
+
+### Embedding Providers (Priority Order)
+1. **Ollama Local** (`OLLAMA_BASE_URL`, model `nomic-embed-text`, dims 768)
+   - Free, fast, privacy-preserving
+   - Supports task-specific prefixes: `search_query:`, `search_document:`
+   - Recommended for development and production
+
+2. **HuggingFace API** (`HUGGINGFACE_API_KEY`, multiple models available)
+   - `sentence-transformers/all-MiniLM-L6-v2` (384 dims)
+   - `BAAI/bge-base-en-v1.5` (768 dims)
+   - `nomic-ai/nomic-embed-text-v1.5` (768 dims)
+
+3. **SentenceTransformers Local** (no API key, local inference)
+   - `all-MiniLM-L6-v2` (384 dims)
+   - Requires `sentence-transformers` package
+
+4. **OpenAI** (`OPENAI_API_KEY`, dims 1536-3072) — **DEPRECATED**
+   - Only use if other providers unavailable
+
+5. **Deterministic** (testing only, forced via `EMBEDDING_PROVIDER=deterministic`)
+
+### LLM Providers (for agent reasoning)
+1. **OpenRouter** — Primary gateway (GLM4, Mistral, etc.)
+2. **Ollama** — Local inference (Qwen2.5-Coder, Llama)
+3. **HuggingFace** — Inference API (Qwen, CodeLlama)
+4. **Cursor** — Agent consultation (complex reasoning)
+5. **OpenAI/Anthropic** — **DEPRECATED**, use OpenRouter instead
 
 ## APIs (proposed)
 - `embed(text, meta) -> embedding_id`: uses EmbeddingService (Nomic→OpenAI→Deterministic).
@@ -42,15 +66,15 @@
   - `sync_all(push=True, pull=True)`
 
 ## Ingestion Flow
-1) Parse/convert → chunk (document/code) → semantic triples (optional) → embed chunks (Nomic)  
-2) Upsert embeddings locally + Zep; upsert KG nodes/edges locally + Zep.  
-3) Create beads referencing spans/ids; offload large content to blob store and link via blob pointer.  
+1) Parse/convert → chunk (document/code) → semantic triples (optional) → embed chunks (Nomic)
+2) Upsert embeddings locally + Zep; upsert KG nodes/edges locally + Zep.
+3) Create beads referencing spans/ids; offload large content to blob store and link via blob pointer.
 4) Link skills/persona by IDs in KG (node type=skill/persona) and to embeddings.
 
 ## Retrieval (Fusion)
-1) Beads: last N by recency/importance within token budget.  
-2) Embeddings: ANN local → fallback to Zep; rerank with recency/source.  
-3) KG: expand 1–2 hops from embedding-hit node ids (predicates: uses/depends_on/similar_to); include linked skills/tools.  
+1) Beads: last N by recency/importance within token budget.
+2) Embeddings: ANN local → fallback to Zep; rerank with recency/source.
+3) KG: expand 1–2 hops from embedding-hit node ids (predicates: uses/depends_on/similar_to); include linked skills/tools.
 4) Fusion score: `w_emb*sim + w_recency*decay + w_graph*edge_weight/degree + w_importance`; dedup; enforce token budget; return with provenance.
 
 ## Sync / Replication
@@ -60,14 +84,14 @@
 - Gossip optional for peer fanout; cloud (Zep + blob store) is convergence point.
 
 ## SLOs
-- Retrieval p95: local < 250ms; remote-assisted < 700ms.  
+- Retrieval p95: local < 250ms; remote-assisted < 700ms.
 - Sync success > 99%; no data loss under transient network (durable queue + backoff).
 
 ## Migration Notes
-- MemU provider removed; Voyage removed.  
-- Defaults: Nomic 768 dims, OpenAI 3072 fallback.  
-- Keep `LEGACY_LANCEDB` off by default; if present elsewhere, guard behind feature flag.  
-- Update docs (this file, memory_system/README, pipeline READMEs).  
+- MemU provider removed; Voyage removed.
+- Defaults: Nomic 768 dims, OpenAI 3072 fallback.
+- Keep `LEGACY_LANCEDB` off by default; if present elsewhere, guard behind feature flag.
+- Update docs (this file, memory_system/README, pipeline READMEs).
 
 ## Minimal Stub Plan (code follow-ups)
 - Add bead store module (LMDB/sqlite) with append/get-last-N and optional blob-offload helper.

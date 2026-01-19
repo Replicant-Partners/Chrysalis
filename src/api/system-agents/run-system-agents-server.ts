@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /**
- * System Agent API Server Runner
+ * DEPRECATED: System Agent API Server Runner
+ *
+ * This TypeScript implementation has been replaced by a Rust implementation.
+ * Please use the Rust-based system agents service instead.
  *
  * Starts the HTTP server for system agent chat interactions.
  * Uses the Go LLM Gateway as the single source of truth for LLM access.
@@ -16,6 +19,7 @@
  *   GATEWAY_AUTH_TOKEN - Optional auth token for gateway
  *
  * @module api/system-agents/run-system-agents-server
+ * @deprecated Use the Rust implementation in src/native/rust-system-agents/
  */
 
 import { startSystemAgentAPIServer } from './controller';

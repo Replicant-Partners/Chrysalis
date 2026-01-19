@@ -1,10 +1,14 @@
 /**
- * System Agent Chat API Controller
+ * DEPRECATED: System Agent Chat API Controller
+ *
+ * This TypeScript implementation has been replaced by a Rust implementation.
+ * Please use the Rust-based system agents service instead.
  *
  * REST API endpoints for System Agent interactions.
  * Routes messages through the SCM pipeline to Ada, Lea, Phil, and David.
  *
  * @module api/system-agents/controller
+ * @deprecated Use the Rust implementation in src/native/rust-system-agents/
  */
 
 import http from 'http';

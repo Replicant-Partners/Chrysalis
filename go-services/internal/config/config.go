@@ -22,8 +22,11 @@ type Config struct {
 	OpenAIKey string
 	// DEPRECATED: Anthropic - use OpenRouter instead
 	AnthropicKey  string
-	OpenRouterKey string
-	OllamaBaseURL string
+	OpenRouterKey    string
+	OllamaBaseURL    string
+	HuggingFaceKey   string
+	HuggingFaceURL   string // Optional: for Inference Endpoints
+	MistralKey       string
 	// Cursor Agent adapter endpoint (for system agents to consult Cursor)
 	CursorAdapterURL string
 	DefaultModel     string
@@ -59,8 +62,11 @@ func FromEnv() Config {
 		AuthToken:      os.Getenv("GATEWAY_AUTH_TOKEN"),
 		OpenAIKey:      os.Getenv("OPENAI_API_KEY"),      // DEPRECATED
 		AnthropicKey:   os.Getenv("ANTHROPIC_API_KEY"),   // DEPRECATED
-		OpenRouterKey:  os.Getenv("OPENROUTER_API_KEY"),
-		OllamaBaseURL:  strFromEnv("OLLAMA_BASE_URL", "http://localhost:11434"),
+		OpenRouterKey:    os.Getenv("OPENROUTER_API_KEY"),
+		OllamaBaseURL:    strFromEnv("OLLAMA_BASE_URL", "http://localhost:11434"),
+		HuggingFaceKey:   os.Getenv("HUGGINGFACE_API_KEY"),
+		HuggingFaceURL:   os.Getenv("HUGGINGFACE_BASE_URL"), // Optional: for Inference Endpoints
+		MistralKey:       os.Getenv("MISTRAL_API_KEY"),
 		CursorAdapterURL: strFromEnv("CURSOR_ADAPTER_URL", "http://localhost:3210"),
 		DefaultModel:   strFromEnv("LLM_DEFAULT_MODEL", "thudm/glm-4-9b-chat"), // GLM4 via OpenRouter
 		RateLimitRPS:   floatFromEnv("GATEWAY_RATE_RPS", 10),

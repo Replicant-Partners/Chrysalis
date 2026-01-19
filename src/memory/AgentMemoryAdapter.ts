@@ -22,6 +22,12 @@ export interface AgentMemoryAdapter {
   get(id: string): Promise<MemoryEntry | null>;
   delete(id: string): Promise<void>;
   health(): Promise<{ status: string; beadsCount: number }>;
+  
+  // Extended search methods for semantic memory
+  search(query: string, limit?: number): Promise<MemoryEntry[]>;
+  searchEpisodic(query: string, limit?: number): Promise<MemoryEntry[]>;
+  searchSemantic(query: string, limit?: number): Promise<MemoryEntry[]>;
+  searchSkills(query: string, limit?: number): Promise<MemoryEntry[]>;
 }
 
 interface BeadResponse {
@@ -140,6 +146,48 @@ export function createAgentMemoryAdapter(
         status: response.status,
         beadsCount: response.beads_count,
       };
+    },
+
+    // Extended search methods - delegate to retrieve with type filtering
+    async search(query: string, limit = 10): Promise<MemoryEntry[]> {
+      return this.retrieve(query, limit);
+    },
+
+    async searchEpisodic(query: string, limit = 10): Promise<MemoryEntry[]> {
+      const beads = await apiCall<BeadResponse[]>('/memory/search', {
+        method: 'POST',
+        body: JSON.stringify({
+          query,
+          limit,
+          memory_type: 'episodic',
+        }),
+      });
+      return beads.map(beadToEntry);
+    },
+
+    async searchSemantic(query: string, limit = 10): Promise<MemoryEntry[]> {
+      const beads = await apiCall<BeadResponse[]>('/memory/search', {
+        method: 'POST',
+        body: JSON.stringify({
+          query,
+          limit,
+          memory_type: 'semantic',
+        }),
+      });
+      return beads.map(beadToEntry);
+    },
+
+    async searchSkills(query: string, limit = 10): Promise<MemoryEntry[]> {
+      const beads = await apiCall<BeadResponse[]>('/memory/search', {
+        method: 'POST',
+        body: JSON.stringify({
+          query,
+          limit,
+          memory_type: 'procedural',
+          tags: ['skill'],
+        }),
+      });
+      return beads.map(beadToEntry);
     },
   };
 }

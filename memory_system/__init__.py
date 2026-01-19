@@ -1,253 +1,154 @@
 """
-Memory System - Unified Semantic Services for Chrysalis.
+Chrysalis Memory System
 
-A consolidated semantic processing framework providing:
+A high-performance, CRDT-based memory system for autonomous agents.
 
-- **Semantic Decomposition**: Extract triples from natural language
-- **Knowledge Graphs**: Store and query semantic relationships
-- **Embeddings**: Multi-provider embedding generation with caching
-- **Analysis**: Information-theoretic analysis (Shannon entropy)
-- **External Knowledge**: YAGO knowledge base integration
-- **Code Understanding**: LSP-based symbol resolution
-- **Document Processing**: Convert and chunk documents
-- **MCP Server**: Expose services via Model Context Protocol
-
-Architecture:
-```
-memory_system/
-├── semantic/      # Triple decomposition (Ollama→spaCy→Heuristic fallback)
-├── graph/         # Knowledge graph storage (SQLite, NetworkX)
-├── embedding/     # Embedding service with cache
-├── analysis/      # Shannon analyzer, YAGO client
-├── resolvers/     # LSP symbol resolution
-├── converters/    # Document & code converters
-└── mcp/           # MCP server interface
-```
+The memory system provides:
+- **Rust Core**: High-performance CRDT types (GSet, ORSet, LWWRegister)
+- **Memory Documents**: Full CRDT-aware document structure with automatic merging
+- **SQLite Storage**: Persistent storage with WAL mode for high concurrency
+- **Agent Memory**: High-level async API for learning and recall
+- **Embedding Support**: Integration with Ollama, HuggingFace, and other providers
 
 Quick Start:
-    from memory_system import (
-        SemanticDecomposer,
-        GraphStore,
-        EmbeddingService,
-        ShannonAnalyzer,
-    )
-    
-    # Decompose text into triples
-    decomposer = SemanticDecomposer()
-    result = await decomposer.decompose("Python was created by Guido van Rossum")
-    for triple in result.triples:
-        print(f"{triple.subject} --{triple.predicate}--> {triple.object}")
-    
-    # Store in knowledge graph
-    store = GraphStore(backend="sqlite")
-    for triple in result.triples:
-        store.add_triple(triple.subject, triple.predicate, triple.object)
-    
-    # Generate embeddings
-    embeddings = EmbeddingService(provider="ollama")
-    vector = await embeddings.embed("Hello world")
-    
-    # Analyze information
-    analyzer = ShannonAnalyzer()
-    result = analyzer.analyze_distribution(["a", "b", "a", "c"])
-    print(f"Entropy: {result.entropy:.2f} bits")
+    >>> from memory_system import AgentMemory
+    >>>
+    >>> async with AgentMemory("my-agent") as memory:
+    ...     await memory.learn("Python is great for AI", importance=0.9)
+    ...     results = await memory.recall("What language is good for AI?")
 
-MCP Server:
-    from memory_system.mcp import SemanticServer
-    
-    server = SemanticServer()
-    server.run_stdio()  # For Claude Desktop integration
+Low-Level API:
+    >>> from memory_system import MemoryDocument, MemoryStorage
+    >>>
+    >>> storage = MemoryStorage("./data/memory.db", "agent-001")
+    >>> mem = MemoryDocument(content="Hello world", source_instance="agent-001")
+    >>> storage.put(mem)
 
-Version: 1.0.0
+CRDT Types:
+    >>> from memory_system import GSet, ORSet, LWWRegister
+    >>>
+    >>> # Grow-only set (memories never deleted)
+    >>> memories = GSet()
+    >>> memories.add("memory-1")
+    >>>
+    >>> # OR-Set (add/remove with CRDT semantics)
+    >>> tags = ORSet("agent-001")
+    >>> tags.add("important")
+    >>>
+    >>> # Last-Writer-Wins register
+    >>> value = LWWRegister()
+    >>> value.set("current", 1.0, "agent-001")
 """
 
-__version__ = "1.0.0"
-__author__ = "Chrysalis Team"
+from __future__ import annotations
 
-# Core semantic services
-from .semantic import (
-    SemanticDecomposer,
-    Triple,
-    Intent,
-    SemanticFrame,
-)
+__version__ = "0.1.0"
 
-# Graph storage
-from .graph import (
-    GraphStore,
-    GraphStoreBase,
-)
+# Try to import from Rust core first
+try:
+    from chrysalis_memory import (
+        # CRDT types
+        GSet,
+        ORSet,
+        LWWRegister,
+        LWWNumericRegister,
+        GCounter,
+        VectorClock,
+        # Memory types
+        MemoryType,
+        SyncStatus,
+        MemoryDocument,
+        EmbeddingDocument,
+        MemoryCollection,
+        MemoryStorage,
+        # High-level API
+        AgentMemory,
+        AgentMemoryConfig,
+        SyncManager,
+        # Utility
+        RUST_AVAILABLE,
+    )
 
-# Embedding service
-from .embedding import (
-    EmbeddingService,
-    EmbeddingResult,
-    EmbeddingCache,
-)
+    _BACKEND = "rust"
 
-# Analysis tools
-from .analysis import (
-    ShannonAnalyzer,
-    AnalysisResult,
-    YAGOClient,
-    YAGOEntity,
-)
+except ImportError:
+    # Fall back to pure Python implementation
+    from .crdt_merge import (
+        GSet,
+        ORSet,
+        LWWRegister,
+    )
+    from .fireproof.service import FireproofService as MemoryStorage
+    from .fireproof.schemas import MemoryDocument
 
-# Document converters
-from .converters import (
-    DocumentConverter,
-    ConversionResult,
-    CodeConverter,
-    CodeChunk,
-    ChunkConverter,
-    Chunk,
-)
+    # Stubs for types not in Python implementation
+    LWWNumericRegister = None
+    GCounter = None
+    VectorClock = None
+    MemoryType = None
+    SyncStatus = None
+    EmbeddingDocument = None
+    MemoryCollection = None
+    AgentMemory = None
+    AgentMemoryConfig = None
+    SyncManager = None
+    RUST_AVAILABLE = False
 
-# LSP resolver
-from .resolvers import (
-    LSPResolver,
-    LSPResult,
-    SymbolInfo,
-)
+    _BACKEND = "python"
 
-# Core memory classes
-from .core import (
-    Memory,
-    MemoryConfig,
-    MemoryEntry,
-)
+# Import Python-only components
+try:
+    from .beads import BeadsService
+except ImportError:
+    BeadsService = None
 
-# Durable jobs/events (pilot)
-from .job_store import JobStore, EventStore, JobRecord, JobEvent
-
-# Beads (short-term/context)
-from .beads import BeadsService
-
-# Zep hooks/client
-from .hooks import ZepHooks, ZepClient, ZepClientError
-
-# Fusion retriever (three-tier unified memory)
-from .fusion import FusionRetriever
-
-# Agent memory adapter
-from .agent_adapter import (
-    AgentMemoryFactory,
-    AgentMemoryContext,
-    AgentMemoryServices,
-    AgentMemoryConfig,
-    create_agent_memory,
-    create_minimal_memory,
-)
-
-# MCP server - commented out until mcp module is implemented
-# from .mcp import (
-#     SemanticServer,
-#     create_server,
-# )
+try:
+    from .embedding.service import EmbeddingService, EmbeddingProvider
+except ImportError:
+    EmbeddingService = None
+    EmbeddingProvider = None
 
 __all__ = [
     # Version
     "__version__",
-    
-    # Core Memory
-    "Memory",
-    "MemoryConfig",
-    "MemoryEntry",
-    "BeadsService",
-    "ZepHooks",
-    "ZepClient",
-    "ZepClientError",
-    
-    # Three-tier Memory Stack
-    "FusionRetriever",
-    "AgentMemoryFactory",
-    "AgentMemoryContext",
-    "AgentMemoryServices",
+    "_BACKEND",
+    "RUST_AVAILABLE",
+    # CRDT types
+    "GSet",
+    "ORSet",
+    "LWWRegister",
+    "LWWNumericRegister",
+    "GCounter",
+    "VectorClock",
+    # Memory types
+    "MemoryType",
+    "SyncStatus",
+    "MemoryDocument",
+    "EmbeddingDocument",
+    "MemoryCollection",
+    "MemoryStorage",
+    # High-level API
+    "AgentMemory",
     "AgentMemoryConfig",
-    "create_agent_memory",
-    "create_minimal_memory",
-    
-    # Semantic
-    "SemanticDecomposer",
-    "Triple",
-    "Intent",
-    "SemanticFrame",
-    
-    # Graph
-    "GraphStore",
-    "GraphStoreBase",
-    
-    # Embedding
+    "SyncManager",
+    # Python components
+    "BeadsService",
     "EmbeddingService",
-    "EmbeddingResult",
-    "EmbeddingCache",
-    
-    # Analysis
-    "ShannonAnalyzer",
-    "AnalysisResult",
-    "YAGOClient",
-    "YAGOEntity",
-    
-    # Converters
-    "DocumentConverter",
-    "ConversionResult",
-    "CodeConverter",
-    "CodeChunk",
-    "ChunkConverter",
-    "Chunk",
-    
-    # Resolvers
-    "LSPResolver",
-    "LSPResult",
-    "SymbolInfo",
-    
-    # MCP - commented out until mcp module is implemented
-    # "SemanticServer",
-    # "create_server",
+    "EmbeddingProvider",
 ]
 
 
-def get_version() -> str:
-    """Get the package version."""
-    return __version__
-
-
-def create_decomposer(**kwargs) -> SemanticDecomposer:
-    """
-    Factory function to create a semantic decomposer.
-    
-    Args:
-        **kwargs: Arguments passed to SemanticDecomposer
-        
-    Returns:
-        Configured SemanticDecomposer instance
-    """
-    return SemanticDecomposer(**kwargs)
-
-
-def create_graph_store(backend: str = "sqlite", **kwargs) -> GraphStore:
-    """
-    Factory function to create a graph store.
-    
-    Args:
-        backend: "sqlite" or "networkx"
-        **kwargs: Additional arguments
-        
-    Returns:
-        Configured GraphStore instance
-    """
-    return GraphStore(backend=backend, **kwargs)
-
-
-def create_embedding_service(provider: str = "ollama", **kwargs) -> EmbeddingService:
-    """
-    Factory function to create an embedding service.
-    
-    Args:
-        provider: "ollama", "openai", or "sentence_transformers"
-        **kwargs: Additional arguments
-        
-    Returns:
-        Configured EmbeddingService instance
-    """
-    return EmbeddingService(provider=provider, **kwargs)
+def get_backend_info() -> dict:
+    """Get information about the memory system backend."""
+    return {
+        "backend": _BACKEND,
+        "rust_available": RUST_AVAILABLE if RUST_AVAILABLE is not None else False,
+        "version": __version__,
+        "features": {
+            "crdt": True,
+            "storage": True,
+            "embeddings": True,
+            "sync": _BACKEND == "rust",
+            "agent_memory": _BACKEND == "rust",
+        }
+    }

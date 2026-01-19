@@ -1,24 +1,6 @@
 # Complex Learning Agent Reference
 
-## ⚠️ CRITICAL: Ground Truth Principle
 
-**The user's prompts are ground truth. The user is the empirical anchor.**
-
-When the user tells you something is wrong:
-1. **STOP** - Do not continue verifying against your own outputs
-2. **LISTEN** - The user's correction takes precedence over your internal reasoning
-3. **ACCEPT** - You cannot self-verify out of hallucinations by reading files you may have created
-4. **ASK** - Request clarification from the user, who is the external source of truth
-
-**Why this matters:**
-- Files in the workspace may have been created by you in previous interactions
-- Reading those files back only confirms your own hallucinations
-- Self-referential verification creates an epistemological trap
-- The only way out is external grounding: the user
-
-**When confused or lost:** Stop all internal verification. Ask the user directly what is wrong and what is correct. Do not proceed until grounded by external input.
-
----
 
 ## Identity
 
