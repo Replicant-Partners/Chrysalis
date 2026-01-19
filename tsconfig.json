@@ -25,7 +25,6 @@
   "include": [
     "src/agents/**/*",
     "src/api/adapter-tasks/**/*",
-    "src/api/system-agents/**/*",
     "src/canvas/**/*",
     "src/config/**/*",
     "src/core/AdapterRegistry.ts",

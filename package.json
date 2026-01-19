@@ -21,7 +21,6 @@
     "service:gateway": "npm run build && node dist/services/capability-gateway/run-gateway.js",
     "service:terminal": "npm run build && node dist/api/terminal/run-terminal-server.js",
     "service:feedback": "npm run build && node dist/api/feedback/run-feedback-server.js",
-    "service:system-agents": "npm run build && node dist/src/api/system-agents/run-system-agents-server.js",
     "service:cursor-adapter": "tsx src/services/cursor-adapter/run-cursor-adapter.ts",
     "tui:chat": "cd src/tui && npx tsx app.tsx",
     "test:adapter": "tsx scripts/test-adapter.ts",

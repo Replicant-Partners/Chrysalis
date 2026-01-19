@@ -89,6 +89,15 @@ export interface SystemAgentRoster {
   milton?: LoadedSystemAgent;
 }
 
+/**
+ * Configuration for the SystemAgentLoader
+ */
+export interface SystemAgentLoaderConfig {
+  agentsDir?: string;
+  autoLoad?: boolean;
+  enabledAgents?: string[];
+}
+
 // =============================================================================
 // Constants
 // =============================================================================

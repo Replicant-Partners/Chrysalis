@@ -6,7 +6,7 @@ The system agents implementation has been migrated from TypeScript to Rust to im
 
 ## Migration Status
 
-✅ **Complete** - The Rust implementation is fully functional and provides all the features of the TypeScript version with improved performance.
+✅ **Complete** - The Rust implementation is fully functional and provides all the features of the TypeScript version with improved performance. The original TypeScript files have been deleted.
 
 ## Key Improvements
 
@@ -69,10 +69,15 @@ src/native/rust-system-agents/
 3. **Implementation**: Built the Rust service with full API compatibility
 4. **Testing**: Verified all endpoints work identically to TypeScript version
 5. **Documentation**: Updated documentation to reflect the new implementation
+6. **Cleanup**: Deleted deprecated TypeScript files from `src/api/system-agents/`
 
 ## Deprecation Notice
 
-The TypeScript implementation in `src/api/system-agents/` has been marked as deprecated. All future development should focus on the Rust implementation.
+The TypeScript implementation in `src/api/system-agents/` has been completely removed. All future development should focus on the Rust implementation. The following files have been deleted:
+
+- `src/api/system-agents/controller.ts`
+- `src/api/system-agents/index.ts`
+- `src/api/system-agents/run-system-agents-server.ts`
 
 ## Usage
 

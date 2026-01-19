@@ -28,7 +28,21 @@
 export * from './types';
 
 // Core components
-export { SystemAgentLoader, getSystemAgentLoader, loadSystemAgents, getSystemAgent, resetSystemAgentLoader } from './SystemAgentLoader';
+export {
+  SystemAgentLoader,
+  getSystemAgentLoader,
+  loadSystemAgents,
+  getSystemAgent,
+  resetSystemAgentLoader,
+  loadSystemAgentsForWorkspace,
+  getRecommendedAgentPair,
+} from './SystemAgentLoader';
+export type {
+  SystemAgentConfig,
+  LoadedSystemAgent,
+  SystemAgentRoster,
+  SystemAgentLoaderConfig,
+} from './SystemAgentLoader';
 export { MentionParser, getMentionParser, parseMessage, hasMentions, extractPersonaFromMention, resetMentionParser } from './MentionParser';
 export {
   EvaluationCoordinator,
