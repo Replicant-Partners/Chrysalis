@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
 from functools import wraps
+import hmac
 
 try:
     import jwt
@@ -54,9 +55,20 @@ class AuthContext:
 # Configuration
 ENVIRONMENT = os.getenv("CHRYSALIS_ENV") or os.getenv("NODE_ENV") or "development"
 CONFIGURED_SECRET = os.getenv("JWT_SECRET") or os.getenv("CHRYSALIS_JWT_SECRET")
-if not CONFIGURED_SECRET and ENVIRONMENT == "production":
-    raise RuntimeError("JWT_SECRET is required in production")
-JWT_SECRET = CONFIGURED_SECRET or "dev-secret-change-in-production"
+
+# Secure secret configuration - fail fast if missing in production
+if not CONFIGURED_SECRET:
+    if ENVIRONMENT == "production":
+        raise RuntimeError("JWT_SECRET is required in production. Set JWT_SECRET or CHRYSALIS_JWT_SECRET environment variable.")
+    elif ENVIRONMENT == "development":
+        import logging
+        logging.warning("⚠️  Using insecure development JWT secret - DO NOT use in production! Set JWT_SECRET environment variable.")
+        JWT_SECRET = "dev-secret-for-local-testing-only-change-in-production"
+    else:
+        raise RuntimeError(f"JWT_SECRET must be explicitly configured for environment: {ENVIRONMENT}")
+else:
+    JWT_SECRET = CONFIGURED_SECRET
+
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 
@@ -76,11 +88,43 @@ def get_bearer_token(req) -> Optional[str]:
 
 
 def verify_jwt_token(token: str) -> Optional[Dict[str, Any]]:
-    """Verify and decode JWT token."""
+    """
+    Verify and decode JWT token with algorithm validation.
+    
+    Args:
+        token: JWT token string
+        
+    Returns:
+        Decoded payload if valid, None otherwise
+        
+    Security:
+        - Explicitly validates algorithm to prevent confusion attacks
+        - Verifies expiration and issued-at timestamps
+    """
     if jwt is None:
         return None
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        # First, check the algorithm in the header without verifying signature
+        header = jwt.get_unverified_header(token)
+        
+        # Enforce strict algorithm whitelist to prevent confusion attacks
+        if header.get("alg") != JWT_ALGORITHM:
+            import logging
+            logging.warning(f"JWT algorithm mismatch: expected {JWT_ALGORITHM}, got {header.get('alg')}")
+            return None
+        
+        # Now decode with strict algorithm enforcement and timestamp validation
+        payload = jwt.decode(
+            token,
+            JWT_SECRET,
+            algorithms=[JWT_ALGORITHM],
+            options={
+                "verify_signature": True,
+                "verify_exp": True,
+                "verify_iat": True,
+                "require": ["exp", "iat"]  # Require expiration and issued-at
+            }
+        )
         return payload
     except jwt.ExpiredSignatureError:
         return None
@@ -89,16 +133,50 @@ def verify_jwt_token(token: str) -> Optional[Dict[str, Any]]:
 
 
 def verify_api_key(key: str) -> Optional[Dict[str, Any]]:
-    """Verify API key (format: keyId.secret)."""
+    """
+    Verify API key (format: keyId.secret).
+    
+    Args:
+        key: API key string in format "keyId.secret"
+        
+    Returns:
+        Dict with key_id, roles, and permissions if valid, None otherwise
+    """
+    # Input validation to prevent DoS and injection attacks
+    if not key or not isinstance(key, str):
+        return None
+    
+    # Length limits to prevent memory exhaustion
+    if len(key) > 512:  # Reasonable maximum
+        return None
+    
+    # Restrict to ASCII characters (alphanumeric + dot + underscore + hyphen)
+    if not all(c.isalnum() or c in '._-' for c in key):
+        return None
+    
+    # Verify format
     if "." not in key:
         return None
-
-    key_id, secret = key.split(".", 1)
+    
+    parts = key.split(".", 1)
+    if len(parts) != 2:
+        return None
+        
+    key_id, secret = parts
+    
+    # Validate component lengths
+    if len(key_id) > 64 or len(secret) > 256:
+        return None
+    
+    # Prevent empty components
+    if not key_id or not secret:
+        return None
 
     # Check in-memory store (can be replaced with database)
     if key_id in API_KEYS:
         stored_key = API_KEYS[key_id]
-        if stored_key["secret"] == secret:
+        # Use constant-time comparison to prevent timing attacks
+        if hmac.compare_digest(stored_key["secret"], secret):
             return {
                 "key_id": key_id,
                 "roles": stored_key.get("roles", ["service"]),

@@ -1,480 +1,310 @@
 /**
  * SystemAgentLoader
  *
- * Loads persona configurations from JSON files in Agents/system-agents/
- * and creates SystemAgentBinding instances for runtime use.
+ * Loads system agents (Ada, Lea, Phil, David, Milton) from JSON configs
+ * and prepares them for integration with the ChrysalisWorkspace.
  *
  * @module agents/system/SystemAgentLoader
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  SystemAgentBinding,
-  SystemAgentPersonaId,
-  PersonaConfig,
-  ChatPaneConfig,
-  PERSONA_IDS,
-  PERSONA_ICONS,
-  PERSONA_DISPLAY_NAMES,
-} from './types';
-import type { SCMRoutingContext, SCMRoutingResult } from './SCMRouting';
-import { routeWithSCM } from './SCMRouting';
-import { NotImplementedError } from '../../mcp-server/chrysalis-tools';
+import { AgentBinding } from '../../components/ChrysalisWorkspace/types';
 
 // =============================================================================
-// Configuration Paths
+// Types
 // =============================================================================
 
 /**
- * Resolve the config base directory - works from both src/ and dist/src/
+ * System agent configuration (from JSON files)
  */
-function resolveConfigBaseDir(): string {
-  // Try relative to source first (for ts-node)
-  const srcPath = path.resolve(__dirname, '../../../Agents/system-agents');
-  // Fallback to dist path (for compiled js)
-  const distPath = path.resolve(__dirname, '../../../../Agents/system-agents');
+export interface SystemAgentConfig {
+  id: string;
+  name: string;
+  fullName?: string;
+  role: string;
+  description: string;
+  personaSource?: string;
 
-  try {
-    const fs = require('fs');
-    if (fs.existsSync(srcPath)) return srcPath;
-    if (fs.existsSync(distPath)) return distPath;
-  } catch {
-    // Ignore fs errors
-  }
+  modelConfig: {
+    modelTier: 'local' | 'hybrid' | 'cloud_llm' | 'local_slm';
+    localModel: {
+      provider: string;
+      model: string;
+      useCases: string[];
+    };
+    fallbackModel?: {
+      provider: string;
+      model: string;
+      useCases: string[];
+    };
+    contextWindow: number;
+    defaultTemperature: number;
+    latencyBudgetMs: number;
+  };
 
-  // Default to src path
-  return srcPath;
+  evaluationDimensions?: Record<string, {
+    weight: number;
+    description: string;
+  }>;
+
+  memoryConfig?: {
+    access: string;
+    namespace: string;
+    scopes: Record<string, unknown>;
+    integration: Record<string, unknown>;
+  };
+
+  collaborators?: Record<string, {
+    relationship: string;
+    handoff: string;
+  }>;
+
+  dependencies?: string[];
+  promptSetId?: string;
+  version?: string;
 }
 
 /**
- * Default paths for system agent configurations
+ * Loaded system agent with binding and config
  */
-export const DEFAULT_CONFIG_PATHS = {
-  /** Base directory for system agent configs */
-  baseDir: resolveConfigBaseDir(),
-
-  /** Persona config files */
-  personaConfigs: {
-    ada: 'ada_config.json',
-    lea: 'lea_config.json',
-    phil: 'phil_config.json',
-    david: 'david_config.json',
-  },
-
-  /** Routing configuration */
-  routingConfig: 'routing_config.json',
-
-  /** Prompt registry */
-  promptRegistry: 'prompt_registry.json',
-};
-
-// =============================================================================
-// Loader Configuration
-// =============================================================================
-
-export interface SystemAgentLoaderConfig {
-  /** Base directory for config files */
-  configDir?: string;
-
-  /** Whether to validate configs on load */
-  validateOnLoad?: boolean;
-
-  /** Whether to cache loaded configs */
-  enableCache?: boolean;
-
-  /** Logger function */
-  logger?: (message: string, level: 'info' | 'warn' | 'error') => void;
-
-  /** Optional SCM routing context overrides */
-  scmRouting?: SCMRoutingContext;
+export interface LoadedSystemAgent {
+  binding: AgentBinding;
+  config: SystemAgentConfig;
+  modelInfo: {
+    provider: string;
+    model: string;
+    contextWindow: number;
+  };
 }
 
-const DEFAULT_LOADER_CONFIG: Required<SystemAgentLoaderConfig> = {
-  configDir: DEFAULT_CONFIG_PATHS.baseDir,
-  validateOnLoad: true,
-  enableCache: true,
-  logger: (msg, level) => console[level](`[SystemAgentLoader] ${msg}`),
-  scmRouting: undefined as unknown as SCMRoutingContext,
-};
+/**
+ * System agent roster
+ */
+export interface SystemAgentRoster {
+  ada?: LoadedSystemAgent;
+  lea?: LoadedSystemAgent;
+  phil?: LoadedSystemAgent;
+  david?: LoadedSystemAgent;
+  milton?: LoadedSystemAgent;
+}
 
 // =============================================================================
-// SystemAgentLoader Class
+// Constants
 // =============================================================================
 
 /**
- * Loads and manages system agent persona configurations
+ * Default system agents directory
+ */
+const DEFAULT_AGENTS_DIR = path.resolve(__dirname, '../../../Agents/system-agents');
+
+/**
+ * Avatar mappings for system agents
+ */
+const AGENT_AVATARS: Record<string, string> = {
+  ada: '🔬',    // Algorithmic Architect
+  lea: '📝',    // Implementation Reviewer
+  phil: '📊',   // Forecast Analyst
+  david: '🧠',  // Metacognitive Guardian
+  milton: '🔧', // Ops Caretaker
+};
+
+/**
+ * Role descriptions for UI display
+ */
+const AGENT_ROLES: Record<string, string> = {
+  ada: 'Algorithmic Architect',
+  lea: 'Implementation Reviewer',
+  phil: 'Forecast Analyst',
+  david: 'Metacognitive Guardian',
+  milton: 'Ops Caretaker',
+};
+
+// =============================================================================
+// Loader Class
+// =============================================================================
+
+/**
+ * SystemAgentLoader - loads and prepares system agents
  */
 export class SystemAgentLoader {
-  private config: Required<SystemAgentLoaderConfig>;
-  private bindingCache: Map<SystemAgentPersonaId, SystemAgentBinding> = new Map();
-  private personaConfigCache: Map<SystemAgentPersonaId, PersonaConfig> = new Map();
-  private routingConfigCache: Record<string, ChatPaneConfig> | null = null;
-  private initialized: boolean = false;
+  private agentsDir: string;
+  private loadedAgents: Map<string, LoadedSystemAgent> = new Map();
 
-  constructor(config?: SystemAgentLoaderConfig) {
-    this.config = { ...DEFAULT_LOADER_CONFIG, ...config };
+  constructor(agentsDir?: string) {
+    this.agentsDir = agentsDir || DEFAULT_AGENTS_DIR;
   }
 
-  // ===========================================================================
-  // Initialization
-  // ===========================================================================
-
   /**
-   * Initialize the loader and load all persona configurations
+   * Load a single agent by ID
    */
-  async initialize(): Promise<void> {
-    if (this.initialized && this.config.enableCache) {
-      this.config.logger('Already initialized, using cached configs', 'info');
-      return;
-    }
-
-    this.config.logger('Initializing system agent loader...', 'info');
-
-    // Load all persona configs
-    for (const personaId of PERSONA_IDS) {
-      await this.loadPersonaConfig(personaId);
-    }
-
-    // Load routing config
-    await this.loadRoutingConfig();
-
-    this.initialized = true;
-    this.config.logger(`Loaded ${this.bindingCache.size} system agent bindings`, 'info');
-  }
-
-  // ===========================================================================
-  // Config Loading
-  // ===========================================================================
-
-  /**
-   * Load a persona configuration from JSON file
-   */
-  private async loadPersonaConfig(personaId: SystemAgentPersonaId): Promise<PersonaConfig> {
+  async loadAgent(agentId: string): Promise<LoadedSystemAgent | null> {
     // Check cache
-    if (this.config.enableCache && this.personaConfigCache.has(personaId)) {
-      return this.personaConfigCache.get(personaId)!;
+    if (this.loadedAgents.has(agentId)) {
+      return this.loadedAgents.get(agentId)!;
     }
 
-    const configFile = DEFAULT_CONFIG_PATHS.personaConfigs[personaId];
-    const configPath = path.join(this.config.configDir, configFile);
+    // Find config file (handle case variations like Milton_config.json)
+    const possibleFiles = [
+      `${agentId}_config.json`,
+      `${agentId.toLowerCase()}_config.json`,
+      `${agentId.charAt(0).toUpperCase() + agentId.slice(1)}_config.json`,
+    ];
 
-    this.config.logger(`Loading persona config: ${configFile}`, 'info');
-
-    try {
-      const configContent = await fs.promises.readFile(configPath, 'utf-8');
-      const config = JSON.parse(configContent) as PersonaConfig;
-
-      // Validate if enabled
-      if (this.config.validateOnLoad) {
-        this.validatePersonaConfig(config, personaId);
+    let configPath: string | null = null;
+    for (const file of possibleFiles) {
+      const fullPath = path.join(this.agentsDir, file);
+      if (fs.existsSync(fullPath)) {
+        configPath = fullPath;
+        break;
       }
-
-      // Cache
-      this.personaConfigCache.set(personaId, config);
-
-      // Create binding
-      const binding = this.createBindingFromConfig(config);
-      this.bindingCache.set(personaId, binding);
-
-      return config;
-    } catch (error) {
-      this.config.logger(`Failed to load ${configFile}: ${error}`, 'error');
-      throw new Error(`Failed to load persona config for ${personaId}: ${error}`);
-    }
-  }
-
-  /**
-   * Load routing configuration
-   */
-  private async loadRoutingConfig(): Promise<Record<string, ChatPaneConfig>> {
-    if (this.config.enableCache && this.routingConfigCache) {
-      return this.routingConfigCache;
     }
 
-    const configPath = path.join(this.config.configDir, DEFAULT_CONFIG_PATHS.routingConfig);
+    if (!configPath) {
+      console.warn(`[SystemAgentLoader] Config not found for agent: ${agentId}`);
+      return null;
+    }
 
     try {
-      const configContent = await fs.promises.readFile(configPath, 'utf-8');
-      const config = JSON.parse(configContent);
-      this.routingConfigCache = config.chatPanes as Record<string, ChatPaneConfig>;
-      return this.routingConfigCache;
+      const configContent = fs.readFileSync(configPath, 'utf-8');
+      const config: SystemAgentConfig = JSON.parse(configContent);
+
+      const loaded: LoadedSystemAgent = {
+        binding: {
+          agentId: config.id,
+          agentName: config.name,
+          agentType: agentId === 'ada' ? 'primary' : 'secondary',
+          avatarUrl: AGENT_AVATARS[agentId.toLowerCase()],
+        },
+        config,
+        modelInfo: {
+          provider: config.modelConfig.localModel.provider,
+          model: config.modelConfig.localModel.model,
+          contextWindow: config.modelConfig.contextWindow,
+        },
+      };
+
+      this.loadedAgents.set(agentId, loaded);
+      return loaded;
+
     } catch (error) {
-      this.config.logger(`Failed to load routing config: ${error}`, 'error');
-      throw new Error(`Failed to load routing config: ${error}`);
+      console.error(`[SystemAgentLoader] Error loading agent ${agentId}:`, error);
+      return null;
     }
   }
 
-  // ===========================================================================
-  // Binding Creation
-  // ===========================================================================
+  /**
+   * Load all system agents
+   */
+  async loadAllAgents(): Promise<SystemAgentRoster> {
+    const agentIds = ['ada', 'lea', 'phil', 'david', 'milton'];
+    const roster: SystemAgentRoster = {};
+
+    for (const id of agentIds) {
+      const loaded = await this.loadAgent(id);
+      if (loaded) {
+        (roster as any)[id] = loaded;
+      }
+    }
+
+    return roster;
+  }
 
   /**
-   * Create a SystemAgentBinding from a PersonaConfig
+   * Get agent binding for use in ChrysalisWorkspace
    */
-  private createBindingFromConfig(personaConfig: PersonaConfig): SystemAgentBinding {
+  getBinding(agentId: string): AgentBinding | null {
+    const loaded = this.loadedAgents.get(agentId);
+    return loaded?.binding || null;
+  }
+
+  /**
+   * Get all loaded bindings
+   */
+  getAllBindings(): AgentBinding[] {
+    return Array.from(this.loadedAgents.values()).map(a => a.binding);
+  }
+
+  /**
+   * Get model configuration for an agent
+   */
+  getModelConfig(agentId: string): LoadedSystemAgent['modelInfo'] | null {
+    const loaded = this.loadedAgents.get(agentId);
+    return loaded?.modelInfo || null;
+  }
+
+  /**
+   * Create a default Ada binding for quick start
+   */
+  static createDefaultAdaBinding(): AgentBinding {
     return {
-      // Base AgentBinding fields
-      agentId: `system-agent-${personaConfig.id}`,
-      agentName: personaConfig.name,
-      agentType: personaConfig.id === 'ada' ? 'primary' : 'secondary',
-      avatarUrl: undefined, // Could be loaded from persona source
-
-      // SystemAgentBinding extensions
-      personaId: personaConfig.id,
-      config: personaConfig,
-      defaultPrompt: `${personaConfig.id.toUpperCase()}_EVALUATION_PROMPT`,
-      availablePrompts: this.getAvailablePrompts(personaConfig),
-      memoryNamespace: personaConfig.memoryConfig.namespace,
-      fireproofDbName: personaConfig.memoryConfig.integration.fireproofService.dbName,
-      modelTier: personaConfig.modelConfig.modelTier,
-      interactionState: 'responsive',
-      dependencies: personaConfig.dependencies,
-      icon: PERSONA_ICONS[personaConfig.id],
-      evaluate: async (_prompt: string, _options: { temperature: number; maxTokens: number; timeout: number }) => {
-        throw new NotImplementedError('LLM evaluation not configured');
-      },
+      agentId: 'ada',
+      agentName: 'Ada',
+      agentType: 'primary',
+      avatarUrl: AGENT_AVATARS.ada,
     };
   }
 
   /**
-   * Get available prompts for a persona
+   * Create a default secondary agent binding
    */
-  private getAvailablePrompts(config: PersonaConfig): string[] {
-    // These match the prompt registry structure
-    const basePrompts: Record<SystemAgentPersonaId, string[]> = {
-      ada: [
-        'STRUCTURE_EVALUATION_PROMPT',
-        'PATTERN_RECOGNITION_PROMPT',
-        'COMPOSITION_GRAPH_PROMPT',
-      ],
-      lea: [
-        'IMPLEMENTATION_REVIEW_PROMPT',
-        'DOCUMENTATION_QUALITY_PROMPT',
-        'ERROR_HANDLING_AUDIT_PROMPT',
-      ],
-      phil: [
-        'FORECAST_ANALYSIS_PROMPT',
-        'PREDICTION_TRACKING_PROMPT',
-        'CALIBRATION_REPORT_PROMPT',
-      ],
-      david: [
-        'METACOGNITIVE_AUDIT_PROMPT',
-        'BIAS_DETECTION_PROMPT',
-        'BLIND_SPOT_SCAN_PROMPT',
-        'SELF_ASSESSMENT_CALIBRATION_PROMPT',
-      ],
+  static createDefaultSecondaryBinding(agentId: 'lea' | 'phil' | 'david' | 'milton' = 'lea'): AgentBinding {
+    return {
+      agentId,
+      agentName: agentId.charAt(0).toUpperCase() + agentId.slice(1),
+      agentType: 'secondary',
+      avatarUrl: AGENT_AVATARS[agentId],
     };
-
-    return basePrompts[config.id] || [];
   }
+}
 
-  // ===========================================================================
-  // Validation
-  // ===========================================================================
+// =============================================================================
+// Utility Functions
+// =============================================================================
 
-  /**
-   * Validate a persona configuration
-   */
-  private validatePersonaConfig(config: PersonaConfig, expectedId: SystemAgentPersonaId): void {
-    const errors: string[] = [];
+/**
+ * Quick load of system agents for workspace initialization
+ */
+export async function loadSystemAgentsForWorkspace(
+  primaryId: string = 'ada',
+  secondaryId?: string
+): Promise<{ primary: AgentBinding; secondary?: AgentBinding }> {
+  const loader = new SystemAgentLoader();
 
-    if (config.id !== expectedId) {
-      errors.push(`ID mismatch: expected ${expectedId}, got ${config.id}`);
-    }
-
-    if (!config.name || config.name.length === 0) {
-      errors.push('Missing name');
-    }
-
-    if (!config.role || config.role.length === 0) {
-      errors.push('Missing role');
-    }
-
-    if (!config.modelConfig) {
-      errors.push('Missing modelConfig');
-    }
-
-    if (!config.memoryConfig) {
-      errors.push('Missing memoryConfig');
-    }
-
-    if (!config.memoryConfig?.integration?.fireproofService?.dbName) {
-      errors.push('Missing Fireproof database name');
-    }
-
-    if (errors.length > 0) {
-      throw new Error(`Invalid persona config for ${expectedId}: ${errors.join(', ')}`);
-    }
-  }
-
-  // ===========================================================================
-  // Public API
-  // ===========================================================================
-
-  /**
-   * Get a system agent binding by persona ID
-   */
-  getBinding(personaId: SystemAgentPersonaId): SystemAgentBinding | undefined {
-    return this.bindingCache.get(personaId);
-  }
-
-  /**
-   * Get all system agent bindings
-   */
-  getAllBindings(): Map<SystemAgentPersonaId, SystemAgentBinding> {
-    return new Map(this.bindingCache);
-  }
-
-  /**
-   * Get bindings as an array (useful for iteration)
-   */
-  getBindingsArray(): SystemAgentBinding[] {
-    return Array.from(this.bindingCache.values());
-  }
-
-  /**
-   * Get a persona configuration
-   */
-  getPersonaConfig(personaId: SystemAgentPersonaId): PersonaConfig | undefined {
-    return this.personaConfigCache.get(personaId);
-  }
-
-  /**
-   * Get routing config for a chat pane
-   */
-  getChatPaneConfig(mention: string): ChatPaneConfig | undefined {
-    return this.routingConfigCache?.[mention];
-  }
-
-  /**
-   * Get all chat pane configs
-   */
-  getAllChatPaneConfigs(): Record<string, ChatPaneConfig> | null {
-    return this.routingConfigCache;
-  }
-
-  /**
-   * Get bindings in pipeline order (respecting dependencies)
-   */
-  getBindingsInPipelineOrder(): SystemAgentBinding[] {
-    const ordered: SystemAgentBinding[] = [];
-    const visited = new Set<SystemAgentPersonaId>();
-
-    const visit = (personaId: SystemAgentPersonaId) => {
-      if (visited.has(personaId)) return;
-
-      const binding = this.bindingCache.get(personaId);
-      if (!binding) return;
-
-      // Visit dependencies first
-      for (const dep of binding.dependencies) {
-        visit(dep);
-      }
-
-      visited.add(personaId);
-      ordered.push(binding);
+  const primary = await loader.loadAgent(primaryId);
+  if (!primary) {
+    // Fallback to default Ada
+    return {
+      primary: SystemAgentLoader.createDefaultAdaBinding(),
+      secondary: secondaryId ? SystemAgentLoader.createDefaultSecondaryBinding(secondaryId as any) : undefined,
     };
-
-    // Visit all personas
-    for (const personaId of PERSONA_IDS) {
-      visit(personaId);
-    }
-
-    return ordered;
   }
 
-  /**
-   * Route system agents through SCM gating and arbitration.
-   */
-  routeWithSCM(context?: SCMRoutingContext): SCMRoutingResult {
-    const agents = this.getBindingsArray();
-    return routeWithSCM(agents, context ?? this.config.scmRouting);
+  let secondary: LoadedSystemAgent | null = null;
+  if (secondaryId) {
+    secondary = await loader.loadAgent(secondaryId);
   }
 
-  /**
-   * Check if loader is initialized
-   */
-  isInitialized(): boolean {
-    return this.initialized;
-  }
-
-  /**
-   * Clear caches and reset state
-   */
-  reset(): void {
-    this.bindingCache.clear();
-    this.personaConfigCache.clear();
-    this.routingConfigCache = null;
-    this.initialized = false;
-  }
-
-  /**
-   * Get display name for a persona
-   */
-  getDisplayName(personaId: SystemAgentPersonaId): string {
-    return PERSONA_DISPLAY_NAMES[personaId];
-  }
-
-  /**
-   * Get icon for a persona
-   */
-  getIcon(personaId: SystemAgentPersonaId): string {
-    return PERSONA_ICONS[personaId];
-  }
-}
-
-// =============================================================================
-// Singleton Instance
-// =============================================================================
-
-let loaderInstance: SystemAgentLoader | null = null;
-
-/**
- * Get or create the singleton loader instance
- */
-export function getSystemAgentLoader(config?: SystemAgentLoaderConfig): SystemAgentLoader {
-  if (!loaderInstance) {
-    loaderInstance = new SystemAgentLoader(config);
-  }
-  return loaderInstance;
+  return {
+    primary: primary.binding,
+    secondary: secondary?.binding,
+  };
 }
 
 /**
- * Reset the singleton instance (for testing)
+ * Get recommended agent pair for a given task type
  */
-export function resetSystemAgentLoader(): void {
-  if (loaderInstance) {
-    loaderInstance.reset();
-    loaderInstance = null;
-  }
-}
+export function getRecommendedAgentPair(taskType: string): { primary: string; secondary: string } {
+  const recommendations: Record<string, { primary: string; secondary: string }> = {
+    'code_review': { primary: 'lea', secondary: 'ada' },
+    'architecture': { primary: 'ada', secondary: 'phil' },
+    'forecasting': { primary: 'phil', secondary: 'david' },
+    'bias_check': { primary: 'david', secondary: 'phil' },
+    'operations': { primary: 'milton', secondary: 'lea' },
+    'default': { primary: 'ada', secondary: 'lea' },
+  };
 
-// =============================================================================
-// Convenience Functions
-// =============================================================================
-
-/**
- * Load all system agents and return bindings
- */
-export async function loadSystemAgents(
-  config?: SystemAgentLoaderConfig
-): Promise<Map<SystemAgentPersonaId, SystemAgentBinding>> {
-  const loader = getSystemAgentLoader(config);
-  await loader.initialize();
-  return loader.getAllBindings();
-}
-
-/**
- * Get a specific system agent binding
- */
-export async function getSystemAgent(
-  personaId: SystemAgentPersonaId,
-  config?: SystemAgentLoaderConfig
-): Promise<SystemAgentBinding | undefined> {
-  const loader = getSystemAgentLoader(config);
-  await loader.initialize();
-  return loader.getBinding(personaId);
+  return recommendations[taskType] || recommendations.default;
 }
 
 export default SystemAgentLoader;

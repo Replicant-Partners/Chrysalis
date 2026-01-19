@@ -9,21 +9,26 @@ import (
 )
 
 // Config holds runtime configuration for the gateway service.
+// NOTE: OpenAI and Anthropic are DEPRECATED - use OpenRouter or Ollama instead.
 type Config struct {
 	Port           int
-	Provider       string   // Primary provider: openai, anthropic, ollama, openrouter
+	Provider       string   // Primary provider: openrouter, ollama, cursor (openai/anthropic DEPRECATED)
 	Fallbacks      []string // Fallback providers in order
 	ReadTimeout    time.Duration
 	WriteTimeout   time.Duration
 	IdleTimeout    time.Duration
 	AuthToken      string
-	OpenAIKey      string
-	AnthropicKey   string
-	OpenRouterKey  string
-	OllamaBaseURL  string
-	DefaultModel   string
-	RateLimitRPS   float64
-	RateLimitBurst int
+	// DEPRECATED: OpenAI - use OpenRouter instead
+	OpenAIKey string
+	// DEPRECATED: Anthropic - use OpenRouter instead
+	AnthropicKey  string
+	OpenRouterKey string
+	OllamaBaseURL string
+	// Cursor Agent adapter endpoint (for system agents to consult Cursor)
+	CursorAdapterURL string
+	DefaultModel     string
+	RateLimitRPS     float64
+	RateLimitBurst   int
 	// Cost tracking
 	DailyBudgetUSD   float64
 	MonthlyBudgetUSD float64
@@ -46,17 +51,18 @@ func FromEnv() Config {
 
 	return Config{
 		Port:           intFromEnv("GATEWAY_PORT", 8080),
-		Provider:       strFromEnv("LLM_PROVIDER", "openai"),
+		Provider:       strFromEnv("LLM_PROVIDER", "openrouter"), // Default to OpenRouter (OpenAI/Anthropic deprecated)
 		Fallbacks:      fallbacks,
 		ReadTimeout:    durationFromEnv("HTTP_READ_TIMEOUT_MS", 30_000),
 		WriteTimeout:   durationFromEnv("HTTP_WRITE_TIMEOUT_MS", 120_000), // Longer for streaming
 		IdleTimeout:    durationFromEnv("HTTP_IDLE_TIMEOUT_MS", 60_000),
 		AuthToken:      os.Getenv("GATEWAY_AUTH_TOKEN"),
-		OpenAIKey:      os.Getenv("OPENAI_API_KEY"),
-		AnthropicKey:   os.Getenv("ANTHROPIC_API_KEY"),
+		OpenAIKey:      os.Getenv("OPENAI_API_KEY"),      // DEPRECATED
+		AnthropicKey:   os.Getenv("ANTHROPIC_API_KEY"),   // DEPRECATED
 		OpenRouterKey:  os.Getenv("OPENROUTER_API_KEY"),
 		OllamaBaseURL:  strFromEnv("OLLAMA_BASE_URL", "http://localhost:11434"),
-		DefaultModel:   os.Getenv("LLM_DEFAULT_MODEL"),
+		CursorAdapterURL: strFromEnv("CURSOR_ADAPTER_URL", "http://localhost:3210"),
+		DefaultModel:   strFromEnv("LLM_DEFAULT_MODEL", "thudm/glm-4-9b-chat"), // GLM4 via OpenRouter
 		RateLimitRPS:   floatFromEnv("GATEWAY_RATE_RPS", 10),
 		RateLimitBurst: intFromEnv("GATEWAY_RATE_BURST", 20),
 		// Cost tracking

@@ -1,6 +1,13 @@
 # Chrysalis Project - Consolidated Python Dependencies
 # Python >= 3.10 required
-# Generated: 2026-01-11
+# Generated: 2026-01-18
+#
+# PROVIDER POLICY:
+#   - OpenAI and Anthropic are DEPRECATED - do not use their API keys
+#   - Primary: OpenRouter (GLM4, other open models)
+#   - Local: Ollama (qwen2.5-coder, etc.)
+#   - Consultation: Cursor Agent (via cursor-adapter)
+#
 
 # Web Framework
 Flask==3.0.0
@@ -13,8 +20,14 @@ pydantic==2.11.9
 PyYAML==6.0.3
 
 # AI Providers
-anthropic==0.75.0
-openai==1.83.0  # pinned for crewai compatibility
+# DEPRECATED: anthropic - use OpenRouter instead
+# anthropic==0.75.0
+# DEPRECATED: openai - use OpenRouter instead
+# openai==1.83.0
+
+# OpenRouter SDK (replaces direct OpenAI/Anthropic)
+# OpenRouter uses OpenAI-compatible API, so we keep openai for the SDK
+openai==1.83.0  # Used only as OpenRouter client SDK
 
 # Data & Storage
 lancedb==0.26.1

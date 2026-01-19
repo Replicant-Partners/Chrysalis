@@ -50,11 +50,24 @@ func (r *ModelRouter) ID() string {
 
 // resolveProvider determines which provider to use based on model name.
 // This is the key routing logic.
+//
+// Provider Priority (OpenAI and Anthropic are DEPRECATED):
+// 1. cursor - Cursor Agent (for complex reasoning, staying on task)
+// 2. ollama - Local models (free, fast)
+// 3. openrouter - GLM4, other open models
+// 4. openai/anthropic - DEPRECATED, use OpenRouter instead
 func (r *ModelRouter) resolveProvider(model string) (Provider, string) {
 	model = strings.ToLower(model)
 
 	// Route based on model prefix/name
 	switch {
+	// Cursor Agent - for system agent consultations
+	case strings.HasPrefix(model, "cursor"),
+		strings.HasPrefix(model, "cursor-agent"):
+		if p, ok := r.providers["cursor"]; ok {
+			return p, "cursor"
+		}
+
 	// Ollama / Local models
 	case strings.HasPrefix(model, "llama"),
 		strings.HasPrefix(model, "gemma"),
@@ -63,20 +76,54 @@ func (r *ModelRouter) resolveProvider(model string) (Provider, string) {
 		strings.HasPrefix(model, "phi"),
 		strings.HasPrefix(model, "qwen"),
 		strings.HasPrefix(model, "deepseek"),
+		strings.HasPrefix(model, "starcoder"),
 		strings.HasPrefix(model, "ollama/"),
 		strings.HasPrefix(model, "local/"):
 		if p, ok := r.providers["ollama"]; ok {
 			return p, "ollama"
 		}
 
-	// Anthropic / Claude models
+	// GLM models via OpenRouter
+	case strings.HasPrefix(model, "glm"),
+		strings.HasPrefix(model, "thudm/"):
+		if p, ok := r.providers["openrouter"]; ok {
+			return p, "openrouter"
+		}
+
+	// Mistral models - can use direct API or OpenRouter
+	case strings.HasPrefix(model, "mistral"),
+		strings.HasPrefix(model, "mixtral"),
+		strings.HasPrefix(model, "codestral"),
+		strings.HasPrefix(model, "mistralai/"):
+		// Prefer direct Mistral if available, fallback to OpenRouter
+		if p, ok := r.providers["mistral"]; ok {
+			return p, "mistral"
+		}
+		if p, ok := r.providers["openrouter"]; ok {
+			return p, "openrouter"
+		}
+
+	// OpenRouter - explicit prefix or any model with org/ prefix
+	case strings.HasPrefix(model, "openrouter/"),
+		strings.Contains(model, "/"):
+		// OpenRouter uses format like "anthropic/claude-3" or "meta-llama/llama-3"
+		if p, ok := r.providers["openrouter"]; ok {
+			return p, "openrouter"
+		}
+
+	// DEPRECATED: Anthropic / Claude models - route through OpenRouter instead
 	case strings.HasPrefix(model, "claude"),
 		strings.HasPrefix(model, "anthropic/"):
+		log.Printf("router: WARNING - direct Anthropic access is DEPRECATED, routing through OpenRouter")
+		if p, ok := r.providers["openrouter"]; ok {
+			return p, "openrouter"
+		}
+		// Fall through to deprecated provider only if OpenRouter not available
 		if p, ok := r.providers["anthropic"]; ok {
 			return p, "anthropic"
 		}
 
-	// OpenAI models
+	// DEPRECATED: OpenAI models - route through OpenRouter instead
 	case strings.HasPrefix(model, "gpt"),
 		strings.HasPrefix(model, "o1"),
 		strings.HasPrefix(model, "o3"),
@@ -85,21 +132,18 @@ func (r *ModelRouter) resolveProvider(model string) (Provider, string) {
 		strings.HasPrefix(model, "whisper"),
 		strings.HasPrefix(model, "dall-e"),
 		strings.HasPrefix(model, "tts"):
-		if p, ok := r.providers["openai"]; ok {
-			return p, "openai"
-		}
-
-	// OpenRouter - explicit prefix or fallback for unknown models
-	case strings.HasPrefix(model, "openrouter/"),
-		strings.Contains(model, "/"):
-		// OpenRouter uses format like "anthropic/claude-3" or "meta-llama/llama-3"
+		log.Printf("router: WARNING - direct OpenAI access is DEPRECATED, routing through OpenRouter")
 		if p, ok := r.providers["openrouter"]; ok {
 			return p, "openrouter"
 		}
+		// Fall through to deprecated provider only if OpenRouter not available
+		if p, ok := r.providers["openai"]; ok {
+			return p, "openai"
+		}
 	}
 
-	// Default fallback order: ollama (cheapest) -> openrouter -> openai -> anthropic
-	fallbackOrder := []string{"ollama", "openrouter", "openai", "anthropic"}
+	// Default fallback order: cursor -> ollama -> openrouter (OpenAI/Anthropic DEPRECATED)
+	fallbackOrder := []string{"cursor", "ollama", "openrouter"}
 	for _, id := range fallbackOrder {
 		if p, ok := r.providers[id]; ok {
 			log.Printf("router: no specific match for model %q, falling back to %s", model, id)

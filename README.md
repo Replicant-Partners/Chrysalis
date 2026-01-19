@@ -4,7 +4,7 @@
 
 *Agents operating agentically in semantic/meaning space*
 
-[![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.31.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](package.json)
 [![Build](https://img.shields.io/badge/build-passing-green.svg)](docs/STATUS.md)
@@ -305,6 +305,6 @@ MIT License — see [`LICENSE`](LICENSE) for details.
 
 ---
 
-**Version**: 3.1.1
+**Version**: 0.31.0
 **Last Updated**: January 16, 2026
 **Documentation Review**: Aligned with actual implementation

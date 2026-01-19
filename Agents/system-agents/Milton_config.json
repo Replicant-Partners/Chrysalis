@@ -52,6 +52,28 @@
       }
     }
   },
+  "modelConfig": {
+    "modelTier": "hybrid",
+    "primaryModel": {
+      "provider": "openrouter",
+      "model": "thudm/glm-4-9b-chat",
+      "useCases": ["telemetry_analysis", "config_recommendations", "drift_detection"]
+    },
+    "localModel": {
+      "provider": "ollama",
+      "model": "qwen2.5-coder:7b",
+      "useCases": ["quick_checks", "offline_fallback"]
+    },
+    "cursorModel": {
+      "provider": "cursor",
+      "model": "cursor-agent",
+      "useCases": ["ops_root_cause_analysis", "complex_investigation"]
+    },
+    "contextWindow": 32768,
+    "defaultTemperature": 0.3,
+    "latencyBudgetMs": 15000,
+    "_note": "OpenAI and Anthropic are DEPRECATED - use OpenRouter or Cursor instead"
+  },
   "capabilities": {
     "primary": [
       "monitor_telemetry_and_benchmarks",

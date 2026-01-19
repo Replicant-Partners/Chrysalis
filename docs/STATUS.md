@@ -1,8 +1,8 @@
 # Chrysalis Implementation Status
 
-**Version**: 3.1.1
+**Version**: 0.31.0
 **Last Updated**: January 16, 2026
-**Status**: Active Development
+**Status**: Active Development (Pre-Release)
 **Owner**: Chrysalis Team
 **Review Cadence**: Weekly
 

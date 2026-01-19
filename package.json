@@ -1,6 +1,6 @@
 {
   "name": "chrysalis",
-  "version": "3.1.0",
+  "version": "0.31.0",
   "description": "Uniform Semantic Agent Morphing System - Framework-transcendent agents built on universal patterns",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,6 +22,7 @@
     "service:terminal": "npm run build && node dist/api/terminal/run-terminal-server.js",
     "service:feedback": "npm run build && node dist/api/feedback/run-feedback-server.js",
     "service:system-agents": "npm run build && node dist/src/api/system-agents/run-system-agents-server.js",
+    "service:cursor-adapter": "tsx src/services/cursor-adapter/run-cursor-adapter.ts",
     "tui:chat": "cd src/tui && npx tsx app.tsx",
     "test:adapter": "tsx scripts/test-adapter.ts",
     "adapter:list": "tsx scripts/test-adapter.ts --list",

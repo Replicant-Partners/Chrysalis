@@ -41,3 +41,17 @@ export {
   getAgentRegistry,
   createAgentRegistry
 } from './AgentRegistry';
+
+// Canvas-Chat Bridge
+export {
+  CanvasChatBridge,
+  getCanvasChatBridge,
+  resetCanvasChatBridge,
+  type CanvasChatBridgeConfig,
+  type BridgeEventType,
+  type CanvasAgentSelectedEvent,
+  type CanvasAgentStateEvent,
+  type ChatMessageEvent,
+  type ChatTypingEvent,
+  type ChatPaneFocusEvent,
+} from './CanvasChatBridge';

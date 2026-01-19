@@ -1,8 +1,8 @@
 /**
  * ChrysalisWorkspace Module
- * 
+ *
  * Three-frame dual-chat canvas architecture for agent interaction.
- * 
+ *
  * @module components/ChrysalisWorkspace
  */
 
@@ -22,24 +22,28 @@ export type {
   MemoryIndicator,
   AgentBinding,
   PermissionRequest,
-  
+
   // Workspace types
   WorkspaceSession,
   WorkspaceViewport,
   PanelSizes,
   WorkspaceConfig,
-  
+
   // YJS types
   WorkspaceYJSState,
   WorkspaceYJSDoc,
-  
+
   // Props types
   ChatPaneProps,
   ChrysalisWorkspaceProps,
-  
+
   // Memory event types
   MemoryUIEvent,
 } from './types';
 
 // Constants
 export { DEFAULT_WORKSPACE_CONFIG } from './types';
+
+// Hooks
+export { useCanvasChatBridge } from './useCanvasChatBridge';
+export type { UseCanvasChatBridgeOptions, UseCanvasChatBridgeReturn } from './useCanvasChatBridge';

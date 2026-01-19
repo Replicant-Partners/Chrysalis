@@ -46,20 +46,26 @@
   },
 
   "modelConfig": {
-    "modelTier": "local_slm",
-    "localModel": {
-      "provider": "ollama",
-      "model": "gemma:2b",
+    "modelTier": "hybrid",
+    "primaryModel": {
+      "provider": "openrouter",
+      "model": "thudm/glm-4-9b-chat",
       "useCases": ["code_review", "doc_check", "clarity_assessment"]
     },
-    "cloudModel": {
-      "provider": "anthropic",
-      "model": "claude-sonnet-4-20250514",
-      "useCases": ["fallback_complex_analysis"]
+    "localModel": {
+      "provider": "ollama",
+      "model": "qwen2.5-coder:7b",
+      "useCases": ["offline_fallback", "low_latency"]
     },
-    "contextWindow": 4096,
+    "cursorModel": {
+      "provider": "cursor",
+      "model": "cursor-agent",
+      "useCases": ["complex_analysis", "differentiated_feedback"]
+    },
+    "contextWindow": 32768,
     "defaultTemperature": 0.2,
-    "latencyBudgetMs": 2000
+    "latencyBudgetMs": 10000,
+    "_note": "OpenAI and Anthropic are DEPRECATED - use OpenRouter or Cursor instead"
   },
 
   "defaultTools": [

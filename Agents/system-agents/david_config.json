@@ -46,20 +46,26 @@
   },
 
   "modelConfig": {
-    "modelTier": "cloud_llm",
+    "modelTier": "hybrid",
+    "primaryModel": {
+      "provider": "openrouter",
+      "model": "thudm/glm-4-9b-chat",
+      "useCases": ["metacognitive_analysis", "blind_spot_detection", "bias_identification"]
+    },
     "localModel": {
       "provider": "ollama",
-      "model": "gemma:2b",
-      "useCases": ["quick_bias_pattern_match"]
+      "model": "qwen2.5-coder:14b",
+      "useCases": ["quick_bias_pattern_match", "offline_fallback"]
     },
-    "cloudModel": {
-      "provider": "anthropic",
-      "model": "claude-opus-4-20250514",
-      "useCases": ["metacognitive_analysis", "blind_spot_detection", "bias_identification", "overconfidence_assessment"]
+    "cursorModel": {
+      "provider": "cursor",
+      "model": "cursor-agent",
+      "useCases": ["complex_metacognitive_analysis", "overconfidence_assessment", "deep_reasoning"]
     },
-    "contextWindow": 8192,
-    "defaultTemperature": 0.5,
-    "latencyBudgetMs": 10000
+    "contextWindow": 32768,
+    "defaultTemperature": 0.4,
+    "latencyBudgetMs": 20000,
+    "_note": "OpenAI and Anthropic are DEPRECATED - use OpenRouter or Cursor instead"
   },
 
   "defaultTools": [
