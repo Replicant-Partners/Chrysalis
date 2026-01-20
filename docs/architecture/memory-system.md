@@ -1,81 +1,118 @@
 # Memory System Architecture
 
-> **TypeScript Source:** [`src/memory/`](../../memory_system/) | [`src/experience/`](../../src/experience/)  
-> **Python Source:** [`memory_system/`](../../memory_system/)  
-> **Status:** ✅ Implemented (dual-language)
+> **Rust Core:** [`memory_system/rust_core/`](../../memory_system/rust_core/) (PyO3 bindings)
+> **TypeScript Source:** [`src/memory/`](../../src/memory/) | [`src/experience/`](../../src/experience/)
+> **Python Source:** [`memory_system/`](../../memory_system/)
+> **Status:** ✅ Implemented (Rust + Python + TypeScript)
 
 ## Overview
 
-Chrysalis implements a **dual-coding memory architecture** spanning TypeScript and Python:
+Chrysalis implements a **three-tier memory architecture** with a high-performance Rust core:
 
-- **TypeScript**: Memory merging, vector indexing, experience sync
-- **Python**: Semantic decomposition, embeddings, knowledge graphs
+- **Rust Core**: CRDT implementations (GSet, ORSet, LWW-Register), SQLite storage with WAL
+- **Python Layer**: Agent memory APIs, embedding services, semantic decomposition
+- **TypeScript Layer**: Memory merging, vector indexing, experience sync, HTTP client
+
+### Theoretical Foundations
+
+The memory system is grounded in several academic models:
+
+| Concept | Reference | Application |
+|---------|-----------|-------------|
+| **CRDTs** | [Shapiro et al. (2011)](https://hal.inria.fr/inria-00555588) | Conflict-free replicated memory |
+| **Episodic Memory** | [Tulving (1972)](https://doi.org/10.1016/B978-0-12-440350-5.50008-2) | Experience-based recall |
+| **Semantic Memory** | [Collins & Quillian (1969)](https://doi.org/10.1016/0022-5371(69)90039-X) | Knowledge representation |
+| **Vector Similarity** | [Johnson et al. (2019)](https://arxiv.org/abs/1702.08734) | FAISS-style ANN search |
+| **Write-Ahead Logging** | [Mohan et al. (1992)](https://dl.acm.org/doi/10.1145/128765.128770) | ARIES recovery |
 
 ```mermaid
 flowchart TB
     subgraph TypeScript[TypeScript Layer]
+        AMA[AgentMemoryAdapter]
         MM[MemoryMerger]
-        VI[VectorIndex]
         ESM[ExperienceSyncManager]
     end
-    
-    subgraph Python[Python Layer]
-        MC[Memory Core]
-        SD[SemanticDecomposer]
+
+    subgraph HTTP[HTTP API Layer]
+        API[FastAPI Server :8082]
+    end
+
+    subgraph Python[Python Integration Layer]
+        RMI[rust_memory_integration.py]
         ES[EmbeddingService]
-        GS[GraphStore]
+        SD[SemanticDecomposer]
     end
-    
-    subgraph Storage[Storage]
-        Lance[(LanceDB)]
-        Chroma[(ChromaDB)]
+
+    subgraph Rust[Rust Core - chrysalis_memory]
+        CRDT[CRDT Types]
+        MD[MemoryDocument]
+        MS[MemoryStorage]
     end
-    
+
+    subgraph Storage[Persistent Storage]
+        SQLite[(SQLite + WAL)]
+    end
+
+    AMA -->|HTTP| API
+    API --> RMI
+    RMI --> CRDT
+    RMI --> MD
+    MD --> MS
+    MS --> SQLite
+
     ESM --> MM
-    MM --> VI
-    VI --> Lance
-    
-    MC --> SD
-    MC --> ES
-    MC --> GS
-    ES --> Chroma
+    MM --> AMA
+
+    ES --> RMI
 ```
 
 ---
 
 ## Memory Types
 
-Four memory categories following cognitive science principles:
+Four memory categories following cognitive science principles from Tulving's memory taxonomy:
 
-| Type | Retention | Storage | Purpose |
-|------|-----------|---------|---------|
-| **Working** | Temporary | In-memory buffer | Recent context |
-| **Episodic** | Long-term | Vector store | Past experiences |
-| **Semantic** | Long-term | Vector store | Facts and knowledge |
-| **Core** | Persistent | Structured blocks | Identity and persona |
+| Type | Retention | Storage | CRDT Type | Purpose |
+|------|-----------|---------|-----------|---------|
+| **Working** | Temporary | In-memory | None | Recent context |
+| **Episodic** | Long-term | SQLite | GSet | Past experiences |
+| **Semantic** | Long-term | SQLite | ORSet | Facts and knowledge |
+| **Procedural** | Long-term | SQLite | LWW-Register | Skills and how-to |
+
+> **Academic Reference:** Tulving, E. (1972). "Episodic and Semantic Memory" in *Organization of Memory*. Academic Press.
+
+### CRDT Strategy per Memory Type
+
+| Memory Type | CRDT | Rationale |
+|-------------|------|-----------|
+| **Episodic** | G-Set | Events are append-only; once experienced, never deleted |
+| **Semantic** | OR-Set | Facts can be learned and corrected (add/remove) |
+| **Tags** | OR-Set | Tags can be added and removed with proper semantics |
+| **Importance** | LWW-Max | Importance score only increases over time |
+| **Confidence** | LWW-Max | Confidence reflects accumulated evidence |
 
 ```mermaid
 flowchart LR
-    subgraph Working[Working Memory]
+    subgraph Working[Working Memory - Transient]
         W1[Recent interaction 1]
         W2[Recent interaction 2]
         W3[Recent interaction 3]
     end
-    
-    subgraph Episodic[Episodic Memory]
+
+    subgraph Episodic[Episodic Memory - GSet]
         E1[Conversation with user X]
         E2[Task completion Y]
         E3[Learning event Z]
     end
-    
-    subgraph Semantic[Semantic Memory]
+
+    subgraph Semantic[Semantic Memory - ORSet]
         S1[Fact: User prefers Python]
         S2[Fact: Project uses TypeScript]
     end
-    
-    subgraph Core[Core Memory]
-        C1[Persona block]
-        C2[User facts block]
+
+    subgraph Procedural[Procedural Memory - LWW]
+        P1[Skill: Debug Python]
+        P2[Skill: Write tests]
     end
 ```
 
@@ -117,17 +154,17 @@ flowchart TB
     subgraph Input
         New[New Memory]
     end
-    
+
     subgraph Check[Duplicate Check]
         J{Jaccard?}
         E{Embedding?}
     end
-    
+
     subgraph Actions
         Dup[Merge with existing]
         Add[Add as new]
     end
-    
+
     New --> J
     New --> E
     J -->|sim > 0.9| Dup
@@ -168,7 +205,7 @@ Unified memory interface:
 class Memory:
     """
     Main memory interface for agents
-    
+
     Memory Types:
     - Working Memory: Recent context (in-memory buffer)
     - Episodic Memory: Past experiences (vector store)
@@ -213,7 +250,7 @@ memory.initialize()
 memory.add_to_working_memory("User asked about Python")
 
 # Episodic memory (experiences)
-memory.add_episodic("Successfully helped user debug auth.py", 
+memory.add_episodic("Successfully helped user debug auth.py",
                     metadata={"task": "debugging"})
 
 # Semantic memory (facts)
@@ -225,7 +262,7 @@ memory.set_core_memory("persona", "I am a helpful coding assistant")
 memory.set_core_memory("user_facts", "User works on web applications")
 
 # Search across memories
-results = memory.search("debugging authentication", 
+results = memory.search("debugging authentication",
                        memory_types=["episodic", "semantic"],
                        limit=5)
 
@@ -244,11 +281,11 @@ Breaks down text into semantic components:
 ```mermaid
 flowchart LR
     Input[Raw Text] --> SD[SemanticDecomposer]
-    
+
     SD --> Intent[Intent Detection]
     SD --> Entities[Entity Extraction]
     SD --> Triples[RDF Triples]
-    
+
     Intent --> Frame[SemanticFrame]
     Entities --> Frame
     Triples --> Frame
@@ -287,7 +324,7 @@ Vector embeddings with fallback chain:
 ```mermaid
 flowchart TB
     Text[Input Text] --> Service[EmbeddingService]
-    
+
     Service --> Primary{Primary Provider}
     Primary -->|success| Vector[Embedding Vector]
     Primary -->|failure| Fallback{Fallback Provider}
@@ -335,7 +372,7 @@ flowchart TB
         Project[Project: WebApp]
         File[File: auth.py]
     end
-    
+
     subgraph Relations
         User -->|works_on| Project
         Project -->|contains| File
@@ -356,10 +393,10 @@ sequenceDiagram
     participant MM as MemoryMerger
     participant VI as VectorIndex
     participant Store as Vector Store
-    
+
     Agent->>ESM: Experience Event
     ESM->>MM: Add Memory
-    
+
     MM->>MM: Check duplicates
     alt Duplicate found
         MM->>MM: Merge with existing
@@ -367,7 +404,7 @@ sequenceDiagram
         MM->>VI: Upsert embedding
         VI->>Store: Persist
     end
-    
+
     MM-->>ESM: Merge Result
     ESM-->>Agent: Sync Complete
 ```

@@ -125,10 +125,10 @@ flowchart TB
         CB[CircuitBreaker]
     end
 
-    subgraph Memory[Memory Layer]
+    subgraph Memory[Memory Layer - TypeScript]
         MM[MemoryMerger]
         VIF[VectorIndexFactory]
-        EB[EmbeddingBridge]
+        AMA[AgentMemoryAdapter]
     end
 
     subgraph Sync[Sync Layer]
@@ -137,19 +137,25 @@ flowchart TB
         LS[LumpedSync]
     end
 
-    subgraph Python[Python memory_system]
-        SEM[Semantic Analysis]
-        GR[Graph Store]
-        FP[Fireproof Layer]
+    subgraph RustCore[Rust Memory Core - chrysalis_memory]
+        CRDT[CRDT Types]
+        MD[MemoryDocument]
+        MS[MemoryStorage SQLite+WAL]
+    end
+
+    subgraph Python[Python Integration Layer]
+        RMI[rust_memory_integration.py]
+        API[FastAPI Server :8082]
+        ES[EmbeddingService]
     end
 
     subgraph Canvas[Canvas System]
-        CVS[5 Canvas Types]
+        CVS[6 Canvas Types]
         WGT[Widget Registry]
         PTY[Terminal PTY]
     end
 
-    subgraph Agents[System Agents - Rust Implementation]
+    subgraph Agents[System Agents - Ada Lea Phil David Milton]
         SCM[SCM Router]
         ARB[Arbiter]
         BEH[Behavior Loader]
@@ -158,9 +164,14 @@ flowchart TB
     SemanticAgent --> PR
     SemanticAgent --> MM
     MM --> VIF
-    MM --> EB
+    MM --> AMA
+    AMA -->|HTTP| API
+    API --> RMI
+    RMI --> CRDT
+    RMI --> MD
+    MD --> MS
     ESM --> MM
-    EB -.-> Python
+    Agents --> RMI
     Canvas -.-> Agents
     Agents -.-> Core
 ```

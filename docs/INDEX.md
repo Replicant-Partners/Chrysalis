@@ -79,6 +79,9 @@ src/canvas/                  # Canvas system (TypeScript)
 | Document | Scope |
 |----------|-------|
 | [`ARCHITECTURE.md`](../ARCHITECTURE.md) | Full system design |
+| [`architecture/EXTENSIBILITY_ARCHITECTURE.md`](architecture/EXTENSIBILITY_ARCHITECTURE.md) | Extension contracts, Web3 integration |
+| [`architecture/FAIR_EXTENSION_ALIGNMENT.md`](architecture/FAIR_EXTENSION_ALIGNMENT.md) | FAIR principles, Complex Learner alignment |
+| [`CHRYSALIS_SHARED_MEMORY_ARCHITECTURE.md`](CHRYSALIS_SHARED_MEMORY_ARCHITECTURE.md) | CRDT-based shared memory |
 | [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) | Canvas & widget architecture |
 | [`canvas-architecture.md`](canvas-architecture.md) | Canvas wireframe spec |
 | [`memory_system/README.md`](../memory_system/README.md) | Python memory system |
@@ -149,8 +152,10 @@ src/canvas/                  # Canvas system (TypeScript)
 ### Architects
 
 1. [`ARCHITECTURE.md`](../ARCHITECTURE.md) — Full system design
-2. [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) — Canvas architecture
-3. [`research/universal-patterns/`](research/universal-patterns/) — Research foundation
+2. [`architecture/EXTENSIBILITY_ARCHITECTURE.md`](architecture/EXTENSIBILITY_ARCHITECTURE.md) — Extension contracts, Web3
+3. [`CHRYSALIS_SHARED_MEMORY_ARCHITECTURE.md`](CHRYSALIS_SHARED_MEMORY_ARCHITECTURE.md) — CRDT memory design
+4. [`guides/WIDGET_DEVELOPER_GUIDE.md`](guides/WIDGET_DEVELOPER_GUIDE.md) — Canvas architecture
+5. [`research/universal-patterns/`](research/universal-patterns/) — Research foundation
 
 ### Operations
 

@@ -1,170 +1,243 @@
-export interface GatewayLLMMessage {
+/**
+ * GatewayLLMClient
+ *
+ * TypeScript client for the Go LLM Gateway.
+ * This is a thin UI adapter that connects the React frontend to the
+ * Go-based gateway service.
+ *
+ * NOTE: Core logic is in Go (go-gateway/)
+ * This file is ONLY for UI integration.
+ *
+ * @module services/gateway/GatewayLLMClient
+ */
+
+export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
+  name?: string;
 }
 
-export interface GatewayLLMResponse {
-  content: string;
+export interface ChatCompletionRequest {
   model: string;
+  messages: ChatMessage[];
+  temperature?: number;
+  maxTokens?: number;
+  stream?: boolean;
+  stop?: string[];
+}
+
+export interface ChatCompletionResponse {
+  id: string;
+  model: string;
+  choices: Array<{
+    index: number;
+    message: {
+      role: string;
+      content: string;
+    };
+    finishReason: string;
+  }>;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+}
+
+export interface GatewayHealth {
+  status: string;
   provider: string;
-  requestId?: string;
-  durationMs?: number;
+  model: string;
+  uptime?: number;
 }
 
 export interface GatewayLLMClientConfig {
   baseUrl?: string;
   authToken?: string;
-  model?: string;
-  fetchImpl?: typeof fetch;
-  stream?: boolean;
+  defaultModel?: string;
+  timeout?: number;
 }
 
 /**
- * Minimal HTTP client for the Go LLM gateway (/v1/chat).
+ * Client for communicating with the Go LLM Gateway
  */
-import { logger } from '../../observability';
-
 export class GatewayLLMClient {
   private baseUrl: string;
-  private authToken?: string;
-  private model?: string;
-  private fetchImpl: typeof fetch;
-  private streamDefault?: boolean;
-  private log = logger('gateway-llm');
+  private authToken: string | null;
+  private defaultModel: string;
+  private timeout: number;
 
   constructor(config: GatewayLLMClientConfig = {}) {
-    const envBase = typeof process !== 'undefined' ? (process.env.GATEWAY_BASE_URL || process.env.NEXT_PUBLIC_GATEWAY_BASE_URL || process.env.VITE_GATEWAY_BASE_URL) : undefined;
-    const envToken = typeof process !== 'undefined' ? (process.env.GATEWAY_AUTH_TOKEN || process.env.NEXT_PUBLIC_GATEWAY_AUTH_TOKEN || process.env.VITE_GATEWAY_AUTH_TOKEN) : undefined;
-    this.baseUrl = config.baseUrl ?? envBase ?? 'http://localhost:8080';
-    this.authToken = config.authToken ?? envToken;
-    this.model = config.model;
-    this.fetchImpl = config.fetchImpl ?? fetch;
-    this.streamDefault = config.stream;
+    this.baseUrl = config.baseUrl || 'http://localhost:8080';
+    this.authToken = config.authToken || null;
+    this.defaultModel = config.defaultModel || 'thudm/glm-4-9b-chat';
+    this.timeout = config.timeout || 30000;
   }
 
   /**
-   * Send a chat completion request.
-   * @param agentId - The agent making the request (for tracking)
-   * @param messages - Conversation messages
-   * @param temperature - Optional temperature override
-   * @param model - Optional model override (routes to correct provider)
+   * Create headers for API requests
    */
-  async chat(agentId: string, messages: GatewayLLMMessage[], temperature?: number, model?: string): Promise<GatewayLLMResponse> {
-    const requestId = this.generateRequestId();
-    const started = Date.now();
-    const requestModel = model ?? this.model;
-    
-    if (!requestModel) {
-      throw new Error('No model specified. Provide model in constructor config or per-call.');
-    }
-    
-    const res = await this.fetchImpl(`${this.baseUrl}/v1/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(this.authToken ? { Authorization: `Bearer ${this.authToken}` } : {}),
-        'X-Request-Id': requestId,
-      },
-      body: JSON.stringify({
-        agent_id: agentId,
-        messages,
-        model: requestModel,
-        temperature,
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      this.log.error('gateway chat error', {
-        requestId,
-        status: res.status,
-        body: text,
-        baseUrl: this.baseUrl,
-        agentId,
-      });
-      throw new Error(`Gateway chat failed: ${res.status} ${text}`);
-    }
-
-    const json = await res.json();
-    const response: GatewayLLMResponse = {
-      content: json.content,
-      model: json.model,
-      provider: json.provider,
-      requestId: res.headers.get('X-Request-Id') || requestId,
-      durationMs: Date.now() - started,
+  private getHeaders(): HeadersInit {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
     };
-    this.log.debug('gateway chat', {
-      requestId: response.requestId,
-      durationMs: response.durationMs,
-      provider: response.provider,
-      model: response.model,
-      baseUrl: this.baseUrl,
-      agentId,
-    });
-    return response;
+
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+
+    return headers;
   }
 
   /**
-   * Stream a chat completion response.
-   * @param agentId - The agent making the request (for tracking)
-   * @param messages - Conversation messages
-   * @param temperature - Optional temperature override
-   * @param model - Optional model override (routes to correct provider)
+   * Make a chat completion request
    */
-  async *stream(agentId: string, messages: GatewayLLMMessage[], temperature?: number, model?: string): AsyncGenerator<GatewayLLMResponse> {
-    const requestId = this.generateRequestId();
-    const requestModel = model ?? this.model;
-    
-    if (!requestModel) {
-      throw new Error('No model specified. Provide model in constructor config or per-call.');
-    }
-    
-    const res = await this.fetchImpl(`${this.baseUrl}/v1/chat/stream`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(this.authToken ? { Authorization: `Bearer ${this.authToken}` } : {}),
-        'X-Request-Id': requestId,
-      },
-      body: JSON.stringify({
-        agent_id: agentId,
-        messages,
-        model: requestModel,
-        temperature,
-      }),
-    });
-    if (!res.ok || !res.body) {
-      const text = await res.text();
-      throw new Error(`Gateway stream failed: ${res.status} ${text}`);
-    }
+  async chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+    try {
+      const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          model: request.model || this.defaultModel,
+          messages: request.messages,
+          temperature: request.temperature ?? 0.7,
+          max_tokens: request.maxTokens ?? 1000,
+          stream: request.stream ?? false,
+          stop: request.stop,
+        }),
+        signal: controller.signal,
+      });
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      let idx;
-      while ((idx = buffer.indexOf('\n\n')) >= 0) {
-        const chunk = buffer.slice(0, idx).trim();
-        buffer = buffer.slice(idx + 2);
-        if (!chunk.startsWith('data:')) continue;
-        const payload = chunk.replace(/^data:\s*/, '');
-        const json = JSON.parse(payload);
-        yield {
-          content: json.content || '',
-          model: json.model,
-          provider: json.provider,
-          requestId: res.headers.get('X-Request-Id') || requestId,
-        };
-        if (json.done) return;
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gateway error ${response.status}: ${errorText}`);
       }
+
+      const data = await response.json();
+
+      return {
+        id: data.id,
+        model: data.model,
+        choices: data.choices.map((choice: { index: number; message: { role: string; content: string }; finish_reason: string }) => ({
+          index: choice.index,
+          message: {
+            role: choice.message.role,
+            content: choice.message.content,
+          },
+          finishReason: choice.finish_reason,
+        })),
+        usage: {
+          promptTokens: data.usage?.prompt_tokens || 0,
+          completionTokens: data.usage?.completion_tokens || 0,
+          totalTokens: data.usage?.total_tokens || 0,
+        },
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Request timed out after ${this.timeout}ms`);
+      }
+
+      throw error;
     }
   }
 
-  private generateRequestId(): string {
-    return `gw-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  /**
+   * Simple completion helper
+   */
+  async complete(prompt: string, options?: Partial<ChatCompletionRequest>): Promise<string> {
+    const response = await this.chatCompletion({
+      model: options?.model || this.defaultModel,
+      messages: [{ role: 'user', content: prompt }],
+      ...options,
+    });
+
+    return response.choices[0]?.message.content || '';
+  }
+
+  /**
+   * Check gateway health
+   */
+  async health(): Promise<GatewayHealth> {
+    try {
+      const response = await fetch(`${this.baseUrl}/health`, {
+        headers: this.getHeaders(),
+      });
+
+      if (!response.ok) {
+        return {
+          status: 'unhealthy',
+          provider: 'unknown',
+          model: 'unknown',
+        };
+      }
+
+      const data = await response.json();
+      return {
+        status: data.status || 'healthy',
+        provider: data.provider || 'unknown',
+        model: data.model || this.defaultModel,
+        uptime: data.uptime,
+      };
+    } catch {
+      return {
+        status: 'unreachable',
+        provider: 'unknown',
+        model: 'unknown',
+      };
+    }
+  }
+
+  /**
+   * Get available models
+   */
+  async listModels(): Promise<string[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/v1/models`, {
+        headers: this.getHeaders(),
+      });
+
+      if (!response.ok) {
+        return [this.defaultModel];
+      }
+
+      const data = await response.json();
+      return data.data?.map((m: { id: string }) => m.id) || [this.defaultModel];
+    } catch {
+      return [this.defaultModel];
+    }
+  }
+
+  /**
+   * Set the default model
+   */
+  setDefaultModel(model: string): void {
+    this.defaultModel = model;
+  }
+
+  /**
+   * Get current default model
+   */
+  getDefaultModel(): string {
+    return this.defaultModel;
   }
 }
+
+/**
+ * Create a gateway client with environment configuration
+ */
+export function createGatewayClient(): GatewayLLMClient {
+  return new GatewayLLMClient({
+    baseUrl: process.env.GATEWAY_BASE_URL || 'http://localhost:8080',
+    authToken: process.env.GATEWAY_AUTH_TOKEN,
+    defaultModel: process.env.LLM_DEFAULT_MODEL || 'thudm/glm-4-9b-chat',
+  });
+}
+
+export default GatewayLLMClient;

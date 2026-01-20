@@ -1,8 +1,14 @@
 /**
  * AgentMemoryAdapter
  *
- * TypeScript client for the Python memory system HTTP API.
- * Provides a simple interface for storing and retrieving agent memories (beads).
+ * TypeScript client for the Rust/Python memory system HTTP API.
+ * This is a thin UI adapter that connects the React frontend to the
+ * high-performance Rust memory backend.
+ *
+ * NOTE: Core logic is in Rust (src/native/rust-system-agents/src/memory_adapter.rs)
+ * This file is ONLY for UI integration.
+ *
+ * @module memory/AgentMemoryAdapter
  */
 
 export interface MemoryEntry {
@@ -22,7 +28,7 @@ export interface AgentMemoryAdapter {
   get(id: string): Promise<MemoryEntry | null>;
   delete(id: string): Promise<void>;
   health(): Promise<{ status: string; beadsCount: number }>;
-  
+
   // Extended search methods for semantic memory
   search(query: string, limit?: number): Promise<MemoryEntry[]>;
   searchEpisodic(query: string, limit?: number): Promise<MemoryEntry[]>;
@@ -42,18 +48,17 @@ interface BeadResponse {
 interface HealthResponse {
   status: string;
   beads_count: number;
-  version: string;
+  version?: string;
 }
 
 /**
- * Create an AgentMemoryAdapter connected to the Python memory API.
+ * Create an AgentMemoryAdapter connected to the Python/Rust memory API.
  *
  * @param baseUrl - Base URL of the memory API (default: http://localhost:8082)
  */
 export function createAgentMemoryAdapter(
   baseUrl: string = 'http://localhost:8082'
 ): AgentMemoryAdapter {
-
   const apiCall = async <T>(
     path: string,
     options: RequestInit = {}
@@ -87,7 +92,7 @@ export function createAgentMemoryAdapter(
 
   return {
     async store(entry): Promise<MemoryEntry> {
-      const bead = await apiCall<BeadResponse>('/beads', {
+      const bead = await apiCall<BeadResponse>('/memories', {
         method: 'POST',
         body: JSON.stringify({
           content: entry.content,
@@ -102,12 +107,12 @@ export function createAgentMemoryAdapter(
     },
 
     async retrieve(query: string, limit = 10): Promise<MemoryEntry[]> {
-      const beads = await apiCall<BeadResponse[]>('/beads/search', {
+      const beads = await apiCall<BeadResponse[]>('/memories/search', {
         method: 'POST',
         body: JSON.stringify({
           query,
           limit,
-          namespace: 'default',
+          agent_id: 'default',
         }),
       });
 
@@ -120,13 +125,13 @@ export function createAgentMemoryAdapter(
         params.set('agent_id', agentId);
       }
 
-      const beads = await apiCall<BeadResponse[]>(`/beads?${params}`);
+      const beads = await apiCall<BeadResponse[]>(`/memories?${params}`);
       return beads.map(beadToEntry);
     },
 
     async get(id: string): Promise<MemoryEntry | null> {
       try {
-        const bead = await apiCall<BeadResponse>(`/beads/${id}`);
+        const bead = await apiCall<BeadResponse>(`/memories/${id}`);
         return beadToEntry(bead);
       } catch (error) {
         if (String(error).includes('404')) {
@@ -137,7 +142,7 @@ export function createAgentMemoryAdapter(
     },
 
     async delete(id: string): Promise<void> {
-      await apiCall(`/beads/${id}`, { method: 'DELETE' });
+      await apiCall(`/memories/${id}`, { method: 'DELETE' });
     },
 
     async health(): Promise<{ status: string; beadsCount: number }> {
@@ -148,42 +153,41 @@ export function createAgentMemoryAdapter(
       };
     },
 
-    // Extended search methods - delegate to retrieve with type filtering
     async search(query: string, limit = 10): Promise<MemoryEntry[]> {
       return this.retrieve(query, limit);
     },
 
     async searchEpisodic(query: string, limit = 10): Promise<MemoryEntry[]> {
-      const beads = await apiCall<BeadResponse[]>('/memory/search', {
+      const beads = await apiCall<BeadResponse[]>('/memories/search', {
         method: 'POST',
         body: JSON.stringify({
           query,
           limit,
-          memory_type: 'episodic',
+          memory_types: ['episodic'],
         }),
       });
       return beads.map(beadToEntry);
     },
 
     async searchSemantic(query: string, limit = 10): Promise<MemoryEntry[]> {
-      const beads = await apiCall<BeadResponse[]>('/memory/search', {
+      const beads = await apiCall<BeadResponse[]>('/memories/search', {
         method: 'POST',
         body: JSON.stringify({
           query,
           limit,
-          memory_type: 'semantic',
+          memory_types: ['semantic'],
         }),
       });
       return beads.map(beadToEntry);
     },
 
     async searchSkills(query: string, limit = 10): Promise<MemoryEntry[]> {
-      const beads = await apiCall<BeadResponse[]>('/memory/search', {
+      const beads = await apiCall<BeadResponse[]>('/memories/search', {
         method: 'POST',
         body: JSON.stringify({
           query,
           limit,
-          memory_type: 'procedural',
+          memory_types: ['procedural'],
           tags: ['skill'],
         }),
       });

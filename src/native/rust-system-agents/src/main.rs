@@ -3,6 +3,14 @@
 //! A high-performance Rust implementation of the system agents service
 //! that replaces the TypeScript implementation while maintaining full
 //! API compatibility with existing clients.
+//!
+//! This service provides:
+//! - System agent management (Ada, Lea, Phil, David, Milton)
+//! - SCM (Structured Conversation Management) pipeline with arbitration
+//! - Canvas-chat bridging for UI integration
+//! - Memory adapter for agent memory persistence
+//! - Cursor IDE adapter for LLM resource access
+//! - Agent configuration loading from JSON
 
 use axum::{
     extract::{Path, State},
@@ -15,12 +23,27 @@ use serde::{Deserialize, Serialize};
 use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 
+// Core modules
 mod agent;
 mod gateway;
 mod metrics;
 mod models;
 
+// Ported from TypeScript
+pub mod config;           // SystemAgentLoader - agent configuration loading
+pub mod memory_adapter;   // AgentMemoryAdapter - memory system interface
+pub mod canvas_bridge;    // CanvasChatBridge - canvas/chat UI bridge
+pub mod cursor_adapter;   // CursorAdapter - Cursor IDE integration
+pub mod quality;          // Quality evaluation and code review tools
+
 use crate::{gateway::GatewayClient, metrics::Metrics};
+
+// Re-export commonly used types
+pub use config::{SystemAgentConfig, SystemAgentLoader, ModelConfig, SCMPolicy};
+pub use memory_adapter::{AgentMemoryAdapter, MemoryEntry, MemoryType, create_memory_adapter};
+pub use canvas_bridge::{CanvasChatBridge, CanvasType, BridgeMessage};
+pub use cursor_adapter::{CursorAdapter, CursorRequest, CursorResponse};
+pub use quality::{EvaluationEngine, EvaluationResult, Scorecard, CodeReviewer, CodeReviewResult};
 
 /// Application state shared across handlers
 #[derive(Clone)]
@@ -126,7 +149,7 @@ async fn health_check(State(state): State<AppState>) -> Result<Json<ApiResponse<
     // Create agent manager to get metrics
     let agent_manager = crate::agent::AgentManager::new();
     let arbiter_metrics = agent_manager.get_metrics();
-    
+
     let response = HealthResponse {
         status: "healthy".to_string(),
         initialized: true,
@@ -154,22 +177,22 @@ async fn chat(
 
     // Build chat message (simplified for this example)
     let thread_id = request.thread_id.unwrap_or_else(|| "default".to_string());
-    
+
     // Create agent manager for routing
     let mut agent_manager = crate::agent::AgentManager::new();
-    
+
     // Route through SCM pipeline with arbitration
     let start_time = std::time::Instant::now();
     let responses = agent_manager
         .route_message_with_arbitration(&request.message, request.target_agent.as_deref(), &state.gateway_client)
         .await
         .map_err(|e| AppError::InternalError(format!("Routing failed: {}", e)))?;
-    
+
     let responding_agents: Vec<String> = responses
         .iter()
         .filter_map(|r| r.get("agent_id").and_then(|v| v.as_str().map(|s| s.to_string())))
         .collect();
-    
+
     let response_data = ChatResponseData {
         thread_id,
         responses,
@@ -264,7 +287,7 @@ async fn get_metrics(
     // Create agent manager to get metrics
     let agent_manager = crate::agent::AgentManager::new();
     let arbiter_metrics = agent_manager.get_metrics();
-    
+
     let metrics = serde_json::json!({
         "scm": {
             "totalArbitrations": arbiter_metrics.total_arbitrations,
@@ -318,7 +341,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("  GET  /api/v1/system-agents/agents - List agents");
     println!("  GET  /api/v1/system-agents/agents/:id - Agent details");
     println!("  GET  /api/v1/system-agents/metrics - System metrics");
-    
+
     let listener = TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
 
