@@ -68,10 +68,17 @@ data/cache.db
 # Rust build artifacts
 src/rust/target/
 src/rust/**/target/
+src/native/**/target/
+**/target/
 *.rlib
 *.rmeta
 Cargo.lock
 !src/rust/Cargo.lock
+
+# Local tool configuration
+.claude/settings.local.json
+.kilocode/
+.kilocodemodes
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .cursor/rules/snyk_rules.mdc

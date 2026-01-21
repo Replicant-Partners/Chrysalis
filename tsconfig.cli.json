@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "rootDir": ".",
+    "outDir": "dist/cli",
+    "sourceMap": true,
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "node"
+    ]
+  },
+  "files": [
+    "src/cli/chrysalis-cli.ts",
+    "src/cli/agent-morph.ts",
+    "src/cli/adapter-task.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/services/llm/WalletKeyProvider.ts"
+  ]
+}

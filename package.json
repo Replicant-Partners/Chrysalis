@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "build:cli": "tsc -p tsconfig.cli.json",
     "test": "npm run test:unit && npm run test:mcp",
     "test:unit": "jest --passWithNoTests",
     "test:ui": "npm run --workspace=ui test",
@@ -42,9 +43,9 @@
   "author": "Chrysalis Project",
   "license": "MIT",
   "bin": {
-    "chrysalis": "dist/cli/chrysalis-cli.js",
-    "agent-morph": "dist/cli/agent-morph.js",
-    "chrysalis-task": "dist/cli/adapter-task.js"
+    "chrysalis": "dist/cli/src/cli/chrysalis-cli.js",
+    "agent-morph": "dist/cli/src/cli/agent-morph.js",
+    "chrysalis-task": "dist/cli/src/cli/adapter-task.js"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.10.8",
