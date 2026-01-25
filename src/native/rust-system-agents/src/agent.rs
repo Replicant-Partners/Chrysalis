@@ -425,22 +425,42 @@ impl AgentManager {
                 let prompt = format!("You are {}, {}. {}.\n\nUser message: {}", 
                     agent.name, agent.role, agent.description, message);
                 
-                // Try to get response from gateway, fallback to mock if unavailable
-                let response_text = match self.get_agent_response_from_gateway(gateway_client, agent, &prompt).await {
-                    Ok(response) => response,
-                    Err(_) => {
-                        // Fallback to mock response when gateway is unavailable
-                        format!("This is a response from {} ({}). In a real implementation, this would come from an LLM.", 
-                            agent.name, agent.role)
+                // Try to get response from gateway, fallback to error message if unavailable
+                let (response_text, is_fallback, error_message) = match self.get_agent_response_from_gateway(gateway_client, agent, &prompt).await {
+                    Ok(response) => (response, false, None),
+                    Err(e) => {
+                        // Log the error for debugging
+                        log::warn!(
+                            "Gateway call failed for agent '{}': {}. Using fallback response.",
+                            agent.id, e
+                        );
+                        (
+                            format!("[Gateway unavailable] {} ({}) cannot respond at this time. Error: {}", 
+                                agent.name, agent.role, e),
+                            true,
+                            Some(e)
+                        )
                     }
                 };
                 
-                responses.push(serde_json::json!({
+                let mut response_json = serde_json::json!({
                     "agent_id": winner.agent_id,
                     "response": response_text,
                     "confidence": winner.score,
                     "latency_ms": start_time.elapsed().as_millis() as u64,
-                }));
+                });
+                
+                // Add error metadata if fallback was used
+                if is_fallback {
+                    if let Some(obj) = response_json.as_object_mut() {
+                        obj.insert("fallback".to_string(), serde_json::json!(true));
+                        if let Some(err) = error_message {
+                            obj.insert("error".to_string(), serde_json::json!(err));
+                        }
+                    }
+                }
+                
+                responses.push(response_json);
             }
         }
         
