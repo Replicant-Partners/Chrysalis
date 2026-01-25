@@ -184,6 +184,18 @@ from .api import (
     save_task,
 )
 
+# Configuration
+from .config import (
+    LLMConfig,
+    DEFAULT_CONFIG,
+    DEFAULT_MODEL,
+    DEFAULT_PROVIDER,
+    MODEL_PRESETS,
+    get_config,
+    get_default_config,
+    build_resource_llm,
+)
+
 __version__ = "1.0.0"
 
 __all__ = [
@@ -283,4 +295,13 @@ __all__ = [
     'analyze_flow',
     'create_task',
     'save_task',
+    # Configuration
+    'LLMConfig',
+    'DEFAULT_CONFIG',
+    'DEFAULT_MODEL',
+    'DEFAULT_PROVIDER',
+    'MODEL_PRESETS',
+    'get_config',
+    'get_default_config',
+    'build_resource_llm',
 ]

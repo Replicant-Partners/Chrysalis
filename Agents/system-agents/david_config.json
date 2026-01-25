@@ -54,8 +54,9 @@
     },
     "localModel": {
       "provider": "ollama",
-      "model": "qwen2.5-coder:14b",
-      "useCases": ["quick_bias_pattern_match", "offline_fallback"]
+      "model": "phi4-mini",
+      "useCases": ["quick_bias_pattern_match", "offline_fallback"],
+      "alternatives": ["mistral3:3b", "gemma3n"]
     },
     "cursorModel": {
       "provider": "cursor",

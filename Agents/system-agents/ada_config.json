@@ -54,8 +54,9 @@
     },
     "localModel": {
       "provider": "ollama",
-      "model": "qwen2.5-coder:7b",
-      "useCases": ["offline_fallback", "low_latency"]
+      "model": "phi4-mini",
+      "useCases": ["offline_fallback", "low_latency"],
+      "alternatives": ["mistral3:3b", "gemma3n"]
     },
     "cursorModel": {
       "provider": "cursor",

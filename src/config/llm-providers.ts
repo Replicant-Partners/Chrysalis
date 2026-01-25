@@ -12,7 +12,7 @@
  * @module config/llm-providers
  */
 
-import { OLLAMA_CONFIG, DEFAULT_ADA_MODEL, OLLAMA_MODELS } from './ollama-models';
+import { OLLAMA_CONFIG, DEFAULT_SYSTEM_AGENT_MODEL, DEFAULT_ADA_MODEL, OLLAMA_MODELS, SYSTEM_AGENT_MODEL_OPTIONS } from './ollama-models';
 
 // ============================================================================
 // Types
@@ -59,7 +59,7 @@ export const DEFAULT_LLM_SETTINGS: LLMProviderSettings = {
     ollama: {
       type: 'ollama',
       baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
-      defaultModel: DEFAULT_ADA_MODEL,
+      defaultModel: DEFAULT_SYSTEM_AGENT_MODEL,
       enabled: true,
       priority: 1,
     },
@@ -244,4 +244,4 @@ export function getGatewayConfig(settings: LLMProviderSettings = DEFAULT_LLM_SET
 // Exports
 // ============================================================================
 
-export { OLLAMA_CONFIG, DEFAULT_ADA_MODEL, OLLAMA_MODELS };
+export { OLLAMA_CONFIG, DEFAULT_ADA_MODEL, DEFAULT_SYSTEM_AGENT_MODEL, OLLAMA_MODELS, SYSTEM_AGENT_MODEL_OPTIONS };

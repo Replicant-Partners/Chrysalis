@@ -24,13 +24,40 @@ export interface OllamaModelConfig {
  * Available 3GB-class Ollama models for Ada and system agents
  */
 export const OLLAMA_MODELS: Record<string, OllamaModelConfig> = {
+  'phi4-mini': {
+    name: 'phi4-mini',
+    displayName: 'Phi-4 Mini',
+    size: '2.5 GB',
+    sizeBytes: 2_500_000_000,
+    description: 'Default model for system agents. Microsoft Phi-4 with strong reasoning.',
+    recommended: true,
+    capabilities: ['chat', 'reasoning', 'code', 'analysis', 'assistance'],
+  },
+  'mistral3:3b': {
+    name: 'mistral3:3b',
+    displayName: 'Mistral 3B',
+    size: '2.0 GB',
+    sizeBytes: 2_000_000_000,
+    description: 'Alternative local model. Mistral with efficient inference.',
+    recommended: true,
+    capabilities: ['chat', 'reasoning', 'code', 'multilingual'],
+  },
+  'gemma3n': {
+    name: 'gemma3n',
+    displayName: 'Gemma 3N',
+    size: '2.3 GB',
+    sizeBytes: 2_300_000_000,
+    description: 'Alternative local model. Google Gemma optimized variant.',
+    recommended: true,
+    capabilities: ['chat', 'reasoning', 'code', 'analysis'],
+  },
   'ministral-3:3b': {
     name: 'ministral-3:3b',
     displayName: 'Ministral 3B',
     size: '3.0 GB',
     sizeBytes: 3_000_000_000,
-    description: 'Default model for Ada. Balanced performance and efficiency.',
-    recommended: true,
+    description: 'Legacy default. Balanced performance and efficiency.',
+    recommended: false,
     capabilities: ['chat', 'reasoning', 'code-understanding', 'assistance'],
   },
   'granite4:3b': {
@@ -90,9 +117,19 @@ export const OLLAMA_MODELS: Record<string, OllamaModelConfig> = {
 };
 
 /**
- * Default model for Ada system agent
+ * Default model for system agents (phi4-mini)
  */
-export const DEFAULT_ADA_MODEL = 'ministral-3:3b';
+export const DEFAULT_SYSTEM_AGENT_MODEL = 'phi4-mini';
+
+/**
+ * Alternative local models for system agents
+ */
+export const SYSTEM_AGENT_MODEL_OPTIONS = ['phi4-mini', 'mistral3:3b', 'gemma3n'] as const;
+
+/**
+ * @deprecated Use DEFAULT_SYSTEM_AGENT_MODEL instead
+ */
+export const DEFAULT_ADA_MODEL = DEFAULT_SYSTEM_AGENT_MODEL;
 
 /**
  * Ollama provider configuration
@@ -100,7 +137,8 @@ export const DEFAULT_ADA_MODEL = 'ministral-3:3b';
 export const OLLAMA_CONFIG = {
   baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
   provider: 'ollama' as const,
-  defaultModel: DEFAULT_ADA_MODEL,
+  defaultModel: DEFAULT_SYSTEM_AGENT_MODEL,
+  systemAgentModels: SYSTEM_AGENT_MODEL_OPTIONS,
 };
 
 /**
