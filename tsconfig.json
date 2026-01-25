@@ -18,8 +18,7 @@
       "DOM"
     ],
     "types": [
-      "node",
-      "jest"
+      "node"
     ]
   },
   "include": [
