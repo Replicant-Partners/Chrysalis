@@ -1,4 +1,5 @@
 import React from 'react';
+
 import type { WidgetProps, WidgetNodeData } from '../types';
 
 export interface AgentCardData extends WidgetNodeData {

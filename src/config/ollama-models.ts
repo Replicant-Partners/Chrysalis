@@ -105,6 +105,7 @@ export const OLLAMA_CONFIG = {
 
 /**
  * Get model configuration by name
+ * @param modelName
  */
 export function getOllamaModel(modelName: string): OllamaModelConfig | undefined {
   return OLLAMA_MODELS[modelName];
@@ -119,6 +120,7 @@ export function getRecommendedModels(): OllamaModelConfig[] {
 
 /**
  * Get models by capability
+ * @param capability
  */
 export function getModelsByCapability(capability: string): OllamaModelConfig[] {
   return Object.values(OLLAMA_MODELS).filter(m => 
@@ -128,6 +130,7 @@ export function getModelsByCapability(capability: string): OllamaModelConfig[] {
 
 /**
  * Format model name for gateway (includes provider prefix)
+ * @param modelName
  */
 export function formatModelForGateway(modelName: string): string {
   // Gateway expects format: "ollama:ministral-3:3b" or just "ministral-3:3b"

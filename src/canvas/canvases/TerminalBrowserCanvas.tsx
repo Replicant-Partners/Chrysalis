@@ -1,10 +1,18 @@
 import React from 'react';
-import { BaseCanvasWithProvider, BaseCanvasProps } from '../BaseCanvas';
-import { BrowserTabWidget, BrowserTabWidgetData } from '../widgets/BrowserTabWidget';
-import { CodeEditorWidget, CodeEditorWidgetData } from '../widgets/CodeEditorWidget';
-import { TerminalSessionWidget, TerminalSessionWidgetData } from '../widgets/TerminalSessionWidget';
+
+import { BaseCanvasWithProvider } from '../BaseCanvas';
 import { createWidgetRegistry } from '../WidgetRegistry';
+import { BrowserTabWidget } from '../widgets/BrowserTabWidget';
+import { CodeEditorWidget } from '../widgets/CodeEditorWidget';
+import { TerminalSessionWidget } from '../widgets/TerminalSessionWidget';
+
+import type { BaseCanvasProps } from '../BaseCanvas';
 import type { CanvasPolicy, WidgetDefinition } from '../types';
+import type { BrowserTabWidgetData } from '../widgets/BrowserTabWidget';
+import type { CodeEditorWidgetData } from '../widgets/CodeEditorWidget';
+import type { TerminalSessionWidgetData } from '../widgets/TerminalSessionWidget';
+
+
 
 const TERMINAL_BROWSER_POLICY: CanvasPolicy = {
   maxNodes: 200,

@@ -4,10 +4,13 @@
  */
 
 import React, { useEffect } from 'react';
+
 import { SettingsCanvas } from '../canvases/SettingsCanvas';
-import { ConfigWidget, ConfigWidgetData } from '../widgets/ConfigWidget';
 import { createLocalStorageDataSource } from '../DataSource';
+import { ConfigWidget } from '../widgets/ConfigWidget';
+
 import type { WidgetDefinition,  CanvasNode } from '../types';
+import type { ConfigWidgetData } from '../widgets/ConfigWidget';
 
 const CANVAS_ID = 'settings-example-canvas';
 
@@ -75,15 +78,9 @@ export const SettingsCanvasExample: React.FC = () => {
   // Initialize canvas with example data on first load
   useEffect(() => {
     const initCanvas = async () => {
-      const existing = await dataSource.loadAll();
+      const existing = await (dataSource.loadAll ? dataSource.loadAll() : dataSource.load());
       if (existing.nodes.length === 0) {
-        await dataSource.persist({
-          nodesAdded: createInitialNodes(),
-          nodesUpdated: [],
-          nodesDeleted: [],
-          edgesAdded: [],
-          edgesDeleted: []
-        });
+        await dataSource.save(createInitialNodes(), []);
       }
     };
     initCanvas();

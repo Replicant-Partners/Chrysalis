@@ -105,7 +105,7 @@ export abstract class FrameworkAdapter {
    * Get list of fields that can be mapped to universal format
    */
   getMappableFields(): string[] {
-    if (!this.fieldMapping) return [];
+    if (!this.fieldMapping) {return [];}
     
     return [
       ...Object.keys(this.fieldMapping.direct || {}),
@@ -116,9 +116,10 @@ export abstract class FrameworkAdapter {
   
   /**
    * Extract non-mappable fields from framework agent
+   * @param frameworkAgent
    */
   getNonMappableFields(frameworkAgent: any): Record<string, any> {
-    if (!this.fieldMapping?.nonMappable) return {};
+    if (!this.fieldMapping?.nonMappable) {return {};}
     
     const nonMappable: Record<string, any> = {};
     
@@ -134,6 +135,8 @@ export abstract class FrameworkAdapter {
   
   /**
    * Helper: Get nested value from object using dot notation
+   * @param obj
+   * @param path
    */
   protected getNestedValue(obj: any, path: string): any {
     return path.split('.').reduce((current, key) => current?.[key], obj);
@@ -141,12 +144,15 @@ export abstract class FrameworkAdapter {
   
   /**
    * Helper: Set nested value in object using dot notation
+   * @param obj
+   * @param path
+   * @param value
    */
   protected setNestedValue(obj: any, path: string, value: any): void {
     const keys = path.split('.');
     const lastKey = keys.pop()!;
     const target = keys.reduce((current, key) => {
-      if (!(key in current)) current[key] = {};
+      if (!(key in current)) {current[key] = {};}
       return current[key];
     }, obj);
     target[lastKey] = value;
@@ -154,9 +160,12 @@ export abstract class FrameworkAdapter {
   
   /**
    * Apply field mappings
+   * @param source
+   * @param target
+   * @param reverse
    */
   protected applyMappings(source: any, target: any, reverse: boolean = false): void {
-    if (!this.fieldMapping) return;
+    if (!this.fieldMapping) {return;}
     
     // Apply direct mappings
     if (this.fieldMapping.direct) {
@@ -193,6 +202,7 @@ export abstract class FrameworkAdapter {
 
 /**
  * Type guard to check if object is a FrameworkAdapter
+ * @param obj
  */
 export function isFrameworkAdapter(obj: any): obj is FrameworkAdapter {
   return (

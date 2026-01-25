@@ -1,11 +1,16 @@
 import React from 'react';
-import { BaseCanvasWithProvider, BaseCanvasProps } from '../BaseCanvas';
-import { createWidgetRegistry } from '../WidgetRegistry';
-import { ArtifactWidget, ArtifactWidgetData } from '../widgets/ArtifactWidget';
-import { LinkWidget, LinkWidgetData } from '../widgets/LinkWidget';
-import { NoteWidget, NoteWidgetData } from '../widgets/NoteWidget';
 
+import { BaseCanvasWithProvider } from '../BaseCanvas';
+import { createWidgetRegistry } from '../WidgetRegistry';
+import { ArtifactWidget } from '../widgets/ArtifactWidget';
+import { LinkWidget } from '../widgets/LinkWidget';
+import { NoteWidget } from '../widgets/NoteWidget';
+
+import type { BaseCanvasProps } from '../BaseCanvas';
 import type { CanvasPolicy, WidgetDefinition } from '../types';
+import type { ArtifactWidgetData } from '../widgets/ArtifactWidget';
+import type { LinkWidgetData } from '../widgets/LinkWidget';
+import type { NoteWidgetData } from '../widgets/NoteWidget';
 
 const SCRAPBOOK_POLICY: CanvasPolicy = {
   maxNodes: 500,

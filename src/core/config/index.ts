@@ -181,26 +181,32 @@ let configInstance: ChrysalisConfig | null = null;
 
 /**
  * Parse boolean from environment variable
+ * @param value
+ * @param defaultVal
  */
 function parseEnvBool(value: string | undefined, defaultVal: boolean): boolean {
-  if (value === undefined) return defaultVal;
+  if (value === undefined) {return defaultVal;}
   return value.toLowerCase() === 'true' || value === '1';
 }
 
 /**
  * Parse integer from environment variable
+ * @param value
+ * @param defaultVal
  */
 function parseEnvInt(value: string | undefined, defaultVal: number): number {
-  if (value === undefined) return defaultVal;
+  if (value === undefined) {return defaultVal;}
   const parsed = parseInt(value, 10);
   return isNaN(parsed) ? defaultVal : parsed;
 }
 
 /**
  * Parse float from environment variable
+ * @param value
+ * @param defaultVal
  */
 function parseEnvFloat(value: string | undefined, defaultVal: number): number {
-  if (value === undefined) return defaultVal;
+  if (value === undefined) {return defaultVal;}
   const parsed = parseFloat(value);
   return isNaN(parsed) ? defaultVal : parsed;
 }
@@ -244,6 +250,7 @@ function loadFromEnvironment(): Partial<ChrysalisConfig> {
 
 /**
  * Load configuration from a JSON file
+ * @param filePath
  */
 function loadFromFile(filePath: string): Partial<ChrysalisConfig> {
   try {
@@ -259,6 +266,8 @@ function loadFromFile(filePath: string): Partial<ChrysalisConfig> {
 
 /**
  * Deep merge configuration objects
+ * @param target
+ * @param source
  */
 function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>): T {
   const result = { ...target };
@@ -279,6 +288,7 @@ function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>)
 /**
  * Initialize configuration from all sources
  * Priority: Environment > Config File > Defaults
+ * @param configFilePath
  */
 export function initializeConfig(configFilePath?: string): ChrysalisConfig {
   // Start with defaults
@@ -335,6 +345,7 @@ export function resetConfig(): void {
 
 /**
  * Get a specific configuration section
+ * @param section
  */
 export function getConfigSection<K extends keyof ChrysalisConfig>(section: K): ChrysalisConfig[K] {
   return getConfig()[section];
@@ -342,6 +353,7 @@ export function getConfigSection<K extends keyof ChrysalisConfig>(section: K): C
 
 /**
  * Validate configuration for required fields
+ * @param config
  */
 export function validateConfig(config: ChrysalisConfig = getConfig()): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -376,6 +388,7 @@ export function validateConfig(config: ChrysalisConfig = getConfig()): { valid: 
 
 /**
  * Export configuration to JSON (for debugging)
+ * @param config
  */
 export function exportConfig(config: ChrysalisConfig = getConfig()): string {
   // Mask sensitive values

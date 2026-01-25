@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
-import { tokens, ThemeMode } from '../../components/shared/tokens';
+import { tokens } from '../../components/shared/tokens';
 
+import type { ThemeMode } from '../../components/shared/tokens';
 import type { WidgetProps, WidgetNodeData } from '../types';
 
 export interface NoteWidgetData extends WidgetNodeData {

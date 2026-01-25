@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 
-import type { CanvasKind, CanvasNode, WidgetRegistry } from '../canvas/types';
+import type { CanvasKind, CanvasNode } from '../canvas/types';
+import type { WidgetRegistry } from '../canvas/WidgetRegistry';
 import type { NoteWidgetData } from '../canvas/widgets/NoteWidget';
 import type { LinkWidgetData } from '../canvas/widgets/LinkWidget';
 import type { ArtifactWidgetData } from '../canvas/widgets/ArtifactWidget';

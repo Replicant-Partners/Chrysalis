@@ -1,11 +1,16 @@
 import React from 'react';
-import { BaseCanvasWithProvider, BaseCanvasProps } from '../BaseCanvas';
-import { createWidgetRegistry } from '../WidgetRegistry';
-import { WikiLinkWidget, WikiLinkWidgetData } from '../widgets/WikiLinkWidget';
-import { WikiPageWidget, WikiPageWidgetData } from '../widgets/WikiPageWidget';
-import { WikiSectionWidget, WikiSectionWidgetData } from '../widgets/WikiSectionWidget';
 
+import { BaseCanvasWithProvider } from '../BaseCanvas';
+import { createWidgetRegistry } from '../WidgetRegistry';
+import { WikiLinkWidget } from '../widgets/WikiLinkWidget';
+import { WikiPageWidget } from '../widgets/WikiPageWidget';
+import { WikiSectionWidget } from '../widgets/WikiSectionWidget';
+
+import type { BaseCanvasProps } from '../BaseCanvas';
 import type { CanvasPolicy, WidgetDefinition } from '../types';
+import type { WikiLinkWidgetData } from '../widgets/WikiLinkWidget';
+import type { WikiPageWidgetData } from '../widgets/WikiPageWidget';
+import type { WikiSectionWidgetData } from '../widgets/WikiSectionWidget';
 
 const WIKI_POLICY: CanvasPolicy = {
   maxNodes: 1000,

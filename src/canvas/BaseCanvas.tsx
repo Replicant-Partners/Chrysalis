@@ -150,6 +150,22 @@ class RateLimiter {
 
 /**
  * BaseCanvas Component Implementation
+ * @param root0
+ * @param root0.canvasKind
+ * @param root0.canvasId
+ * @param root0.registry
+ * @param root0.policy
+ * @param root0.theme
+ * @param root0.accessibility
+ * @param root0.initialViewport
+ * @param root0.dataSource
+ * @param root0.onEvent
+ * @param root0.onReady
+ * @param root0.initialNodes
+ * @param root0.initialEdges
+ * @param root0.showControls
+ * @param root0.showMinimap
+ * @param root0.showBackground
  */
 export const BaseCanvas: React.FC<BaseCanvasProps> = ({
   canvasKind,
@@ -223,7 +239,7 @@ export const BaseCanvas: React.FC<BaseCanvasProps> = ({
     // Check widget type allowlist
     if (operation === 'node:create' && data) {
       const node = data as Node<WidgetNodeData>;
-      if (!policy.allowedWidgetTypes.includes(node.data.type)) {
+      if (node.data.type && !policy.allowedWidgetTypes.includes(node.data.type)) {
         errors.push(`Widget type '${node.data.type}' not allowed for canvas kind '${canvasKind}'`);
         emitEvent('policy:violated', { rule: 'allowedWidgetTypes', type: node.data.type });
       }
@@ -231,7 +247,8 @@ export const BaseCanvas: React.FC<BaseCanvasProps> = ({
 
     return {
       valid: errors.length === 0,
-      errors: errors.length > 0 ? errors : undefined,
+      errors: errors.map(msg => ({ code: 'POLICY_VIOLATION', message: msg })),
+      warnings: [],
     };
   }, [nodes.length, edges.length, policy, canvasKind, emitEvent]);
 
@@ -349,7 +366,7 @@ export const BaseCanvas: React.FC<BaseCanvasProps> = ({
     const loadData = async (): Promise<void> => {
       try {
         setLifecycleState('initializing');
-        const data = await dataSource.loadAll();
+        const data = await (dataSource.loadAll ? dataSource.loadAll() : dataSource.load());
         setNodes(data.nodes);
         setEdges(data.edges);
         setLifecycleState('active');
@@ -458,6 +475,7 @@ export const BaseCanvas: React.FC<BaseCanvasProps> = ({
 
 /**
  * BaseCanvas wrapped with ReactFlowProvider
+ * @param props
  */
 export const BaseCanvasWithProvider: React.FC<BaseCanvasProps> = (props) => {
   return (

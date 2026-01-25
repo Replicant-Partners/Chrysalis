@@ -69,6 +69,10 @@ export class GatewayLLMClient {
   private defaultModel: string;
   private timeout: number;
 
+  /**
+   *
+   * @param config
+   */
   constructor(config: GatewayLLMClientConfig = {}) {
     this.baseUrl = config.baseUrl || 'http://localhost:8080';
     this.authToken = config.authToken || null;
@@ -93,6 +97,7 @@ export class GatewayLLMClient {
 
   /**
    * Make a chat request
+   * @param request
    */
   async chat(request: GatewayChatRequest): Promise<GatewayChatResponse> {
     const controller = new AbortController();
@@ -119,7 +124,7 @@ export class GatewayLLMClient {
         throw new Error(`Gateway error ${response.status}: ${errorText}`);
       }
 
-      const data = (await response.json()) as any;
+      const data = (await response.json());
       const requestId = response.headers.get('X-Request-Id') ?? undefined;
 
       return {
@@ -146,6 +151,9 @@ export class GatewayLLMClient {
 
   /**
    * Simple completion helper
+   * @param agentId
+   * @param prompt
+   * @param options
    */
   async complete(agentId: string, prompt: string, options?: Omit<Partial<GatewayChatRequest>, 'agentId' | 'messages'>): Promise<string> {
     const response = await this.chat({
@@ -175,7 +183,7 @@ export class GatewayLLMClient {
         };
       }
 
-      const data = (await response.json()) as any;
+      const data = (await response.json());
       return {
         status: data.status || 'ok',
         provider: data.provider || 'unknown',
@@ -203,7 +211,7 @@ export class GatewayLLMClient {
         return [];
       }
 
-      const data = (await response.json()) as any;
+      const data = (await response.json());
       const agents = (data.agents ?? []) as Array<Record<string, unknown>>;
       return agents.map((a) => ({
         id: String(a.id ?? ''),
@@ -218,6 +226,7 @@ export class GatewayLLMClient {
 
   /**
    * Set the default model
+   * @param model
    */
   setDefaultModel(model: string): void {
     this.defaultModel = model;

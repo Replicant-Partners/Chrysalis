@@ -8,18 +8,20 @@
  * Now includes Result-returning methods for type-safe error handling.
  */
 
-import type { FrameworkAdapter } from './FrameworkAdapter';
 import { isFrameworkAdapter } from './FrameworkAdapter';
-import type { FrameworkAdapterV2 } from './FrameworkAdapterV2';
 import { isFrameworkAdapterV2 } from './FrameworkAdapterV2';
 import {
-  Result,
   success,
   failure,
   isSuccess,
   notFoundFailure,
   validationFailure,
 } from '../../shared/api-core/src/result';
+
+import type { FrameworkAdapter } from './FrameworkAdapter';
+import type { FrameworkAdapterV2 } from './FrameworkAdapterV2';
+import type {
+  Result} from '../../shared/api-core/src/result';
 
 type AnyAdapter = FrameworkAdapter | FrameworkAdapterV2;
 
@@ -103,13 +105,13 @@ export class AdapterRegistry {
     
     // Check direct match
     const direct = this.adapters.get(normalizedName);
-    if (direct) return success(direct);
+    if (direct) {return success(direct);}
     
     // Check aliases
     const aliasTarget = this.aliases.get(normalizedName);
     if (aliasTarget) {
       const adapter = this.adapters.get(aliasTarget);
-      if (adapter) return success(adapter);
+      if (adapter) {return success(adapter);}
     }
     
     const availableAdapters = this.listNames().join(', ') || '(none)';
@@ -173,6 +175,8 @@ export class AdapterRegistry {
   
   /**
    * Register a framework adapter (v1 or v2)
+   * @param adapter
+   * @param aliases
    * @deprecated Use registerSafe() for Result-based error handling
    */
   register(adapter: AnyAdapter, aliases?: string[]): void {
@@ -194,6 +198,7 @@ export class AdapterRegistry {
   
   /**
    * Get an adapter by name or alias
+   * @param nameOrAlias
    * @deprecated Use getSafe() for Result-based error handling
    */
   get(nameOrAlias: string): AnyAdapter {
@@ -206,6 +211,7 @@ export class AdapterRegistry {
   
   /**
    * Check if adapter is registered
+   * @param nameOrAlias
    */
   has(nameOrAlias: string): boolean {
     const normalizedName = nameOrAlias.toLowerCase();
@@ -231,6 +237,7 @@ export class AdapterRegistry {
   
   /**
    * Unregister an adapter
+   * @param name
    */
   unregister(name: string): boolean {
     return this.adapters.delete(name.toLowerCase());
@@ -246,6 +253,7 @@ export class AdapterRegistry {
   
   /**
    * Get adapter metadata
+   * @param nameOrAlias
    * @deprecated Use getInfoSafe() for Result-based error handling
    */
   getInfo(nameOrAlias: string): AdapterInfo {
@@ -264,6 +272,8 @@ export const adapterRegistry = new AdapterRegistry();
 
 /**
  * Convenience function to register an adapter
+ * @param adapter
+ * @param aliases
  * @deprecated Use adapterRegistry.registerSafe() for Result-based error handling
  */
 export function registerAdapter(adapter: FrameworkAdapter, aliases?: string[]): void {
@@ -272,6 +282,7 @@ export function registerAdapter(adapter: FrameworkAdapter, aliases?: string[]): 
 
 /**
  * Convenience function to get an adapter
+ * @param nameOrAlias
  * @deprecated Use adapterRegistry.getSafe() for Result-based error handling
  */
 export function getAdapter(nameOrAlias: string): AnyAdapter {
@@ -280,6 +291,7 @@ export function getAdapter(nameOrAlias: string): AnyAdapter {
 
 /**
  * Get a v2 adapter
+ * @param nameOrAlias
  * @deprecated Use adapterRegistry.getV2Safe() for Result-based error handling
  */
 export function getAdapterV2(nameOrAlias: string): FrameworkAdapterV2 {
@@ -296,6 +308,7 @@ export function getAdapterV2(nameOrAlias: string): FrameworkAdapterV2 {
 
 /**
  * Get an adapter by name or alias, returning Result.
+ * @param nameOrAlias
  */
 export function getAdapterSafe(nameOrAlias: string): Result<AnyAdapter> {
   return adapterRegistry.getSafe(nameOrAlias);
@@ -303,6 +316,7 @@ export function getAdapterSafe(nameOrAlias: string): Result<AnyAdapter> {
 
 /**
  * Get a v2 adapter by name or alias, returning Result.
+ * @param nameOrAlias
  */
 export function getAdapterV2Safe(nameOrAlias: string): Result<FrameworkAdapterV2> {
   return adapterRegistry.getV2Safe(nameOrAlias);
@@ -310,6 +324,8 @@ export function getAdapterV2Safe(nameOrAlias: string): Result<FrameworkAdapterV2
 
 /**
  * Register an adapter, returning Result.
+ * @param adapter
+ * @param aliases
  */
 export function registerAdapterSafe(
   adapter: FrameworkAdapter | FrameworkAdapterV2,

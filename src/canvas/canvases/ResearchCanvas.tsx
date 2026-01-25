@@ -1,13 +1,18 @@
 import React from 'react';
 
-import { BaseCanvasWithProvider, BaseCanvasProps } from '../BaseCanvas';
+import { BaseCanvasWithProvider } from '../BaseCanvas';
 import { createWidgetRegistry } from '../WidgetRegistry';
-import { CitationWidget, CitationWidgetData } from '../widgets/CitationWidget';
-import { HypothesisWidget, HypothesisWidgetData } from '../widgets/HypothesisWidget';
-import { SourceWidget, SourceWidgetData } from '../widgets/SourceWidget';
-import { SynthesisWidget, SynthesisWidgetData } from '../widgets/SynthesisWidget';
+import { CitationWidget } from '../widgets/CitationWidget';
+import { HypothesisWidget } from '../widgets/HypothesisWidget';
+import { SourceWidget } from '../widgets/SourceWidget';
+import { SynthesisWidget } from '../widgets/SynthesisWidget';
 
+import type { BaseCanvasProps } from '../BaseCanvas';
 import type { CanvasPolicy, WidgetDefinition } from '../types';
+import type { CitationWidgetData } from '../widgets/CitationWidget';
+import type { HypothesisWidgetData } from '../widgets/HypothesisWidget';
+import type { SourceWidgetData } from '../widgets/SourceWidget';
+import type { SynthesisWidgetData } from '../widgets/SynthesisWidget';
 
 const RESEARCH_POLICY: CanvasPolicy = {
   maxNodes: 300,

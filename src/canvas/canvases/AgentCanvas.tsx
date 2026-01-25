@@ -1,11 +1,14 @@
 import React from 'react';
 
-import { BaseCanvasWithProvider, BaseCanvasProps } from '../BaseCanvas';
+import { BaseCanvasWithProvider } from '../BaseCanvas';
 import { createWidgetRegistry } from '../WidgetRegistry';
-import { AgentCardWidget, AgentCardData } from '../widgets/AgentCardWidget';
-import { TeamGroupWidget, TeamGroupWidgetData } from '../widgets/TeamGroupWidget';
+import { AgentCardWidget } from '../widgets/AgentCardWidget';
+import { TeamGroupWidget } from '../widgets/TeamGroupWidget';
 
+import type { BaseCanvasProps } from '../BaseCanvas';
 import type { CanvasPolicy, WidgetDefinition } from '../types';
+import type { AgentCardData } from '../widgets/AgentCardWidget';
+import type { TeamGroupWidgetData } from '../widgets/TeamGroupWidget';
 
 const AGENT_POLICY: CanvasPolicy = {
   maxNodes: 100,

@@ -1,5 +1,16 @@
 """
-HTTP API for Memory System
+HTTP API for Memory System (DEPRECATED)
+
+⚠️  DEPRECATED: This module is deprecated in favor of api_server.py
+    which provides the canonical Rust-backed memory API.
+
+    This file is kept for backwards compatibility with existing bead-only
+    clients. New code should use api_server.py instead.
+
+    Migration path:
+    - /beads/* endpoints → use api_server.py /memory/* or /memories/* endpoints
+    - BeadsService → use the Rust-backed MemoryStore via api_server.py
+
 Exposes BeadsService and memory operations to TypeScript clients.
 
 Run with: uvicorn memory_system.http_api:app --port 8082

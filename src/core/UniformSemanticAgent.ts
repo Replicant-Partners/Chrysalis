@@ -197,22 +197,23 @@ export interface ValidationResult {
 
 /**
  * Validate a Uniform Semantic Agent
+ * @param agent
  */
 export function validateUniformSemanticAgent(agent: any): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   
   // Required fields
-  if (!agent.schema_version) errors.push('Missing schema_version');
-  if (!agent.identity) errors.push('Missing identity');
-  if (!agent.identity?.name) errors.push('Missing identity.name');
-  if (!agent.identity?.designation) errors.push('Missing identity.designation');
-  if (!agent.personality) errors.push('Missing personality');
-  if (!agent.capabilities) errors.push('Missing capabilities');
-  if (!agent.knowledge) errors.push('Missing knowledge');
-  if (!agent.memory) errors.push('Missing memory');
-  if (!agent.beliefs) errors.push('Missing beliefs');
-  if (!agent.metadata) errors.push('Missing metadata');
+  if (!agent.schema_version) {errors.push('Missing schema_version');}
+  if (!agent.identity) {errors.push('Missing identity');}
+  if (!agent.identity?.name) {errors.push('Missing identity.name');}
+  if (!agent.identity?.designation) {errors.push('Missing identity.designation');}
+  if (!agent.personality) {errors.push('Missing personality');}
+  if (!agent.capabilities) {errors.push('Missing capabilities');}
+  if (!agent.knowledge) {errors.push('Missing knowledge');}
+  if (!agent.memory) {errors.push('Missing memory');}
+  if (!agent.beliefs) {errors.push('Missing beliefs');}
+  if (!agent.metadata) {errors.push('Missing metadata');}
   
   // Validate types
   if (agent.personality?.core_traits && !Array.isArray(agent.personality.core_traits)) {
@@ -241,6 +242,9 @@ export function validateUniformSemanticAgent(agent: any): ValidationResult {
 
 /**
  * Create a default Uniform Semantic Agent
+ * @param name
+ * @param designation
+ * @param overrides
  */
 export function createUniformSemanticAgent(
   name: string,

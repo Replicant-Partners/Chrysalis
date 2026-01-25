@@ -82,6 +82,16 @@ class SearchRequest(BaseModel):
     tags: Optional[List[str]] = None
 
 
+class MemoriesSearchRequest(BaseModel):
+    """Compatibility search request used by the TypeScript UI adapter."""
+    query: str
+    limit: int = Field(default=10, ge=1, le=100)
+    agent_id: str = "default"
+    memory_types: Optional[List[str]] = None
+    min_importance: Optional[float] = None
+    tags: Optional[List[str]] = None
+
+
 class MemoryResponse(BaseModel):
     """Memory response."""
     id: str
@@ -215,6 +225,7 @@ async def stats():
 
 @app.post("/memory", response_model=MemoryResponse)
 @app.post("/beads", response_model=MemoryResponse)  # Backward compatibility
+@app.post("/memories", response_model=MemoryResponse)  # TS compatibility
 async def store_memory(request: StoreMemoryRequest):
     """Store a new memory."""
     if not RUST_AVAILABLE:
@@ -246,6 +257,7 @@ async def store_memory(request: StoreMemoryRequest):
 
 @app.get("/memory/{memory_id}", response_model=MemoryResponse)
 @app.get("/beads/{memory_id}", response_model=MemoryResponse)  # Backward compatibility
+@app.get("/memories/{memory_id}", response_model=MemoryResponse)  # TS compatibility
 async def get_memory(memory_id: str, agent_id: str = Query(default="default")):
     """Get a memory by ID."""
     if not RUST_AVAILABLE:
@@ -262,6 +274,7 @@ async def get_memory(memory_id: str, agent_id: str = Query(default="default")):
 
 @app.delete("/memory/{memory_id}")
 @app.delete("/beads/{memory_id}")  # Backward compatibility
+@app.delete("/memories/{memory_id}")  # TS compatibility
 async def delete_memory(memory_id: str, agent_id: str = Query(default="default")):
     """Delete a memory."""
     if not RUST_AVAILABLE:
@@ -337,8 +350,28 @@ async def search_memories(request: SearchRequest):
     return [_memory_to_response(m, request.namespace) for m in memories]
 
 
+@app.post("/memories/search", response_model=List[MemoryResponse])
+async def search_memories_compat(request: MemoriesSearchRequest):
+    """Compatibility endpoint for the TypeScript UI adapter."""
+    mapped_type = None
+    if request.memory_types:
+        # TS client sends memory_types as a list. Keep the first if provided.
+        mapped_type = request.memory_types[0] if len(request.memory_types) > 0 else None
+
+    mapped = SearchRequest(
+        query=request.query,
+        limit=request.limit,
+        namespace=request.agent_id or "default",
+        memory_type=mapped_type,
+        min_importance=request.min_importance,
+        tags=request.tags,
+    )
+    return await search_memories(mapped)
+
+
 @app.get("/memory", response_model=List[MemoryResponse])
 @app.get("/beads", response_model=List[MemoryResponse])  # Backward compatibility
+@app.get("/memories", response_model=List[MemoryResponse])  # TS compatibility
 async def get_recent_memories(
     limit: int = Query(default=20, ge=1, le=100),
     agent_id: str = Query(default="default"),
@@ -368,6 +401,7 @@ def _memory_to_response(mem: Any, agent_id: str, role: str = "assistant") -> Mem
         agent_id=agent_id,
         role=role,
         metadata={
+            "agent_id": agent_id,
             "version": mem.version if hasattr(mem, 'version') else 1,
             "source_instance": mem.source_instance if hasattr(mem, 'source_instance') else agent_id,
         },

@@ -79,6 +79,16 @@ export class ChrysalisError extends Error {
   readonly recoverable: boolean;
   readonly recoveryHint?: string;
 
+  /**
+   *
+   * @param message
+   * @param code
+   * @param options
+   * @param options.cause
+   * @param options.context
+   * @param options.recoverable
+   * @param options.recoveryHint
+   */
   constructor(
     message: string,
     code: ErrorCode = ErrorCodes.UNKNOWN,
@@ -133,6 +143,17 @@ export class MorphError extends ChrysalisError {
   readonly sourceFramework?: string;
   readonly targetFramework?: string;
 
+  /**
+   *
+   * @param message
+   * @param code
+   * @param options
+   * @param options.cause
+   * @param options.context
+   * @param options.sourceFramework
+   * @param options.targetFramework
+   * @param options.recoveryHint
+   */
   constructor(
     message: string,
     code: ErrorCode = ErrorCodes.MORPH_FAILED,
@@ -165,6 +186,16 @@ export class MorphError extends ChrysalisError {
 export class MemoryError extends ChrysalisError {
   readonly memoryType?: string;
 
+  /**
+   *
+   * @param message
+   * @param code
+   * @param options
+   * @param options.cause
+   * @param options.context
+   * @param options.memoryType
+   * @param options.recoveryHint
+   */
   constructor(
     message: string,
     code: ErrorCode = ErrorCodes.MEMORY_STORE_ERROR,
@@ -192,6 +223,18 @@ export class LLMError extends ChrysalisError {
   readonly model?: string;
   readonly tokensUsed?: number;
 
+  /**
+   *
+   * @param message
+   * @param code
+   * @param options
+   * @param options.cause
+   * @param options.context
+   * @param options.provider
+   * @param options.model
+   * @param options.tokensUsed
+   * @param options.recoveryHint
+   */
   constructor(
     message: string,
     code: ErrorCode = ErrorCodes.LLM_API_ERROR,
@@ -230,6 +273,17 @@ export class MCPError extends ChrysalisError {
   readonly serverName?: string;
   readonly toolName?: string;
 
+  /**
+   *
+   * @param message
+   * @param code
+   * @param options
+   * @param options.cause
+   * @param options.context
+   * @param options.serverName
+   * @param options.toolName
+   * @param options.recoveryHint
+   */
   constructor(
     message: string,
     code: ErrorCode = ErrorCodes.MCP_CONNECTION_ERROR,
@@ -261,6 +315,16 @@ export class MCPError extends ChrysalisError {
 export class ConfigError extends ChrysalisError {
   readonly configKey?: string;
 
+  /**
+   *
+   * @param message
+   * @param code
+   * @param options
+   * @param options.cause
+   * @param options.context
+   * @param options.configKey
+   * @param options.recoveryHint
+   */
   constructor(
     message: string,
     code: ErrorCode = ErrorCodes.CONFIG_INVALID,
@@ -286,6 +350,16 @@ export class ConfigError extends ChrysalisError {
 export class ServiceError extends ChrysalisError {
   readonly serviceName?: string;
 
+  /**
+   *
+   * @param message
+   * @param code
+   * @param options
+   * @param options.cause
+   * @param options.context
+   * @param options.serviceName
+   * @param options.recoveryHint
+   */
   constructor(
     message: string,
     code: ErrorCode = ErrorCodes.SERVICE_UNAVAILABLE,
@@ -333,12 +407,18 @@ export class ErrorBoundary {
   private config: ErrorBoundaryConfig;
   private retryCount: number = 0;
 
+  /**
+   *
+   * @param config
+   */
   constructor(config?: Partial<ErrorBoundaryConfig>) {
     this.config = { ...DEFAULT_BOUNDARY_CONFIG, ...config };
   }
 
   /**
    * Execute operation with error handling and retry
+   * @param operation
+   * @param context
    */
   async execute<T>(
     operation: () => Promise<T>,
@@ -374,6 +454,8 @@ export class ErrorBoundary {
 
   /**
    * Normalize any error to ChrysalisError
+   * @param error
+   * @param context
    */
   private normalizeError(error: unknown, context?: Record<string, unknown>): ChrysalisError {
     if (error instanceof ChrysalisError) {
@@ -408,6 +490,7 @@ export class ErrorBoundary {
 
 /**
  * Type guard for ChrysalisError
+ * @param error
  */
 export function isChrysalisError(error: unknown): error is ChrysalisError {
   return error instanceof ChrysalisError;
@@ -415,6 +498,7 @@ export function isChrysalisError(error: unknown): error is ChrysalisError {
 
 /**
  * Check if error is recoverable
+ * @param error
  */
 export function isRecoverable(error: unknown): boolean {
   return isChrysalisError(error) && error.recoverable;
@@ -422,6 +506,7 @@ export function isRecoverable(error: unknown): boolean {
 
 /**
  * Get error code from any error
+ * @param error
  */
 export function getErrorCode(error: unknown): ErrorCode {
   if (isChrysalisError(error)) {
@@ -432,6 +517,8 @@ export function getErrorCode(error: unknown): ErrorCode {
 
 /**
  * Wrap a function with error boundary
+ * @param fn
+ * @param config
  */
 export function withErrorBoundary<T extends (...args: any[]) => Promise<any>>(
   fn: T,
@@ -446,6 +533,10 @@ export function withErrorBoundary<T extends (...args: any[]) => Promise<any>>(
 
 /**
  * Create error from response (for HTTP/API errors)
+ * @param response
+ * @param response.status
+ * @param response.statusText
+ * @param response.body
  */
 export function createErrorFromResponse(
   response: { status: number; statusText: string; body?: any }

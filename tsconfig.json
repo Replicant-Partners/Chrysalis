@@ -26,26 +26,28 @@
     "src/agents/**/*",
     "src/api/adapter-tasks/**/*",
     "src/canvas/**/*",
+    "src/canvas-app/**/*",
     "src/config/**/*",
-    "src/core/AdapterRegistry.ts",
-    "src/core/FrameworkAdapter.ts",
-    "src/core/SemanticAgent.ts",
-    "src/core/config/**/*",
-    "src/core/errors.ts",
-    "src/core/index.ts",
+    "src/components/**/*",
+    "src/core/**/*",
+    "src/adapters/**/*",
     "src/services/gateway/**/*",
     "src/services/agents/**/*",
     "src/services/ledger/**/*",
     "src/services/llm/**/*",
+    "src/terminal/**/*",
     "src/types/**/*",
     "src/utils/**/*",
+    "src/main.tsx",
     "shared/**/*",
     "mcp-servers/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "src/agents/AgentChatController.ts",
-    "src/services/llm/WalletKeyProvider.ts"
+    "src/services/llm/WalletKeyProvider.ts",
+    "src/cli/**/*",
+    "src/tui/**/*",
+    "src/converter/**/*"
   ]
 }

@@ -19,6 +19,7 @@ import {
   MemoryIndicator,
   ChatPanePosition,
   PermissionRequest,
+  TrustLevel,
 } from './types';
 
 // =============================================================================
@@ -375,12 +376,12 @@ const MessageItem: React.FC<{
       {hasPermissionRequest && (
         <div style={{ marginTop: '8px' }}>
           <PermissionCard
-            requestId={message.permissionRequest.requestId}
-            agentName={message.permissionRequest.agentName}
-            trust={message.permissionRequest.trust}
-            summary={message.permissionRequest.summary}
-            scopePreview={message.permissionRequest.scopePreview}
-            riskLevel={message.permissionRequest.riskLevel}
+            requestId={message.permissionRequest!.requestId}
+            agentName={message.permissionRequest!.agentName}
+            trust={message.permissionRequest!.trust as TrustLevel}
+            summary={message.permissionRequest!.summary}
+            scopePreview={message.permissionRequest!.scopePreview}
+            riskLevel={message.permissionRequest!.riskLevel as 'low' | 'med' | 'high' | undefined}
             mode={mode}
             onApprove={onPermissionApprove}
             onDeny={onPermissionDeny}

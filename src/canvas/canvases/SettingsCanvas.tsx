@@ -5,12 +5,15 @@
 
 import React from 'react';
 
-import { BaseCanvasWithProvider, BaseCanvasProps } from '../BaseCanvas';
+import { BaseCanvasWithProvider } from '../BaseCanvas';
 import { createWidgetRegistry } from '../WidgetRegistry';
-import { ConfigWidget, ConfigWidgetData } from '../widgets/ConfigWidget';
-import { ConnectionWidget, ConnectionWidgetData } from '../widgets/ConnectionWidget';
+import { ConfigWidget } from '../widgets/ConfigWidget';
+import { ConnectionWidget } from '../widgets/ConnectionWidget';
 
+import type { BaseCanvasProps } from '../BaseCanvas';
 import type { CanvasPolicy, WidgetDefinition } from '../types';
+import type { ConfigWidgetData } from '../widgets/ConfigWidget';
+import type { ConnectionWidgetData } from '../widgets/ConnectionWidget';
 
 const SETTINGS_POLICY: CanvasPolicy = {
   maxNodes: 50,

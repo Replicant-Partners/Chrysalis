@@ -319,6 +319,7 @@ export interface ValidationError {
 
 /**
  * Validate a SemanticAgent
+ * @param agent
  */
 export function validateAgent(agent: Partial<SemanticAgent>): ValidationResult {
   const errors: ValidationError[] = [];
@@ -356,6 +357,9 @@ export function validateAgent(agent: Partial<SemanticAgent>): ValidationResult {
 
 /**
  * Create a minimal SemanticAgent with required fields only
+ * @param id
+ * @param name
+ * @param designation
  */
 export function createMinimalAgent(
   id: string,
@@ -444,6 +448,7 @@ export function createMinimalAgent(
 
 /**
  * Parse agent from JSON string
+ * @param json
  */
 export function parseAgent(json: string): SemanticAgent {
   return JSON.parse(json) as SemanticAgent;
@@ -451,6 +456,8 @@ export function parseAgent(json: string): SemanticAgent {
 
 /**
  * Serialize agent to JSON string
+ * @param agent
+ * @param pretty
  */
 export function serializeAgent(agent: SemanticAgent, pretty = false): string {
   return pretty ? JSON.stringify(agent, null, 2) : JSON.stringify(agent);

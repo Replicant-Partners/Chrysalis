@@ -6,8 +6,10 @@
  */
 
 import React from 'react';
+
 import { BaseCanvasWithProvider } from './BaseCanvas';
 import { createWidgetRegistry } from './WidgetRegistry';
+
 import type { WidgetProps, WidgetNodeData } from './types';
 
 /**

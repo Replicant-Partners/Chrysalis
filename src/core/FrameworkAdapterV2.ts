@@ -5,8 +5,8 @@
  * experience sync, instance management, and protocol stack.
  */
 
-import type { UniformSemanticAgentV2, ValidationResult } from './UniformSemanticAgentV2';
 import type { EncryptedShadow } from './FrameworkAdapter';
+import type { UniformSemanticAgentV2, ValidationResult } from './UniformSemanticAgentV2';
 
 /**
  * Abstract Framework Adapter V2
@@ -48,6 +48,8 @@ export abstract class FrameworkAdapterV2 {
   
   /**
    * Extract experience from instance (for sync)
+   * @param frameworkAgent
+   * @param since
    */
   async extractExperience?(
     frameworkAgent: any,
@@ -60,6 +62,7 @@ export abstract class FrameworkAdapterV2 {
 
 /**
  * Type guard to check if object is a FrameworkAdapterV2
+ * @param obj
  */
 export function isFrameworkAdapterV2(obj: any): obj is FrameworkAdapterV2 {
   return (

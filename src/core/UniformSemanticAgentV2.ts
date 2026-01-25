@@ -536,21 +536,22 @@ export interface ValidationResult {
 
 /**
  * Validate v2 Uniform Semantic Agent
+ * @param agent
  */
 export function validateUniformSemanticAgentV2(agent: any): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   
   // Required fields
-  if (!agent.schema_version) errors.push('Missing schema_version');
+  if (!agent.schema_version) {errors.push('Missing schema_version');}
   if (agent.schema_version !== SCHEMA_VERSION) {
     warnings.push(`Schema version ${agent.schema_version} !== ${SCHEMA_VERSION}`);
   }
   
-  if (!agent.identity) errors.push('Missing identity');
-  if (!agent.instances) errors.push('Missing instances');
-  if (!agent.experience_sync) errors.push('Missing experience_sync');
-  if (!agent.protocols) errors.push('Missing protocols');
+  if (!agent.identity) {errors.push('Missing identity');}
+  if (!agent.instances) {errors.push('Missing instances');}
+  if (!agent.experience_sync) {errors.push('Missing experience_sync');}
+  if (!agent.protocols) {errors.push('Missing protocols');}
   
   // Validate instances
   if (agent.instances && !agent.instances.active) {

@@ -1,3 +1,10 @@
+/**
+ * CanvasApp - Embeddable Canvas Application
+ * 
+ * This is a refactored version of App.tsx that can be embedded
+ * within the ChrysalisWorkspace center pane or run standalone.
+ */
+
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 
@@ -17,6 +24,15 @@ import type { CanvasKind, CanvasNode, CanvasData, CanvasPolicy, WidgetDefinition
 import type { AgentCardData } from '../canvas/widgets/AgentCardWidget';
 
 import 'reactflow/dist/style.css';
+
+export interface CanvasAppProps {
+  /** When true, renders without the top bar (for embedding in ChrysalisWorkspace) */
+  embedded?: boolean;
+  /** Initial canvas kind to display */
+  initialCanvas?: CanvasKind;
+  /** Callback when canvas changes */
+  onCanvasChange?: (kind: CanvasKind) => void;
+}
 
 const POLICIES: Record<CanvasKind, CanvasPolicy> = {
   'settings': {
@@ -131,8 +147,12 @@ const getInitialNodes = (kind: CanvasKind): CanvasNode[] => {
   }
 };
 
-const App: React.FC = () => {
-  const [activeCanvas, setActiveCanvas] = useState<CanvasKind>('scrapbook');
+export const CanvasApp: React.FC<CanvasAppProps> = ({
+  embedded = false,
+  initialCanvas = 'scrapbook',
+  onCanvasChange,
+}) => {
+  const [activeCanvas, setActiveCanvas] = useState<CanvasKind>(initialCanvas);
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -140,11 +160,9 @@ const App: React.FC = () => {
   const canvasId = `${activeCanvas}-canvas`;
   const dataSource = useMemo(() => createLocalStorageDataSource(canvasId), [canvasId]);
 
-  // Create registry for current canvas
   const registry = useMemo(() => {
     const reg = createWidgetRegistry(activeCanvas, POLICIES[activeCanvas].allowedWidgetTypes);
 
-    // Register widgets based on canvas type
     if (activeCanvas === 'scrapbook') {
       reg.register({ type: 'note', displayName: 'Note', renderer: NoteWidget, capabilities: ['edit', 'read'], defaultData: { content: '', tags: [] }, icon: '📝' } as WidgetDefinition<NoteWidgetData>);
       reg.register({ type: 'link', displayName: 'Link', renderer: LinkWidget, capabilities: ['read'], defaultData: { url: '', title: '' }, icon: '🔗' } as WidgetDefinition<LinkWidgetData>);
@@ -153,12 +171,17 @@ const App: React.FC = () => {
       reg.register({ type: 'config', displayName: 'Config', renderer: ConfigWidget, capabilities: ['edit'], defaultData: { key: '', value: '' }, icon: '⚙️' } as WidgetDefinition<ConfigWidgetData>);
       reg.register({ type: 'connection', displayName: 'Connection', renderer: ConnectionWidget, capabilities: ['read'], defaultData: { service: '', status: 'disconnected', endpoint: '' }, icon: '🔌' } as WidgetDefinition<ConnectionWidgetData>);
     }
-    // TODO: Register widgets for other canvas types
 
     return reg;
   }, [activeCanvas]);
 
   const initialNodes = useMemo(() => getInitialNodes(activeCanvas), [activeCanvas]);
+
+  const handleCanvasChange = useCallback((kind: CanvasKind) => {
+    setActiveCanvas(kind);
+    setShowFileMenu(false);
+    onCanvasChange?.(kind);
+  }, [onCanvasChange]);
 
   const handleNodeCreated = useCallback(async (node: CanvasNode): Promise<void> => {
     if (dataSource.persist) {
@@ -170,7 +193,6 @@ const App: React.FC = () => {
         edgesDeleted: []
       });
     }
-    // Trigger re-render by updating key
     setRefreshKey(prev => prev + 1);
   }, [dataSource]);
 
@@ -229,8 +251,10 @@ const App: React.FC = () => {
     window.location.reload();
   };
 
+  const canvasKinds: CanvasKind[] = ['settings', 'agent', 'scrapbook', 'research', 'wiki', 'terminal-browser'];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <input
         ref={fileInputRef}
         type="file"
@@ -239,120 +263,165 @@ const App: React.FC = () => {
         onChange={handleFileSelect}
       />
 
-      {/* Top bar with File menu and canvas tabs */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '8px 12px',
-        background: '#34495e',
-        borderBottom: '2px solid #2c3e50',
-        gap: '16px'
-      }}>
-        {/* File menu */}
-        <div style={{ position: 'relative' }}>
-          <button
-            onClick={() => setShowFileMenu(!showFileMenu)}
-            style={{
-              padding: '6px 12px',
-              background: showFileMenu ? '#2c3e50' : 'transparent',
-              color: 'white',
-              border: '1px solid #546e7a',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            File ▼
-          </button>
+      {/* Top bar - only shown when not embedded */}
+      {!embedded && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '8px 12px',
+          background: '#34495e',
+          borderBottom: '2px solid #2c3e50',
+          gap: '16px'
+        }}>
+          {/* File menu */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowFileMenu(!showFileMenu)}
+              style={{
+                padding: '6px 12px',
+                background: showFileMenu ? '#2c3e50' : 'transparent',
+                color: 'white',
+                border: '1px solid #546e7a',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              File ▼
+            </button>
 
-          {showFileMenu && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              marginTop: '4px',
-              background: 'white',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              minWidth: '180px',
-              zIndex: 1000
-            }}>
+            {showFileMenu && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                marginTop: '4px',
+                background: 'white',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                minWidth: '180px',
+                zIndex: 1000
+              }}>
+                <button
+                  onClick={handleNew}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '10px 16px',
+                    background: 'none',
+                    border: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
+                >
+                  New Canvas
+                </button>
+                <button
+                  onClick={handleOpen}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '10px 16px',
+                    background: 'none',
+                    border: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
+                >
+                  Open...
+                </button>
+                <button
+                  onClick={handleSave}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '10px 16px',
+                    background: 'none',
+                    border: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
+                >
+                  Save As...
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Canvas tabs */}
+          <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
+            {canvasKinds.map((kind) => (
               <button
-                onClick={handleNew}
+                key={kind}
+                onClick={() => handleCanvasChange(kind)}
                 style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '10px 16px',
-                  background: 'none',
-                  border: 'none',
-                  textAlign: 'left',
-                  cursor: 'pointer'
+                  padding: '6px 14px',
+                  background: activeCanvas === kind ? '#3498db' : 'transparent',
+                  color: 'white',
+                  border: activeCanvas === kind ? 'none' : '1px solid #546e7a',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '13px'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
               >
-                New Canvas
+                {kind.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
               </button>
-              <button
-                onClick={handleOpen}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '10px 16px',
-                  background: 'none',
-                  border: 'none',
-                  textAlign: 'left',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
-              >
-                Open...
-              </button>
-              <button
-                onClick={handleSave}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '10px 16px',
-                  background: 'none',
-                  border: 'none',
-                  textAlign: 'left',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
-              >
-                Save As...
-              </button>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
+      )}
 
-        {/* Canvas tabs */}
-        <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
-          {(['settings', 'agent', 'scrapbook', 'research', 'wiki', 'terminal-browser'] as CanvasKind[]).map((kind) => (
+      {/* Embedded toolbar - compact version for when embedded in workspace */}
+      {embedded && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '4px 8px',
+          background: '#1a1d24',
+          borderBottom: '1px solid #2f3b55',
+          gap: '4px',
+          flexWrap: 'wrap',
+        }}>
+          {canvasKinds.map((kind) => (
             <button
               key={kind}
-              onClick={() => {
-                setActiveCanvas(kind);
-                setShowFileMenu(false);
-              }}
+              onClick={() => handleCanvasChange(kind)}
               style={{
-                padding: '6px 14px',
+                padding: '4px 10px',
                 background: activeCanvas === kind ? '#3498db' : 'transparent',
-                color: 'white',
-                border: activeCanvas === kind ? 'none' : '1px solid #546e7a',
+                color: activeCanvas === kind ? 'white' : '#9aa4b5',
+                border: activeCanvas === kind ? 'none' : '1px solid #2f3b55',
                 borderRadius: '4px',
                 cursor: 'pointer',
-                fontSize: '13px'
+                fontSize: '11px'
               }}
             >
               {kind.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
             </button>
           ))}
+          <div style={{ flex: 1 }} />
+          <button
+            onClick={handleSave}
+            style={{
+              padding: '4px 8px',
+              background: 'transparent',
+              color: '#9aa4b5',
+              border: '1px solid #2f3b55',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '11px'
+            }}
+          >
+            Save
+          </button>
         </div>
-      </div>
+      )}
 
       {/* Canvas container */}
       <div style={{ flex: 1, position: 'relative' }} key={refreshKey}>
@@ -378,4 +447,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default CanvasApp;

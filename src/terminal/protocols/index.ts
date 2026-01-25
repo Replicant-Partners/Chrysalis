@@ -9,34 +9,60 @@
 export interface AgentPosition {
   x: number;
   y: number;
+  width?: number;
+  height?: number;
 }
 
-export interface AgentState {
-  isActive: boolean;
-  isSpeaking: boolean;
-  isListening: boolean;
-  currentTask?: string;
-  confidence?: number;
+export type AgentState = string;
+
+export interface AgentSpecSummary {
+  name: string;
+  role: string;
+  goal?: string;
+  version?: string;
+  description?: string;
+  capabilities?: string[];
+  modelTier?: string;
 }
 
 export interface CanvasAgent {
   id: string;
-  name: string;
-  role: string;
-  position: AgentPosition;
+  spec: AgentSpecSummary;
   state: AgentState;
-  color?: string;
-  avatar?: string;
-  metadata?: Record<string, unknown>;
+  position: AgentPosition;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface CanvasMetadata {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+  createdBy?: string;
+  description?: string;
+}
+
+export interface CanvasAgentLayout {
+  agentId: string;
+  position: AgentPosition;
+  collapsed?: boolean;
+  pinned?: boolean;
+  selected?: boolean;
+  updatedAt?: number;
 }
 
 export interface AgentCanvasState {
+  id: string;
+  metadata: CanvasMetadata;
   agents: CanvasAgent[];
-  connections: AgentConnection[];
+  layouts: Record<string, CanvasAgentLayout>;
   selectedAgentId?: string;
+
+  connections?: AgentConnection[];
   focusedAgentId?: string;
-  mode: CanvasMode;
-  viewport: Viewport;
+  mode?: CanvasMode;
+  viewport?: Viewport;
 }
 
 export interface AgentConnection {
@@ -56,15 +82,6 @@ export interface Viewport {
   x: number;
   y: number;
   zoom: number;
-}
-
-export interface AgentSpecSummary {
-  id: string;
-  name: string;
-  role: string;
-  description: string;
-  capabilities: string[];
-  modelTier: string;
 }
 
 export interface TerminalMessage {
