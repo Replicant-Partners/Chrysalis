@@ -77,7 +77,7 @@ impl GatewayClient {
         &self,
         request: &ChatCompletionRequest,
     ) -> Result<ChatCompletionResponse, GatewayError> {
-        let url = format!("{}/api/v1/chat/completions", self.config.base_url);
+        let url = format!("{}/v1/chat", self.config.base_url);
         
         let response = self
             .client
@@ -118,6 +118,9 @@ pub enum GatewayError {
 /// Chat completion request payload
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ChatCompletionRequest {
+    /// Agent ID for routing (required by Go gateway)
+    #[serde(rename = "agent_id")]
+    pub agent_id: Option<String>,
     pub model: String,
     pub messages: Vec<ChatMessage>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -187,34 +190,25 @@ pub struct ToolFunctionCall {
     pub arguments: String,
 }
 
-/// Chat completion response
+/// Chat completion response from Go gateway
+/// Note: This is a simpler format than OpenAI's - Go gateway returns content directly
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ChatCompletionResponse {
-    pub id: String,
-    pub r#type: String,
-    pub created: u64,
+    /// The generated content
+    pub content: String,
+    /// Model used
     pub model: String,
-    pub choices: Vec<ChatChoice>,
+    /// Provider used (e.g., "openrouter")
+    pub provider: String,
+    /// Token usage
     pub usage: Option<UsageInfo>,
 }
 
-/// Chat choice structure
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ChatChoice {
-    pub index: u32,
-    pub message: Option<ChatMessage>,
-    pub delta: Option<ChatMessage>,
-    #[serde(rename = "finishReason")]
-    pub finish_reason: Option<String>,
-}
 
 /// Usage information
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UsageInfo {
-    #[serde(rename = "promptTokens")]
     pub prompt_tokens: u32,
-    #[serde(rename = "completionTokens")]
     pub completion_tokens: u32,
-    #[serde(rename = "totalTokens")]
     pub total_tokens: u32,
 }

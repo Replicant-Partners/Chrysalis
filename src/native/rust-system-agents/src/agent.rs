@@ -277,7 +277,7 @@ impl AgentManager {
         let mut priority = 0.5;
         let mut reasons = Vec::new();
         
-        // Check if addressed to this agent
+        // Check if addressed to this agent via targetAgent parameter
         if let Some(target) = current_agent {
             if target == agent_id {
                 should_speak = true;
@@ -287,32 +287,56 @@ impl AgentManager {
             }
         }
         
-        // Check for keywords in message
         let lower_message = message.to_lowercase();
+        
+        // Check if agent's name is mentioned in the message
+        let agent_name = match agent_id {
+            "ada" => "ada",
+            "lea" => "lea",
+            "phil" => "phil",
+            "david" => "david",
+            "milton" => "milton",
+            _ => agent_id,
+        };
+        
+        if lower_message.contains(agent_name) {
+            should_speak = true;
+            confidence = 0.85;
+            priority = 0.9;
+            reasons.push("name_mentioned_in_message".to_string());
+        }
+        
+        // Check for keywords in message
         match agent_id {
-            "ada" if lower_message.contains("design") || lower_message.contains("architecture") => {
+            "ada" if lower_message.contains("design") || lower_message.contains("architecture") || lower_message.contains("pattern") => {
                 should_speak = true;
                 confidence = 0.7;
                 priority = 0.8;
                 reasons.push("design_keywords_detected".to_string());
             },
-            "lea" if lower_message.contains("learn") || lower_message.contains("adapt") => {
+            "lea" if lower_message.contains("learn") || lower_message.contains("adapt") || lower_message.contains("improve") => {
                 should_speak = true;
                 confidence = 0.7;
                 priority = 0.6;
                 reasons.push("learning_keywords_detected".to_string());
             },
-            "phil" if lower_message.contains("reason") || lower_message.contains("think") => {
+            "phil" if lower_message.contains("reason") || lower_message.contains("think") || lower_message.contains("logic") => {
                 should_speak = true;
                 confidence = 0.7;
                 priority = 0.6;
                 reasons.push("reasoning_keywords_detected".to_string());
             },
-            "david" if lower_message.contains("critic") || lower_message.contains("bias") => {
+            "david" if lower_message.contains("critic") || lower_message.contains("bias") || lower_message.contains("review") => {
                 should_speak = true;
                 confidence = 0.7;
                 priority = 0.6;
                 reasons.push("critical_thinking_keywords_detected".to_string());
+            },
+            "milton" if lower_message.contains("ops") || lower_message.contains("telemetry") || lower_message.contains("maintenance") => {
+                should_speak = true;
+                confidence = 0.7;
+                priority = 0.6;
+                reasons.push("ops_keywords_detected".to_string());
             },
             _ => {}
         }
@@ -434,7 +458,8 @@ impl AgentManager {
     ) -> Result<String, String> {
         // Build chat completion request
         let request = crate::gateway::ChatCompletionRequest {
-            model: "gpt-4".to_string(), // Default model
+            agent_id: Some(agent.id.clone()),
+            model: "gpt-4".to_string(), // Default model - gateway will route based on agent config
             messages: vec![crate::gateway::ChatMessage {
                 role: "user".to_string(),
                 content: prompt.to_string(),
@@ -453,16 +478,8 @@ impl AgentManager {
         // Send request to gateway
         match gateway_client.chat_completion(&request).await {
             Ok(response) => {
-                // Extract response text from first choice
-                if let Some(choice) = response.choices.first() {
-                    if let Some(message) = &choice.message {
-                        Ok(message.content.clone())
-                    } else {
-                        Err("No message content in response".to_string())
-                    }
-                } else {
-                    Err("No choices in response".to_string())
-                }
+                // Go gateway returns content directly
+                Ok(response.content)
             }
             Err(e) => {
                 Err(format!("Gateway error: {:?}", e))

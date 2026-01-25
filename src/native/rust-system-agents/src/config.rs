@@ -530,16 +530,35 @@ impl SystemAgentLoader {
     /// Load all system agents
     pub fn load_all(&mut self) -> LoadResult<Vec<&SystemAgentConfig>> {
         let agent_ids = ["ada", "lea", "phil", "david", "milton"];
-        let mut loaded = Vec::new();
 
+        // First pass: load all agents by reading files directly
         for agent_id in agent_ids {
-            match self.load_agent(agent_id) {
-                Ok(config) => loaded.push(config),
-                Err(AgentLoadError::NotFound(_)) => {
-                    // Agent not configured, skip
-                    continue;
+            if self.agents.contains_key(agent_id) {
+                continue;
+            }
+            
+            let config_path = self.config_dir.join(format!("{}_config.json", agent_id));
+            let path_to_use = if config_path.exists() {
+                config_path
+            } else {
+                let alt_path = self.config_dir.join(format!("{}_config.json", capitalize(agent_id)));
+                if alt_path.exists() {
+                    alt_path
+                } else {
+                    continue; // Agent not found, skip
                 }
-                Err(e) => return Err(e),
+            };
+            
+            match fs::read_to_string(&path_to_use) {
+                Ok(content) => {
+                    match serde_json::from_str::<SystemAgentConfig>(&content) {
+                        Ok(config) => {
+                            self.agents.insert(agent_id.to_string(), config);
+                        }
+                        Err(_) => continue,
+                    }
+                }
+                Err(_) => continue,
             }
         }
 

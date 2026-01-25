@@ -157,92 +157,104 @@ func (r *Registry) LoadFromDir(dir string) error {
 }
 
 // LoadBuiltInAgents registers the built-in system agents from spec.
+// All agents use cloud providers (OpenRouter, Anthropic, OpenAI) - no local Ollama.
 func (r *Registry) LoadBuiltInAgents() {
-	// From LLM_COMPLEXITY_ADAPTATION_PATTERN.md Section 5.5
 	builtIn := []AgentConfig{
 		{
 			ID:                  "ada",
 			Name:                "Ada Lovelace - Algorithmic Architect",
-			ModelTier:           TierHybrid,
-			DefaultModel:        "", // Router decides
+			ModelTier:           TierCloudLLM,
+			DefaultModel:        "anthropic/claude-3-haiku", // Fast, affordable
 			RateLimitRPS:        10,
 			RateLimitBurst:      20,
 			MaxTokens:           8000,
 			Temperature:         0.7,
-			ComplexityThreshold: 0.4, // Prefers cloud for synthesis
+			ComplexityThreshold: 0.0,
 			LatencyBudgetMs:     10000,
 		},
 		{
 			ID:                  "lea",
 			Name:                "Lea Verou - Implementation Reviewer",
-			ModelTier:           TierLocalSLM, // Local only per spec
-			DefaultModel:        "llama3.2",
+			ModelTier:           TierCloudLLM,
+			DefaultModel:        "anthropic/claude-3-haiku",
 			RateLimitRPS:        15,
 			RateLimitBurst:      30,
 			MaxTokens:           4000,
 			Temperature:         0.5,
-			ComplexityThreshold: 1.0, // Never routes to cloud
-			LatencyBudgetMs:     3000,
+			ComplexityThreshold: 0.0,
+			LatencyBudgetMs:     5000,
 		},
 		{
 			ID:                  "phil",
 			Name:                "Phil Tetlock - Forecast Analyst",
-			ModelTier:           TierHybrid,
-			DefaultModel:        "",
+			ModelTier:           TierCloudLLM,
+			DefaultModel:        "anthropic/claude-3-haiku",
 			RateLimitRPS:        10,
 			RateLimitBurst:      20,
 			MaxTokens:           8000,
-			Temperature:         0.3, // Low temp for calibration
-			ComplexityThreshold: 0.5,
+			Temperature:         0.3,
+			ComplexityThreshold: 0.0,
 			LatencyBudgetMs:     10000,
 		},
 		{
 			ID:                  "david",
 			Name:                "David Dunning - Metacognitive Guardian",
-			ModelTier:           TierCloudLLM, // Cloud only per spec
-			DefaultModel:        "claude-sonnet-4-20250514",
+			ModelTier:           TierCloudLLM,
+			DefaultModel:        "anthropic/claude-3-haiku",
 			RateLimitRPS:        5,
 			RateLimitBurst:      10,
 			MaxTokens:           8000,
 			Temperature:         0.7,
-			ComplexityThreshold: 0.0, // Always cloud
+			ComplexityThreshold: 0.0,
 			LatencyBudgetMs:     15000,
+		},
+		{
+			ID:                  "milton",
+			Name:                "Milton Friedman - Ops Caretaker",
+			ModelTier:           TierCloudLLM,
+			DefaultModel:        "anthropic/claude-3-haiku",
+			RateLimitRPS:        10,
+			RateLimitBurst:      20,
+			MaxTokens:           4000,
+			Temperature:         0.3,
+			ComplexityThreshold: 0.0,
+			LatencyBudgetMs:     10000,
 		},
 		{
 			ID:                  "prompt-engineer",
 			Name:                "Prompt Engineer",
-			ModelTier:           TierHybrid,
-			DefaultModel:        "",
+			ModelTier:           TierCloudLLM,
+			DefaultModel:        "anthropic/claude-3-haiku",
 			RateLimitRPS:        10,
 			RateLimitBurst:      20,
 			MaxTokens:           4000,
 			Temperature:         0.5,
-			ComplexityThreshold: 0.6,
+			ComplexityThreshold: 0.0,
 			LatencyBudgetMs:     5000,
 		},
 		{
 			ID:                  "ai-engineer",
 			Name:                "AI Engineer",
-			ModelTier:           TierHybrid,
-			DefaultModel:        "",
+			ModelTier:           TierCloudLLM,
+			DefaultModel:        "anthropic/claude-3-haiku",
 			RateLimitRPS:        10,
 			RateLimitBurst:      20,
 			MaxTokens:           4000,
 			Temperature:         0.5,
-			ComplexityThreshold: 0.6,
+			ComplexityThreshold: 0.0,
 			LatencyBudgetMs:     5000,
 		},
 		{
 			ID:                  "universal-adapter",
 			Name:                "Universal Protocol Adapter",
-			ModelTier:           TierLocalSLM, // Local for translation
-			DefaultModel:        "llama3.2",
+			ModelTier:           TierCloudLLM,
+			DefaultModel:        "openai/gpt-5.2-codex",
 			RateLimitRPS:        20,
 			RateLimitBurst:      40,
-			MaxTokens:           4000,
-			Temperature:         0.2, // Low temp for deterministic translation
-			ComplexityThreshold: 1.0,
-			LatencyBudgetMs:     2000,
+			MaxTokens:           8192,
+			Temperature:         0.1,
+			ComplexityThreshold: 0.0,
+			LatencyBudgetMs:     60000,
 		},
 	}
 

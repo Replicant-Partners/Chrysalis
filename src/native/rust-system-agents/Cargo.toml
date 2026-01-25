@@ -8,15 +8,15 @@ authors = ["Chrysalis Project"]
 [dependencies]
 # Web framework
 axum = "0.7"
-tokio = { version = "1.0", features = ["full"] }
+tokio = { version = "1.0", features = ["full", "sync"] }
 tower = "0.4"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-# HTTP client for gateway communication
-reqwest = { version = "0.12", features = ["json", "blocking"] }
+# HTTP client for gateway communication (using rustls to avoid OpenSSL dependency)
+reqwest = { version = "0.12", default-features = false, features = ["json", "blocking", "rustls-tls"] }
 
 # Utilities
 uuid = { version = "1.0", features = ["v4", "serde"] }
@@ -26,9 +26,6 @@ tracing = "0.1"
 tracing-subscriber = "0.3"
 log = "0.4"
 env_logger = "0.11"
-
-# Async
-tokio = { version = "1.0", features = ["full", "sync"] }
 
 # Metrics
 prometheus = "0.13"

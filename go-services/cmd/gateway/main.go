@@ -46,36 +46,24 @@ func main() {
 		log.Fatal("no providers configured; set LLM_PROVIDER and appropriate API keys")
 	}
 
-	// Separate local (Ollama) from cloud providers
-	var localProvider llm.Provider
+	// All providers are cloud providers (no local Ollama)
 	cloudProviders := make(map[string]llm.Provider)
+	var defaultProvider llm.Provider
 	for _, p := range allProviders {
-		if p.ID() == "ollama" {
-			localProvider = p
-		} else {
-			cloudProviders[p.ID()] = p
+		cloudProviders[p.ID()] = p
+		if defaultProvider == nil {
+			defaultProvider = p
 		}
 	}
 
-	// Require Ollama for local/hybrid routing
-	if localProvider == nil {
-		log.Printf("warning: Ollama not configured, hybrid routing will fall back to cloud providers")
-		// Use first available as fallback
-		for _, p := range allProviders {
-			localProvider = p
-			break
-		}
-	}
-
-	// Create ComplexityRouter - routes based on agent config and task complexity
-	// This is the CORRECT approach per spec: per-agent model tier, complexity assessment
-	router, err := llm.NewComplexityRouter(llm.ComplexityRouterConfig{
-		Registry:       agentRegistry,
-		LocalProvider:  localProvider,
-		CloudProviders: cloudProviders,
-		CostTracker:    costTracker,
-		CacheEnabled:   true,
-		CacheTTL:       5 * time.Minute,
+	// Create ComplexityRouter - all agents use cloud providers
+	router, err := llm.NewCloudOnlyRouter(llm.CloudOnlyRouterConfig{
+		Registry:        agentRegistry,
+		CloudProviders:  cloudProviders,
+		DefaultProvider: defaultProvider,
+		CostTracker:     costTracker,
+		CacheEnabled:    true,
+		CacheTTL:        5 * time.Minute,
 	})
 	if err != nil {
 		log.Fatalf("failed to create complexity router: %v", err)
@@ -86,8 +74,7 @@ func main() {
 	for _, p := range allProviders {
 		providerNames = append(providerNames, p.ID())
 	}
-	log.Printf("configured providers: %v", providerNames)
-	log.Printf("complexity router: local=%s, cloud=%v", localProvider.ID(), keys(cloudProviders))
+	log.Printf("configured cloud providers: %v", providerNames)
 
 	// Parse CORS allowed origins from environment
 	var allowedOrigins []string
@@ -115,10 +102,9 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
 			"total_calls": metrics.TotalCalls,
-			"local_hits":  metrics.LocalHits,
 			"cloud_hits":  metrics.CloudHits,
 			"cache_hits":  metrics.CacheHits,
-			"cost_status": metrics.CostStatus,
+			"cost_status": costTracker.GetStatus(),
 		})
 	})
 
