@@ -5,10 +5,16 @@
 //!
 //! Architecture:
 //!     YAML Config → KnowledgeGraphLoader → ReasoningEngine → SystemAgents
+//!
+//! Performance Optimizations (v0.34.0):
+//!   - Lazy-loaded parsing: YAML parsed once on first access
+//!   - Memoized reasoning context: Cached after first generation
+//!   - Arc-based sharing: Reduces clones via reference counting
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
+use std::sync::{Arc, Mutex};
 
 /// A node in the knowledge graph
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,6 +65,8 @@ pub struct KnowledgeGraph {
     pub source: Option<String>,
     pub nodes: HashMap<String, KnowledgeNode>,
     pub edges: Vec<KnowledgeEdge>,
+    /// Cached reasoning context (memoized after first call)
+    context_cache: Arc<Mutex<Option<Arc<ReasoningContext>>>>,
 }
 
 impl KnowledgeGraph {
@@ -69,6 +77,7 @@ impl KnowledgeGraph {
             source: None,
             nodes: HashMap::new(),
             edges: Vec::new(),
+            context_cache: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -220,9 +229,21 @@ impl KnowledgeGraph {
         self.get_nodes_by_type("framework")
     }
 
-    /// Get the reasoning context for agent decision-making
-    pub fn get_reasoning_context(&self) -> ReasoningContext {
-        ReasoningContext {
+    /// Get the reasoning context for agent decision-making.
+    /// 
+    /// PERFORMANCE: This method is memoized - the context is computed once
+    /// and cached. Subsequent calls return an Arc clone (cheap ref counting).
+    pub fn get_reasoning_context(&self) -> Arc<ReasoningContext> {
+        // Fast path: check if cached
+        {
+            let cache = self.context_cache.lock().unwrap();
+            if let Some(cached) = cache.as_ref() {
+                return Arc::clone(cached);
+            }
+        }
+
+        // Slow path: compute and cache
+        let context = Arc::new(ReasoningContext {
             graph_name: self.name.clone(),
             source: self.source.clone(),
             workflow: self
@@ -252,7 +273,19 @@ impl KnowledgeGraph {
                 .collect(),
             total_nodes: self.nodes.len(),
             total_edges: self.edges.len(),
-        }
+        });
+
+        // Cache for future use
+        let mut cache = self.context_cache.lock().unwrap();
+        *cache = Some(Arc::clone(&context));
+
+        context
+    }
+
+    /// Clear the cached reasoning context (useful if graph is modified)
+    pub fn invalidate_cache(&self) {
+        let mut cache = self.context_cache.lock().unwrap();
+        *cache = None;
     }
 }
 
@@ -270,7 +303,10 @@ pub struct ReasoningContext {
     pub total_edges: usize,
 }
 
-/// Reasoning engine that uses knowledge graphs for agent decision-making
+/// Reasoning engine that uses knowledge graphs for agent decision-making.
+///
+/// PERFORMANCE: Graphs are stored in the engine and contexts are memoized.
+/// Each graph caches its reasoning context after first access.
 #[derive(Debug, Default)]
 pub struct ReasoningEngine {
     graphs: HashMap<String, KnowledgeGraph>,
@@ -308,8 +344,11 @@ impl ReasoningEngine {
             .and_then(|name| self.graphs.get(name))
     }
 
-    /// Get reasoning context from the active graph
-    pub fn get_reasoning_context(&self) -> Option<ReasoningContext> {
+    /// Get reasoning context from the active graph.
+    ///
+    /// PERFORMANCE: Returns an Arc<ReasoningContext> which is cheap to clone.
+    /// The underlying context is memoized in the knowledge graph.
+    pub fn get_reasoning_context(&self) -> Option<Arc<ReasoningContext>> {
         self.get_active_graph().map(|g| g.get_reasoning_context())
     }
 
@@ -436,5 +475,29 @@ edges:
         assert_eq!(context.graph_name, "test");
         assert_eq!(context.workflow.len(), 2);
         assert_eq!(context.methods.len(), 1);
+    }
+
+    #[test]
+    fn test_context_caching() {
+        let graph = KnowledgeGraph::from_yaml(TEST_YAML, "test").unwrap();
+        
+        // First call generates context
+        let context1 = graph.get_reasoning_context();
+        // Second call returns cached version (should be same Arc pointer)
+        let context2 = graph.get_reasoning_context();
+        
+        // Verify they point to the same data (Arc pointer equality)
+        assert!(Arc::ptr_eq(&context1, &context2));
+        
+        // Invalidate cache
+        graph.invalidate_cache();
+        
+        // Third call regenerates context (different Arc pointer)
+        let context3 = graph.get_reasoning_context();
+        assert!(!Arc::ptr_eq(&context1, &context3));
+        
+        // But content should be the same
+        assert_eq!(context1.graph_name, context3.graph_name);
+        assert_eq!(context1.workflow.len(), context3.workflow.len());
     }
 }

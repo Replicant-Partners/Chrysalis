@@ -93,4 +93,6 @@ flowchart LR
 
 ## Related ADRs
 
-- ADR-002: Knowledge Graph Integration (pending)
+- [ADR-002: Knowledge Graph Integration](ADR-002-knowledge-graph-integration.md)
+- [ADR-003: Cost Analytics and Observability](ADR-003-cost-analytics-and-observability.md)
+- [ADR-004: Integration Testing Strategy](ADR-004-integration-testing-strategy.md)

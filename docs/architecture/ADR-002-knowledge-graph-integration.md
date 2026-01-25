@@ -125,4 +125,5 @@ The knowledge graph defines a four-stage workflow:
 
 ## Related ADRs
 
-- ADR-001: Cloud-Only LLM Provider Architecture
+- [ADR-001: Cloud-Only LLM Provider Architecture](ADR-001-cloud-only-llm.md)
+- [ADR-005: Knowledge Graph Performance Optimization](ADR-005-knowledge-graph-performance-optimization.md)

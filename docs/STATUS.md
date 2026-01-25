@@ -1,8 +1,8 @@
 # Chrysalis Implementation Status
 
-**Version**: 0.31.0
-**Last Updated**: January 16, 2026
-**Status**: Active Development (Pre-Release)
+**Version**: 0.34.0
+**Last Updated**: January 25, 2026
+**Status**: Active Development - Phase 3 P1 Complete
 **Owner**: Chrysalis Team
 **Review Cadence**: Weekly
 
@@ -15,14 +15,15 @@
 
 Chrysalis is a **Uniform Semantic Agent transformation system** enabling AI agents to morph between framework implementations while maintaining persistent memory and cryptographic identity.
 
-**Current State**: Active development with TypeScript core, Python memory system, and canvas architecture.
+**Current State**: Active development with TypeScript core, Rust system agents, Python memory system, and cloud-only LLM architecture.
 
 | Domain | Build Status | Test Status |
 |--------|--------------|-------------|
 | TypeScript Core | ✅ Passing | ⚠️ Partial coverage |
+| Rust System Agents | ✅ Passing | ✅ Integrated with knowledge graph |
 | Python memory_system | ✅ Passing | ✅ 9+ tests passing |
 | Canvas Architecture | ✅ Complete | 🔄 Prototype |
-| Go LLM Gateway | ✅ Complete | ✅ Compiles (4 providers, circuit breaker, cost tracking) |
+| Go LLM Gateway | ✅ Complete | ✅ Cloud-only routing + integration tests (9 test suites) |
 
 ---
 
@@ -255,7 +256,9 @@ flowchart TB
 | Fireproof Layer | Local-first CRDT document store | `memory_system/fireproof/` |
 | Canvas Architecture | 6 canvas types with widget system | `src/canvas/` |
 | **ACP Adapter** | Client + Server + Bridge for ACP ecosystem | `src/adapters/acp/` |
-| **Go LLM Gateway** | Multi-provider with circuit breaker | `go-services/` |
+| **Cloud-Only LLM Gateway** | OpenRouter, Anthropic, OpenAI routing | `go-services/internal/llm/` |
+| **Knowledge Graph Reasoning** | YAML-based agent decision-making | `src/native/rust-system-agents/src/knowledge_graph.rs` |
+| **Rust System Agents** | Ada, Lea, Phil, David, Milton with autonomous memory | `src/native/rust-system-agents/` |
 
 ### In Progress 🔄
 
@@ -270,8 +273,11 @@ flowchart TB
 
 | Feature | Status | Notes |
 |---------|--------|-------|
+| **Cloud-Only LLM Architecture** | ✅ Complete | ADR-001: OpenRouter, Anthropic, OpenAI only (Ollama removed) |
+| **Knowledge Graph Integration** | ✅ Complete | ADR-002: Python + Rust reasoning engines |
+| **Rust System Agents** | ✅ Complete | All 5 agents migrated from TypeScript |
+| **Go CloudOnlyRouter** | ✅ Complete | Cost tracking, caching, circuit breaker |
 | **ACP Adapter** | ✅ Complete | Client, Server, and Bridge for Agent Client Protocol ecosystem |
-| **Go LLM Gateway** | ✅ Complete | 4 providers (OpenAI, Anthropic, Ollama, OpenRouter), circuit breaker |
 | **P0 Meta-Cognitive** | ✅ Complete | Context Condenser, Stuck Detector, Code Executor |
 | OpenTelemetry Integration | ✅ Complete | Dependencies installed, no @ts-nocheck |
 | Sync Module Types | ✅ Complete | Logger signatures fixed, TypeScript clean |
@@ -338,11 +344,14 @@ flowchart TB
 
 | Variable | Purpose | Required |
 |----------|---------|----------|
+| `OPENROUTER_API_KEY` | OpenRouter cloud routing (default) | **Yes** |
+| `ANTHROPIC_API_KEY` | Direct Anthropic API access | Optional |
+| `OPENAI_API_KEY` | Direct OpenAI API access | Optional |
 | `VOYAGE_API_KEY` | Voyage AI embeddings | Production |
-| `OPENAI_API_KEY` | OpenAI embeddings (fallback) | Production |
-| `ANTHROPIC_API_KEY` | Claude semantic decomposition | LLM analysis |
 | `VECTOR_INDEX_TYPE` | Backend: `hnsw`, `lance`, `brute` | No |
 | `METRICS_PROMETHEUS` | Enable Prometheus metrics | No |
+
+**Note**: At least one LLM provider API key is required. OpenRouter is recommended as it provides access to multiple models through a single API.
 
 ### Fireproof
 

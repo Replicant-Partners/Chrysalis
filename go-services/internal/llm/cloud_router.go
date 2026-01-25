@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Replicant-Partners/Chrysalis/go-services/internal/agents"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // CloudOnlyRouter routes all requests to cloud providers (OpenRouter, Anthropic, OpenAI).
@@ -19,6 +20,7 @@ type CloudOnlyRouter struct {
 	defaultProvider Provider
 	costTracker     *CostTracker
 	cache           *ResponseCache
+	metrics         *CloudRouterMetrics
 
 	mu         sync.RWMutex
 	totalCalls int64
@@ -34,6 +36,7 @@ type CloudOnlyRouterConfig struct {
 	CostTracker     *CostTracker
 	CacheEnabled    bool
 	CacheTTL        time.Duration
+	MetricsRegistry *prometheus.Registry // Optional Prometheus registry for metrics
 }
 
 // NewCloudOnlyRouter creates a router that uses only cloud providers.
@@ -54,12 +57,19 @@ func NewCloudOnlyRouter(cfg CloudOnlyRouterConfig) (*CloudOnlyRouter, error) {
 		cache = NewResponseCache(ttl)
 	}
 
+	// Initialize metrics if registry provided
+	var metrics *CloudRouterMetrics
+	if cfg.MetricsRegistry != nil {
+		metrics = NewCloudRouterMetrics(cfg.MetricsRegistry)
+	}
+
 	return &CloudOnlyRouter{
 		registry:        cfg.Registry,
 		cloudProviders:  cfg.CloudProviders,
 		defaultProvider: cfg.DefaultProvider,
 		costTracker:     cfg.CostTracker,
 		cache:           cache,
+		metrics:         metrics,
 	}, nil
 }
 
@@ -69,20 +79,27 @@ func (r *CloudOnlyRouter) ID() string {
 
 // Complete routes the request to the appropriate cloud provider.
 func (r *CloudOnlyRouter) Complete(req CompletionRequest) (CompletionResponse, error) {
-	r.mu.Lock()
-	r.totalCalls++
-	r.mu.Unlock()
+	startTime := time.Now()
 
-	// Get agent configuration
+	// Get agent configuration (read-only, no lock needed for registry access)
 	agentCfg := r.registry.Get(req.AgentID)
 
-	// Check cache first
+	// Check cache first (before incrementing metrics to avoid counting cache hits as calls)
+	var cacheKey string
 	if r.cache != nil {
-		cacheKey := r.buildCacheKey(req)
+		cacheKey = r.buildCacheKey(req)
 		if cached, ok := r.cache.Get(cacheKey); ok {
+			// Update metrics atomically
 			r.mu.Lock()
+			r.totalCalls++
 			r.cacheHits++
 			r.mu.Unlock()
+
+			// Record Prometheus metrics for cache hit
+			if r.metrics != nil {
+				r.metrics.RecordRequest("cache", cached.Model, req.AgentID, "hit", time.Since(startTime).Seconds())
+			}
+
 			log.Printf("router: cache hit for agent=%s", req.AgentID)
 			return cached, nil
 		}
@@ -107,7 +124,9 @@ func (r *CloudOnlyRouter) Complete(req CompletionRequest) (CompletionResponse, e
 		req.Temperature = agentCfg.Temperature
 	}
 
+	// Update metrics once before provider call
 	r.mu.Lock()
+	r.totalCalls++
 	r.cloudHits++
 	r.mu.Unlock()
 
@@ -116,19 +135,37 @@ func (r *CloudOnlyRouter) Complete(req CompletionRequest) (CompletionResponse, e
 
 	// Execute request
 	resp, err := provider.Complete(req)
+	duration := time.Since(startTime).Seconds()
+
 	if err != nil {
+		if r.metrics != nil {
+			r.metrics.RecordProviderError(providerID)
+		}
 		return CompletionResponse{}, fmt.Errorf("provider %s failed: %w", providerID, err)
 	}
 
-	// Track cost
-	if r.costTracker != nil {
-		cost := r.costTracker.TrackUsage(resp.Model, resp.Usage.PromptTokens, resp.Usage.CompletionTokens)
-		log.Printf("router: agent=%s cost=$%.6f tokens=%d", req.AgentID, cost, resp.Usage.TotalTokens)
+	// Record Prometheus metrics for successful request
+	if r.metrics != nil {
+		r.metrics.RecordRequest(providerID, resp.Model, req.AgentID, "miss", duration)
+		r.metrics.RecordTokens("prompt", providerID, resp.Model, resp.Usage.PromptTokens)
+		r.metrics.RecordTokens("completion", providerID, resp.Model, resp.Usage.CompletionTokens)
 	}
 
-	// Cache response
+	// Track cost (CostTracker handles its own concurrency)
+	var cost float64
+	if r.costTracker != nil {
+		cost = r.costTracker.TrackUsage(resp.Model, resp.Usage.PromptTokens, resp.Usage.CompletionTokens)
+		log.Printf("router: agent=%s cost=$%.6f tokens=%d", req.AgentID, cost, resp.Usage.TotalTokens)
+
+		// Record cost in Prometheus
+		if r.metrics != nil {
+			r.metrics.RecordCost(providerID, resp.Model, cost)
+		}
+	}
+
+	// Cache response (ResponseCache handles its own concurrency)
 	if r.cache != nil {
-		r.cache.Set(r.buildCacheKey(req), resp)
+		r.cache.Set(cacheKey, resp)
 	}
 
 	return resp, nil
@@ -136,6 +173,8 @@ func (r *CloudOnlyRouter) Complete(req CompletionRequest) (CompletionResponse, e
 
 // Stream routes streaming requests to cloud providers.
 func (r *CloudOnlyRouter) Stream(ctx context.Context, req CompletionRequest, emit func(CompletionChunk) error) error {
+	startTime := time.Now()
+
 	r.mu.Lock()
 	r.totalCalls++
 	r.cloudHits++
@@ -144,6 +183,9 @@ func (r *CloudOnlyRouter) Stream(ctx context.Context, req CompletionRequest, emi
 	agentCfg := r.registry.Get(req.AgentID)
 	provider, providerID := r.selectProvider(agentCfg, req)
 	if provider == nil {
+		if r.metrics != nil {
+			r.metrics.RecordProviderError("unknown")
+		}
 		return fmt.Errorf("no provider available for agent %s", req.AgentID)
 	}
 
@@ -159,7 +201,22 @@ func (r *CloudOnlyRouter) Stream(ctx context.Context, req CompletionRequest, emi
 
 	log.Printf("router: streaming agent=%s → provider=%s model=%s", req.AgentID, providerID, req.Model)
 
-	return provider.Stream(ctx, req, emit)
+	err := provider.Stream(ctx, req, emit)
+	duration := time.Since(startTime).Seconds()
+
+	if err != nil {
+		if r.metrics != nil {
+			r.metrics.RecordProviderError(providerID)
+		}
+		return err
+	}
+
+	// Record streaming request metrics (no token/cost tracking for streams currently)
+	if r.metrics != nil {
+		r.metrics.RecordRequest(providerID, req.Model, req.AgentID, "stream", duration)
+	}
+
+	return nil
 }
 
 // selectProvider chooses the appropriate cloud provider based on model name.
@@ -208,7 +265,14 @@ func (r *CloudOnlyRouter) selectProvider(agentCfg agents.AgentConfig, req Comple
 }
 
 func (r *CloudOnlyRouter) buildCacheKey(req CompletionRequest) string {
+	// Pre-allocate buffer size estimation
+	estimatedSize := len(req.AgentID) + len(req.Model) + 10
+	for _, m := range req.Messages {
+		estimatedSize += len(m.Role) + len(m.Content) + 2
+	}
+
 	var sb strings.Builder
+	sb.Grow(estimatedSize)
 	sb.WriteString(req.AgentID)
 	sb.WriteString(":")
 	sb.WriteString(req.Model)

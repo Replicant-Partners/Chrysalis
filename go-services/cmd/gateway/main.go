@@ -16,6 +16,7 @@ import (
 	"github.com/Replicant-Partners/Chrysalis/go-services/internal/config"
 	httpserver "github.com/Replicant-Partners/Chrysalis/go-services/internal/http"
 	"github.com/Replicant-Partners/Chrysalis/go-services/internal/llm"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 func main() {
@@ -40,6 +41,9 @@ func main() {
 		MonthlyBudgetUSD: cfg.MonthlyBudgetUSD,
 	})
 
+	// Create shared Prometheus registry for gateway and cloud router metrics
+	metricsRegistry := prometheus.NewRegistry()
+
 	// Build providers
 	allProviders := buildProviders(cfg)
 	if len(allProviders) == 0 {
@@ -56,7 +60,7 @@ func main() {
 		}
 	}
 
-	// Create ComplexityRouter - all agents use cloud providers
+	// Create CloudOnlyRouter with Prometheus metrics - all agents use cloud providers
 	router, err := llm.NewCloudOnlyRouter(llm.CloudOnlyRouterConfig{
 		Registry:        agentRegistry,
 		CloudProviders:  cloudProviders,
@@ -64,10 +68,18 @@ func main() {
 		CostTracker:     costTracker,
 		CacheEnabled:    true,
 		CacheTTL:        5 * time.Minute,
+		MetricsRegistry: metricsRegistry,
 	})
 	if err != nil {
 		log.Fatalf("failed to create complexity router: %v", err)
 	}
+
+	// Create cost analytics
+	costAnalytics := llm.NewCostAnalytics(llm.CostAnalyticsConfig{
+		Tracker:          costTracker,
+		MaxHistorySize:   1440, // 24 hours @ 1 min snapshots
+		SnapshotInterval: 1 * time.Minute,
+	})
 
 	// Log configuration
 	var providerNames []string
@@ -91,6 +103,7 @@ func main() {
 	srv := httpserver.New(httpserver.ServerConfig{
 		Provider:       router,
 		AgentRegistry:  agentRegistry,
+		CostAnalytics:  costAnalytics,
 		AuthToken:      cfg.AuthToken,
 		AllowedOrigins: allowedOrigins,
 	})
@@ -116,9 +129,18 @@ func main() {
 		IdleTimeout:  cfg.IdleTimeout,
 	}
 
+	// Start cost analytics snapshot routine
+	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			costAnalytics.RecordSnapshot()
+		}
+	}()
+
 	// Graceful shutdown
 	go func() {
-		log.Printf("gateway listening on :%d (agents=%d, providers=%v, per-agent-rate-limiting=enabled)",
+		log.Printf("gateway listening on :%d (agents=%d, providers=%v, per-agent-rate-limiting=enabled, cost-analytics=enabled)",
 			cfg.Port, len(agentRegistry.List()), providerNames)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server error: %v", err)

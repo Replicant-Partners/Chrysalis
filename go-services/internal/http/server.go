@@ -20,7 +20,8 @@ import (
 // Now supports multi-agent concurrent access with per-agent rate limiting.
 type Server struct {
 	provider       llm.Provider
-	registry       *agents.Registry // Per-agent config and rate limiters
+	registry       *agents.Registry   // Per-agent config and rate limiters
+	costAnalytics  *llm.CostAnalytics // Cost tracking and analytics
 	auth           string
 	requests       *prometheus.CounterVec
 	latency        *prometheus.HistogramVec
@@ -31,7 +32,8 @@ type Server struct {
 // ServerConfig holds configuration for creating a new server.
 type ServerConfig struct {
 	Provider       llm.Provider
-	AgentRegistry  *agents.Registry // Required for per-agent rate limiting
+	AgentRegistry  *agents.Registry   // Required for per-agent rate limiting
+	CostAnalytics  *llm.CostAnalytics // Optional cost analytics
 	AuthToken      string
 	AllowedOrigins []string
 }
@@ -66,6 +68,7 @@ func New(cfg ServerConfig) *Server {
 	return &Server{
 		provider:       cfg.Provider,
 		registry:       cfg.AgentRegistry,
+		costAnalytics:  cfg.CostAnalytics,
 		auth:           cfg.AuthToken,
 		requests:       requests,
 		latency:        latency,
@@ -80,6 +83,10 @@ func (s *Server) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/v1/chat", s.wrapCORS(s.wrapAuth(s.handleChat)))
 	mux.HandleFunc("/v1/chat/stream", s.wrapCORS(s.wrapAuth(s.handleChatStream)))
 	mux.HandleFunc("/v1/agents", s.wrapCORS(s.wrapAuth(s.handleListAgents)))
+	mux.HandleFunc("/v1/costs", s.wrapCORS(s.wrapAuth(s.handleCosts)))
+	mux.HandleFunc("/v1/costs/history", s.wrapCORS(s.wrapAuth(s.handleCostHistory)))
+	mux.HandleFunc("/v1/costs/prediction", s.wrapCORS(s.wrapAuth(s.handleCostPrediction)))
+	mux.HandleFunc("/v1/costs/alerts", s.wrapCORS(s.wrapAuth(s.handleCostAlerts)))
 	mux.Handle("/metrics", promhttp.HandlerFor(s.promRegistry, promhttp.HandlerOpts{}))
 }
 
@@ -116,9 +123,9 @@ func (s *Server) handleListAgents(w http.ResponseWriter, r *http.Request) {
 	for _, id := range agentIDs {
 		cfg := s.registry.Get(id)
 		agentConfigs = append(agentConfigs, map[string]any{
-			"id":          cfg.ID,
-			"name":        cfg.Name,
-			"model_tier":  cfg.ModelTier,
+			"id":            cfg.ID,
+			"name":          cfg.Name,
+			"model_tier":    cfg.ModelTier,
 			"default_model": cfg.DefaultModel,
 		})
 	}
@@ -348,4 +355,94 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(v)
+}
+
+// Cost analytics handlers
+
+func (s *Server) handleCosts(w http.ResponseWriter, r *http.Request) {
+	reqID := requestID(r)
+	w.Header().Set("X-Request-Id", reqID)
+
+	if s.costAnalytics == nil {
+		s.writeJSONWithMetrics(w, r, "", http.StatusServiceUnavailable, map[string]string{
+			"error": "cost analytics not enabled",
+		})
+		return
+	}
+
+	// Record snapshot if needed
+	s.costAnalytics.RecordSnapshot()
+
+	prediction := s.costAnalytics.PredictMonthlyCost()
+	trends := s.costAnalytics.GetTrends()
+	alerts := s.costAnalytics.GetAlerts()
+
+	s.writeJSONWithMetrics(w, r, "", http.StatusOK, map[string]any{
+		"prediction": prediction,
+		"trends":     trends,
+		"alerts":     alerts,
+	})
+}
+
+func (s *Server) handleCostHistory(w http.ResponseWriter, r *http.Request) {
+	reqID := requestID(r)
+	w.Header().Set("X-Request-Id", reqID)
+
+	if s.costAnalytics == nil {
+		s.writeJSONWithMetrics(w, r, "", http.StatusServiceUnavailable, map[string]string{
+			"error": "cost analytics not enabled",
+		})
+		return
+	}
+
+	// Parse time range from query params (default: last 24 hours)
+	since := time.Now().Add(-24 * time.Hour)
+	if sinceParam := r.URL.Query().Get("since"); sinceParam != "" {
+		if t, err := time.Parse(time.RFC3339, sinceParam); err == nil {
+			since = t
+		}
+	}
+
+	history := s.costAnalytics.GetHistoricalData(since)
+
+	s.writeJSONWithMetrics(w, r, "", http.StatusOK, map[string]any{
+		"history": history,
+		"since":   since.Format(time.RFC3339),
+		"count":   len(history),
+	})
+}
+
+func (s *Server) handleCostPrediction(w http.ResponseWriter, r *http.Request) {
+	reqID := requestID(r)
+	w.Header().Set("X-Request-Id", reqID)
+
+	if s.costAnalytics == nil {
+		s.writeJSONWithMetrics(w, r, "", http.StatusServiceUnavailable, map[string]string{
+			"error": "cost analytics not enabled",
+		})
+		return
+	}
+
+	prediction := s.costAnalytics.PredictMonthlyCost()
+
+	s.writeJSONWithMetrics(w, r, "", http.StatusOK, prediction)
+}
+
+func (s *Server) handleCostAlerts(w http.ResponseWriter, r *http.Request) {
+	reqID := requestID(r)
+	w.Header().Set("X-Request-Id", reqID)
+
+	if s.costAnalytics == nil {
+		s.writeJSONWithMetrics(w, r, "", http.StatusServiceUnavailable, map[string]string{
+			"error": "cost analytics not enabled",
+		})
+		return
+	}
+
+	alerts := s.costAnalytics.GetAlerts()
+
+	s.writeJSONWithMetrics(w, r, "", http.StatusOK, map[string]any{
+		"alerts": alerts,
+		"count":  len(alerts),
+	})
 }

@@ -72,34 +72,104 @@ impl GatewayClient {
         &self.config.base_url
     }
 
-    /// Send a chat completion request to the gateway
+    /// Send a chat completion request to the gateway with retry logic
     pub async fn chat_completion(
         &self,
         request: &ChatCompletionRequest,
     ) -> Result<ChatCompletionResponse, GatewayError> {
+        self.chat_completion_with_retries(request, 3).await
+    }
+
+    /// Send a chat completion request with configurable retry attempts
+    pub async fn chat_completion_with_retries(
+        &self,
+        request: &ChatCompletionRequest,
+        max_retries: u32,
+    ) -> Result<ChatCompletionResponse, GatewayError> {
         let url = format!("{}/v1/chat", self.config.base_url);
-        
+        let mut last_error = None;
+
+        for attempt in 0..=max_retries {
+            if attempt > 0 {
+                // Exponential backoff: 100ms, 200ms, 400ms, etc.
+                let backoff = Duration::from_millis(100 * 2_u64.pow(attempt - 1));
+                tokio::time::sleep(backoff).await;
+                eprintln!("Retry attempt {}/{} after {:?}", attempt, max_retries, backoff);
+            }
+
+            match self.execute_request(&url, request).await {
+                Ok(response) => return Ok(response),
+                Err(e) => {
+                    // Don't retry on certain errors
+                    match &e {
+                        GatewayError::ApiError(status, _) if status.as_u16() == 401 || status.as_u16() == 403 => {
+                            // Authentication errors - don't retry
+                            return Err(e);
+                        }
+                        GatewayError::ParseError(_) | GatewayError::ConfigError(_) => {
+                            // Client errors - don't retry
+                            return Err(e);
+                        }
+                        _ => {
+                            last_error = Some(e);
+                        }
+                    }
+                }
+            }
+        }
+
+        Err(last_error.unwrap_or_else(|| {
+            GatewayError::NetworkError("All retry attempts exhausted".to_string())
+        }))
+    }
+
+    /// Execute a single request attempt
+    async fn execute_request(
+        &self,
+        url: &str,
+        request: &ChatCompletionRequest,
+    ) -> Result<ChatCompletionResponse, GatewayError> {
         let response = self
             .client
-            .post(&url)
+            .post(url)
             .json(request)
             .send()
             .await
-            .map_err(|e| GatewayError::NetworkError(e.to_string()))?;
+            .map_err(|e| {
+                if e.is_timeout() {
+                    GatewayError::TimeoutError(self.config.timeout)
+                } else if e.is_connect() {
+                    GatewayError::NetworkError(format!("Connection failed: {}", e))
+                } else {
+                    GatewayError::NetworkError(e.to_string())
+                }
+            })?;
 
-        if response.status().is_success() {
+        let status = response.status();
+        
+        if status.is_success() {
             let chat_response = response
                 .json::<ChatCompletionResponse>()
                 .await
-                .map_err(|e| GatewayError::ParseError(e.to_string()))?;
+                .map_err(|e| GatewayError::ParseError(format!("Failed to parse response: {}", e)))?;
             Ok(chat_response)
         } else {
-            let status = response.status();
             let error_text = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unknown error".to_string());
-            Err(GatewayError::ApiError(status, error_text))
+            
+            // Provide more specific error messages based on status code
+            let error_msg = match status.as_u16() {
+                401 => format!("Authentication failed: {}", error_text),
+                403 => format!("Access forbidden: {}", error_text),
+                429 => format!("Rate limit exceeded: {}", error_text),
+                503 => "Service unavailable (circuit breaker may be open)".to_string(),
+                500..=599 => format!("Server error: {}", error_text),
+                _ => error_text,
+            };
+            
+            Err(GatewayError::ApiError(status, error_msg))
         }
     }
 }
@@ -113,6 +183,14 @@ pub enum GatewayError {
     ParseError(String),
     #[error("API error ({0}): {1}")]
     ApiError(reqwest::StatusCode, String),
+    #[error("Timeout error: request exceeded {0:?}")]
+    TimeoutError(Duration),
+    #[error("Circuit breaker open: too many failures")]
+    CircuitBreakerOpen,
+    #[error("No provider available")]
+    NoProviderAvailable,
+    #[error("Invalid configuration: {0}")]
+    ConfigError(String),
 }
 
 /// Chat completion request payload
