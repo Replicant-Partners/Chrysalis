@@ -246,14 +246,12 @@ class FireproofService:
         """
         self._ensure_initialized()
         assert self._conn is not None
-        
+
         cursor = self._conn.execute(
             "SELECT data FROM documents WHERE _id = ?",
             (doc_id,)
         )
-        row = cursor.fetchone()
-        
-        if row:
+        if row := cursor.fetchone():
             return json.loads(row["data"])
         return None
     
@@ -477,10 +475,10 @@ class FireproofService:
         """
         self._ensure_initialized()
         assert self._conn is not None
-        
+
         if not self.config.local_vector_cache:
             return []
-        
+
         # Get all cached vectors
         sql = """
             SELECT d.data, v.vector
@@ -489,44 +487,42 @@ class FireproofService:
             WHERE v.vector IS NOT NULL
         """
         params: List[Any] = []
-        
+
         if doc_type:
             sql += " AND d.type = ?"
             params.append(doc_type)
-        
+
         cursor = self._conn.execute(sql, params)
         rows = cursor.fetchall()
-        
+
         if not rows:
             return []
-        
+
         # Calculate similarities
         import struct
-        
+
         def cosine_similarity(v1: List[float], v2: List[float]) -> float:
             """Calculate cosine similarity between two vectors."""
             dot = sum(a * b for a, b in zip(v1, v2))
             norm1 = sum(a * a for a in v1) ** 0.5
             norm2 = sum(b * b for b in v2) ** 0.5
-            if norm1 == 0 or norm2 == 0:
-                return 0.0
-            return dot / (norm1 * norm2)
-        
+            return 0.0 if norm1 == 0 or norm2 == 0 else dot / (norm1 * norm2)
+
         results: List[Tuple[float, Dict[str, Any]]] = []
-        
+
         for row in rows:
             doc = json.loads(row["data"])
             vector_blob = row["vector"]
-            
+
             if vector_blob:
                 # Decode vector from blob
                 vector = list(struct.unpack(f"{len(vector_blob)//8}d", vector_blob))
                 similarity = cosine_similarity(query_vector, vector)
                 results.append((similarity, doc))
-        
+
         # Sort by similarity descending
         results.sort(key=lambda x: x[0], reverse=True)
-        
+
         return [doc for _, doc in results[:k]]
     
     async def store_embedding(
@@ -627,13 +623,13 @@ class FireproofService:
             Merged document
         """
         merged = existing.copy()
-        
+
         for key, value in incoming.items():
             if key == "_id":
                 continue  # Don't merge ID
-            
+
             existing_value = existing.get(key)
-            
+
             if existing_value is None:
                 # New field
                 merged[key] = value
@@ -645,10 +641,8 @@ class FireproofService:
                 merged[key] = max(existing_value, value)
             elif key in ("importance", "confidence", "score"):
                 # Scores: take max (or could use weighted average)
-                if value is not None and existing_value is not None:
+                if value is not None:
                     merged[key] = max(existing_value, value)
-                elif value is not None:
-                    merged[key] = value
             elif key == "updated_at":
                 # Timestamp: take latest
                 merged[key] = max(existing_value, value)
@@ -656,14 +650,12 @@ class FireproofService:
                 # Sync status: pending wins over synced
                 if value == SyncStatus.PENDING.value:
                     merged[key] = value
-            else:
-                # Scalar: last-writer-wins based on updated_at
-                if incoming.get("updated_at", 0) >= existing.get("updated_at", 0):
-                    merged[key] = value
-        
+            elif incoming.get("updated_at", 0) >= existing.get("updated_at", 0):
+                merged[key] = value
+
         # Increment version
         merged["version"] = merged.get("version", 0) + 1
-        
+
         return merged
     
     async def prune(self) -> Dict[str, int]:

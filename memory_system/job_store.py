@@ -168,7 +168,7 @@ def _shrink(value: Any, *, max_len: int = 4000, max_items: int = 50, depth: int 
         return value
 
     if isinstance(value, str):
-        return value if len(value) <= max_len else value[:max_len] + "…"
+        return value if len(value) <= max_len else f"{value[:max_len]}…"
 
     if isinstance(value, (list, tuple)):
         total = len(value)
@@ -187,7 +187,7 @@ def _shrink(value: Any, *, max_len: int = 4000, max_items: int = 50, depth: int 
 
     try:
         text = str(value)
-        return text if len(text) <= max_len else text[:max_len] + "…"
+        return text if len(text) <= max_len else f"{text[:max_len]}…"
     except Exception:
         return "<unserializable>"
 
@@ -494,13 +494,14 @@ class EventStore:
         events = self.replay(job_id)
 
         if since_event_id:
-            # Find the index of since_event_id
-            found_idx = -1
-            for i, event in enumerate(events):
-                if event.event_id == since_event_id:
-                    found_idx = i
-                    break
-
+            found_idx = next(
+                (
+                    i
+                    for i, event in enumerate(events)
+                    if event.event_id == since_event_id
+                ),
+                -1,
+            )
             if found_idx >= 0:
                 events = events[found_idx + 1:]
 

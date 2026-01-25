@@ -211,15 +211,15 @@ class SemanticFrame:
     
     def get_subjects(self) -> List[str]:
         """Get unique subjects from all triples"""
-        return list(set(t.subject for t in self.triples))
+        return list({t.subject for t in self.triples})
     
     def get_predicates(self) -> List[str]:
         """Get unique predicates from all triples"""
-        return list(set(t.predicate for t in self.triples))
+        return list({t.predicate for t in self.triples})
     
     def get_objects(self) -> List[str]:
         """Get unique objects from all triples"""
-        return list(set(t.object for t in self.triples))
+        return list({t.object for t in self.triples})
 
 
 @dataclass

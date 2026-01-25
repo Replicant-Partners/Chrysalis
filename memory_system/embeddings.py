@@ -26,16 +26,18 @@ class OpenAIEmbeddings(EmbeddingProvider):
     def __init__(self, model: str = "text-embedding-3-small", api_key: Optional[str] = None):
         self.model = model
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        
+
         if not self.api_key:
             raise ValueError("OpenAI API key required. Set OPENAI_API_KEY environment variable.")
-        
+
         # Lazy import
         try:
             from openai import OpenAI
             self.client = OpenAI(api_key=self.api_key)
-        except ImportError:
-            raise ImportError("openai package required. Install with: pip install openai")
+        except ImportError as e:
+            raise ImportError(
+                "openai package required. Install with: pip install openai"
+            ) from e
     
     def embed(self, text: str) -> List[float]:
         """Generate embedding for single text"""
@@ -68,11 +70,11 @@ class LocalEmbeddings(EmbeddingProvider):
         try:
             from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer(model_name)
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "sentence-transformers required for local embeddings. "
                 "Install with: pip install sentence-transformers"
-            )
+            ) from e
     
     def embed(self, text: str) -> List[float]:
         """Generate embedding for single text"""

@@ -193,27 +193,22 @@ class LWWRegister(Generic[T]):
         - merge(A, A) = A  [idempotent]
         """
         result = LWWRegister[T]()
-        
+
         # Compare timestamps
-        if self._timestamp > other._timestamp:
+        if (
+            self._timestamp <= other._timestamp
+            and other._timestamp <= self._timestamp
+            and self._writer >= other._writer
+            or self._timestamp > other._timestamp
+        ):
             result._value = self._value
             result._timestamp = self._timestamp
             result._writer = self._writer
-        elif other._timestamp > self._timestamp:
+        else:
             result._value = other._value
             result._timestamp = other._timestamp
             result._writer = other._writer
-        else:
-            # Tie: use writer ID for deterministic resolution
-            if self._writer >= other._writer:
-                result._value = self._value
-                result._timestamp = self._timestamp
-                result._writer = self._writer
-            else:
-                result._value = other._value
-                result._timestamp = other._timestamp
-                result._writer = other._writer
-        
+
         return result
     
     def __repr__(self) -> str:
@@ -243,13 +238,9 @@ class MemoryCRDTMerger:
         - Merge metadata for duplicates
         - No conflicts possible!
         """
-        # Use dict for deduplication by memory ID
-        merged: Dict[str, EpisodicMemory] = {}
-        
-        # Add all from memories1
-        for memory in memories1:
-            merged[memory.memoryId] = memory
-        
+        merged: Dict[str, EpisodicMemory] = {
+            memory.memoryId: memory for memory in memories1
+        }
         # Merge with memories2
         for memory in memories2:
             if memory.memoryId in merged:
@@ -261,7 +252,7 @@ class MemoryCRDTMerger:
             else:
                 # New memory - add
                 merged[memory.memoryId] = memory
-        
+
         return list(merged.values())
     
     @staticmethod
@@ -311,12 +302,9 @@ class MemoryCRDTMerger:
         """
         Merge semantic memories (knowledge) with CRDT semantics
         """
-        merged: Dict[str, SemanticMemory] = {}
-        
-        # Add all from memories1
-        for memory in memories1:
-            merged[memory.knowledgeId] = memory
-        
+        merged: Dict[str, SemanticMemory] = {
+            memory.knowledgeId: memory for memory in memories1
+        }
         # Merge with memories2
         for memory in memories2:
             if memory.knowledgeId in merged:
@@ -328,7 +316,7 @@ class MemoryCRDTMerger:
             else:
                 # New knowledge - add
                 merged[memory.knowledgeId] = memory
-        
+
         return list(merged.values())
     
     @staticmethod

@@ -61,7 +61,11 @@ class ConversionResult:
         """Convert to dictionary."""
         return {
             "success": self.success,
-            "content": self.content[:500] + "..." if len(self.content) > 500 else self.content,
+            "content": (
+                f"{self.content[:500]}..."
+                if len(self.content) > 500
+                else self.content
+            ),
             "metadata": self.metadata,
             "format": self.format,
             "error": self.error,
@@ -154,7 +158,7 @@ class DocumentConverter:
         """
         # Determine if source is a file path
         path = Path(source)
-        is_file = path.exists() and path.is_file()
+        is_file = path.is_file()
         
         if is_file:
             return self._convert_file(path, format)
@@ -172,13 +176,9 @@ class DocumentConverter:
         if format is None:
             ext = path.suffix.lower()
             format = self.FORMAT_MAP.get(ext)
-            
-            if format is None:
-                if ext in self.CODE_EXTENSIONS:
-                    format = "code"
-                else:
-                    format = "text"
-        
+
+        if format is None:
+            format = "code" if ext in self.CODE_EXTENSIONS else "text"
         # Read and convert based on format
         try:
             if format == "pdf":
@@ -192,7 +192,7 @@ class DocumentConverter:
             else:
                 content = path.read_text(encoding="utf-8", errors="replace")
                 return self._convert_text(content, format)
-                
+
         except Exception as e:
             return ConversionResult(
                 success=False,
@@ -221,10 +221,10 @@ class DocumentConverter:
                 error="pypdf not installed. Install with: pip install pypdf",
                 format="pdf",
             )
-        
+
         try:
             reader = pypdf.PdfReader(str(path))
-            
+
             # Extract metadata
             metadata = {}
             if reader.metadata:
@@ -235,19 +235,18 @@ class DocumentConverter:
                     "creator": reader.metadata.get("/Creator", ""),
                     "pages": len(reader.pages),
                 }
-            
+
             # Extract text from all pages
             pages = []
             for page in reader.pages:
-                text = page.extract_text()
-                if text:
+                if text := page.extract_text():
                     pages.append(text)
-            
+
             content = "\n\n".join(pages)
-            
+
             if self.strip_whitespace:
                 content = self._clean_whitespace(content)
-            
+
             return ConversionResult(
                 success=True,
                 content=content,
@@ -257,7 +256,7 @@ class DocumentConverter:
                 word_count=len(content.split()),
                 line_count=content.count("\n") + 1,
             )
-            
+
         except Exception as e:
             return ConversionResult(
                 success=False,
@@ -274,10 +273,10 @@ class DocumentConverter:
             text = re.sub(r'<[^>]+>', ' ', text)
             text = re.sub(r'&nbsp;', ' ', text)
             text = re.sub(r'&[a-z]+;', ' ', text)
-            
+
             if self.strip_whitespace:
                 text = self._clean_whitespace(text)
-            
+
             return ConversionResult(
                 success=True,
                 content=text,
@@ -286,14 +285,14 @@ class DocumentConverter:
                 word_count=len(text.split()),
                 line_count=text.count("\n") + 1,
             )
-        
+
         try:
             soup = BeautifulSoup(content, "html.parser")
-            
+
             # Remove scripts, styles, and navigation
             for tag in soup(["script", "style", "nav", "footer", "header"]):
                 tag.decompose()
-            
+
             # Extract text
             if self.preserve_structure:
                 # Preserve some structure with newlines
@@ -304,22 +303,20 @@ class DocumentConverter:
                 for heading in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
                     heading.insert_after("\n\n")
                     heading.insert_before("\n\n")
-            
+
             text = soup.get_text(separator=" ")
-            
+
             # Extract metadata
             metadata = {}
-            title = soup.find("title")
-            if title:
+            if title := soup.find("title"):
                 metadata["title"] = title.get_text()
-            
-            meta_desc = soup.find("meta", attrs={"name": "description"})
-            if meta_desc:
+
+            if meta_desc := soup.find("meta", attrs={"name": "description"}):
                 metadata["description"] = meta_desc.get("content", "")
-            
+
             if self.strip_whitespace:
                 text = self._clean_whitespace(text)
-            
+
             return ConversionResult(
                 success=True,
                 content=text,
@@ -329,7 +326,7 @@ class DocumentConverter:
                 word_count=len(text.split()),
                 line_count=text.count("\n") + 1,
             )
-            
+
         except Exception as e:
             return ConversionResult(
                 success=False,

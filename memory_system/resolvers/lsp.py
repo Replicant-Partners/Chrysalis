@@ -50,9 +50,7 @@ class Location:
     @property
     def file_path(self) -> str:
         """Get file path from URI."""
-        if self.uri.startswith("file://"):
-            return self.uri[7:]
-        return self.uri
+        return self.uri[7:] if self.uri.startswith("file://") else self.uri
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -233,8 +231,8 @@ class LSPResolver:
                     self.server_cmd = cmd
                     break
 
-            if not self.server_cmd:
-                self.server_cmd = ["pylsp"]  # Default to Python
+        if not self.server_cmd:
+            self.server_cmd = ["pylsp"]  # Default to Python
 
         # Validate server command against allowlist for security
         if not self.server_cmd:
@@ -561,9 +559,9 @@ class LSPResolver:
 
         # Send request
         content = json.dumps(message)
-        header = f"Content-Length: {len(content)}\r\n\r\n"
-
         if self._process and self._process.stdin:
+            header = f"Content-Length: {len(content)}\r\n\r\n"
+
             try:
                 self._process.stdin.write((header + content).encode())
                 self._process.stdin.flush()
@@ -616,9 +614,9 @@ class LSPResolver:
         }
 
         content = json.dumps(message)
-        header = f"Content-Length: {len(content)}\r\n\r\n"
-
         if self._process and self._process.stdin:
+            header = f"Content-Length: {len(content)}\r\n\r\n"
+
             try:
                 self._process.stdin.write((header + content).encode())
                 self._process.stdin.flush()

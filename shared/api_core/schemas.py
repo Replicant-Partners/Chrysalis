@@ -284,5 +284,5 @@ def validate_with_pydantic(model_class: Type[BaseModel], data: Dict[str, Any]) -
 
         # Return the first error (or create a summary)
         if errors:
-            raise errors[0]
-        raise ValidationError(str(e), code=ErrorCode.INVALID_FORMAT.value)
+            raise errors[0] from e
+        raise ValidationError(str(e), code=ErrorCode.INVALID_FORMAT.value) from e

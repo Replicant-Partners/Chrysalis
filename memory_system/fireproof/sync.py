@@ -348,22 +348,20 @@ class FireproofZepSync:
     
     async def _sync_embeddings(self, docs: List[Dict[str, Any]]) -> None:
         """Sync EmbeddingRef documents to Zep."""
-        payload = []
-        
-        for doc in docs:
-            if doc.get("local_cache"):
-                payload.append({
-                    "id": doc["_id"],
-                    "embedding": doc["local_cache"],
-                    "metadata": {
-                        "text_hash": doc.get("text_hash", ""),
-                        "model": doc.get("model", ""),
-                    },
-                })
-        
-        if payload:
+        if payload := [
+            {
+                "id": doc["_id"],
+                "embedding": doc["local_cache"],
+                "metadata": {
+                    "text_hash": doc.get("text_hash", ""),
+                    "model": doc.get("model", ""),
+                },
+            }
+            for doc in docs
+            if doc.get("local_cache")
+        ]:
             self.zep_hooks.on_store_embedding(payload)
-        
+
         # Mark as synced
         for doc in docs:
             doc["sync_status"] = SyncStatus.SYNCED.value

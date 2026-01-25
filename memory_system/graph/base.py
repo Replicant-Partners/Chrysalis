@@ -330,31 +330,31 @@ class GraphStoreBase(ABC):
         Uses multiple metrics and returns max score.
         """
         scores = []
-        
+
         # Exact match
         if a == b:
             return 1.0
-        
+
         # Contains match
         if a in b:
             scores.append(len(a) / max(len(b), 1) * 0.8)
         elif b in a:
             scores.append(len(b) / max(len(a), 1) * 0.7)
-        
+
         # Token overlap (Jaccard)
         a_tokens = set(a.replace('_', ' ').replace('-', ' ').split())
         b_tokens = set(b.replace('_', ' ').replace('-', ' ').split())
         if a_tokens and b_tokens:
             jaccard = len(a_tokens & b_tokens) / len(a_tokens | b_tokens)
             scores.append(jaccard * 0.6)
-        
+
         # Prefix match
         if b.startswith(a):
             scores.append(len(a) / max(len(b), 1) * 0.5)
         elif a.startswith(b):
             scores.append(len(b) / max(len(a), 1) * 0.4)
-        
-        return max(scores) if scores else 0.0
+
+        return max(scores, default=0.0)
     
     @abstractmethod
     def export_json(self) -> Dict[str, Any]:

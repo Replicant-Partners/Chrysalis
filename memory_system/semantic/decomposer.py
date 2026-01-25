@@ -140,10 +140,7 @@ class SemanticDecomposer:
     
     def get_strategy(self, name: str) -> Optional[DecompositionStrategy]:
         """Get strategy by name."""
-        for s in self._strategies:
-            if s.name == name:
-                return s
-        return None
+        return next((s for s in self._strategies if s.name == name), None)
     
     async def decompose(
         self, 
@@ -170,24 +167,24 @@ class SemanticDecomposer:
         """
         if not text or not text.strip():
             raise ValidationError("Input text cannot be empty", "EMPTY_INPUT")
-        
+
         # Get ordered strategy list
         strategies = self._get_strategy_order(strategy_name)
-        
+
         if not strategies:
             raise DecompositionError(
                 "No decomposition strategies available",
                 "NO_STRATEGY_AVAILABLE"
             )
-        
+
         errors = []
-        
+
         for strategy in strategies:
             # Check availability
             if not strategy.is_available():
                 logger.debug(f"Strategy {strategy.name} not available, skipping")
                 continue
-            
+
             # Check content type support
             if not strategy.supports_content_type(self.content_type_hint):
                 logger.debug(
@@ -195,45 +192,44 @@ class SemanticDecomposer:
                     f"'{self.content_type_hint}', skipping"
                 )
                 continue
-            
+
             try:
                 logger.debug(f"Attempting decomposition with strategy: {strategy.name}")
                 frame = await strategy.decompose(text, **kwargs)
-                
+
                 logger.info(
                     f"Decomposition successful with {strategy.name}: "
                     f"intent={frame.intent.name}, confidence={frame.confidence:.3f}"
                 )
-                
+
                 return frame
-                
+
             except ValidationError:
                 # Don't fallback on validation errors
                 raise
-                
+
             except DecompositionError as e:
                 # Check if error is non-recoverable
                 if e.error_code in ("TOKEN_LIMIT_EXCEEDED", "INVALID_FRAME"):
                     raise
-                
+
                 errors.append((strategy.name, e))
                 logger.warning(
                     f"Strategy {strategy.name} failed: {e.error_code or 'unknown'} - {e.message}"
                 )
-                
+
                 if not fallback_on_error:
                     raise
-                    
+
             except Exception as e:
                 errors.append((strategy.name, e))
                 logger.warning(f"Strategy {strategy.name} raised exception: {e}")
-                
+
                 if not fallback_on_error:
                     raise DecompositionError(
-                        f"Strategy {strategy.name} failed: {e}",
-                        "STRATEGY_ERROR"
-                    )
-        
+                        f"Strategy {strategy.name} failed: {e}", "STRATEGY_ERROR"
+                    ) from e
+
         # All strategies failed
         error_summary = "; ".join([f"{name}: {err}" for name, err in errors])
         raise DecompositionError(
@@ -257,20 +253,18 @@ class SemanticDecomposer:
         """
         # If specific strategy requested, put it first
         if strategy_name:
-            strategy = self.get_strategy(strategy_name)
-            if strategy:
+            if strategy := self.get_strategy(strategy_name):
                 others = [s for s in self._strategies if s.name != strategy_name]
                 return [strategy] + others
             else:
                 logger.warning(f"Requested strategy '{strategy_name}' not found")
-        
+
         # If preferred strategy set, put it first
         if self.preferred_strategy:
-            strategy = self.get_strategy(self.preferred_strategy)
-            if strategy:
+            if strategy := self.get_strategy(self.preferred_strategy):
                 others = [s for s in self._strategies if s.name != self.preferred_strategy]
                 return [strategy] + others
-        
+
         # Return default priority order
         return list(self._strategies)
     

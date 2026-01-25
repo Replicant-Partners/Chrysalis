@@ -54,21 +54,19 @@ class AuthContext:
 
 # Configuration
 ENVIRONMENT = os.getenv("CHRYSALIS_ENV") or os.getenv("NODE_ENV") or "development"
-CONFIGURED_SECRET = os.getenv("JWT_SECRET") or os.getenv("CHRYSALIS_JWT_SECRET")
-
-# Secure secret configuration - fail fast if missing in production
-if not CONFIGURED_SECRET:
-    if ENVIRONMENT == "production":
-        raise RuntimeError("JWT_SECRET is required in production. Set JWT_SECRET or CHRYSALIS_JWT_SECRET environment variable.")
-    elif ENVIRONMENT == "development":
-        import logging
-        logging.warning("⚠️  Using insecure development JWT secret - DO NOT use in production! Set JWT_SECRET environment variable.")
-        JWT_SECRET = "dev-secret-for-local-testing-only-change-in-production"
-    else:
-        raise RuntimeError(f"JWT_SECRET must be explicitly configured for environment: {ENVIRONMENT}")
-else:
+if CONFIGURED_SECRET := os.getenv("JWT_SECRET") or os.getenv(
+    "CHRYSALIS_JWT_SECRET"
+):
     JWT_SECRET = CONFIGURED_SECRET
 
+elif ENVIRONMENT == "production":
+    raise RuntimeError("JWT_SECRET is required in production. Set JWT_SECRET or CHRYSALIS_JWT_SECRET environment variable.")
+elif ENVIRONMENT == "development":
+    import logging
+    logging.warning("⚠️  Using insecure development JWT secret - DO NOT use in production! Set JWT_SECRET environment variable.")
+    JWT_SECRET = "dev-secret-for-local-testing-only-change-in-production"
+else:
+    raise RuntimeError(f"JWT_SECRET must be explicitly configured for environment: {ENVIRONMENT}")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 
@@ -106,15 +104,14 @@ def verify_jwt_token(token: str) -> Optional[Dict[str, Any]]:
     try:
         # First, check the algorithm in the header without verifying signature
         header = jwt.get_unverified_header(token)
-        
+
         # Enforce strict algorithm whitelist to prevent confusion attacks
         if header.get("alg") != JWT_ALGORITHM:
             import logging
             logging.warning(f"JWT algorithm mismatch: expected {JWT_ALGORITHM}, got {header.get('alg')}")
             return None
-        
-        # Now decode with strict algorithm enforcement and timestamp validation
-        payload = jwt.decode(
+
+        return jwt.decode(
             token,
             JWT_SECRET,
             algorithms=[JWT_ALGORITHM],
@@ -122,10 +119,9 @@ def verify_jwt_token(token: str) -> Optional[Dict[str, Any]]:
                 "verify_signature": True,
                 "verify_exp": True,
                 "verify_iat": True,
-                "require": ["exp", "iat"]  # Require expiration and issued-at
-            }
+                "require": ["exp", "iat"],  # Require expiration and issued-at
+            },
         )
-        return payload
     except jwt.ExpiredSignatureError:
         return None
     except jwt.InvalidTokenError:
@@ -218,8 +214,7 @@ def authenticate_request(optional: bool = False, req=None) -> Optional[AuthConte
     # Try Bearer token (JWT)
     bearer_token = get_bearer_token(req)
     if bearer_token:
-        payload = verify_jwt_token(bearer_token)
-        if payload:
+        if payload := verify_jwt_token(bearer_token):
             return AuthContext(
                 user_id=payload.get("sub") or payload.get("user_id"),
                 token_type="bearer",
@@ -229,8 +224,7 @@ def authenticate_request(optional: bool = False, req=None) -> Optional[AuthConte
 
     # Try API key
     if bearer_token and "." in bearer_token:
-        api_key_data = verify_api_key(bearer_token)
-        if api_key_data:
+        if api_key_data := verify_api_key(bearer_token):
             return AuthContext(
                 user_id=api_key_data["key_id"],
                 token_type="api_key",

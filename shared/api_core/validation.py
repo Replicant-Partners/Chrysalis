@@ -230,23 +230,23 @@ def validate_email(value: str, field_name: str = 'email') -> Result[str, APIErro
         Success with the email, or Failure with validation error
     """
     import re
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    
     if not isinstance(value, str):
         return validation_failure(
             f"Field '{field_name}' must be a string",
             field_name=field_name,
             code=ErrorCode.INVALID_TYPE
         )
-    
-    if not re.match(email_pattern, value):
-        return validation_failure(
-            f"Field '{field_name}' must be a valid email address",
-            field_name=field_name,
-            code=ErrorCode.INVALID_FORMAT
+
+    else:
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+        return (
+            success(value) if re.match(email_pattern, value) else validation_failure(
+                            f"Field '{field_name}' must be a valid email address",
+                            field_name=field_name,
+                            code=ErrorCode.INVALID_FORMAT,
+                        )
         )
-    
-    return success(value)
 
 
 def validate_min_length(

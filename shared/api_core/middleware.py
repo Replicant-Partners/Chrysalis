@@ -86,7 +86,7 @@ def create_error_handler(app):
         logger.exception("Unhandled exception")
         error = APIError(
             code=ErrorCode.INTERNAL_ERROR,
-            message=str(e) if str(e) else "Internal server error",
+            message=str(e) or "Internal server error",
             category=ErrorCategory.SERVICE_ERROR,
         )
         response, status = APIResponse.error_response(error, status_code=500)
@@ -102,9 +102,6 @@ def create_auth_middleware(app):
         if request.endpoint in ["health", "docs", "openapi"]:
             return
 
-        # Authentication handled by decorators
-        pass
-
 
 def create_request_id_middleware(app):
     """Create request ID tracking middleware."""
@@ -116,10 +113,7 @@ def create_request_id_middleware(app):
         """Extract or generate request ID from headers."""
         from flask import request, g
         # Extract from X-Request-ID header if present
-        request_id = request.headers.get("X-Request-ID")
-        if not request_id:
-            # Generate new request ID
-            request_id = f"req_{uuid.uuid4().hex[:16]}"
+        request_id = request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:16]}"
 
         # Store in Flask g for access in handlers
         g.request_id = request_id
@@ -156,9 +150,8 @@ def create_response_headers_middleware(app, api_version: str = "v1"):
                 response.headers["X-Request-ID"] = request_id
 
         # Content Type (ensure JSON)
-        if request.path.startswith("/api/"):
-            if "application/json" not in response.headers.get("Content-Type", ""):
-                response.headers["Content-Type"] = "application/json"
+        if request.path.startswith("/api/") and "application/json" not in response.headers.get("Content-Type", ""):
+            response.headers["Content-Type"] = "application/json"
 
         return response
 
@@ -206,7 +199,7 @@ def create_cors_middleware(app, allowed_origins: Optional[list] = None):
         from flask_cors import CORS
         CORS(app, resources={
             r"/api/*": {
-                "origins": allowed_origins if allowed_origins else [],
+                "origins": allowed_origins or [],
                 "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
                 "allow_headers": ["Content-Type", "Authorization", "X-Request-ID", "X-Client-Version"],
             }
@@ -258,7 +251,6 @@ def create_all_middleware(
 
             if rate_limit_config:
                 default_config = RateLimitConfig(**rate_limit_config)
-                create_rate_limit_middleware(app, default_config=default_config)
             else:
                 # Use sensible defaults
                 default_config = RateLimitConfig(
@@ -267,7 +259,7 @@ def create_all_middleware(
                     per_ip=True,
                     per_endpoint=False
                 )
-                create_rate_limit_middleware(app, default_config=default_config)
+            create_rate_limit_middleware(app, default_config=default_config)
         except ImportError:
             logger.warning("Rate limiting not available - skipping")
 

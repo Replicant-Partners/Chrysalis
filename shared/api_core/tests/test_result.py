@@ -251,7 +251,7 @@ class TestFlatMapOperation:
         result = failure("error")
         chained = result.flat_map(lambda x: (called.append(x), success(x * 2))[1])
         assert chained.is_failure()
-        assert called == []  # Function was not called
+        assert not called
     
     def test_chain_alias(self):
         """chain is alias for flat_map."""
@@ -602,25 +602,23 @@ class TestIntegration:
         def validate_name(name: str) -> Result[str, str]:
             if not name:
                 return failure("Name is required")
-            if len(name) < 2:
-                return failure("Name too short")
-            return success(name.strip())
-        
+            return failure("Name too short") if len(name) < 2 else success(name.strip())
+
         def validate_age(age: int) -> Result[int, str]:
             if age < 0:
                 return failure("Age cannot be negative")
             if age > 150:
                 return failure("Age is unrealistic")
             return success(age)
-        
+
         # Valid input
         name_result = validate_name("John")
         age_result = validate_age(30)
-        
+
         combined = zip_results(name_result, age_result)
         assert combined.is_success()
         assert combined.value == ("John", 30)
-        
+
         # Invalid input
         invalid_name = validate_name("")
         assert invalid_name.is_failure()
@@ -628,15 +626,13 @@ class TestIntegration:
     def test_chained_operations(self):
         """Demonstrate chained operations with map and flat_map."""
         def fetch_user_id(token: str) -> Result[int, str]:
-            if token == "valid":
-                return success(123)
-            return failure("Invalid token")
-        
+            return success(123) if token == "valid" else failure("Invalid token")
+
         def fetch_user_data(user_id: int) -> Result[dict, str]:
             if user_id == 123:
                 return success({"id": 123, "name": "John"})
             return failure("User not found")
-        
+
         # Success path
         result = (
             fetch_user_id("valid")
@@ -645,7 +641,7 @@ class TestIntegration:
         )
         assert result.is_success()
         assert result.value == "John"
-        
+
         # Failure path (stops at first failure)
         result = (
             fetch_user_id("invalid")

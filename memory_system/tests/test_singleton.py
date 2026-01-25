@@ -122,28 +122,28 @@ class TestEmbeddingServiceSingleton:
         with patch('memory_system.embedding.singleton.EmbeddingService'):
             instances = []
             errors = []
-            
+
             def get_instance():
                 try:
                     instance = EmbeddingServiceSingleton.get_instance("ollama")
                     instances.append(instance)
                 except Exception as e:
                     errors.append(e)
-            
+
             # Create multiple threads trying to get the same instance
             threads = [threading.Thread(target=get_instance) for _ in range(10)]
-            
+
             for t in threads:
                 t.start()
-            
+
             for t in threads:
                 t.join()
-            
+
             # All threads should get the same instance
-            assert len(errors) == 0, f"Errors occurred: {errors}"
+            assert not errors, f"Errors occurred: {errors}"
             assert len(instances) == 10
             assert all(inst is instances[0] for inst in instances), \
-                "All threads should get the same instance"
+                    "All threads should get the same instance"
     
     def test_auto_configure_from_environment(self):
         """Test auto-configuration from environment variables."""

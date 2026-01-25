@@ -587,9 +587,7 @@ def zip_results(
     """
     if r1.is_failure():
         return r1  # type: ignore
-    if r2.is_failure():
-        return r2  # type: ignore
-    return success((r1.unwrap(), r2.unwrap()))
+    return r2 if r2.is_failure() else success((r1.unwrap(), r2.unwrap()))
 
 
 def zip3_results(
@@ -731,9 +729,7 @@ class ResultDo(Generic[E]):
         Returns:
             Success with accumulated values or Failure with first error
         """
-        if self._error is not None:
-            return failure(self._error)
-        return success(self._values)
+        return success(self._values) if self._error is None else failure(self._error)
     
     def map(self, fn: Callable[[dict[str, Any]], T]) -> Result[T, E]:
         """
@@ -768,9 +764,7 @@ def from_predicate(
     Returns:
         Success(value) if predicate passes, Failure(error) otherwise
     """
-    if predicate(value):
-        return success(value)
-    return failure(error)
+    return success(value) if predicate(value) else failure(error)
 
 
 def from_optional(
@@ -787,9 +781,7 @@ def from_optional(
     Returns:
         Success(value) if not None, Failure(error) otherwise
     """
-    if value is not None:
-        return success(value)
-    return failure(error)
+    return success(value) if value is not None else failure(error)
 
 
 def from_exception(

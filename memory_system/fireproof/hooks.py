@@ -341,27 +341,27 @@ class PromptMetadataCapture:
             session_id=session_id,
             limit=limit,
         )
-        
+
         if not metadata:
             return {
                 "session_id": session_id,
                 "interaction_count": 0,
             }
-        
+
         # Calculate stats
         total_tokens_in = sum(m.get("tokens_in", 0) for m in metadata)
         total_tokens_out = sum(m.get("tokens_out", 0) for m in metadata)
         total_latency = sum(m.get("latency_ms", 0) for m in metadata)
         errors = [m for m in metadata if m.get("error")]
         scores = [m.get("score") for m in metadata if m.get("score") is not None]
-        
+
         # Aggregate retrieval sources
         source_counts: Dict[str, int] = {}
         for m in metadata:
             for source in m.get("retrieval_sources", []):
                 source_type = source.get("type", "unknown")
                 source_counts[source_type] = source_counts.get(source_type, 0) + 1
-        
+
         return {
             "session_id": session_id,
             "interaction_count": len(metadata),
@@ -373,7 +373,7 @@ class PromptMetadataCapture:
             "error_rate": len(errors) / len(metadata) if metadata else 0,
             "avg_score": sum(scores) / len(scores) if scores else None,
             "retrieval_source_counts": source_counts,
-            "models_used": list(set(m.get("model", "") for m in metadata)),
+            "models_used": list({m.get("model", "") for m in metadata}),
         }
     
     async def get_recent_errors(
@@ -519,12 +519,11 @@ class BeadPromotionHook:
         Schedules async promotion if in async_mode, otherwise
         runs synchronously using safe async utilities.
         """
-        if self.async_mode:
-            # Fire-and-forget in async mode
-            schedule_async(self.promote(bead_data))
-            return None  # ID not available synchronously
-        else:
+        if not self.async_mode:
             return run_async_safely(self.promote(bead_data))
+        # Fire-and-forget in async mode
+        schedule_async(self.promote(bead_data))
+        return None  # ID not available synchronously
 
 
 class EmbeddingCacheHook:

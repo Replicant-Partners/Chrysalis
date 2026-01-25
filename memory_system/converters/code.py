@@ -135,7 +135,7 @@ class CodeConverter:
         """
         # Check if source is a file
         path = Path(source)
-        if path.exists() and path.is_file():
+        if path.is_file():
             content = path.read_text(encoding="utf-8", errors="replace")
             if language is None:
                 language = self.LANGUAGE_MAP.get(path.suffix.lower(), "unknown")
@@ -165,7 +165,7 @@ class CodeConverter:
             List of imported module/package names
         """
         path = Path(source)
-        if path.exists() and path.is_file():
+        if path.is_file():
             content = path.read_text(encoding="utf-8", errors="replace")
             if language is None:
                 language = self.LANGUAGE_MAP.get(path.suffix.lower(), "unknown")
@@ -209,13 +209,13 @@ class CodeConverter:
         """Extract chunks from Python code using AST."""
         chunks = []
         lines = content.split("\n")
-        
+
         try:
             tree = ast.parse(content)
         except SyntaxError as e:
             logger.warning(f"Python syntax error: {e}")
             return self._extract_generic(content, "python")
-        
+
         # Extract module-level docstring
         if (tree.body and isinstance(tree.body[0], ast.Expr) and 
             isinstance(tree.body[0].value, (ast.Str, ast.Constant))):
@@ -224,7 +224,7 @@ class CodeConverter:
                 docstring = doc_node.value.s
             else:
                 docstring = str(doc_node.value.value)
-            
+
             chunks.append(CodeChunk(
                 name="__module__",
                 kind="docstring",
@@ -233,7 +233,7 @@ class CodeConverter:
                 end_line=doc_node.end_lineno or doc_node.lineno,
                 docstring=docstring,
             ))
-        
+
         # Extract imports
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -246,7 +246,7 @@ class CodeConverter:
                         end_line=node.lineno,
                         imports=[alias.name],
                     ))
-            
+
             elif isinstance(node, ast.ImportFrom):
                 module = node.module or ""
                 for alias in node.names:
@@ -259,14 +259,14 @@ class CodeConverter:
                         end_line=node.lineno,
                         imports=[full_name],
                     ))
-        
+
         # Extract classes and functions
         for node in ast.iter_child_nodes(tree):
             if isinstance(node, ast.ClassDef):
                 chunks.extend(self._extract_python_class(node, lines))
-            elif isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 chunks.append(self._extract_python_function(node, lines))
-        
+
         return chunks
     
     def _extract_python_class(
@@ -275,16 +275,14 @@ class CodeConverter:
         lines: List[str]
     ) -> List[CodeChunk]:
         """Extract class and its methods."""
-        chunks = []
-        
         # Class chunk
         start = node.lineno
         end = node.end_lineno or start
         content = "\n".join(lines[start - 1:end])
-        
+
         # Get docstring
         docstring = ast.get_docstring(node)
-        
+
         # Get decorators
         decorators = []
         for dec in node.decorator_list:
@@ -294,17 +292,18 @@ class CodeConverter:
                 decorators.append(dec.func.id)
             elif isinstance(dec, ast.Attribute):
                 decorators.append(dec.attr)
-        
-        chunks.append(CodeChunk(
-            name=node.name,
-            kind="class",
-            content=content,
-            start_line=start,
-            end_line=end,
-            docstring=docstring,
-            decorators=decorators,
-        ))
-        
+
+        chunks = [
+            CodeChunk(
+                name=node.name,
+                kind="class",
+                content=content,
+                start_line=start,
+                end_line=end,
+                docstring=docstring,
+                decorators=decorators,
+            )
+        ]
         # Extract methods
         for item in node.body:
             if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -312,7 +311,7 @@ class CodeConverter:
                 method_chunk.parent = node.name
                 method_chunk.kind = "method"
                 chunks.append(method_chunk)
-        
+
         return chunks
     
     def _extract_python_function(
@@ -366,19 +365,17 @@ class CodeConverter:
     def _get_python_imports(self, content: str) -> List[str]:
         """Extract Python imports."""
         imports = []
-        
+
         try:
             tree = ast.parse(content)
-            
+
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
-                    for alias in node.names:
-                        imports.append(alias.name.split(".")[0])
-                
+                    imports.extend(alias.name.split(".")[0] for alias in node.names)
                 elif isinstance(node, ast.ImportFrom):
                     if node.module:
                         imports.append(node.module.split(".")[0])
-        
+
         except SyntaxError:
             # Fallback to regex
             import_pattern = r'^(?:from\s+(\w+)|import\s+(\w+))'
@@ -387,7 +384,7 @@ class CodeConverter:
                     imports.append(match.group(1))
                 elif match.group(2):
                     imports.append(match.group(2))
-        
+
         return list(set(imports))
     
     def _get_js_imports(self, content: str) -> List[str]:

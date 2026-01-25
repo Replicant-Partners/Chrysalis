@@ -56,8 +56,7 @@ class HeaderCredentialProvider:
         bearer = _extract_bearer_token(request)
         api_keys: Dict[str, str] = {}
         for header in self.api_key_headers:
-            value = request.headers.get(header)
-            if value:
+            if value := request.headers.get(header):
                 api_keys[header.lower()] = value
 
         return ProviderCredentials(

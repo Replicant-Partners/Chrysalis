@@ -104,24 +104,24 @@ class MemoryIdentity:
                 signedBy=instance_id,
                 timestamp=datetime.now().timestamp()
             )
-        
+
         # Load private key
         try:
             key = Ed25519PrivateKey.from_private_bytes(private_key)
         except Exception as e:
-            raise ValueError(f"Invalid Ed25519 private key: {e}")
-        
+            raise ValueError(f"Invalid Ed25519 private key: {e}") from e
+
         # Sign fingerprint
         message = fingerprint.encode('utf-8')
         signature = key.sign(message)
-        
+
         # Get public key
         public_key = key.public_key()
         public_key_bytes = public_key.public_bytes(
             encoding=serialization.Encoding.Raw,
             format=serialization.PublicFormat.Raw
         )
-        
+
         return MemorySignature(
             signature=signature,
             publicKey=public_key_bytes,
@@ -287,32 +287,32 @@ def sign_and_verify(
 
 if __name__ == "__main__":
     print("=== Chrysalis Memory Identity Demo ===\n")
-    
+
     # Generate keypair
     print("1. Generating Ed25519 keypair...")
     private_key, public_key = KeyPairManager.generate_keypair()
     print(f"   Private key: {private_key[:8].hex()}... ({len(private_key)} bytes)")
     print(f"   Public key:  {public_key[:8].hex()}... ({len(public_key)} bytes)\n")
-    
+
     # Create memory
     content = "User asked about quantum computing"
     instance_id = "instance-001"
-    
+
     print(f"2. Creating memory: '{content}'")
     fingerprint, signature, verified = sign_and_verify(
         content, private_key, instance_id
     )
-    
+
     print(f"\n3. Memory fingerprint (SHA-384):")
     print(f"   {fingerprint.fingerprint[:64]}...")
     print(f"   Content hash:  {fingerprint.contentHash[:32]}...")
     print(f"   Metadata hash: {fingerprint.metadataHash[:32]}...\n")
-    
-    print(f"4. Memory signature (Ed25519):")
+
+    print("4. Memory signature (Ed25519):")
     print(f"   Signature: {signature.signature[:16].hex()}... ({len(signature.signature)} bytes)")
     print(f"   Signed by: {signature.signedBy}")
     print(f"   Verified:  {verified} ✓\n")
-    
+
     # Detect tampering
     print("5. Tampering detection:")
     tampered = "User asked about classical computing"  # Modified!
@@ -320,5 +320,5 @@ if __name__ == "__main__":
         tampered, "observation", signature.timestamp, fingerprint
     )
     print(f"   Modified content detected: {tampering_detected} ✓\n")
-    
+
     print("=== Pattern #1 + #2: Complete ===")

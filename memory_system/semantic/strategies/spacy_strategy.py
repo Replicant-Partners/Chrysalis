@@ -90,7 +90,7 @@ class SpacyStrategy(DecompositionStrategy):
     
     def supports_content_type(self, content_type: str) -> bool:
         """spaCy works best with natural language, not code."""
-        return content_type in ("natural_language", "mixed", "any")
+        return content_type in {"natural_language", "mixed", "any"}
     
     async def decompose(self, text: str, **kwargs) -> SemanticFrame:
         """
@@ -156,22 +156,22 @@ class SpacyStrategy(DecompositionStrategy):
         Uses dependency parsing to find SVO patterns.
         """
         triples = []
-        
+
         for token in doc:
             # Find nominal subjects
             if token.dep_ in ("nsubj", "nsubjpass") and token.head.pos_ == "VERB":
                 subject = self._get_compound_phrase(token)
                 predicate = token.head.lemma_
-                
+
                 # Find object
                 obj = None
-                
+
                 for child in token.head.children:
                     # Direct objects
                     if child.dep_ in ("dobj", "attr", "oprd"):
                         obj = self._get_compound_phrase(child)
                         break
-                    
+
                     # Clausal complements (e.g., "wants to build")
                     elif child.dep_ == "xcomp":
                         predicate = f"{predicate}_{child.lemma_}"
@@ -181,7 +181,7 @@ class SpacyStrategy(DecompositionStrategy):
                                 break
                         if obj:
                             break
-                    
+
                     # Prepositional objects (e.g., "works on X")
                     elif child.dep_ == "prep":
                         for pobj in child.children:
@@ -189,25 +189,26 @@ class SpacyStrategy(DecompositionStrategy):
                                 obj = self._get_compound_phrase(pobj)
                                 predicate = f"{predicate}_{child.lemma_}"
                                 break
-                
+
                 if obj:
                     triples.append(Triple(
                         subject=subject,
                         predicate=predicate.replace(" ", "_"),
                         object=obj
                     ))
-        
+
         # Also extract noun-prep-noun patterns
         for token in doc:
             if token.dep_ == "prep" and token.head.pos_ in ("NOUN", "PROPN"):
-                for pobj in token.children:
-                    if pobj.dep_ == "pobj":
-                        triples.append(Triple(
-                            subject=self._get_compound_phrase(token.head),
-                            predicate=token.lemma_,
-                            object=self._get_compound_phrase(pobj)
-                        ))
-        
+                triples.extend(
+                    Triple(
+                        subject=self._get_compound_phrase(token.head),
+                        predicate=token.lemma_,
+                        object=self._get_compound_phrase(pobj),
+                    )
+                    for pobj in token.children
+                    if pobj.dep_ == "pobj"
+                )
         return triples
     
     def _get_compound_phrase(self, token) -> str:
@@ -235,13 +236,15 @@ class SpacyStrategy(DecompositionStrategy):
         for ent in doc.ents:
             if ent.label_ in ("PRODUCT", "ORG", "WORK_OF_ART"):
                 return ent.text
-        
-        # Try noun chunks
-        for chunk in doc.noun_chunks:
-            if chunk.root.dep_ in ("dobj", "pobj"):
-                return chunk.text.replace(" ", "_")
-        
-        return "implicit"
+
+        return next(
+            (
+                chunk.text.replace(" ", "_")
+                for chunk in doc.noun_chunks
+                if chunk.root.dep_ in ("dobj", "pobj")
+            ),
+            "implicit",
+        )
     
     def _calculate_confidence(self, triples: List[Triple], doc) -> float:
         """

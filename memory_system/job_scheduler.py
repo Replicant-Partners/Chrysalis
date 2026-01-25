@@ -132,8 +132,8 @@ def parse_interval(interval_str: str) -> timedelta:
     if not match:
         raise ValueError(f"Invalid interval format: {interval_str}")
 
-    value = int(match.group(1))
-    unit = match.group(2)
+    value = int(match[1])
+    unit = match[2]
 
     if unit == 's':
         return timedelta(seconds=value)
@@ -373,9 +373,7 @@ class JobScheduler:
                     }
                 )
 
-                # Execute if we have an executor
-                executor = self._executors.get(job_id)
-                if executor:
+                if executor := self._executors.get(job_id):
                     await self._execute_job(record, executor)
 
             except Exception as e:

@@ -88,9 +88,7 @@ class RateLimiter:
                 ip = req.remote_addr
             elif hasattr(req, 'headers') and req.headers:
                 if 'X-Forwarded-For' in req.headers:
-                    # Handle proxy headers
-                    forwarded = req.headers['X-Forwarded-For']
-                    if forwarded:
+                    if forwarded := req.headers['X-Forwarded-For']:
                         ip = str(forwarded).split(',')[0].strip()
                 elif 'X-Real-Ip' in req.headers:
                     ip = req.headers['X-Real-Ip']
@@ -132,11 +130,11 @@ class RateLimiter:
             return
 
         with self.lock:
-            expired = []
-            for key, state in self.buckets.items():
-                # Bucket is expired if reset_time has passed + grace period (1 window)
-                if now > state.reset_time + self.config.window:
-                    expired.append(key)
+            expired = [
+                key
+                for key, state in self.buckets.items()
+                if now > state.reset_time + self.config.window
+            ]
             for key in expired:
                 del self.buckets[key]
 
@@ -363,8 +361,7 @@ def get_rate_limit_info(req, app=None) -> Dict[str, Any]:
 
     if app:
         limiters = getattr(app, 'extensions', {}).get('rate_limiter', {})
-        limiter = limiters.get('default')
-        if limiter:
+        if limiter := limiters.get('default'):
             return limiter.get_limit_info(req)
 
     return {}

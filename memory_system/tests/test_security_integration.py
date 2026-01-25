@@ -13,16 +13,13 @@ def memory_config():
     """Create a temporary memory configuration for testing."""
     test_dir = "./test_memory_data"
     os.makedirs(test_dir, exist_ok=True)
-    
-    config = MemoryConfig(
+
+    yield MemoryConfig(
         storage_path=test_dir,
         vector_store_type="chroma",
         embedding_model="text-embedding-3-small",
-        openai_api_key="sk-test-key"  # Mock key
+        openai_api_key="sk-test-key",  # Mock key
     )
-    
-    yield config
-    
     # Cleanup
     if os.path.exists(test_dir):
         shutil.rmtree(test_dir)

@@ -108,10 +108,10 @@ class TestRetryCall:
     def test_exhausts_retries(self):
         """Raises RetryExhaustedError when retries exhausted."""
         config = RetryConfig(max_retries=2, base_delay=0.01)
-        
+
         with pytest.raises(RetryExhaustedError) as exc_info:
-            retry_call(lambda: (_ for _ in ()).throw(Exception("always fails")), config)
-        
+            retry_call(lambda: iter(()).throw(Exception("always fails")), config)
+
         assert "exhausted" in str(exc_info.value).lower()
         assert exc_info.value.last_exception is not None
 

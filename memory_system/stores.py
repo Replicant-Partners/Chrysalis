@@ -153,21 +153,21 @@ class ChromaVectorStore(VectorStore):
         try:
             import chromadb
             from chromadb.config import Settings
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "chromadb required. Install with: pip install chromadb"
-            )
-        
+            ) from e
+
         self.collection_name = collection_name
         self.persist_directory = persist_directory
         self.embedding_function = embedding_function
-        
+
         # Initialize Chroma client
         self.client = chromadb.Client(Settings(
             persist_directory=persist_directory,
             anonymized_telemetry=False
         ))
-        
+
         # Get or create collection
         self.collection = self.client.get_or_create_collection(
             name=collection_name,
@@ -293,23 +293,23 @@ class FAISSVectorStore(VectorStore):
         try:
             import faiss
             import numpy as np
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
                 "faiss-cpu required. Install with: pip install faiss-cpu"
-            )
-        
+            ) from e
+
         self.dimension = dimension
         self.persist_directory = persist_directory
         self.embedding_function = embedding_function
-        
+
         # Initialize FAISS index
         self.index = faiss.IndexFlatL2(dimension)
-        
+
         # Metadata store (FAISS doesn't store metadata natively)
         self.metadata_store: Dict[int, MemoryEntry] = {}
         self.id_to_index: Dict[str, int] = {}
         self.next_index = 0
-        
+
         # Load if exists
         os.makedirs(persist_directory, exist_ok=True)
         self._load_index()
@@ -390,9 +390,7 @@ class FAISSVectorStore(VectorStore):
     def get_by_id(self, entry_id: str) -> Optional[MemoryEntry]:
         """Get specific memory by ID"""
         idx = self.id_to_index.get(entry_id)
-        if idx is not None:
-            return self.metadata_store.get(idx)
-        return None
+        return self.metadata_store.get(idx) if idx is not None else None
     
     def count(self) -> int:
         """Count total memories"""
@@ -401,11 +399,10 @@ class FAISSVectorStore(VectorStore):
     def delete(self, entry_id: str) -> bool:
         """Delete a memory (FAISS doesn't support deletion, mark as deleted)"""
         idx = self.id_to_index.get(entry_id)
-        if idx is not None:
-            if idx in self.metadata_store:
-                del self.metadata_store[idx]
-                del self.id_to_index[entry_id]
-                return True
+        if idx is not None and idx in self.metadata_store:
+            del self.metadata_store[idx]
+            del self.id_to_index[entry_id]
+            return True
         return False
     
     def _save_index(self):

@@ -243,25 +243,21 @@ class MemoryGossipProtocol:
         """
         if not self.config.anti_entropy_enabled:
             return {}
-        
+
         results = {}
-        
+
         for peer in self.peers.values():
             if not peer.active:
                 continue
-            
+
             # Get peer's memory IDs
             peer_memory_ids = await self._get_peer_memory_ids(peer)
-            
-            # Find memories we're missing
-            missing_from_us = peer_memory_ids - our_memory_ids
-            
-            # Request missing memories
-            if missing_from_us:
+
+            if missing_from_us := peer_memory_ids - our_memory_ids:
                 repaired = await self._request_specific_memories(peer, missing_from_us)
                 if repaired:
                     results[peer.instance_id] = repaired
-        
+
         return results
     
     def calculate_coverage(
@@ -299,10 +295,7 @@ class MemoryGossipProtocol:
         memory: EpisodicMemory
     ) -> bool:
         """Send memory to peer (implement via callback)"""
-        if self._send_callback:
-            return await self._send_callback(peer, memory)
-        # Simulate success in testing
-        return True
+        return await self._send_callback(peer, memory) if self._send_callback else True
     
     async def _request_memories(
         self,
@@ -381,20 +374,17 @@ class GossipScheduler:
         """Main gossip loop"""
         while self.running:
             try:
-                # Get memories to gossip
-                memories = self.memory_state.episodicMemories
-                
-                if memories:
+                if memories := self.memory_state.episodicMemories:
                     # Push-pull gossip
                     memory_ids = {m.memoryId for m in memories}
                     await self.protocol.push_pull_gossip(memories, memory_ids)
-                
+
                 # Increment round
                 self.protocol.current_round += 1
-                
+
                 # Wait for next interval
                 await asyncio.sleep(self.protocol.config.interval_ms / 1000.0)
-            
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
@@ -407,16 +397,14 @@ class GossipScheduler:
             try:
                 # Wait for anti-entropy interval
                 await asyncio.sleep(self.protocol.config.anti_entropy_interval_ms / 1000.0)
-                
+
                 # Get our memory IDs
                 our_memory_ids = {m.memoryId for m in self.memory_state.episodicMemories}
-                
+
                 # Get all memory IDs (from some global registry)
                 all_memory_ids = our_memory_ids  # Placeholder
-                
-                # Run anti-entropy
-                await self.protocol.anti_entropy(our_memory_ids, all_memory_ids)
-            
+
+                await self.protocol.anti_entropy(all_memory_ids, all_memory_ids)
             except asyncio.CancelledError:
                 break
             except Exception as e:

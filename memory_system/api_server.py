@@ -262,14 +262,12 @@ async def get_memory(memory_id: str, agent_id: str = Query(default="default")):
     """Get a memory by ID."""
     if not RUST_AVAILABLE:
         raise HTTPException(status_code=503, detail="Rust memory backend unavailable")
-    
+
     storage = state.get_storage(agent_id)
-    mem = storage.get(memory_id)
-    
-    if not mem:
+    if mem := storage.get(memory_id):
+        return _memory_to_response(mem, agent_id)
+    else:
         raise HTTPException(status_code=404, detail="Memory not found")
-    
-    return _memory_to_response(mem, agent_id)
 
 
 @app.delete("/memory/{memory_id}")

@@ -280,20 +280,16 @@ class SentenceTransformersProvider(EmbeddingProviderBase):
         """Generate embedding for single text."""
         # Run in executor to avoid blocking
         loop = asyncio.get_event_loop()
-        embedding = await loop.run_in_executor(
-            None,
-            lambda: self._model.encode(text).tolist()
+        return await loop.run_in_executor(
+            None, lambda: self._model.encode(text).tolist()
         )
-        return embedding
 
     async def embed_batch(self, texts: List[str]) -> List[List[float]]:
         """Generate embeddings for batch of texts."""
         loop = asyncio.get_event_loop()
-        embeddings = await loop.run_in_executor(
-            None,
-            lambda: self._model.encode(texts).tolist()
+        return await loop.run_in_executor(
+            None, lambda: self._model.encode(texts).tolist()
         )
-        return embeddings
 
     @property
     def dimensions(self) -> int:
@@ -649,15 +645,11 @@ class EmbeddingService:
 
     def get_cache_stats(self) -> Optional[Dict]:
         """Get cache statistics."""
-        if self._cache:
-            return self._cache.get_stats()
-        return None
+        return self._cache.get_stats() if self._cache else None
 
     def clear_cache(self) -> int:
         """Clear embedding cache."""
-        if self._cache:
-            return self._cache.clear()
-        return 0
+        return self._cache.clear() if self._cache else 0
 
     def close(self) -> None:
         """Close service and save cache."""

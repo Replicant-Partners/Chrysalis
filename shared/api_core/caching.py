@@ -192,21 +192,19 @@ def generate_cache_key(
         Cache key string
     """
     cfg = config or CacheConfig()
-    
+
     key_parts = [endpoint]
-    
+
     if cfg.include_query_params and query_params:
         sorted_params = sorted(query_params.items())
         key_parts.append(json.dumps(sorted_params))
-    
+
     if cfg.include_headers and headers:
-        selected_headers = {
-            k: v for k, v in headers.items()
-            if k in cfg.include_headers
-        }
-        if selected_headers:
+        if selected_headers := {
+            k: v for k, v in headers.items() if k in cfg.include_headers
+        }:
             key_parts.append(json.dumps(sorted(selected_headers.items())))
-    
+
     key_string = "|".join(key_parts)
     return hashlib.sha256(key_string.encode()).hexdigest()[:32]
 

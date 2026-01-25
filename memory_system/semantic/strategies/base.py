@@ -169,20 +169,16 @@ class DecompositionStrategy(ABC):
         Simple heuristic: find quoted strings, file paths, or class/function names.
         """
         import re
-        
-        # Try quoted strings first
-        quoted = re.findall(r'["\']([^"\']+)["\']', text)
-        if quoted:
+
+        if quoted := re.findall(r'["\']([^"\']+)["\']', text):
             return quoted[0]
-        
-        # Try file paths
-        paths = re.findall(r'\b[\w/\\]+\.\w{2,4}\b', text)
-        if paths:
+
+        if paths := re.findall(r'\b[\w/\\]+\.\w{2,4}\b', text):
             return paths[0]
-        
-        # Try CamelCase or snake_case identifiers
-        identifiers = re.findall(r'\b([A-Z][a-zA-Z0-9]+|[a-z]+_[a-z_]+)\b', text)
-        if identifiers:
+
+        if identifiers := re.findall(
+            r'\b([A-Z][a-zA-Z0-9]+|[a-z]+_[a-z_]+)\b', text
+        ):
             return identifiers[0]
-        
+
         return "implicit"

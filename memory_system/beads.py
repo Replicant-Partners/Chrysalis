@@ -233,20 +233,19 @@ class BeadsService:
         """
         params.append(limit)
         rows = self._conn.execute(query, params).fetchall()
-        results: List[Dict[str, Any]] = []
-        for row in rows:
-            results.append(
-                {
-                    "bead_id": row[0],
-                    "ts": row[1],
-                    "role": row[2],
-                    "content": row[3],
-                    "importance": row[4],
-                    "span_refs": json.loads(row[5]) if row[5] else [],
-                    "blob_uri": row[6],
-                    "metadata": json.loads(row[7]) if row[7] else {},
-                }
-            )
+        results: List[Dict[str, Any]] = [
+            {
+                "bead_id": row[0],
+                "ts": row[1],
+                "role": row[2],
+                "content": row[3],
+                "importance": row[4],
+                "span_refs": json.loads(row[5]) if row[5] else [],
+                "blob_uri": row[6],
+                "metadata": json.loads(row[7]) if row[7] else {},
+            }
+            for row in rows
+        ]
         return results
 
     def reset(self) -> None:
@@ -293,8 +292,7 @@ class BeadsService:
 
         if self.max_items:
             cur = self._conn.execute("SELECT bead_id FROM beads ORDER BY ts DESC LIMIT -1 OFFSET ?", (self.max_items,))
-            old_ids = [row[0] for row in cur.fetchall()]
-            if old_ids:
+            if old_ids := [row[0] for row in cur.fetchall()]:
                 self._conn.executemany("DELETE FROM beads WHERE bead_id = ?", [(bid,) for bid in old_ids])
                 pruned["max"] = len(old_ids)
 

@@ -811,26 +811,26 @@ class TestAgentMemoryFactory:
     async def test_create_from_config_beads_only(self):
         """Test creating services with BeadsService only (minimal config)."""
         from memory_system.agent_adapter import AgentMemoryConfig, AgentMemoryFactory
-        
+
         config = AgentMemoryConfig(
             agent_id="test-agent-v1",
             agent_name="test-agent",
             bead_capacity=25,
             fireproof_enabled=False,
         )
-        
+
         factory = AgentMemoryFactory()
         services = await factory.create_from_config(config)
-        
+
         try:
             assert services.beads is not None
             assert services.fireproof is None
             assert services.fusion is not None
-            
+
             # Test beads service works
             services.beads.append("Test content", importance=0.5)
-            assert len(list(services.beads.recent())) >= 1
-            
+            assert list(services.beads.recent())
+
             # Test fusion retrieval works
             result = await services.fusion.retrieve_async("test query")
             assert "beads" in result

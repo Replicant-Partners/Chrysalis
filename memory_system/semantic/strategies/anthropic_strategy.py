@@ -211,20 +211,20 @@ Respond with JSON ONLY."""
         if not text or not text.strip():
             from memory_system.semantic.exceptions import ValidationError
             raise ValidationError("Input text cannot be empty", "EMPTY_INPUT")
-        
+
         if not ANTHROPIC_AVAILABLE:
             logger.warning("Anthropic not available, returning fallback frame")
             return self._create_fallback_frame(text)
-        
+
         client = self._get_client()
         if client is None:
             logger.warning("Anthropic client not initialized, returning fallback frame")
             return self._create_fallback_frame(text)
-        
+
         model = kwargs.get("model_override", self.model)
         max_tokens = kwargs.get("max_tokens", self.max_tokens)
         temperature = kwargs.get("temperature", 0.0)  # Low temperature for structured output
-        
+
         try:
             # Call Anthropic Claude API
             response = client.messages.create(
@@ -239,33 +239,28 @@ Respond with JSON ONLY."""
                     }
                 ]
             )
-            
+
             content = response.content[0].text
-            
+
             # Parse JSON (with markdown cleanup if needed)
             data = self._parse_json_response(content)
-            
+
             # Add raw text
             data['raw'] = text
             data['strategy_used'] = self.name
-            
+
             # Map intent string to enum
             intent_str = data.get('intent', 'UNKNOWN').upper()
             try:
                 intent = Intent[intent_str]
             except KeyError:
                 intent = Intent.UNKNOWN
-            
-            # Convert triples to Triple objects
-            triples = []
-            for t in data.get('triples', []):
-                if len(t) == 3:
-                    triples.append(Triple(
-                        subject=t[0],
-                        predicate=t[1],
-                        object=t[2]
-                    ))
-            
+
+            triples = [
+                Triple(subject=t[0], predicate=t[1], object=t[2])
+                for t in data.get('triples', [])
+                if len(t) == 3
+            ]
             # Create frame
             frame = SemanticFrame(
                 intent=intent,
@@ -283,32 +278,30 @@ Respond with JSON ONLY."""
                     }
                 },
             )
-            
+
             # Apply confidence calibration if available
             if self.calibrator:
                 frame = self._calibrate_confidence(frame)
-            
+
             logger.debug(
                 f"Anthropic decomposition: intent={frame.intent.name}, "
                 f"confidence={frame.confidence:.3f}, triples={len(frame.triples)}"
             )
-            
+
             return frame
-            
+
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse Claude JSON response: {e}")
             from memory_system.semantic.exceptions import DecompositionError
             raise DecompositionError(
-                f"Invalid JSON from Claude: {e}",
-                "INVALID_JSON"
-            )
+                f"Invalid JSON from Claude: {e}", "INVALID_JSON"
+            ) from e
         except Exception as e:
             logger.error(f"Anthropic decomposition failed: {e}")
             from memory_system.semantic.exceptions import DecompositionError
             raise DecompositionError(
-                f"Anthropic decomposition failed: {e}",
-                "ANTHROPIC_ERROR"
-            )
+                f"Anthropic decomposition failed: {e}", "ANTHROPIC_ERROR"
+            ) from e
     
     def _parse_json_response(self, content: str) -> Dict[str, Any]:
         """

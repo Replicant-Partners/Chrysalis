@@ -160,20 +160,20 @@ def retry_call(
     """
     retry_config = config or RetryConfig()
     last_exception: Optional[Exception] = None
-    
+
     for attempt in range(retry_config.max_retries + 1):
         try:
             return func()
         except Exception as e:
             last_exception = e
-            
+
             # Check if we should retry
             if not should_retry(e, retry_config):
                 logger.warning(
                     f"Non-retryable exception: {type(e).__name__}: {e}"
                 )
                 raise
-            
+
             # Check if we have retries left
             if attempt >= retry_config.max_retries:
                 logger.error(
@@ -181,20 +181,19 @@ def retry_call(
                     f"Last error: {type(e).__name__}: {e}"
                 )
                 raise RetryExhaustedError(
-                    f"Retries exhausted after {attempt + 1} attempts",
-                    e
-                )
-            
+                    f"Retries exhausted after {attempt + 1} attempts", e
+                ) from e
+
             # Calculate delay
             delay = calculate_delay(attempt, retry_config)
-            
+
             logger.warning(
                 f"Attempt {attempt + 1} failed: {type(e).__name__}: {e}. "
                 f"Retrying in {delay:.2f}s..."
             )
-            
+
             time.sleep(delay)
-    
+
     # This should never be reached
     raise RetryExhaustedError(
         "Retries exhausted",
@@ -221,33 +220,32 @@ async def retry_async(
         RetryExhaustedError: If all retries are exhausted
     """
     import asyncio
-    
+
     retry_config = config or RetryConfig()
     last_exception: Optional[Exception] = None
-    
+
     for attempt in range(retry_config.max_retries + 1):
         try:
             return await func()
         except Exception as e:
             last_exception = e
-            
+
             if not should_retry(e, retry_config):
                 raise
-            
+
             if attempt >= retry_config.max_retries:
                 raise RetryExhaustedError(
-                    f"Retries exhausted after {attempt + 1} attempts",
-                    e
-                )
-            
+                    f"Retries exhausted after {attempt + 1} attempts", e
+                ) from e
+
             delay = calculate_delay(attempt, retry_config)
             logger.warning(
                 f"Attempt {attempt + 1} failed: {type(e).__name__}: {e}. "
                 f"Retrying in {delay:.2f}s..."
             )
-            
+
             await asyncio.sleep(delay)
-    
+
     raise RetryExhaustedError(
         "Retries exhausted",
         last_exception or Exception("Unknown error")

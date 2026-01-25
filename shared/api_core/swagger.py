@@ -37,14 +37,14 @@ def create_swagger_config(
         "specs": [
             {
                 "endpoint": "apispec",
-                "route": "/api/{}/openapi.json".format(api_version),
+                "route": f"/api/{api_version}/openapi.json",
                 "rule_filter": lambda rule: True,
                 "model_filter": lambda tag: True,
             }
         ],
         "static_url_path": "/flasgger_static",
         "swagger_ui": True,
-        "specs_route": "/api/{}/docs".format(api_version),
+        "specs_route": f"/api/{api_version}/docs",
         "info": {
             "title": title,
             "version": version,
@@ -59,34 +59,21 @@ def create_swagger_config(
                 "type": "apiKey",
                 "name": "Authorization",
                 "in": "header",
-                "description": "JWT token or API key in Bearer format. Example: 'Bearer YOUR_TOKEN'"
+                "description": "JWT token or API key in Bearer format. Example: 'Bearer YOUR_TOKEN'",
             }
         },
-        "security": [
-            {
-                "bearerAuth": []
-            }
-        ],
+        "security": [{"bearerAuth": []}],
         "tags": [
-            {
-                "name": "Agents",
-                "description": "Agent management endpoints"
-            },
+            {"name": "Agents", "description": "Agent management endpoints"},
             {
                 "name": "Knowledge",
-                "description": "Knowledge management endpoints"
+                "description": "Knowledge management endpoints",
             },
-            {
-                "name": "Skills",
-                "description": "Skill management endpoints"
-            },
-            {
-                "name": "Health",
-                "description": "Health check endpoints"
-            }
+            {"name": "Skills", "description": "Skill management endpoints"},
+            {"name": "Health", "description": "Health check endpoints"},
         ],
         "schemes": ["http", "https"],
-        "basePath": "/api/{}".format(api_version),
+        "basePath": f"/api/{api_version}",
     }
 
 

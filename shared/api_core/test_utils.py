@@ -68,23 +68,22 @@ def create_mock_auth_context(
 
     Works without Flask - returns AuthContext that can be used in tests.
     """
-    if not AUTH_CONTEXT_AVAILABLE:
-        # Return a simple mock if AuthContext not available
-        mock = Mock()
-        mock.user_id = user_id
-        mock.token_type = token_type
-        mock.roles = roles or ["user"]
-        mock.permissions = permissions or []
-        mock.has_role = lambda r: r in (roles or ["user"])
-        mock.has_permission = lambda p: p in (permissions or []) or "admin" in (roles or [])
-        return mock
-
-    return AuthContext(
-        user_id=user_id,
-        token_type=token_type,
-        roles=roles or ["user"],
-        permissions=permissions or []
-    )
+    if AUTH_CONTEXT_AVAILABLE:
+        return AuthContext(
+            user_id=user_id,
+            token_type=token_type,
+            roles=roles or ["user"],
+            permissions=permissions or []
+        )
+    # Return a simple mock if AuthContext not available
+    mock = Mock()
+    mock.user_id = user_id
+    mock.token_type = token_type
+    mock.roles = roles or ["user"]
+    mock.permissions = permissions or []
+    mock.has_role = lambda r: r in (roles or ["user"])
+    mock.has_permission = lambda p: p in (permissions or []) or "admin" in (roles or [])
+    return mock
 
 
 def mock_authenticate_request(return_value: Optional[AuthContext] = None):
@@ -202,8 +201,8 @@ def create_test_app_with_auth_bypass(app):
     # Import here to avoid circular dependencies
     try:
         from flask import Flask
-    except ImportError:
-        raise RuntimeError("Flask required for test app modification")
+    except ImportError as e:
+        raise RuntimeError("Flask required for test app modification") from e
 
     # Find all routes with @require_auth and remove the check
     # This is a bit hacky but works for testing

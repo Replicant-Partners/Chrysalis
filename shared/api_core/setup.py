@@ -2,15 +2,13 @@
 Setup script for Chrysalis API Core shared library.
 """
 
+
 from setuptools import setup, find_packages
 from pathlib import Path
 
 # Read README if it exists
 readme_file = Path(__file__).parent / "README.md"
-long_description = ""
-if readme_file.exists():
-    long_description = readme_file.read_text()
-
+long_description = readme_file.read_text() if readme_file.exists() else ""
 setup(
     name="chrysalis-api-core",
     version="1.0.0",

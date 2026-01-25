@@ -517,13 +517,13 @@ def create_memory_entry(
     Factory function to create a new memory entry with sensible defaults.
     """
     import uuid
-    
+
     return BridgeMemoryEntry(
         id=str(uuid.uuid4()),
         agent_id=agent_id,
         layer=layer,
         content=content,
-        timestamp=datetime.utcnow().isoformat() + "Z",
+        timestamp=f"{datetime.utcnow().isoformat()}Z",
         access_count=0,
         importance=importance,
         decay_rate=0.1,
@@ -551,7 +551,7 @@ def create_gossip_message(
         target_id=target_id,
         payload=payload,
         vector_clock=vector_clock,
-        timestamp=datetime.utcnow().isoformat() + "Z",
+        timestamp=f"{datetime.utcnow().isoformat()}Z",
         signature=signature,
         ttl=ttl,
     )

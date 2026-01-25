@@ -99,9 +99,7 @@ except ImportError:
             self._writer = writer
         def get(self) -> Optional[str]: return self._value
         def merge(self, other: 'LWWRegister') -> 'LWWRegister':
-            if self._timestamp >= other._timestamp:
-                return self
-            return other
+            return self if self._timestamp >= other._timestamp else other
 
     class MemoryDocument:
         """Stub MemoryDocument when Rust core not available"""
@@ -424,10 +422,7 @@ class AgentMemory:
                 # Log but continue without embedding
                 print(f"Embedding error: {e}")
 
-        # Store
-        mem_id = self.storage.put(memory)
-
-        return mem_id
+        return self.storage.put(memory)
 
     async def recall(
         self,
@@ -476,8 +471,9 @@ class AgentMemory:
             for memory in memories:
                 # Try to get memory's embedding
                 if memory.embedding_ref:
-                    emb_doc = self.storage.get_embedding_by_hash(memory.content_hash)
-                    if emb_doc:
+                    if emb_doc := self.storage.get_embedding_by_hash(
+                        memory.content_hash
+                    ):
                         similarity = self._cosine_similarity(
                             query_embedding,
                             emb_doc.get_vector()
@@ -562,9 +558,7 @@ class AgentMemory:
 
     async def sync_now(self) -> int:
         """Force immediate sync with gateway."""
-        if self.sync_manager:
-            return await self.sync_manager.sync()
-        return 0
+        return await self.sync_manager.sync() if self.sync_manager else 0
 
     async def _get_embedding(self, text: str) -> List[float]:
         """Get embedding for text, using cache."""
@@ -592,10 +586,7 @@ class AgentMemory:
         norm_a = sum(x * x for x in a) ** 0.5
         norm_b = sum(x * x for x in b) ** 0.5
 
-        if norm_a == 0 or norm_b == 0:
-            return 0.0
-
-        return dot / (norm_a * norm_b)
+        return 0.0 if norm_a == 0 or norm_b == 0 else dot / (norm_a * norm_b)
 
     @staticmethod
     def _text_match_score(query: str, content: str) -> float:

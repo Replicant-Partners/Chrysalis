@@ -138,8 +138,6 @@ async def ensure_async(
         return await func_or_coro
     elif callable(func_or_coro):
         result = func_or_coro(*args, **kwargs)
-        if asyncio.iscoroutine(result):
-            return await result
-        return result
+        return await result if asyncio.iscoroutine(result) else result
     else:
         raise TypeError(f"Expected callable or coroutine, got {type(func_or_coro)}")

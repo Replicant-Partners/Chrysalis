@@ -170,7 +170,7 @@ class YAGOClient:
         if not REQUESTS_AVAILABLE:
             logger.warning("requests library not available")
             return {"results": {"bindings": []}}
-        
+
         # Check cache
         if self.use_cache:
             query_hash = self._query_hash(query)
@@ -180,16 +180,16 @@ class YAGOClient:
                 (query_hash,)
             )
             row = cursor.fetchone()
-            
+
             if row and self._is_cache_valid(row["expires_at"]):
                 return json.loads(row["response"])
-        
+
         # Make request
         headers = {
             "Accept": "application/sparql-results+json",
             "User-Agent": self.user_agent,
         }
-        
+
         try:
             response = requests.post(
                 self.ENDPOINT,
@@ -199,32 +199,31 @@ class YAGOClient:
             )
             response.raise_for_status()
             result = response.json()
-            
+
         except Exception as e:
             logger.warning(f"YAGO query failed: {e}")
-            
-            if use_fallback:
-                try:
-                    response = requests.post(
-                        self.WIKIDATA_ENDPOINT,
-                        data={"query": query, "format": "json"},
-                        headers=headers,
-                        timeout=self.timeout,
-                    )
-                    response.raise_for_status()
-                    result = response.json()
-                except Exception as e2:
-                    logger.error(f"Fallback query also failed: {e2}")
-                    return {"results": {"bindings": []}}
-            else:
+
+            if not use_fallback:
                 return {"results": {"bindings": []}}
-        
+
+            try:
+                response = requests.post(
+                    self.WIKIDATA_ENDPOINT,
+                    data={"query": query, "format": "json"},
+                    headers=headers,
+                    timeout=self.timeout,
+                )
+                response.raise_for_status()
+                result = response.json()
+            except Exception as e2:
+                logger.error(f"Fallback query also failed: {e2}")
+                return {"results": {"bindings": []}}
         # Cache result
         if self.use_cache:
             query_hash = self._query_hash(query)
             now = datetime.now()
             expires = now + timedelta(days=self.CACHE_TTL_DAYS)
-            
+
             cursor = self._cache_conn.cursor()
             cursor.execute(
                 """
@@ -241,7 +240,7 @@ class YAGOClient:
                 )
             )
             self._cache_conn.commit()
-        
+
         return result
     
     def _escape_sparql(self, text: str) -> str:

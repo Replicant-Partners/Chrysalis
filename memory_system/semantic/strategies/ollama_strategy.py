@@ -180,14 +180,14 @@ Output JSON (no markdown, just JSON):
         if not text or not text.strip():
             from memory_system.semantic.exceptions import ValidationError
             raise ValidationError("Input text cannot be empty", "EMPTY_INPUT")
-        
+
         if not OLLAMA_AVAILABLE:
             logger.warning("Ollama not available, returning fallback frame")
             return self._create_fallback_frame(text)
-        
+
         model = kwargs.get("model_override", self.model)
         prompt = self.PROMPT_TEMPLATE.format(text=text)
-        
+
         try:
             # Call Ollama with grammar-constrained JSON
             response = ollama.chat(
@@ -198,33 +198,28 @@ Output JSON (no markdown, just JSON):
                 ],
                 format=self.JSON_SCHEMA
             )
-            
+
             content = response['message']['content']
-            
+
             # Parse JSON (with markdown cleanup if needed)
             data = self._parse_json_response(content)
-            
+
             # Add raw text
             data['raw'] = text
             data['strategy_used'] = self.name
-            
+
             # Map intent string to enum
             intent_str = data.get('intent', 'UNKNOWN').upper()
             try:
                 intent = Intent[intent_str]
             except KeyError:
                 intent = Intent.UNKNOWN
-            
-            # Convert triples to Triple objects
-            triples = []
-            for t in data.get('triples', []):
-                if len(t) == 3:
-                    triples.append(Triple(
-                        subject=t[0],
-                        predicate=t[1],
-                        object=t[2]
-                    ))
-            
+
+            triples = [
+                Triple(subject=t[0], predicate=t[1], object=t[2])
+                for t in data.get('triples', [])
+                if len(t) == 3
+            ]
             # Create frame
             frame = SemanticFrame(
                 intent=intent,
@@ -235,32 +230,30 @@ Output JSON (no markdown, just JSON):
                 strategy_used=self.name,
                 metadata=kwargs.get('metadata', {}),
             )
-            
+
             # Apply confidence calibration if available
             if self.calibrator:
                 frame = self._calibrate_confidence(frame)
-            
+
             logger.debug(
                 f"Ollama decomposition: intent={frame.intent.name}, "
                 f"confidence={frame.confidence:.3f}, triples={len(frame.triples)}"
             )
-            
+
             return frame
-            
+
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse Ollama JSON response: {e}")
             from memory_system.semantic.exceptions import DecompositionError
             raise DecompositionError(
-                f"Invalid JSON from Ollama: {e}",
-                "INVALID_JSON"
-            )
+                f"Invalid JSON from Ollama: {e}", "INVALID_JSON"
+            ) from e
         except Exception as e:
             logger.error(f"Ollama decomposition failed: {e}")
             from memory_system.semantic.exceptions import DecompositionError
             raise DecompositionError(
-                f"Ollama decomposition failed: {e}",
-                "OLLAMA_ERROR"
-            )
+                f"Ollama decomposition failed: {e}", "OLLAMA_ERROR"
+            ) from e
     
     def _parse_json_response(self, content: str) -> Dict[str, Any]:
         """

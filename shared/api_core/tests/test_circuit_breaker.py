@@ -53,15 +53,15 @@ class TestCircuitBreaker:
         """Open circuit rejects calls immediately."""
         config = CircuitBreakerConfig(failure_threshold=1)
         breaker = CircuitBreaker("test", config)
-        
+
         # Trigger open
         with pytest.raises(Exception):
-            breaker.call(lambda: (_ for _ in ()).throw(Exception("fail")))
-        
+            breaker.call(lambda: iter(()).throw(Exception("fail")))
+
         # Verify open and rejecting
         with pytest.raises(CircuitBreakerError) as exc_info:
             breaker.call(lambda: "should not run")
-        
+
         assert "OPEN" in str(exc_info.value)
         assert breaker.stats.rejected_calls == 1
 
@@ -69,16 +69,16 @@ class TestCircuitBreaker:
         """Circuit transitions to half-open after timeout."""
         config = CircuitBreakerConfig(failure_threshold=1, timeout=0.1)
         breaker = CircuitBreaker("test", config)
-        
+
         # Trigger open
         with pytest.raises(Exception):
-            breaker.call(lambda: (_ for _ in ()).throw(Exception("fail")))
-        
+            breaker.call(lambda: iter(()).throw(Exception("fail")))
+
         assert breaker.state == CircuitState.OPEN
-        
+
         # Wait for timeout
         time.sleep(0.15)
-        
+
         assert breaker.state == CircuitState.HALF_OPEN
 
     def test_closes_after_successful_half_open_calls(self):
@@ -89,53 +89,53 @@ class TestCircuitBreaker:
             timeout=0.1
         )
         breaker = CircuitBreaker("test", config)
-        
+
         # Trigger open
         with pytest.raises(Exception):
-            breaker.call(lambda: (_ for _ in ()).throw(Exception("fail")))
-        
+            breaker.call(lambda: iter(()).throw(Exception("fail")))
+
         # Wait for half-open
         time.sleep(0.15)
         assert breaker.state == CircuitState.HALF_OPEN
-        
+
         # Successful calls should close
         breaker.call(lambda: "ok")
         breaker.call(lambda: "ok")
-        
+
         assert breaker.state == CircuitState.CLOSED
 
     def test_reopens_on_failure_in_half_open(self):
         """Circuit reopens on failure in half-open state."""
         config = CircuitBreakerConfig(failure_threshold=1, timeout=0.1)
         breaker = CircuitBreaker("test", config)
-        
+
         # Trigger open
         with pytest.raises(Exception):
-            breaker.call(lambda: (_ for _ in ()).throw(Exception("fail")))
-        
+            breaker.call(lambda: iter(()).throw(Exception("fail")))
+
         # Wait for half-open
         time.sleep(0.15)
         assert breaker.state == CircuitState.HALF_OPEN
-        
+
         # Failure should reopen
         with pytest.raises(Exception):
-            breaker.call(lambda: (_ for _ in ()).throw(Exception("fail again")))
-        
+            breaker.call(lambda: iter(()).throw(Exception("fail again")))
+
         assert breaker.state == CircuitState.OPEN
 
     def test_reset_clears_state(self):
         """Reset returns circuit to closed state."""
         config = CircuitBreakerConfig(failure_threshold=1)
         breaker = CircuitBreaker("test", config)
-        
+
         # Trigger open
         with pytest.raises(Exception):
-            breaker.call(lambda: (_ for _ in ()).throw(Exception("fail")))
-        
+            breaker.call(lambda: iter(()).throw(Exception("fail")))
+
         assert breaker.state == CircuitState.OPEN
-        
+
         breaker.reset()
-        
+
         assert breaker.state == CircuitState.CLOSED
         assert breaker.stats.failed_calls == 0
 
@@ -233,15 +233,15 @@ class TestCallWithCircuitBreaker:
             "test_fallback",
             CircuitBreakerConfig(failure_threshold=1)
         )
-        
+
         # Trigger open
         with pytest.raises(Exception):
-            breaker.call(lambda: (_ for _ in ()).throw(Exception("fail")))
-        
+            breaker.call(lambda: iter(()).throw(Exception("fail")))
+
         result = call_with_circuit_breaker(
             "test_fallback",
             lambda: "should not run",
             fallback=lambda: "fallback used"
         )
-        
+
         assert result == "fallback used"

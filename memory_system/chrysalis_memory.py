@@ -386,9 +386,8 @@ class ChrysalisMemory:
         results = []
         
         for memory in self.state.episodicMemories:
-            if query_lower in memory.content.lower():
-                if not memory_types or memory.memoryType.value in memory_types:
-                    results.append(memory)
+            if query_lower in memory.content.lower() and (not memory_types or memory.memoryType.value in memory_types):
+                results.append(memory)
         
         return results
     

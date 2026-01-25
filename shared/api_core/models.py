@@ -386,12 +386,12 @@ class RequestValidator:
         value = RequestValidator.require_field(data, field)
         try:
             value = int(value)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as e:
             raise ValidationError(
                 f"Field '{field}' must be an integer",
                 field=field,
                 code=ErrorCode.INVALID_TYPE.value,
-            )
+            ) from e
         if min_value is not None and value < min_value:
             raise ValidationError(
                 f"Field '{field}' must be at least {min_value}",

@@ -141,26 +141,21 @@ class NetworkXAdapter(GraphStoreBase):
     ) -> List[Dict[str, Any]]:
         # Handle fuzzy matching
         if entity not in self._graph:
-            candidates = self.find_similar_nodes(entity)
-            if not candidates:
+            if candidates := self.find_similar_nodes(entity):
+                entity = candidates[0][0]
+
+            else:
                 return []
-            entity = candidates[0][0]
-        
         # BFS traversal
         try:
             related = list(nx.bfs_tree(self._graph, entity, depth_limit=depth))
         except nx.NetworkXError:
             return []
-        
+
         # Limit results
         related = related[:max_results]
-        
-        # Build result dicts
-        results = []
-        for node_id in related:
-            results.append(self.get_node(node_id))
-        
-        return results
+
+        return [self.get_node(node_id) for node_id in related]
     
     def find_path(
         self,
@@ -170,16 +165,14 @@ class NetworkXAdapter(GraphStoreBase):
     ) -> Optional[List[str]]:
         if source not in self._graph or target not in self._graph:
             return None
-        
+
         try:
             path = nx.shortest_path(
                 self._graph,
                 source=source,
                 target=target
             )
-            if len(path) > max_depth:
-                return None
-            return path
+            return None if len(path) > max_depth else path
         except (nx.NetworkXNoPath, nx.NetworkXError):
             return None
     
@@ -204,26 +197,25 @@ class NetworkXAdapter(GraphStoreBase):
         return results
     
     def export_json(self) -> Dict[str, Any]:
-        nodes = []
-        for node_id in self._graph.nodes():
-            nodes.append({"id": node_id, **self._graph.nodes[node_id]})
-        
-        edges = []
-        for source, target in self._graph.edges():
-            edges.append({
+        nodes = [
+            {"id": node_id, **self._graph.nodes[node_id]}
+            for node_id in self._graph.nodes()
+        ]
+        edges = [
+            {
                 "source": source,
                 "target": target,
-                **self._graph.edges[source, target]
-            })
-        
+                **self._graph.edges[source, target],
+            }
+            for source, target in self._graph.edges()
+        ]
         return {"nodes": nodes, "edges": edges}
     
     def import_json(self, data: Dict[str, Any]) -> None:
         for node in data.get("nodes", []):
-            node_id = node.pop("id", node.pop("name", None))
-            if node_id:
+            if node_id := node.pop("id", node.pop("name", None)):
                 self._graph.add_node(node_id, **node)
-        
+
         for edge in data.get("edges", []):
             source = edge.pop("source")
             target = edge.pop("target")
@@ -353,10 +345,10 @@ class SQLiteAdapter(GraphStoreBase):
         row = cursor.fetchone()
         if row is None:
             return None
-        
+
         result = {"id": row["id"], "type": row["type"], "path": row["path"]}
         if row["metadata"]:
-            result.update(json.loads(row["metadata"]))
+            result |= json.loads(row["metadata"])
         return result
     
     def get_edge(self, source: str, target: str) -> Optional[Dict[str, Any]]:
@@ -368,14 +360,14 @@ class SQLiteAdapter(GraphStoreBase):
         row = cursor.fetchone()
         if row is None:
             return None
-        
+
         result = {
             "source": row["source"],
             "target": row["target"],
             "type": row["type"],
         }
         if row["metadata"]:
-            result.update(json.loads(row["metadata"]))
+            result |= json.loads(row["metadata"])
         return result
     
     def remove_node(self, node_id: str) -> bool:
@@ -426,23 +418,23 @@ class SQLiteAdapter(GraphStoreBase):
     def neighbors(self, node_id: str, direction: str = "both") -> List[str]:
         conn = self._get_conn()
         results = set()
-        
-        if direction in ("out", "both"):
+
+        if direction in {"out", "both"}:
             cursor = conn.execute(
                 "SELECT target FROM edges WHERE source = ?",
                 (node_id,)
             )
             for row in cursor:
                 results.add(row[0])
-        
-        if direction in ("in", "both"):
+
+        if direction in {"in", "both"}:
             cursor = conn.execute(
                 "SELECT source FROM edges WHERE target = ?",
                 (node_id,)
             )
             for row in cursor:
                 results.add(row[0])
-        
+
         return list(results)
     
     async def find_related(
@@ -453,32 +445,31 @@ class SQLiteAdapter(GraphStoreBase):
     ) -> List[Dict[str, Any]]:
         # Handle fuzzy matching
         if not self.has_node(entity):
-            candidates = self.find_similar_nodes(entity)
-            if not candidates:
+            if candidates := self.find_similar_nodes(entity):
+                entity = candidates[0][0]
+
+            else:
                 return []
-            entity = candidates[0][0]
-        
         # BFS traversal using SQL
         visited = set()
         queue = [(entity, 0)]
         results = []
-        
+
         while queue and len(results) < max_results:
             current, current_depth = queue.pop(0)
-            
+
             if current in visited:
                 continue
             visited.add(current)
-            
-            node = self.get_node(current)
-            if node:
+
+            if node := self.get_node(current):
                 results.append(node)
-            
+
             if current_depth < depth:
                 for neighbor in self.neighbors(current, direction="both"):
                     if neighbor not in visited:
                         queue.append((neighbor, current_depth + 1))
-        
+
         return results[:max_results]
     
     def find_path(
@@ -516,12 +507,12 @@ class SQLiteAdapter(GraphStoreBase):
             "SELECT * FROM nodes WHERE type = ?",
             (node_type,)
         )
-        
+
         results = []
         for row in cursor:
             result = {"id": row["id"], "type": row["type"], "path": row["path"]}
             if row["metadata"]:
-                result.update(json.loads(row["metadata"]))
+                result |= json.loads(row["metadata"])
             results.append(result)
         return results
     
@@ -531,7 +522,7 @@ class SQLiteAdapter(GraphStoreBase):
             "SELECT * FROM edges WHERE type = ?",
             (edge_type,)
         )
-        
+
         results = []
         for row in cursor:
             result = {
@@ -540,21 +531,21 @@ class SQLiteAdapter(GraphStoreBase):
                 "type": row["type"],
             }
             if row["metadata"]:
-                result.update(json.loads(row["metadata"]))
+                result |= json.loads(row["metadata"])
             results.append(result)
         return results
     
     def export_json(self) -> Dict[str, Any]:
         conn = self._get_conn()
-        
+
         nodes = []
         cursor = conn.execute("SELECT * FROM nodes")
         for row in cursor:
             node = {"id": row["id"], "type": row["type"], "path": row["path"]}
             if row["metadata"]:
-                node.update(json.loads(row["metadata"]))
+                node |= json.loads(row["metadata"])
             nodes.append(node)
-        
+
         edges = []
         cursor = conn.execute("SELECT * FROM edges")
         for row in cursor:
@@ -564,9 +555,9 @@ class SQLiteAdapter(GraphStoreBase):
                 "type": row["type"],
             }
             if row["metadata"]:
-                edge.update(json.loads(row["metadata"]))
+                edge |= json.loads(row["metadata"])
             edges.append(edge)
-        
+
         return {"nodes": nodes, "edges": edges}
     
     def import_json(self, data: Dict[str, Any]) -> None:
@@ -618,16 +609,10 @@ class GraphStore:
             **kwargs: Backend-specific options
         """
         self._adapter: GraphStoreBase
-        
+
         if backend == "auto":
             # Prefer NetworkX for in-memory, SQLite if path provided
-            if path:
-                backend = "sqlite"
-            elif NETWORKX_AVAILABLE:
-                backend = "networkx"
-            else:
-                backend = "sqlite"
-        
+            backend = "sqlite" if path or not NETWORKX_AVAILABLE else "networkx"
         if backend == "networkx":
             self._adapter = NetworkXAdapter()
         elif backend == "sqlite":
@@ -637,7 +622,7 @@ class GraphStore:
                 f"Unknown backend: {backend}",
                 "INVALID_BACKEND"
             )
-        
+
         logger.info(f"GraphStore initialized with backend: {self._adapter.backend_name}")
     
     @property

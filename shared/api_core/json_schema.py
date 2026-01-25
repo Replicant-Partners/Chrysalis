@@ -242,24 +242,30 @@ def validate_json_schema(
     if not JSONSCHEMA_AVAILABLE:
         logger.warning("jsonschema not installed, skipping validation")
         return
-    
+
     try:
         validate(instance=data, schema=schema)
     except JsonSchemaValidationError as e:
         # Extract field path
         field_path = ".".join(str(p) for p in e.absolute_path) if e.absolute_path else None
-        
+
         # Create detailed error
         raise SchemaValidationError(
             message=e.message,
             field=field_path,
             schema_path=schema_name,
-            errors=[{
-                "path": field_path,
-                "message": e.message,
-                "schema_path": ".".join(str(p) for p in e.schema_path) if e.schema_path else None,
-            }]
-        )
+            errors=[
+                {
+                    "path": field_path,
+                    "message": e.message,
+                    "schema_path": (
+                        ".".join(str(p) for p in e.schema_path)
+                        if e.schema_path
+                        else None
+                    ),
+                }
+            ],
+        ) from e
 
 
 def validate_request_schema(schema_name: str):
@@ -332,18 +338,16 @@ def get_all_validation_errors(
     """
     if not JSONSCHEMA_AVAILABLE or Draft7Validator is None:
         return []
-    
+
     validator = Draft7Validator(schema)
-    errors = []
-    
-    for error in validator.iter_errors(data):
-        errors.append({
+    return [
+        {
             "path": ".".join(str(p) for p in error.absolute_path),
             "message": error.message,
             "schema_path": ".".join(str(p) for p in error.schema_path),
-        })
-    
-    return errors
+        }
+        for error in validator.iter_errors(data)
+    ]
 
 
 def register_schema(name: str, schema: Dict[str, Any]) -> None:

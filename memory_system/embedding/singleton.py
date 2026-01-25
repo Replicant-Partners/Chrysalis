@@ -185,7 +185,7 @@ class EmbeddingServiceSingleton:
             provider_str = provider.value
         else:
             provider_str = provider
-        
+
         # API key from environment
         if api_key is None:
             env_key_map = {
@@ -193,10 +193,9 @@ class EmbeddingServiceSingleton:
                 "openai": "OPENAI_API_KEY",
                 "anthropic": "ANTHROPIC_API_KEY",
             }
-            env_key = env_key_map.get(provider_str)
-            if env_key:
+            if env_key := env_key_map.get(provider_str):
                 api_key = os.environ.get(env_key)
-        
+
         # Base URL from environment
         if base_url is None:
             env_url_map = {
@@ -204,16 +203,14 @@ class EmbeddingServiceSingleton:
                 "openai": "OPENAI_BASE_URL",
                 "ollama": "OLLAMA_BASE_URL",
             }
-            env_url = env_url_map.get(provider_str)
-            if env_url:
+            if env_url := env_url_map.get(provider_str):
                 base_url = os.environ.get(env_url)
-        
+
         # Cache path from environment
         if cache_path is None:
-            cache_env = os.environ.get("EMBEDDING_CACHE_PATH")
-            if cache_env:
+            if cache_env := os.environ.get("EMBEDDING_CACHE_PATH"):
                 cache_path = Path(cache_env)
-        
+
         return api_key, base_url, cache_path
     
     @classmethod

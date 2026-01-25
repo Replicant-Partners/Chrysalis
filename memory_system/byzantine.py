@@ -99,10 +99,7 @@ class ByzantineMemoryValidator:
         - Median comes from honest majority
         - Cannot be manipulated by minority
         """
-        if not values:
-            return 0.0
-        
-        return statistics.median(values)
+        return statistics.median(values) if values else 0.0
     
     @staticmethod
     def mode(values: List[float]) -> float:
@@ -138,29 +135,26 @@ class ByzantineMemoryValidator:
         Returns: ByzantineValidation with aggregated results
         """
         threshold = ByzantineMemoryValidator.calculate_threshold(total_instances)
-        
+
         # Extract confidence scores
         confidence_scores = [v.confidence for v in votes]
         verified_by = [v.instance_id for v in votes]
-        
+
         # Calculate Byzantine-resistant aggregates
         trimmed_mean = ByzantineMemoryValidator.trimmed_mean(confidence_scores)
         median_value = ByzantineMemoryValidator.median(confidence_scores)
-        
+
         # Check threshold
         meets_threshold = len(votes) >= threshold
-        
-        # Create validation
-        validation = ByzantineValidation(
+
+        return ByzantineValidation(
             verifiedBy=verified_by,
             confidenceScores=confidence_scores,
             trimmedMean=trimmed_mean,
             median=median_value,
             threshold=meets_threshold,
-            requiredVotes=threshold
+            requiredVotes=threshold,
         )
-        
-        return validation
     
     @staticmethod
     def aggregate_knowledge_confidence(
@@ -200,16 +194,13 @@ class ByzantineMemoryValidator:
         
         Returns: Set of instance IDs that might be Byzantine
         """
-        suspicious = set()
-        
         min_expected, max_expected = expected_range
-        
-        for vote in votes:
-            # Check if outside expected range
-            if vote.confidence < min_expected or vote.confidence > max_expected:
-                suspicious.add(vote.instance_id)
-        
-        return suspicious
+
+        return {
+            vote.instance_id
+            for vote in votes
+            if vote.confidence < min_expected or vote.confidence > max_expected
+        }
     
     @staticmethod
     def weighted_confidence(
@@ -257,7 +248,8 @@ class SupermajorityChecker:
         if not votes:
             return False
         
-        yes_votes = sum(1 for v in votes if v)
+        yes_votes = sum(bool(v)
+                    for v in votes)
         required = len(votes) * threshold
         
         return yes_votes >= required
@@ -272,7 +264,8 @@ class SupermajorityChecker:
         
         Returns: (decision, yes_count, required_count)
         """
-        yes_count = sum(1 for v in votes.values() if v)
+        yes_count = sum(bool(v)
+                    for v in votes.values())
         total = len(votes)
         required = int(total * required_threshold)
         
@@ -301,24 +294,21 @@ class ByzantineScenarioTester:
         Honest nodes vote close to honest_value
         Byzantine nodes vote byzantine_value (malicious)
         """
-        votes = []
-        
-        # Honest votes
-        for i in range(honest_count):
-            votes.append(ValidationVote(
-                instance_id=f"honest-{i}",
-                confidence=honest_value,
-                timestamp=0.0
-            ))
-        
+        votes = [
+            ValidationVote(
+                instance_id=f"honest-{i}", confidence=honest_value, timestamp=0.0
+            )
+            for i in range(honest_count)
+        ]
         # Byzantine votes
-        for i in range(byzantine_count):
-            votes.append(ValidationVote(
+        votes.extend(
+            ValidationVote(
                 instance_id=f"byzantine-{i}",
                 confidence=byzantine_value,
-                timestamp=0.0
-            ))
-        
+                timestamp=0.0,
+            )
+            for i in range(byzantine_count)
+        )
         return votes
     
     @staticmethod

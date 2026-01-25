@@ -98,7 +98,7 @@ async def lifespan(app: FastAPI):
 
     # Initialize beads service
     db_path = os.environ.get("BEADS_DB_PATH", "data/beads.db")
-    os.makedirs(os.path.dirname(db_path) if os.path.dirname(db_path) else ".", exist_ok=True)
+    os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
 
     beads_service = BeadsService(
         path=db_path,
@@ -168,9 +168,7 @@ async def create_bead(bead: BeadCreate):
         metadata=metadata,
     )
 
-    # Retrieve the created bead
-    beads = beads_service.recent(limit=1)
-    if beads:
+    if beads := beads_service.recent(limit=1):
         b = beads[0]
         return BeadResponse(
             id=b["bead_id"],
@@ -229,18 +227,17 @@ async def get_bead(bead_id: str):
     if not beads_service:
         raise HTTPException(status_code=503, detail="Beads service not initialized")
 
-    bead = beads_service.get(bead_id)
-    if not bead:
+    if bead := beads_service.get(bead_id):
+        return BeadResponse(
+            id=bead["bead_id"],
+            content=bead["content"],
+            role=bead["role"],
+            importance=bead["importance"],
+            timestamp=bead["ts"],
+            metadata=bead.get("metadata"),
+        )
+    else:
         raise HTTPException(status_code=404, detail=f"Bead {bead_id} not found")
-
-    return BeadResponse(
-        id=bead["bead_id"],
-        content=bead["content"],
-        role=bead["role"],
-        importance=bead["importance"],
-        timestamp=bead["ts"],
-        metadata=bead.get("metadata"),
-    )
 
 
 @app.delete("/beads/{bead_id}")

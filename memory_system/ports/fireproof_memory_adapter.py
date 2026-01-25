@@ -126,8 +126,7 @@ class FireproofMemoryAdapter(AgentMemoryPort):
             options["filter"] = {"metadata.agent_id": query.agent_id}
         else:
             options["key"] = query.agent_id
-        docs = await fp.query(index, options)
-        return docs
+        return await fp.query(index, options)
 
     async def record_metadata(self, metadata: PromptMetadataInput) -> None:
         fp = await self._fireproof()

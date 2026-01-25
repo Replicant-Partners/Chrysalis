@@ -208,18 +208,18 @@ class ChunkConverter:
         # Sentence splitting regex
         sentence_pattern = r'(?<=[.!?])\s+(?=[A-Z])'
         sentences = re.split(sentence_pattern, text)
-        
+
         chunks = []
         current_chunk = ""
         current_start = 0
         index = 0
         char_pos = 0
-        
+
         for sentence in sentences:
             sentence = sentence.strip()
             if not sentence:
                 continue
-            
+
             # Check if adding this sentence exceeds chunk size
             if current_chunk and len(current_chunk) + len(sentence) + 1 > self.chunk_size:
                 # Save current chunk
@@ -231,7 +231,7 @@ class ChunkConverter:
                         end_char=char_pos,
                     ))
                     index += 1
-                
+
                 # Start new chunk with overlap
                 if self.overlap > 0 and current_chunk:
                     # Get last N characters for overlap
@@ -240,20 +240,20 @@ class ChunkConverter:
                     space_idx = overlap_text.find(" ")
                     if space_idx > 0:
                         overlap_text = overlap_text[space_idx:].strip()
-                    current_chunk = overlap_text + " " + sentence
+                    current_chunk = f"{overlap_text} {sentence}"
                     current_start = char_pos - len(overlap_text)
                 else:
                     current_chunk = sentence
                     current_start = char_pos
             else:
                 if current_chunk:
-                    current_chunk += " " + sentence
+                    current_chunk += f" {sentence}"
                 else:
                     current_chunk = sentence
                     current_start = char_pos
-            
+
             char_pos += len(sentence) + 1
-        
+
         # Add remaining chunk
         if current_chunk and len(current_chunk) >= self.min_chunk_size:
             chunks.append(Chunk(
@@ -262,7 +262,7 @@ class ChunkConverter:
                 start_char=current_start,
                 end_char=char_pos,
             ))
-        
+
         return chunks
     
     def _split_paragraph(self, text: str) -> List[Chunk]:
@@ -322,29 +322,29 @@ class ChunkConverter:
         # - Markdown headings
         # - Section dividers
         # - List items
-        
+
         boundary_pattern = r'(?=^#{1,6}\s|\n---\n|\n\*\*\*\n|\n___\n)'
         sections = re.split(boundary_pattern, text, flags=re.MULTILINE)
-        
+
         chunks = []
         current_chunk = ""
         current_start = 0
         current_section = None
         index = 0
         char_pos = 0
-        
+
         for section in sections:
             section = section.strip()
             if not section:
                 continue
-            
-            # Detect section heading
-            heading_match = re.match(r'^(#{1,6})\s+(.+?)$', section, re.MULTILINE)
-            if heading_match:
-                section_name = heading_match.group(2)
+
+            if heading_match := re.match(
+                r'^(#{1,6})\s+(.+?)$', section, re.MULTILINE
+            ):
+                section_name = heading_match[2]
             else:
                 section_name = None
-            
+
             # Check if adding this section exceeds chunk size
             if current_chunk and len(current_chunk) + len(section) + 2 > self.chunk_size:
                 # Save current chunk
@@ -357,7 +357,7 @@ class ChunkConverter:
                         section=current_section,
                     ))
                     index += 1
-                
+
                 # Start new chunk
                 current_chunk = section
                 current_start = char_pos
@@ -369,9 +369,9 @@ class ChunkConverter:
                     current_chunk = section
                     current_start = char_pos
                     current_section = section_name
-            
+
             char_pos += len(section) + 2
-        
+
         # Add remaining chunk
         if current_chunk and len(current_chunk) >= self.min_chunk_size:
             chunks.append(Chunk(
@@ -381,7 +381,7 @@ class ChunkConverter:
                 end_char=char_pos,
                 section=current_section,
             ))
-        
+
         return chunks
     
     def _split_token(self, text: str) -> List[Chunk]:
@@ -467,12 +467,11 @@ class ChunkConverter:
         """
         if not text:
             return 0
-        
-        if self.strategy == ChunkStrategy.TOKEN and self.tokenizer:
-            tokens = len(self.tokenizer(text))
-            return max(1, (tokens + self.chunk_size - 1) // self.chunk_size)
-        else:
+
+        if self.strategy != ChunkStrategy.TOKEN or not self.tokenizer:
             return max(1, (len(text) + self.chunk_size - 1) // self.chunk_size)
+        tokens = len(self.tokenizer(text))
+        return max(1, (tokens + self.chunk_size - 1) // self.chunk_size)
     
     def merge_chunks(
         self, 
@@ -492,13 +491,9 @@ class ChunkConverter:
         # Handle overlap
         texts = []
         for i, chunk in enumerate(chunks):
-            if i == 0:
-                texts.append(chunk.content)
+            if i != 0 and chunk.overlap_start > 0:
+                texts.append(chunk.content[chunk.overlap_start:])
             else:
-                # Skip overlap portion
-                if chunk.overlap_start > 0:
-                    texts.append(chunk.content[chunk.overlap_start:])
-                else:
-                    texts.append(chunk.content)
-        
+                texts.append(chunk.content)
+
         return separator.join(texts)

@@ -10,10 +10,10 @@ def test_append_and_recent(tmp_path: Path):
     db_path = tmp_path / "beads.db"
     beads = BeadsService(path=str(db_path), max_items=3)
 
-    ids = []
-    for i in range(4):
-        ids.append(beads.append(f"msg-{i}", role="assistant", importance=0.2 + i * 0.1))
-
+    ids = [
+        beads.append(f"msg-{i}", role="assistant", importance=0.2 + i * 0.1)
+        for i in range(4)
+    ]
     recent = beads.recent(limit=5)
     # max_items=3 prunes oldest, so should keep last 3
     assert len(recent) == 3

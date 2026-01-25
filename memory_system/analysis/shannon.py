@@ -215,48 +215,43 @@ class ShannonAnalyzer:
         Returns:
             Combined AnalysisResult
         """
-        edge_types = []
         node_types = []
-        
+
+        edge_types = []
         # Collect edge types
         if include_edges:
             for source, target in graph_store.edges():
-                edge = graph_store.get_edge(source, target)
-                if edge:
+                if edge := graph_store.get_edge(source, target):
                     edge_types.append(edge.get("type", "unknown"))
-        
+
         # Collect node types
         if include_nodes:
             for node_id in graph_store.nodes():
-                node = graph_store.get_node(node_id)
-                if node:
+                if node := graph_store.get_node(node_id):
                     node_types.append(node.get("type", "entity"))
-        
+
         # Analyze edge type distribution (primary focus)
         result = self.analyze_distribution(edge_types)
-        
+
         # Add node analysis if requested
         if include_nodes and node_types:
             node_result = self.analyze_distribution(node_types)
             result.recommendations.append(
                 f"Node type entropy: {node_result.normalized_entropy:.2%}"
             )
-        
+
         # Add graph-specific metrics
         node_count = graph_store.node_count()
         edge_count = graph_store.edge_count()
-        
+
         if node_count > 0:
             result.information_density = edge_count / node_count
             result.recommendations.append(
                 f"Information density: {result.information_density:.2f} edges/node"
             )
-        
-        result.summary = (
-            f"Graph analysis: {node_count} nodes, {edge_count} edges. "
-            + result.summary
-        )
-        
+
+        result.summary = f"Graph analysis: {node_count} nodes, {edge_count} edges. {result.summary}"
+
         return result
     
     def detect_redundancy(
@@ -328,19 +323,15 @@ class ShannonAnalyzer:
             Dict of entity_id -> density_score
         """
         densities = {}
-        
+
         for entity_id, data in entities.items():
             relationships = data.get("relationships", 0)
             unique_types = data.get("unique_types", 0)
-            
+
             # Density = unique types / total relationships (0-1)
-            if relationships > 0:
-                density = unique_types / relationships
-            else:
-                density = 0.0
-            
+            density = unique_types / relationships if relationships > 0 else 0.0
             densities[entity_id] = density
-        
+
         return densities
     
     def estimate_signal_to_noise(
@@ -360,21 +351,14 @@ class ShannonAnalyzer:
         """
         if not items:
             return 1.0
-        
+
         if noise_patterns is None:
             noise_patterns = [
                 "it", "this", "that", "thing", "stuff", 
                 "item", "object", "unknown", "other",
             ]
-        
-        noise_count = 0
-        for item in items:
-            # Short items (likely noise)
-            if len(item) <= 2:
-                noise_count += 1
-            # Generic terms
-            elif item.lower() in noise_patterns:
-                noise_count += 1
-        
+
+        noise_count = sum(bool(len(item) <= 2 or len(item) > 2 and item.lower() in noise_patterns)
+                      for item in items)
         signal_count = len(items) - noise_count
         return signal_count / len(items) if items else 1.0

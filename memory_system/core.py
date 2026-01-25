@@ -291,31 +291,35 @@ class Memory:
         - Retrieved relevant memories (if query provided)
         """
         context_parts = []
-        
+
         # Core memory
         if self._core_memory:
             context_parts.append("=== Core Memory ===")
-            for key, value in self._core_memory.items():
-                context_parts.append(f"{key}: {value}")
+            context_parts.extend(
+                f"{key}: {value}" for key, value in self._core_memory.items()
+            )
             context_parts.append("")
-        
+
         # Working memory
         if include_working and self._working_memory:
             context_parts.append("=== Recent Context ===")
-            for entry in self._working_memory[-5:]:  # Last 5
-                context_parts.append(f"- {entry.content}")
+            context_parts.extend(
+                f"- {entry.content}" for entry in self._working_memory[-5:]
+            )
             context_parts.append("")
-        
+
         # Retrieved memories
         if query:
             self._ensure_initialized()
             results = self.search(query, limit=3)
             if results.entries:
                 context_parts.append("=== Relevant Memories ===")
-                for entry in results.entries:
-                    context_parts.append(f"- [{entry.memory_type}] {entry.content}")
+                context_parts.extend(
+                    f"- [{entry.memory_type}] {entry.content}"
+                    for entry in results.entries
+                )
                 context_parts.append("")
-        
+
         return "\n".join(context_parts)
     
     # Statistics

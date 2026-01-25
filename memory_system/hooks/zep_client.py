@@ -124,7 +124,7 @@ class ZepClient:
                     extra={
                         "attempt": attempt,
                         "path": path,
-                        "error": str(exc),
+                        "error": str(last_error),
                         "project": self.project,
                     },
                 )

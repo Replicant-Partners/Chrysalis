@@ -142,9 +142,8 @@ class RetrievalEngine:
         
         for entry, relevance_score in zip(results.entries, results.scores):
             # Temporal filter
-            if time_window:
-                if entry.timestamp < now - time_window:
-                    continue
+            if time_window and entry.timestamp < now - time_window:
+                continue
             
             # Metadata filters
             if metadata_filters:

@@ -133,64 +133,58 @@ class HeuristicStrategy(DecompositionStrategy):
         """
         text_lower = text.lower()
         words = set(re.findall(r'\b\w+\b', text_lower))
-        
+
         scores = {}
         for intent, keywords in self.INTENT_KEYWORDS.items():
             score = len(words & keywords)
             if score > 0:
                 scores[intent] = score
-        
-        if scores:
-            return max(scores, key=scores.get)
-        
-        return Intent.UNKNOWN
+
+        return max(scores, key=scores.get) if scores else Intent.UNKNOWN
     
     def _extract_triples_from_patterns(self, text: str) -> List[Triple]:
         """
         Extract triples using regex patterns.
         """
         triples = []
-        
+
         for pattern, predicate in self._compiled_patterns:
             matches = pattern.findall(text)
-            for match in matches:
-                if len(match) >= 2:
-                    triples.append(Triple(
-                        subject=match[0].replace(" ", "_"),
-                        predicate=predicate,
-                        object=match[1].replace(" ", "_")
-                    ))
-        
+            triples.extend(
+                Triple(
+                    subject=match[0].replace(" ", "_"),
+                    predicate=predicate,
+                    object=match[1].replace(" ", "_"),
+                )
+                for match in matches
+                if len(match) >= 2
+            )
         # Also try to extract from code-like patterns
         code_triples = self._extract_code_patterns(text)
         triples.extend(code_triples)
-        
+
         return triples
     
     def _extract_code_patterns(self, text: str) -> List[Triple]:
         """
         Extract triples from code-like patterns.
         """
-        triples = []
-        
         # Class definition pattern: class Foo(Bar)
         class_pattern = re.compile(r'class\s+(\w+)\s*\((\w+)\)', re.IGNORECASE)
-        for match in class_pattern.findall(text):
-            triples.append(Triple(
-                subject=match[0],
-                predicate="extends",
-                object=match[1]
-            ))
-        
+        triples = [
+            Triple(subject=match[0], predicate="extends", object=match[1])
+            for match in class_pattern.findall(text)
+        ]
         # Function call pattern: foo.bar() or foo(bar)
         call_pattern = re.compile(r'(\w+)\.(\w+)\s*\(', re.IGNORECASE)
-        for match in call_pattern.findall(text):
-            triples.append(Triple(
+        triples.extend(
+            Triple(
                 subject="caller",
                 predicate="calls",
-                object=f"{match[0]}.{match[1]}"
-            ))
-        
+                object=f"{match[0]}.{match[1]}",
+            )
+            for match in call_pattern.findall(text)
+        )
         # Import pattern: import foo, from foo import bar
         import_pattern = re.compile(r'(?:from\s+(\w+)\s+)?import\s+(\w+)', re.IGNORECASE)
         for match in import_pattern.findall(text):
@@ -206,7 +200,7 @@ class HeuristicStrategy(DecompositionStrategy):
                     predicate="imports",
                     object=match[1]
                 ))
-        
+
         return triples
     
     def _calculate_confidence(self, intent: Intent, triples: List[Triple]) -> float:

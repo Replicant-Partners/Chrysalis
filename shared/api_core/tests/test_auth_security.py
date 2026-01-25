@@ -39,35 +39,35 @@ class TestTimingAttackResistance(unittest.TestCase):
         """Verify API key comparison timing is consistent."""
         timings_correct_length = []
         timings_wrong_prefix = []
-        
+
         # Test 100 iterations to get statistical significance
         iterations = 100
-        
+
         # Timing for wrong secrets of correct length
         for _ in range(iterations):
             wrong_key = "test_key.wrong_secret_value_123"
             start = time.perf_counter()
             verify_api_key(wrong_key)
             timings_correct_length.append(time.perf_counter() - start)
-        
+
+        wrong_key = "test_key.xxx"
         # Timing for completely wrong secrets
         for _ in range(iterations):
-            wrong_key = "test_key.xxx"
             start = time.perf_counter()
             verify_api_key(wrong_key)
             timings_wrong_prefix.append(time.perf_counter() - start)
-        
+
         # Calculate statistics
         mean1 = statistics.mean(timings_correct_length)
         mean2 = statistics.mean(timings_wrong_prefix)
         std1 = statistics.stdev(timings_correct_length)
         std2 = statistics.stdev(timings_wrong_prefix)
-        
+
         # The means should be similar (within 2 standard deviations)
         # This validates constant-time comparison
         difference = abs(mean1 - mean2)
         combined_std = (std1 + std2) / 2
-        
+
         self.assertLess(
             difference,
             2 * combined_std,
@@ -173,9 +173,8 @@ class TestProductionSecretEnforcement(unittest.TestCase):
         # This should raise RuntimeError when auth module loads
         # Due to module-level configuration, we test the logic directly
         with self.assertRaises(RuntimeError) as context:
-            if not os.getenv("JWT_SECRET") and not os.getenv("CHRYSALIS_JWT_SECRET"):
-                if os.getenv("CHRYSALIS_ENV") == "production":
-                    raise RuntimeError("JWT_SECRET is required in production")
+            if not os.getenv("JWT_SECRET") and not os.getenv("CHRYSALIS_JWT_SECRET") and os.getenv("CHRYSALIS_ENV") == "production":
+                raise RuntimeError("JWT_SECRET is required in production")
         
         self.assertIn("JWT_SECRET is required", str(context.exception))
 

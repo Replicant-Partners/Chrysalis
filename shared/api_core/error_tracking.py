@@ -126,25 +126,26 @@ def create_error_tracking_middleware(
     @app.before_request
     def enrich_error_context():
         """Enrich error context with request information."""
-        if sentry_initialized:
-            import sentry_sdk
-            with sentry_sdk.configure_scope() as scope:
-                # Add request context
-                scope.set_tag("path", request.path)
-                scope.set_tag("method", request.method)
+        if not sentry_initialized:
+            return
+        import sentry_sdk
+        with sentry_sdk.configure_scope() as scope:
+            # Add request context
+            scope.set_tag("path", request.path)
+            scope.set_tag("method", request.method)
 
-                # Add request ID for correlation
-                request_id = getattr(g, "request_id", None)
-                if request_id:
-                    scope.set_tag("request_id", request_id)
+            # Add request ID for correlation
+            request_id = getattr(g, "request_id", None)
+            if request_id:
+                scope.set_tag("request_id", request_id)
 
-                # Add user context (if available)
-                user = getattr(g, "current_user", None)
-                if user:
-                    scope.set_user({
-                        "id": getattr(user, "id", None),
-                        "username": getattr(user, "username", None),
-                    })
+            # Add user context (if available)
+            user = getattr(g, "current_user", None)
+            if user:
+                scope.set_user({
+                    "id": getattr(user, "id", None),
+                    "username": getattr(user, "username", None),
+                })
 
     # Error handler that captures and contextualizes errors
     # Following complex learner pattern: errors are learning signals
