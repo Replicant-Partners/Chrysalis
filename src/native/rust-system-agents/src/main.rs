@@ -28,6 +28,7 @@ mod agent;
 mod gateway;
 mod metrics;
 mod models;
+pub mod knowledge_graph;  // Knowledge graph for reasoning engine
 
 // Ported from TypeScript
 pub mod config;           // SystemAgentLoader - agent configuration loading

@@ -86,3 +86,17 @@ go-services/gateway
 
 # Generated eval artifacts
 results/eval-suite/
+
+# Go binaries
+go-services/bin/
+
+# Backup files
+*.bak
+*.backup
+
+# Draft/temporary files
+*DRAFT*
+*draft*
+
+# Verification audit reports (generated)
+docs/VERIFICATION_AUDIT_*.md

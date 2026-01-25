@@ -1,7 +1,7 @@
 # Chrysalis Architecture Specification
 
-**Version**: 3.2.0
-**Last Updated**: January 17, 2026
+**Version**: 3.3.0
+**Last Updated**: January 25, 2026
 **Status**: Current (Verified against source code)
 
 ---
