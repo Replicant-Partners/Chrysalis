@@ -251,7 +251,10 @@ export const CanvasApp: React.FC<CanvasAppProps> = ({
     window.location.reload();
   };
 
-  const canvasKinds: CanvasKind[] = ['settings', 'agent', 'scrapbook', 'research', 'wiki', 'terminal-browser'];
+  // Decision 3: Standalone app limited to canvas types that work without backends
+  // ✅ settings, scrapbook, research (self-contained)
+  // ❌ agent, wiki, terminal-browser (require agent/memory/terminal backends)
+  const canvasKinds: CanvasKind[] = ['settings', 'scrapbook', 'research'];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

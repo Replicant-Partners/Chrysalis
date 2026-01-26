@@ -1,21 +1,28 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
-import { MemoryDataSource, LocalStorageDataSource } from '../../src/canvas/DataSource';
+/**
+ * DataSource Tests
+ * 
+ * Updated to match current factory function API
+ */
+
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { createMemoryDataSource, createLocalStorageDataSource } from '../../src/canvas/DataSource';
+import type { CanvasDataSource } from '../../src/canvas/types';
 import type { Node, Edge } from 'reactflow';
 
 describe('MemoryDataSource', () => {
-  let dataSource: MemoryDataSource<Node, Edge>;
+  let dataSource: CanvasDataSource<Node, Edge>;
 
   beforeEach(() => {
-    dataSource = new MemoryDataSource('test-canvas');
+    dataSource = createMemoryDataSource<Node, Edge>();
   });
 
   it('should load empty canvas initially', async () => {
-    const data = await dataSource.loadAll();
+    const data = await dataSource.load();
     expect(data.nodes).toEqual([]);
     expect(data.edges).toEqual([]);
   });
 
-  it('should persist and load nodes', async () => {
+  it('should save and load nodes', async () => {
     const node: Node = {
       id: '1',
       type: 'default',
@@ -23,35 +30,108 @@ describe('MemoryDataSource', () => {
       data: { label: 'Test' },
     };
 
-    await dataSource.persist({
-      nodesAdded: [node],
-      nodesUpdated: [],
-      nodesDeleted: [],
-      edgesAdded: [],
-      edgesDeleted: [],
-    });
+    await dataSource.save([node], []);
 
-    const loaded = await dataSource.loadAll();
+    const loaded = await dataSource.load();
     expect(loaded.nodes).toHaveLength(1);
     expect(loaded.nodes[0].id).toBe('1');
   });
 
-  it('should load tile within bounds', async () => {
-    const nodes: Node[] = [
-      { id: '1', type: 'default', position: { x: 0, y: 0 }, data: {} },
-      { id: '2', type: 'default', position: { x: 100, y: 100 }, data: {} },
-      { id: '3', type: 'default', position: { x: 500, y: 500 }, data: {} },
-    ];
+  it('should save and load edges', async () => {
+    const edge: Edge = {
+      id: 'e1',
+      source: '1',
+      target: '2',
+    };
 
-    await dataSource.persist({
-      nodesAdded: nodes,
-      nodesUpdated: [],
-      nodesDeleted: [],
-      edgesAdded: [],
-      edgesDeleted: [],
-    });
+    await dataSource.save([], [edge]);
 
-    const tile = await dataSource.loadTile({ minX: 0, maxX: 200, minY: 0, maxY: 200 });
-    expect(tile.nodes).toHaveLength(2);
+    const loaded = await dataSource.load();
+    expect(loaded.edges).toHaveLength(1);
+    expect(loaded.edges[0].id).toBe('e1');
+  });
+
+  it('should notify subscribers on save', async () => {
+    const callback = jest.fn();
+    dataSource.subscribe(callback);
+
+    const node: Node = {
+      id: '1',
+      type: 'default',
+      position: { x: 0, y: 0 },
+      data: {},
+    };
+
+    await dataSource.save([node], []);
+
+    expect(callback).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'update' })
+    );
+  });
+
+  it('should unsubscribe correctly', async () => {
+    const callback = jest.fn();
+    const unsubscribe = dataSource.subscribe(callback);
+    unsubscribe();
+
+    await dataSource.save([], []);
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('should clear data on dispose', async () => {
+    const node: Node = {
+      id: '1',
+      type: 'default',
+      position: { x: 0, y: 0 },
+      data: {},
+    };
+
+    await dataSource.save([node], []);
+    dataSource.dispose();
+
+    const loaded = await dataSource.load();
+    expect(loaded.nodes).toEqual([]);
+    expect(loaded.edges).toEqual([]);
+  });
+});
+
+// LocalStorageDataSource tests require browser environment (jsdom)
+// These tests are skipped in Node.js environment
+describe.skip('LocalStorageDataSource', () => {
+  const storageKey = 'test-canvas-state';
+  let dataSource: CanvasDataSource<Node, Edge>;
+
+  beforeEach(() => {
+    localStorage.removeItem(storageKey);
+    dataSource = createLocalStorageDataSource<Node, Edge>(storageKey);
+  });
+
+  afterEach(() => {
+    localStorage.removeItem(storageKey);
+  });
+
+  it('should load empty canvas when no data exists', async () => {
+    const data = await dataSource.load();
+    expect(data.nodes).toEqual([]);
+    expect(data.edges).toEqual([]);
+  });
+
+  it('should save and load nodes from localStorage', async () => {
+    const node: Node = {
+      id: '1',
+      type: 'default',
+      position: { x: 100, y: 200 },
+      data: { label: 'Test Node' },
+    };
+
+    await dataSource.save([node], []);
+
+    const newDataSource = createLocalStorageDataSource<Node, Edge>(storageKey);
+    const loaded = await newDataSource.load();
+
+    expect(loaded.nodes).toHaveLength(1);
+    expect(loaded.nodes[0].id).toBe('1');
+    expect(loaded.nodes[0].position).toEqual({ x: 100, y: 200 });
   });
 });

@@ -1,8 +1,8 @@
 # Canvas Specification: Commons & Scratch
 
-**Version**: 1.0.0
-**Date**: January 17, 2026
-**Status**: Initial Specification
+**Version**: 1.1.0
+**Date**: January 25, 2026
+**Status**: Implementation Aligned
 
 ---
 
@@ -14,6 +14,28 @@ This document specifies two primary workspace canvases for Chrysalis:
 2. **Scratch Canvas** - Individual workspace for personal exploration
 
 Both canvases integrate with the System Agents Layer and provide a visual interface for agent-driven workflows.
+
+### Implementation Mapping
+
+| Spec Concept | Implementation | Location |
+|--------------|----------------|----------|
+| **Commons** | Workspace AgentCanvas | `src/components/AgentCanvas/AgentCanvas.tsx` |
+| **Scratch** | ScrapbookCanvas | `src/canvas/canvases/ScrapbookCanvas.tsx` |
+
+### Canonical Canvas Types
+
+The implementation supports these canvas kinds (defined in `src/canvas/types.ts`):
+
+```typescript
+type CanvasKind = 
+  | 'agent'           // Multi-agent orchestration (Commons)
+  | 'scrapbook'       // Personal notes/exploration (Scratch)
+  | 'research'        // Structured investigation
+  | 'settings'        // System configuration
+  | 'wiki'            // Shared knowledge base
+  | 'terminal-browser' // Collaborative dev workspace
+  | 'custom';         // User-defined
+```
 
 ---
 
@@ -83,10 +105,17 @@ sequenceDiagram
 
 ### 1.6 Persistence
 
-- **State**: YJS document with canvas nodes/edges
-- **Sync**: WebSocket to collaboration server
-- **Storage**: Fireproof for durability
+- **State**: YJS document with canvas nodes/edges via `createYjsDataSource()`
+- **Sync**: WebSocket to collaboration server (when YJS enabled)
+- **Storage**: Fireproof for durability (future), localStorage fallback
 - **Scope**: Shared across all users with canvas access
+
+**Data Source Integration**:
+```typescript
+// In ChrysalisWorkspace, Commons uses AgentCanvasState directly
+// managed by workspace state, synced via YJS chat arrays
+const [canvasState, setCanvasState] = useState<AgentCanvasState>(...)
+```
 
 ---
 
@@ -137,10 +166,21 @@ type ScratchWidgetType =
 
 ### 2.5 Persistence
 
-- **State**: Local storage + optional cloud sync
-- **Sync**: None (single-user)
-- **Storage**: IndexedDB for fast local access
-- **Scope**: Private to user
+- **State**: YJS document (if enabled) or localStorage via `createYjsDataSource()` / `createLocalStorageDataSource()`
+- **Sync**: Optional real-time sync when YJS enabled
+- **Storage**: localStorage for fast local access
+- **Scope**: Private to user (or shared if YJS enabled)
+
+**Data Source Integration**:
+```typescript
+// In ChrysalisWorkspace
+const scratchDataSource = useMemo(() => {
+  if (config.enableYjs && yjsDoc) {
+    return createYjsDataSource(yjsDoc, 'scratch');
+  }
+  return createLocalStorageDataSource(`chrysalis-scratch-${sessionId}`);
+}, [config.enableYjs, yjsDoc, sessionId]);
+```
 
 ---
 
@@ -271,29 +311,56 @@ interface WidgetNode {
 
 ### Phase 1: Minimal Viable Canvas (MVP)
 1. ✅ BaseCanvas component (exists)
-2. ⏳ Agent Card widget
+2. ✅ Agent Card widget (workspace AgentCanvas)
 3. ⏳ Chat Thread widget
 4. ⏳ Agent Execution Bridge (basic routing)
-5. ⏳ Local persistence (IndexedDB)
+5. ✅ Local persistence (localStorage via DataSource)
 
 ### Phase 2: Collaboration
-1. ⏳ YJS integration
+1. ✅ YJS integration (`createYjsDataSource()` in `src/canvas/DataSource.ts`)
 2. ⏳ Awareness cursors
 3. ⏳ Pipeline Tracker widget
 4. ⏳ Activity Feed widget
 
 ### Phase 3: Polish
-1. ⏳ File drop handling
+1. ✅ File drop handling (ChrysalisWorkspace)
 2. ⏳ Evaluation Result widget (rich display)
 3. ⏳ Canvas themes
 4. ⏳ Accessibility audit
+
+### Architecture Notes
+
+**Two AgentCanvas Implementations** (intentional):
+- `src/components/AgentCanvas/AgentCanvas.tsx` - Lean, workspace-specific, uses `AgentCanvasState` directly
+- `src/canvas/canvases/AgentCanvas.tsx` - Widget-based, extends BaseCanvas with widget registry
+
+**Decision**: Keep both. Workspace AgentCanvas is optimized for the three-pane layout with direct state management. Canvas system AgentCanvas is for standalone/embedded widget-based scenarios.
 
 ---
 
 ## 6. Related Documents
 
 - [Canvas Architecture](../canvas-architecture.md)
-- [Canvas UI Completion Plan](../../plans/CANVAS_UI_COMPLETION_PLAN.md)
+- [Canvas Design Decisions](../CANVAS_DESIGN_DECISIONS.md)
+- [Canvas Integration Status](../CANVAS_INTEGRATION_STATUS.md)
 - [System Agents Layer](../../Agents/system-agents/README.md)
 - [Routing Config](../../Agents/system-agents/routing_config.json)
-- [48-Hour Integration Sprint](../../plans/48_HOUR_INTEGRATION_SPRINT.md)
+
+## 7. Data Source API
+
+Canvas persistence is abstracted via `CanvasDataSource` interface (`src/canvas/DataSource.ts`):
+
+```typescript
+interface CanvasDataSource<N, E> {
+  load(): Promise<{ nodes: N[]; edges: E[] }>;
+  save(nodes: N[], edges: E[]): Promise<void>;
+  subscribe(callback: (event: DataSourceEvent<N, E>) => void): () => void;
+  dispose(): void;
+}
+```
+
+**Available Implementations**:
+- `createLocalStorageDataSource(key)` - Browser localStorage
+- `createMemoryDataSource(nodes, edges)` - In-memory (no persistence)
+- `createYjsDataSource(yjsDoc, mapKey)` - YJS CRDT for real-time sync
+- `createRemoteDataSource(options)` - REST API backend

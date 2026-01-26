@@ -19,6 +19,8 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { ChatPane } from './ChatPane';
 import { AgentCanvas, CanvasTabs, CanvasTab } from '../AgentCanvas';
+import { ScrapbookCanvas } from '../../canvas/canvases/ScrapbookCanvas';
+import { createYjsDataSource, createLocalStorageDataSource } from '../../canvas/DataSource';
 import { tokens, ThemeMode, useTheme } from '../shared';
 import {
   ChrysalisWorkspaceProps,
@@ -310,6 +312,15 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     { id: 'canvas-scratch', label: 'Scratch', isReady: true },
   ]);
   const [activeCanvasTabId, setActiveCanvasTabId] = useState<string>('canvas-commons');
+
+  // Data source for Scratch canvas (ScrapbookCanvas)
+  // Uses YJS if enabled, otherwise falls back to localStorage
+  const scratchDataSource = useMemo(() => {
+    if (config.enableYjs && yjsDoc) {
+      return createYjsDataSource(yjsDoc, 'scratch');
+    }
+    return createLocalStorageDataSource(`chrysalis-scratch-${sessionId || 'default'}`);
+  }, [config.enableYjs, yjsDoc, sessionId]);
   
   // Chat state
   const [leftMessages, setLeftMessages] = useState<ChatMessage[]>([]);
@@ -433,10 +444,13 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
     // Create left controller for primary agent
     leftControllerRef.current = new AgentChatController({
       agentId: primaryAgent.agentId,
+      agentName: primaryAgent.agentName,
+      agentType: primaryAgent.agentType,
       systemAgentsUrl: config.systemAgentsUrl,
       memoryUrl: config.memoryApiUrl,
       enableMemory: config.enableMemory,
       enableLearning: config.enableLearning,
+      useInMemory: true, // Use in-memory implementations (no external services required)
     });
     
     // Create right controller for secondary agent (if present)
@@ -445,10 +459,13 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
       // Sharing allows cross-agent memory recall which is useful
       rightControllerRef.current = new AgentChatController({
         agentId: secondaryAgent.agentId,
+        agentName: secondaryAgent.agentName,
+        agentType: secondaryAgent.agentType,
         systemAgentsUrl: config.systemAgentsUrl,
         memoryUrl: config.memoryApiUrl,
         enableMemory: config.enableMemory,
         enableLearning: config.enableLearning,
+        useInMemory: true, // Use in-memory implementations (no external services required)
       });
     }
     
@@ -1134,9 +1151,16 @@ export const ChrysalisWorkspace: React.FC<ChrysalisWorkspaceProps> = ({
             YJS sync enabled
           </div>
         )}
-        {/* Center content: custom content (e.g., CanvasApp) or default AgentCanvas */}
+        {/* Center content: custom content, or tab-based canvas (Commons=AgentCanvas, Scratch=ScrapbookCanvas) */}
         {centerContent ? (
           <div style={{ flex: 1, overflow: 'hidden' }}>{centerContent}</div>
+        ) : activeCanvasTabId === 'canvas-scratch' ? (
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <ScrapbookCanvas
+              canvasId={`scratch-${sessionId || 'default'}`}
+              dataSource={scratchDataSource}
+            />
+          </div>
         ) : (
           <AgentCanvas
             canvas={canvasState}

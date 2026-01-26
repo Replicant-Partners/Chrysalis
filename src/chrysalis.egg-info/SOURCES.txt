@@ -10,6 +10,7 @@ src/universal_adapter/__init__.py
 src/universal_adapter/__main__.py
 src/universal_adapter/api.py
 src/universal_adapter/cli.py
+src/universal_adapter/config.py
 src/universal_adapter/core.py
 src/universal_adapter/logger.py
 src/universal_adapter/schema.py

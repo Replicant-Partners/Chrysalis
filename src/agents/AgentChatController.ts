@@ -11,6 +11,8 @@
  */
 
 import { AgentMemoryAdapter, MemoryEntry, createAgentMemoryAdapter } from '../memory/AgentMemoryAdapter';
+import { createInMemoryAdapter } from '../memory/InMemoryAdapter';
+import { InMemoryAgent } from './InMemoryAgent';
 
 export interface AgentResponse {
   agentId: string;
@@ -32,10 +34,13 @@ export interface ChatMessage {
 
 export interface AgentChatControllerConfig {
   agentId: string;
+  agentName?: string;
+  agentType?: string;
   systemAgentsUrl?: string;
   memoryUrl?: string;
   enableMemory?: boolean;
   enableLearning?: boolean;
+  useInMemory?: boolean; // Use in-memory implementations instead of external services
 }
 
 /**
@@ -45,8 +50,10 @@ export class AgentChatController {
   private agentId: string;
   private systemAgentsUrl: string;
   private memoryAdapter: AgentMemoryAdapter | null;
+  private inMemoryAgent: InMemoryAgent | null;
   private enableMemory: boolean;
   private enableLearning: boolean;
+  private useInMemory: boolean;
   private conversationHistory: ChatMessage[] = [];
 
   constructor(config: AgentChatControllerConfig) {
@@ -54,11 +61,26 @@ export class AgentChatController {
     this.systemAgentsUrl = config.systemAgentsUrl || 'http://localhost:3200';
     this.enableMemory = config.enableMemory ?? true;
     this.enableLearning = config.enableLearning ?? false;
+    this.useInMemory = config.useInMemory ?? true; // Default to in-memory mode
 
     if (this.enableMemory) {
-      this.memoryAdapter = createAgentMemoryAdapter(config.memoryUrl);
+      if (this.useInMemory) {
+        this.memoryAdapter = createInMemoryAdapter();
+        console.log('[AgentChatController] Using in-memory adapter');
+      } else {
+        this.memoryAdapter = createAgentMemoryAdapter(config.memoryUrl);
+      }
     } else {
       this.memoryAdapter = null;
+    }
+
+    if (this.useInMemory) {
+      const agentName = config.agentName || 'Agent';
+      const agentType = config.agentType || 'assistant';
+      this.inMemoryAgent = new InMemoryAgent(agentName, agentType);
+      console.log('[AgentChatController] Using in-memory agent:', agentName);
+    } else {
+      this.inMemoryAgent = null;
     }
   }
 
@@ -101,9 +123,18 @@ export class AgentChatController {
       }
     }
 
-    // Send to system agents service
+    // Generate response
     const startTime = Date.now();
-    const response = await this.callSystemAgents(content, memoryContext);
+    let response: AgentResponse;
+    
+    if (this.useInMemory && this.inMemoryAgent) {
+      // Use in-memory agent
+      response = await this.inMemoryAgent.generateResponse(content, this.conversationHistory, memoryContext);
+    } else {
+      // Call external system agents service
+      response = await this.callSystemAgents(content, memoryContext);
+    }
+    
     const latencyMs = Date.now() - startTime;
 
     // Create assistant message

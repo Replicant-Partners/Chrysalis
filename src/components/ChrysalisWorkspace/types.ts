@@ -25,6 +25,7 @@ export interface YjsArrayLike<T> {
 
 export interface YjsDocLike {
   getArray<T>(name: string): YjsArrayLike<T>;
+  transact?(fn: () => void): void;
 }
 
 export interface MemoryIndicator {

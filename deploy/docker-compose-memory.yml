@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # Memory API Server
+  memory-api:
+    build:
+      context: ../
+      dockerfile: deploy/Dockerfile.memory-api
+    container_name: chrysalis-memory-api
+    ports:
+      - "8082:8082"
+    environment:
+      - DATABASE_PATH=/data/memories.db
+      - ZEP_API_KEY=${ZEP_API_KEY}
+      - MEMORY_SYNC_INTERVAL=60
+      - MEMORY_BATCH_SIZE=100
+      - CIRCUIT_BREAKER_THRESHOLD=5
+      - CIRCUIT_BREAKER_TIMEOUT=60
+      - LOG_LEVEL=INFO
+    volumes:
+      - ../data:/data
+      - ../memory_system:/app/memory_system
+      - ../Agents:/app/Agents
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - memory-network
+    restart: unless-stopped
+
+  # Prometheus Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: chrysalis-prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - memory-network
+    restart: unless-stopped
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: chrysalis-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - memory-network
+    restart: unless-stopped
+
+  # Optional: Fireproof Sync Gateway (if using Fireproof)
+  # fireproof-sync:
+  #   image: fireproof/sync-gateway:latest
+  #   container_name: chrysalis-fireproof-sync
+  #   ports:
+  #     - "4444:4444"
+  #   environment:
+  #     - SYNC_SECRET=${FIREPROOF_SYNC_SECRET}
+  #   volumes:
+  #     - fireproof-data:/data
+  #   networks:
+  #     - memory-network
+  #   restart: unless-stopped
+
+networks:
+  memory-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  # fireproof-data:

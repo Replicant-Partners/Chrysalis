@@ -229,6 +229,9 @@ const App: React.FC = () => {
     window.location.reload();
   };
 
+  // Decision 3: Standalone app limited to canvas types that work without backends
+  const workingCanvasKinds: CanvasKind[] = ['settings', 'scrapbook', 'research'];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <input
@@ -329,9 +332,9 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {/* Canvas tabs */}
+        {/* Canvas tabs - filtered to working types */}
         <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
-          {(['settings', 'agent', 'scrapbook', 'research', 'wiki', 'terminal-browser'] as CanvasKind[]).map((kind) => (
+          {workingCanvasKinds.map((kind) => (
             <button
               key={kind}
               onClick={() => {
