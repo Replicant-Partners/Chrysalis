@@ -4,6 +4,9 @@
 //! service, including agent definitions, conversation history, and routing
 //! information.
 
+// Allow dead_code for API types that are serialized/deserialized but not constructed internally
+#![allow(dead_code)]
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

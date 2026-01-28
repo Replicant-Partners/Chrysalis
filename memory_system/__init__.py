@@ -102,6 +102,25 @@ try:
 except ImportError:
     BeadsService = None
 
+# Import unified exception hierarchy
+from .exceptions import (
+    MemoryError,
+    StorageError,
+    ConnectionError as MemoryConnectionError,  # Avoid shadowing builtin
+    ValidationError,
+    RetrievalError,
+    EmbeddingError,
+    SyncError,
+    GossipError,
+    ByzantineError,
+    CircuitBreakerError,
+    RetryExhaustedError,
+    ExternalServiceError,
+    ZepError,
+    FireproofError,
+    ConfigurationError,
+)
+
 try:
     from .embedding.service import EmbeddingService, EmbeddingProvider
 except ImportError:
@@ -135,6 +154,22 @@ __all__ = [
     "BeadsService",
     "EmbeddingService",
     "EmbeddingProvider",
+    # Exceptions (unified hierarchy)
+    "MemoryError",
+    "StorageError",
+    "MemoryConnectionError",
+    "ValidationError",
+    "RetrievalError",
+    "EmbeddingError",
+    "SyncError",
+    "GossipError",
+    "ByzantineError",
+    "CircuitBreakerError",
+    "RetryExhaustedError",
+    "ExternalServiceError",
+    "ZepError",
+    "FireproofError",
+    "ConfigurationError",
 ]
 
 

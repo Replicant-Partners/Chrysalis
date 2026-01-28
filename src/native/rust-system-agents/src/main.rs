@@ -12,6 +12,9 @@
 //! - Cursor IDE adapter for LLM resource access
 //! - Agent configuration loading from JSON
 
+// Allow dead_code for API types and error variants not used in all code paths
+#![allow(dead_code)]
+
 use axum::{
     extract::{Path, State},
     http::StatusCode,

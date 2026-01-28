@@ -4,6 +4,9 @@
 //! API compatibility with the existing Go LLM Gateway, allowing for seamless
 //! replacement of the TypeScript system agents service.
 
+// Allow dead_code for API types and error variants that are part of the public API
+#![allow(dead_code)]
+
 use reqwest::{Client, ClientBuilder};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -50,19 +53,22 @@ impl GatewayClient {
         if let Some(token) = &config.auth_token {
             client_builder = client_builder.default_headers({
                 let mut headers = reqwest::header::HeaderMap::new();
-                headers.insert(
-                    reqwest::header::AUTHORIZATION,
-                    format!("Bearer {}", token)
-                        .parse()
-                        .expect("Valid authorization header"),
-                );
+                // Authorization header format is always valid ASCII
+                if let Ok(header_value) = format!("Bearer {}", token).parse() {
+                    headers.insert(reqwest::header::AUTHORIZATION, header_value);
+                } else {
+                    log::warn!("Invalid authorization token format, skipping header");
+                }
                 headers
             });
         }
 
         let client = client_builder
             .build()
-            .expect("Failed to build HTTP client");
+            .unwrap_or_else(|e| {
+                log::error!("Failed to build HTTP client: {}, using default", e);
+                Client::new()
+            });
 
         Self { client, config }
     }
@@ -289,4 +295,122 @@ pub struct UsageInfo {
     pub prompt_tokens: u32,
     pub completion_tokens: u32,
     pub total_tokens: u32,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{
+        routing::post,
+        Router,
+        Json,
+        extract::State,
+        http::StatusCode,
+    };
+    use std::sync::{Arc, Mutex};
+    use tokio::net::TcpListener;
+
+    #[derive(Clone)]
+    struct MockState {
+        failures: Arc<Mutex<u32>>,
+        max_failures: u32,
+    }
+
+    async fn mock_chat_handler(
+        State(state): State<MockState>,
+        Json(_payload): Json<ChatCompletionRequest>,
+    ) -> Result<Json<ChatCompletionResponse>, StatusCode> {
+        let mut failures = state.failures.lock().unwrap();
+        if *failures < state.max_failures {
+            *failures += 1;
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+
+        Ok(Json(ChatCompletionResponse {
+            content: "Success".to_string(),
+            model: "test-model".to_string(),
+            provider: "test-provider".to_string(),
+            usage: None,
+        }))
+    }
+
+    #[tokio::test]
+    async fn test_retry_logic() {
+        let state = MockState {
+            failures: Arc::new(Mutex::new(0)),
+            max_failures: 2,
+        };
+
+        let app = Router::new()
+            .route("/v1/chat", post(mock_chat_handler))
+            .with_state(state);
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let client = GatewayClient::new(&format!("http://{}", addr), None);
+        
+        let request = ChatCompletionRequest {
+            agent_id: None,
+            model: "test".to_string(),
+            messages: vec![],
+            temperature: None,
+            max_tokens: None,
+            stream: None,
+            stop: None,
+            tool_choice: None,
+            tools: None,
+        };
+
+        // Should succeed after 2 retries (default is 3)
+        let response = client.chat_completion(&request).await;
+        assert!(response.is_ok());
+    }
+    
+    #[tokio::test]
+    async fn test_auth_failure_no_retry() {
+        let app = Router::new()
+            .route("/v1/chat", post(|_: Json<ChatCompletionRequest>| async {
+                Err::<Json<ChatCompletionResponse>, StatusCode>(StatusCode::UNAUTHORIZED)
+            }));
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let client = GatewayClient::new(&format!("http://{}", addr), None);
+        
+        let request = ChatCompletionRequest {
+            agent_id: None,
+            model: "test".to_string(),
+            messages: vec![],
+            temperature: None,
+            max_tokens: None,
+            stream: None,
+            stop: None,
+            tool_choice: None,
+            tools: None,
+        };
+
+        // Should fail immediately without retries
+        let start = std::time::Instant::now();
+        let response = client.chat_completion(&request).await;
+        let duration = start.elapsed();
+        
+        assert!(response.is_err());
+        // Should be fast (no backoff)
+        assert!(duration.as_millis() < 500);
+        
+        match response.unwrap_err() {
+            GatewayError::ApiError(status, _) => assert_eq!(status, StatusCode::UNAUTHORIZED),
+            _ => panic!("Expected ApiError"),
+        }
+    }
 }

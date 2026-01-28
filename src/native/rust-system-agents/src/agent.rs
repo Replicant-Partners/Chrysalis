@@ -3,6 +3,9 @@
 //! This module provides functionality for managing system agents,
 //! including routing logic, conversation history, and agent coordination.
 
+// Allow dead_code for fields that are stored but not yet consumed
+#![allow(dead_code)]
+
 use crate::models::{ConversationHistoryEntry, ConversationMessage, ConversationThread, RoutingDecision, SystemAgent, SCMGateResult, ArbiterCandidate, CandidateRanking, ArbiterMetrics};
 use crate::gateway::GatewayClient;
 use chrono::Utc;
@@ -143,15 +146,14 @@ impl AgentManager {
         selected_tags: &HashSet<String>,
         diversity_weight: f32,
     ) -> f32 {
-        if candidate.complement_tags.is_none() || candidate.complement_tags.as_ref().unwrap().is_empty() {
-            return 0.0;
-        }
+        // Use if-let to safely handle Option without unwrap()
+        let tags = match &candidate.complement_tags {
+            Some(tags) if !tags.is_empty() => tags,
+            _ => return 0.0,
+        };
         
-        let tags = candidate.complement_tags.as_ref().unwrap();
         let new_tags: Vec<&String> = tags.iter().filter(|t| !selected_tags.contains(*t)).collect();
-        let bonus = (new_tags.len() as f32 / tags.len() as f32) * diversity_weight;
-        
-        bonus
+        (new_tags.len() as f32 / tags.len() as f32) * diversity_weight
     }
     
     /// Rank candidates by score (priority * confidence) with optional diversity bonus
@@ -178,8 +180,8 @@ impl AgentManager {
         if strategy == "priority_then_diversity" {
             let mut selected_tags = HashSet::new();
             
-            // Sort by initial score
-            rankings.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+            // Sort by initial score (handle NaN gracefully)
+            rankings.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
             
             // Apply diversity bonus iteratively
             for ranking in &mut rankings {
@@ -201,8 +203,8 @@ impl AgentManager {
             }
         }
         
-        // Final sort by score
-        rankings.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+        // Final sort by score (handle NaN gracefully)
+        rankings.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
         
         // Round-robin override
         if strategy == "round_robin" && !rankings.is_empty() {
@@ -290,14 +292,7 @@ impl AgentManager {
         let lower_message = message.to_lowercase();
         
         // Check if agent's name is mentioned in the message
-        let agent_name = match agent_id {
-            "ada" => "ada",
-            "lea" => "lea",
-            "phil" => "phil",
-            "david" => "david",
-            "milton" => "milton",
-            _ => agent_id,
-        };
+        let agent_name = agent_id;
         
         if lower_message.contains(agent_name) {
             should_speak = true;
@@ -366,7 +361,7 @@ impl AgentManager {
     /// Record that an agent responded
     fn record_turn(&mut self, agent_id: &str) {
         let timestamp = chrono::Utc::now().timestamp_millis() as u64;
-        self.turn_history.entry(agent_id.to_string()).or_insert_with(Vec::new).push(timestamp);
+        self.turn_history.entry(agent_id.to_string()).or_default().push(timestamp);
         
         // Keep only last 100 turns to prevent memory growth
         if let Some(history) = self.turn_history.get_mut(agent_id) {
@@ -389,7 +384,7 @@ impl AgentManager {
         let mut candidates = Vec::new();
         
         // For each agent, evaluate gate result
-        for (agent_id, _agent) in &self.agents {
+        for agent_id in self.agents.keys() {
             let gate_result = self.evaluate_gate(agent_id, message, current_agent);
             
             // Get complement tags from coordination policy (simplified)
@@ -409,7 +404,7 @@ impl AgentManager {
         }
         
         // Apply arbitration
-        let (winners, _losers, pile_on_prevented, _arbitration_reason) = 
+        let (winners, _losers, _pile_on_prevented, _arbitration_reason) = 
             self.select_winners(candidates, 2, 5); // max 2 agents per turn, 5 global budget
         
         // Generate responses from winning agents
@@ -511,7 +506,7 @@ impl AgentManager {
     pub fn route_message(
         &self,
         message: &str,
-        current_agent: Option<&str>,
+        _current_agent: Option<&str>,
     ) -> Result<RoutingDecision, String> {
         // Simple routing logic based on message content
         // In a real implementation, this would be more sophisticated
@@ -538,7 +533,7 @@ impl AgentManager {
             .map(|id| crate::models::SuggestedAgent {
                 agent_id: id.clone(),
                 confidence: 0.3,
-                reasoning: format!("Alternative agent option"),
+                reasoning: "Alternative agent option".to_string(),
             })
             .collect();
         
@@ -570,7 +565,7 @@ impl AgentManager {
         
         self.conversation_history
             .entry(thread_id.to_string())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(entry);
     }
     
